@@ -1,0 +1,19 @@
+trajectories:
+  tension:
+    type: bezier
+    waypoints:
+      - [0, 0.2]
+      - [8, 0.4]
+      - [16, 0.85]
+      - [24, 0.6]
+      - [32, 0.3]
+  density:
+    type: stepped
+    sections:
+      intro: 0.3
+      verse: 0.5
+      chorus: 0.9
+      outro: 0.3
+  predictability:
+    target: 0.65
+    variance: 0.15

@@ -1,0 +1,24 @@
+title: "Untitled BGM"
+genre: "general"
+key: "C major"
+tempo_bpm: 100
+time_signature: "4/4"
+total_bars: 24
+instruments:
+  - name: piano
+    role: melody
+  - name: acoustic_bass
+    role: bass
+sections:
+  - name: intro
+    bars: 4
+    dynamics: "mp"
+  - name: verse
+    bars: 8
+    dynamics: "mf"
+  - name: chorus
+    bars: 8
+    dynamics: "f"
+  - name: outro
+    bars: 4
+    dynamics: "mp"

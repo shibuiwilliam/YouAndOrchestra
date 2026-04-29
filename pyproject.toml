@@ -1,0 +1,86 @@
+[project]
+name = "yao"
+version = "0.1.0"
+description = "YaO — An agentic music production environment built on Claude Code"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+dependencies = [
+    "pretty-midi>=0.2.10",
+    "music21>=9.1",
+    "librosa>=0.10",
+    "pydantic>=2.5",
+    "pyloudnorm>=0.1",
+    "structlog>=24.1",
+    "pyyaml>=6.0",
+    "numpy>=1.24",
+    "scipy>=1.11",
+    "soundfile>=0.12",
+    "click>=8.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "mypy>=1.8",
+    "ruff>=0.2",
+    "types-PyYAML",
+]
+
+[project.scripts]
+yao = "cli.main:cli"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+packages = ["yao"]
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = [
+    "pretty_midi",
+    "pretty_midi.*",
+    "pydantic",
+    "pydantic.*",
+    "structlog",
+    "structlog.*",
+    "music21",
+    "music21.*",
+    "librosa",
+    "librosa.*",
+    "pyloudnorm",
+    "pyloudnorm.*",
+    "soundfile",
+    "soundfile.*",
+    "scipy",
+    "scipy.*",
+    "numpy",
+    "numpy.*",
+    "yaml",
+    "yaml.*",
+]
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 99
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "A", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: integration tests",
+    "golden: golden output tests",
+    "music_constraints: music theory constraint tests",
+]

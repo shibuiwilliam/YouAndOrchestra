@@ -1,0 +1,47 @@
+site_name: YaO Documentation
+site_description: An agentic music production environment built on Claude Code
+repo_url: https://github.com/yao-project/yao
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep purple
+    accent: amber
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quick Start: getting-started/quickstart.md
+    - Spec Templates: getting-started/templates.md
+    - Audio Setup: getting-started/audio-setup.md
+  - User Guide:
+    - Composition Specs: guide/composition-spec.md
+    - Trajectory System: guide/trajectories.md
+    - CLI Reference: guide/cli-reference.md
+    - Constraint System: guide/constraints.md
+  - Architecture:
+    - Layer Model: architecture/layers.md
+    - Design Decisions: architecture/decisions.md
+  - Reference:
+    - Glossary: reference/glossary.md
+    - Provenance Schema: reference/provenance-schema.md
+    - Supported Instruments: reference/instruments.md
+    - Music Theory: reference/music-theory.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search

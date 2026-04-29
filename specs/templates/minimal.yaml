@@ -1,0 +1,13 @@
+title: "Minimal Example"
+genre: "general"
+key: "C major"
+tempo_bpm: 120
+time_signature: "4/4"
+total_bars: 8
+instruments:
+  - name: piano
+    role: melody
+sections:
+  - name: verse
+    bars: 8
+    dynamics: "mf"

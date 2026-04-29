@@ -1,0 +1,25 @@
+# YaO Aesthetic Reference Library Catalog
+#
+# All reference works must have their license status documented here.
+# Works with unclear licensing MUST NOT be added (CLAUDE.md §3).
+#
+# Schema:
+#   - id: unique identifier
+#     title: work title
+#     description: abstract feature description (no artist names)
+#     license: license type (CC0, CC-BY, public_domain, etc.)
+#     source: where the file was obtained
+#     features_extracted: list of extracted feature types
+#     path_midi: relative path to MIDI file (if available)
+#     path_musicxml: relative path to MusicXML file (if available)
+#
+# Example:
+#   - id: ref-001
+#     title: "Classical Minuet in G"
+#     description: "3/4 time, stepwise melody, simple I-V-I harmony, period structure"
+#     license: public_domain
+#     source: "IMSLP (expired copyright)"
+#     features_extracted: [melody_contour, chord_progression, rhythm_pattern]
+#     path_midi: midi/ref-001.mid
+
+references: []

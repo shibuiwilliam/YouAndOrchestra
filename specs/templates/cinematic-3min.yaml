@@ -1,0 +1,34 @@
+title: "Untitled Cinematic"
+genre: "cinematic"
+key: "D minor"
+tempo_bpm: 80
+time_signature: "4/4"
+total_bars: 48
+instruments:
+  - name: strings_ensemble
+    role: pad
+  - name: piano
+    role: melody
+  - name: cello
+    role: bass
+  - name: french_horn
+    role: harmony
+sections:
+  - name: intro
+    bars: 8
+    dynamics: "pp"
+  - name: build
+    bars: 8
+    dynamics: "mp"
+  - name: chorus
+    bars: 8
+    dynamics: "f"
+  - name: verse
+    bars: 8
+    dynamics: "mf"
+  - name: chorus
+    bars: 8
+    dynamics: "ff"
+  - name: outro
+    bars: 8
+    dynamics: "p"
