@@ -6,10 +6,10 @@
 ```python
 @dataclass(frozen=True)
 class Note:
-    pitch: MidiNote          # 0–127
+    pitch: MidiNote          # 0-127
     start_beat: Beat         # position in beats
     duration_beats: Beat     # length in beats
-    velocity: Velocity       # 1–127
+    velocity: Velocity       # 1-127
     instrument: str          # canonical instrument name
 
     def end_beat(self) -> Beat
@@ -40,7 +40,7 @@ class CompositionSpec(BaseModel):
     title: str
     genre: str = "general"
     key: str = "C major"
-    tempo_bpm: float = 120.0
+    tempo_bpm: float = 120.0       # 20.0-300.0
     time_signature: str = "4/4"
     total_bars: int = 0
     instruments: list[InstrumentSpec]
@@ -67,7 +67,76 @@ class ProvenanceLog:
     def query_by_operation(self, operation: str) -> list[ProvenanceRecord]
     def query_by_layer(self, layer: str) -> list[ProvenanceRecord]
     def explain_chain(self) -> str
+    def to_json(self) -> str
     def save(self, path: Path) -> None
+```
+
+## IR Types
+
+### `ChordFunction` (`yao.ir.harmony`)
+```python
+@dataclass(frozen=True)
+class ChordFunction:
+    degree: int                         # scale degree 0-6
+    quality: str                        # "maj", "min", "dim", "aug", "dom7", etc.
+    inversion: int = 0                  # 0=root, 1=first, 2=second
+    applied_to: int | None = None       # secondary dominants (V/V -> applied_to=4)
+    roman: str                          # "I", "ii", "V7/V", etc.
+
+class ChordProgression:
+    chords: tuple[ChordFunction, ...]
+    key_root: str
+    scale_type: str
+
+# Key functions:
+diatonic_quality(degree: int, scale_type: str) -> str
+realize(chord: ChordFunction, key_root: str, scale_type: str, octave=4) -> list[MidiNote]
+make_progression(degrees: list[int], key_root: str, scale_type: str) -> ChordProgression
+```
+
+### `Motif` (`yao.ir.motif`)
+```python
+@dataclass(frozen=True)
+class Motif:
+    notes: tuple[Note, ...]
+    label: str = ""
+    transformations_applied: tuple[str, ...] = ()
+
+# Transformations:
+transpose(motif, semitones: int) -> Motif
+invert(motif, axis: MidiNote | None = None) -> Motif
+retrograde(motif) -> Motif
+augment(motif, factor: float = 2.0) -> Motif
+diminish(motif, factor: float = 2.0) -> Motif
+```
+
+### `Voicing` (`yao.ir.voicing`)
+```python
+@dataclass(frozen=True)
+class Voicing:
+    pitches: tuple[MidiNote, ...]
+    chord_function: ChordFunction | None = None
+
+check_parallel_fifths(voicing_a, voicing_b) -> list[tuple[int, int]]
+check_parallel_octaves(voicing_a, voicing_b) -> list[tuple[int, int]]
+voice_distance(voicing_a, voicing_b) -> int
+```
+
+### Timing (`yao.ir.timing`)
+```python
+beats_to_ticks(beats: Beat, ppq=DEFAULT_PPQ) -> Tick
+ticks_to_beats(ticks: Tick, ppq=DEFAULT_PPQ) -> Beat
+beats_to_seconds(beats: Beat, bpm: BPM) -> Seconds
+seconds_to_beats(seconds: Seconds, bpm: BPM) -> Beat
+bars_to_beats(bars: int, time_signature: str = "4/4") -> Beat
+```
+
+### Notation (`yao.ir.notation`)
+```python
+note_name_to_midi(name: str) -> MidiNote     # "C4" -> 60
+midi_to_note_name(midi: MidiNote) -> str     # 60 -> "C4"
+parse_key(key: str) -> tuple[str, str]       # "C major" -> ("C", "major")
+scale_notes(root: str, scale_type: str, octave: int = 4) -> list[MidiNote]
 ```
 
 ## Generator API
@@ -85,6 +154,58 @@ class GeneratorBase(ABC):
 
 Register with `@register_generator("name")`. Select at runtime with `get_generator("name")`.
 
+Currently registered: `rule_based`, `stochastic`.
+
+## Conductor API
+
+```python
+class Conductor:
+    def compose_from_description(
+        self, description: str,
+        project_name: str | None = None,
+        max_iterations: int = 3,
+    ) -> ConductorResult
+
+    def compose_from_spec(
+        self, spec: CompositionSpec,
+        trajectory: TrajectorySpec | None = None,
+        project_name: str | None = None,
+        max_iterations: int = 3,
+    ) -> ConductorResult
+
+    def regenerate_section(
+        self, current_score: ScoreIR,
+        spec: CompositionSpec,
+        section_name: str,
+        trajectory: TrajectorySpec | None = None,
+        project_name: str | None = None,
+        seed_override: int | None = None,
+    ) -> ConductorResult
+```
+
+### `ConductorResult`
+```python
+@dataclass
+class ConductorResult:
+    score: ScoreIR
+    spec: CompositionSpec
+    midi_path: Path
+    stems: dict[str, Path]
+    analysis: AnalysisReport
+    evaluation: EvaluationReport
+    provenance: ProvenanceLog
+    iterations: int
+    iteration_history: list[EvaluationReport]
+    output_dir: Path
+    adaptations_applied: list[str]
+```
+
+### Feedback (`yao.conductor.feedback`)
+```python
+suggest_adaptations(eval_report: EvaluationReport, spec: CompositionSpec) -> list[SpecAdaptation]
+apply_adaptations(spec: CompositionSpec, adaptations: list[SpecAdaptation]) -> CompositionSpec
+```
+
 ## Verification API
 
 ```python
@@ -94,7 +215,7 @@ lint_score(score: ScoreIR) -> list[LintResult]
 # Analysis
 analyze_score(score: ScoreIR) -> AnalysisReport
 
-# Evaluation
+# Evaluation (5 dimensions: structure, melody, harmony, arrangement, acoustics)
 evaluate_score(score, spec, trajectory=None) -> EvaluationReport
 
 # Diffing
@@ -105,12 +226,27 @@ format_diff(diff: ScoreDiff) -> str
 check_constraints(score, constraints: ConstraintsSpec) -> list[LintResult]
 ```
 
+### `EvaluationReport`
+```python
+class EvaluationReport:
+    title: str
+    scores: list[EvaluationScore]
+    passed: bool           # all metrics within tolerance
+    pass_rate: float       # fraction passed
+    def summary(self) -> str
+    def save(self, path: Path) -> None
+```
+
 ## Rendering API
 
 ```python
 # MIDI output
 write_midi(score, output_path, ppq=220) -> Path
+score_ir_to_midi(score, ppq=220) -> pretty_midi.PrettyMIDI
 write_stems(score, output_dir, ppq=220) -> dict[str, Path]
+
+# MIDI input (reverse: load existing MIDI back to ScoreIR)
+load_midi_to_score_ir(midi_path, spec=None, title=None) -> ScoreIR
 
 # Audio
 render_midi_to_wav(midi_path, output_path, soundfont_path=None) -> Path
@@ -125,10 +261,26 @@ current_iteration(project_output_dir) -> Path | None
 
 | Command | Description |
 |---------|-------------|
-| `yao compose <spec> [options]` | Generate composition from YAML spec |
+| `yao conduct "<description>"` | Natural language to MIDI with auto-iteration |
+| `yao conduct --spec <yaml> --project <name>` | Run Conductor on existing spec |
+| `yao compose <spec> [options]` | Generate composition from YAML spec (single pass) |
+| `yao regenerate-section <project> <section>` | Regenerate one section, preserve rest |
 | `yao render <midi>` | Render MIDI to WAV |
 | `yao validate <spec>` | Validate spec YAML |
 | `yao evaluate <project>` | Evaluate latest iteration |
 | `yao diff <spec> --seed-a N --seed-b M` | Compare two stochastic generations |
 | `yao explain <spec> [--query op]` | Explain provenance decisions |
 | `yao new-project <name>` | Create project skeleton |
+
+## Error Hierarchy
+
+```
+YaOError (base)
++-- SpecValidationError (field: str | None)
++-- ConstraintViolationError
+|   +-- RangeViolationError (instrument, note, valid_low, valid_high)
++-- LayerViolationError
++-- RenderError
++-- VerificationError
++-- ProvenanceError
+```

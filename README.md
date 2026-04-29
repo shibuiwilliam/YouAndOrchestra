@@ -494,7 +494,7 @@ YaO also ships with 7 example projects in `specs/projects/` covering styles from
 
 ## Music Theory Built In
 
-### 41 Instruments Across 9 Families
+### 38 Instruments Across 9 Families
 
 | Family | Instruments |
 |---|---|

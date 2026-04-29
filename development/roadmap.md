@@ -2,44 +2,55 @@
 
 ## Value-Driven Milestones
 
-### Milestone 1: "Describe and Hear" (current)
+### Milestone 1: "Describe and Hear" -- COMPLETE
 **User value:** Describe what you want in YAML, generate it, hear it.
 
 **Delivered:**
-- CLI compose pipeline (spec → generate → MIDI → stems → analysis → evaluation)
+- CLI compose pipeline (spec -> generate -> MIDI -> stems -> analysis -> evaluation)
 - Rule-based and stochastic generators with seed/temperature control
 - 4 spec templates (minimal, bgm-90sec, cinematic-3min, trajectory-example)
 - Trajectory-driven dynamics (tension curves shape velocity)
 - Auto-versioned iterations (v001, v002, ...)
 - Full provenance tracking
+- 7 example projects in specs/projects/
 
 **Next:**
 - Instant MIDI playback preview (`yao preview`)
 - Strudel pattern emitter for browser-based playback
 - Example projects with pre-generated output in `gallery/`
 
-### Milestone 2: "Iterate and Improve"
+### Milestone 2: "Iterate and Improve" -- COMPLETE
 **User value:** Tell YaO what you don't like, and it improves.
 
 **Delivered:**
+- Conductor feedback loop (generate -> evaluate -> adapt -> regenerate)
+- Natural language composition via `yao conduct "<description>"`
+- Section-level regeneration (keep rest, regenerate one section)
 - Score diff with modified note tracking
-- CLI diff and explain commands
-- Quality evaluation across structure/melody/harmony
+- CLI diff, explain, conduct, and regenerate-section commands
+- Quality evaluation across structure, melody, and harmony (8 metrics)
+- Feedback-driven spec adaptation (9 metric-to-adaptation rules)
+- MIDI reader (load existing MIDI back to ScoreIR for analysis)
+- Evaluation report persistence (evaluation.json)
+- 7 Claude Code slash commands with full workflow integration
+- 7 subagent definitions for specialized roles
 
 **Next:**
-- Section-level regeneration (keep rest, regenerate one section)
-- Feedback-driven refinement loop via `/critique` → `/regenerate-section`
 - Session/Project Runtime layer for stateful iteration
+- Feedback-driven refinement loop persistence across sessions
 
-### Milestone 3: "Richer Music"
+### Milestone 3: "Richer Music" -- IN PROGRESS
 **User value:** Music sounds professional with proper harmony, rhythm, dynamics.
 
 **Delivered:**
 - Harmony IR (Roman numeral chord functions, realize(), diatonic quality)
-- Motif transformations (transpose, invert, retrograde, augment)
+- Motif transformations (transpose, invert, retrograde, augment, diminish)
 - Voice leading checks (parallel fifths/octaves, voice distance)
 - Constraint system (must/must_not/prefer/avoid with scoped rules)
 - Walking bass patterns, syncopation, dotted rhythms
+- Section-aware chord progressions (different patterns per section type)
+- Diatonic 7th chords
+- 4 skills populated (cinematic genre, voice-leading, piano, tension-resolution)
 
 **Next:**
 - Negative space enforcement in generators

@@ -4,7 +4,7 @@ Music theory constants used by YaO's generation and verification layers.
 
 ## Scales
 
-YaO supports 13 scale types, defined in `src/yao/constants/music.py`:
+YaO supports 14 scale types, defined in `src/yao/constants/music.py`:
 
 | Scale | Intervals | Example (C root) |
 |-------|-----------|-------------------|
@@ -21,6 +21,7 @@ YaO supports 13 scale types, defined in `src/yao/constants/music.py`:
 | pentatonic_minor | 0,3,5,7,10 | C Eb F G Bb |
 | blues | 0,3,5,6,7,10 | C Eb F F# G Bb |
 | whole_tone | 0,2,4,6,8,10 | C D E F# G# A# |
+| chromatic | 0,1,2,3,4,5,6,7,8,9,10,11 | All 12 notes |
 
 ## Chord Types
 

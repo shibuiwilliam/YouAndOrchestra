@@ -2,36 +2,46 @@
 
 **An agentic music production environment built on Claude Code.**
 
-YaO turns music composition into a structured, reproducible engineering process. You describe music in YAML, AI generates it following music theory rules, and every decision is tracked with full provenance.
+YaO turns music composition into a structured, reproducible engineering process. Describe what you want in plain English or YAML, and YaO generates a full MIDI score with per-instrument stems, quality evaluation, and a provenance log explaining every decision.
 
 > *Your vision. Your taste. Your soul. — and an Orchestra ready to serve.*
 
 ## What YaO Does
 
-- **Spec-driven composition** — Describe your music in YAML and generate full MIDI scores
-- **40+ instruments** across 9 families — piano, strings, brass, woodwinds, guitar, bass, synths, saxophone, percussion
+- **Natural language composition** — Describe music in plain English and the Conductor builds a spec, generates, evaluates, and iterates automatically
+- **Spec-driven composition** — Describe your music in YAML and generate full MIDI scores with precise control
+- **38 instruments** across 9 families — piano, strings, brass, woodwinds, guitar, bass, synths, saxophone, percussion
 - **Trajectory curves** — Shape tension, density, and emotion over time independently from notes
 - **Two generator strategies** — Deterministic (rule-based) and stochastic (seed + temperature)
-- **Quality evaluation** — Automated scoring across structure, melody, and harmony
+- **Quality evaluation** — Automated scoring across structure, melody, and harmony with feedback-driven iteration
 - **Music linting** — Catches range violations, parallel fifths, velocity issues
+- **Constraint system** — Define musical rules scoped to sections, instruments, or bar ranges
 - **Provenance tracking** — Every note has a recorded rationale
 - **Per-instrument stems** — Individual MIDI files per instrument
+- **Section regeneration** — Regenerate one section while keeping the rest intact
+- **Score diffing** — Compare two generations to see exactly what changed musically
+- **MIDI reader** — Load existing MIDI files back into ScoreIR for analysis and iteration
+- **Claude Code integration** — 7 slash commands and 7 subagents for interactive workflow
 
 ## Quick Example
 
 ```bash
-pip install -e ".[dev]"
+# Natural language (fastest)
+yao conduct "a calm piano piece in D minor for studying, 90 seconds"
+
+# From a spec (full control)
 yao compose specs/templates/bgm-90sec.yaml
 ```
 
 This generates:
 ```
-outputs/projects/untitled-bgm/iterations/v001/
-  ├── full.mid           # Complete MIDI score
-  ├── stems/piano.mid    # Per-instrument stems
-  ├── stems/acoustic_bass.mid
-  ├── analysis.json      # Quality analysis
-  └── provenance.json    # Decision log
+outputs/projects/<name>/iterations/v001/
+  +-- full.mid           # Complete MIDI score
+  +-- stems/piano.mid    # Per-instrument stems
+  +-- stems/acoustic_bass.mid
+  +-- analysis.json      # Quality analysis
+  +-- evaluation.json    # Quality scores with pass/fail
+  +-- provenance.json    # Decision log
 ```
 
 ## Design Philosophy
@@ -41,3 +51,18 @@ outputs/projects/untitled-bgm/iterations/v001/
 3. **Constraints liberate** — YAML specs and music theory rules are scaffolds, not cages
 4. **Time-axis first** — Design trajectory curves before writing notes
 5. **Human ear is truth** — Automated scores inform, humans decide
+
+## Documentation
+
+- [Quick Start](getting-started/quickstart.md) — Install and generate your first piece
+- [Templates](getting-started/templates.md) — Ready-to-use spec templates
+- [Audio Setup](getting-started/audio-setup.md) — FluidSynth installation for WAV rendering
+- [CLI Reference](guide/cli-reference.md) — All commands and options
+- [Composition Spec](guide/composition-spec.md) — YAML schema reference
+- [Trajectories](guide/trajectories.md) — Time-axis curves for emotion shaping
+- [Constraints](guide/constraints.md) — Musical rule system
+- [Instruments](reference/instruments.md) — 38 instruments with MIDI ranges
+- [Music Theory](reference/music-theory.md) — Scales, chords, dynamics
+- [Provenance Schema](reference/provenance-schema.md) — Decision log format
+- [Claude Code Workflow](tutorials/claude-code-workflow.md) — Interactive music creation
+- [Glossary](reference/glossary.md) — YaO terminology

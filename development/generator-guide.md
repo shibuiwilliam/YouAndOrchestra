@@ -71,13 +71,13 @@ def test_generates_notes():
 
 ## Rules for Generators
 
-1. **Always return `(ScoreIR, ProvenanceLog)`** — no exceptions
+1. **Always return `(ScoreIR, ProvenanceLog)`** -- no exceptions
 2. **Record every decision** in provenance with a meaningful rationale
-3. **Never hardcode velocity** — derive from `DYNAMICS_TO_VELOCITY` + trajectory
-4. **Never silently clamp ranges** — raise `RangeViolationError` or skip the note
+3. **Never hardcode velocity** -- derive from `DYNAMICS_TO_VELOCITY` + trajectory
+4. **Never silently clamp ranges** -- raise `RangeViolationError` or skip the note
 5. **Use `yao.ir.timing`** for all beat/tick/second conversions
 6. **Use `yao.ir.notation`** for all note name/MIDI conversions
-7. **Respect `GenerationConfig`** — use `spec.generation.seed` and `spec.generation.temperature`
+7. **Respect `GenerationConfig`** -- use `spec.generation.seed` and `spec.generation.temperature`
 
 ## Existing Generators
 
@@ -86,15 +86,25 @@ def test_generates_notes():
 - Root-note bass following I-IV-V-I
 - Block chord harmonization with triads
 - 4 rhythm patterns cycling per bar
-- No randomness — same spec always produces same output
+- No randomness -- same spec always produces same output
+- Good for baselines and golden tests
 
 ### `stochastic` (seeded randomness)
-- Melodic contour shaping (arch, ascending, descending)
-- Interval variety (steps, leaps of 3rds/4ths/5ths)
-- Section-aware chord progressions (verse/chorus/bridge patterns)
-- Diatonic 7th chords (temperature-dependent)
-- 12 rhythm patterns with syncopation, dotted rhythms
-- Walking bass with passing tones
-- Velocity humanization (±5)
-- Rest insertion for negative space
-- Temperature: 0.0 = conservative, 1.0 = adventurous
+- **Melodic contour shaping** -- arch, ascending, descending, wave patterns with position-aware biases
+- **Interval variety** -- steps, leaps of 3rds/4ths/5ths (temperature-dependent)
+- **Section-aware chord progressions** -- different patterns for intro, verse, chorus, bridge, outro
+- **Diatonic 7th chords** -- maj7, min7, dom7 (probability increases with temperature)
+- **12 melody rhythm patterns** -- syncopation, dotted rhythms, pickup eighths, mixed patterns
+- **6 bass rhythm patterns** -- whole notes, walking quarters, root-fifth patterns
+- **6 rhythm-part patterns** -- straight eighths, syncopated, offbeat emphasis
+- **Walking bass** with passing tones and approach notes
+- **Velocity humanization** -- dynamics-derived with trajectory tension modifier
+- **Rest insertion** for negative space
+- **Per-instrument deterministic RNG** -- master_seed:instrument:section for reproducibility
+- **Temperature semantics**: 0.0 = conservative (mostly steps, basic chords), 1.0 = adventurous (leaps, 7th chords, complex rhythms)
+
+## Planned Generators
+
+- **Markov chain** -- Probabilistic transitions learned from corpus
+- **Constraint solver** -- Backtracking search with hard constraints
+- **AI bridge** -- External model integration via API

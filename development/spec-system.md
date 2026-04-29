@@ -44,6 +44,8 @@ generation:
   temperature: 0.5      # 0.0=conservative, 1.0=adventurous
 ```
 
+Sections can also have per-section overrides for `tempo_bpm`, `time_signature`, and `key`.
+
 ### `trajectory.yaml` (optional)
 
 Shapes musical parameters over time, independent of note content.
@@ -63,24 +65,24 @@ trajectories:
 
 ### `intent.md` (recommended)
 
-Natural language description of the composition's intent. 1-3 sentences. This is the human's voice — never auto-generated.
+Natural language description of the composition's intent. 1-3 sentences. This is the human's voice -- never auto-generated.
 
 ```markdown
 # My Piece
 
 A melancholic piano piece for a rainy afternoon. Builds slowly from
 quiet contemplation to a bittersweet climax, then fades to silence.
-Not sad — more like comfortable loneliness.
+Not sad -- more like comfortable loneliness.
 ```
 
 ## Additional Spec Files (when relevant)
 
 | File | Schema | Used When |
 |------|--------|-----------|
-| `constraints.yaml` | `ConstraintsSpec` | Custom constraint rules |
-| `references.yaml` | `ReferencesSpec` | Aesthetic reference works |
+| `constraints.yaml` | `ConstraintsSpec` | Custom constraint rules (must/must_not/prefer/avoid) |
+| `references.yaml` | `ReferencesSpec` | Aesthetic reference works (positive/negative polarity) |
 | `negative-space.yaml` | `NegativeSpaceSpec` | Intentional silence design |
-| `production.yaml` | `ProductionSpec` | Mix/master parameters |
+| `production.yaml` | `ProductionSpec` | Mix/master parameters (LUFS, stereo width, reverb) |
 | `arrangement.yaml` | _(planned)_ | Arrangement transformations |
 
 ## Templates
@@ -89,35 +91,45 @@ Located in `specs/templates/`:
 
 | Template | Description |
 |----------|-------------|
-| `minimal.yaml` | 8 bars, solo piano, simplest possible spec |
-| `bgm-90sec.yaml` | 90-second BGM, piano + bass, 4 sections |
-| `cinematic-3min.yaml` | 3-minute cinematic, 4 instruments, 6 sections |
-| `trajectory-example.yaml` | Trajectory curves demonstration |
+| `minimal.yaml` | 8 bars, solo piano, C major, 120 BPM -- simplest possible spec |
+| `bgm-90sec.yaml` | 90-second BGM, piano + acoustic bass, 4 sections, dynamic arc |
+| `cinematic-3min.yaml` | 3-minute cinematic in D minor, 4 instruments, 6 sections |
+| `trajectory-example.yaml` | Trajectory curves demonstration (bezier, stepped, linear) |
+
+## Example Projects
+
+YaO ships with 7 example projects in `specs/projects/`, covering styles from classical piano trio to hard rock game BGM. Each includes `composition.yaml` and `intent.md`.
 
 ## Project Structure
 
 ```
 specs/projects/my-song/
-  ├── composition.yaml    # Required
-  ├── intent.md           # Recommended
-  ├── trajectory.yaml     # Optional
-  └── constraints.yaml    # Optional
+  +-- composition.yaml    # Required
+  +-- intent.md           # Recommended
+  +-- trajectory.yaml     # Optional
+  +-- constraints.yaml    # Optional
 
 outputs/projects/my-song/
-  └── iterations/
-      ├── v001/
-      │   ├── full.mid
-      │   ├── stems/
-      │   ├── analysis.json
-      │   └── provenance.json
-      └── v002/
+  +-- iterations/
+      +-- v001/
+      |   +-- full.mid
+      |   +-- stems/
+      |   +-- analysis.json
+      |   +-- evaluation.json
+      |   +-- provenance.json
+      +-- v002/
 ```
 
 ## Validation
 
 All specs are validated via Pydantic at load time:
-- `CompositionSpec.from_yaml(path)` — validates all fields, key, tempo range, dynamics
-- `TrajectorySpec.from_yaml(path)` — validates waypoint values in [0, 1]
+- `CompositionSpec.from_yaml(path)` -- validates all fields, key, tempo range (20-300 BPM), dynamics
+- `TrajectorySpec.from_yaml(path)` -- validates waypoint values in [0, 1]
 - Validation failures raise `SpecValidationError` with field name and actionable message
 
 CLI validation: `yao validate specs/projects/my-song/composition.yaml`
+
+Loading helpers:
+```python
+from yao.schema.loader import load_composition_spec, load_trajectory_spec, load_project_specs
+```

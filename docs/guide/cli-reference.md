@@ -2,9 +2,23 @@
 
 ## Commands
 
+### `yao conduct "<description>"`
+
+Natural language to MIDI with automatic evaluate-adapt-regenerate loop.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--spec` | — | Path to existing composition.yaml (alternative to description) |
+| `-p, --project` | — | Project name for output directory |
+| `-n, --iterations` | 3 | Maximum feedback-loop iterations |
+
+When given a description, the Conductor parses mood keywords (e.g., "happy" -> C major, "dark" -> C minor), selects instruments from keywords (e.g., "orchestra", "piano", "jazz"), and builds a full spec automatically.
+
+When given `--spec`, it runs the feedback loop on an existing spec, evaluating and adapting until all metrics pass or max iterations is reached.
+
 ### `yao compose <spec.yaml>`
 
-Generate a composition from a YAML specification.
+Generate a composition from a YAML specification (single pass, no iteration).
 
 | Option | Default | Description |
 |--------|---------|-------------|
@@ -15,9 +29,20 @@ Generate a composition from a YAML specification.
 | `--soundfont` | auto-detect | Path to SoundFont |
 | `--stems / --no-stems` | on | Per-instrument MIDI stems |
 
+### `yao regenerate-section <project> <section>`
+
+Regenerate a specific section while preserving the rest of the composition.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--seed` | — | Seed override for regeneration |
+| `-n, --iterations` | 3 | Maximum feedback-loop iterations |
+
+Creates a new iteration with only the specified section regenerated and merged with existing content.
+
 ### `yao render <file.mid>`
 
-Render a MIDI file to WAV audio.
+Render a MIDI file to WAV audio. Requires FluidSynth.
 
 | Option | Default | Description |
 |--------|---------|-------------|
@@ -26,15 +51,15 @@ Render a MIDI file to WAV audio.
 
 ### `yao validate <spec.yaml>`
 
-Validate a composition spec without generating.
+Validate a composition spec without generating. Shows key, tempo, time signature, bars, instruments, and sections.
 
 ### `yao evaluate <project>`
 
-Run quality evaluation on a project's latest iteration.
+Run quality evaluation on a project's latest iteration. Scores across structure, melody, and harmony.
 
 ### `yao diff <spec.yaml>`
 
-Compare two stochastic generations of the same spec.
+Compare two stochastic generations of the same spec. Shows added, removed, and modified notes.
 
 | Option | Default | Description |
 |--------|---------|-------------|
@@ -51,4 +76,4 @@ Show provenance decisions for a composition.
 
 ### `yao new-project <name>`
 
-Create a new project skeleton under `specs/projects/`.
+Create a new project skeleton under `specs/projects/` with a `composition.yaml` template and `intent.md` placeholder.

@@ -16,7 +16,9 @@ Terms used throughout the YaO codebase and documentation.
 
 **Composition** — A complete musical work. Preferred over "track" or "song" in YaO code.
 
-**Conductor** — The human project owner. Makes all final creative decisions (Principle 5).
+**Conductor (human)** — The human project owner. Makes all final creative decisions (Principle 5).
+
+**Conductor (engine)** — YaO's agentic orchestration engine that automates the generate-evaluate-adapt-regenerate loop. See `yao.conductor.conductor.Conductor`.
 
 **Constraint Violation** — An error raised when a musical rule is broken (e.g., note out of instrument range). See `yao.errors.ConstraintViolationError`.
 
@@ -24,7 +26,9 @@ Terms used throughout the YaO codebase and documentation.
 
 **Iteration** — A versioned generation of a composition within a project. Numbered `v001`, `v002`, etc. Stored under `outputs/projects/<name>/iterations/`.
 
-**IR (Intermediate Representation)** — The internal data structures (`Note`, `Part`, `Section`, `ScoreIR`) that represent music between generation and rendering. Layer 3 in the architecture.
+**Evaluation Report** — Quality scores across 5 dimensions (structure, melody, harmony, arrangement, acoustics) with pass/fail thresholds. Used by the Conductor to decide whether to iterate. See `yao.verify.evaluator.EvaluationReport`.
+
+**IR (Intermediate Representation)** — The internal data structures (`Note`, `Part`, `Section`, `ScoreIR`) that represent music between generation and rendering. Layer 1 in the architecture.
 
 **MIDI Note Number** — Integer 0–127 representing pitch. C4 (middle C) = 60. See `yao.types.MidiNote`.
 
