@@ -19,6 +19,7 @@ import structlog
 
 from yao.conductor.feedback import apply_adaptations, suggest_adaptations
 from yao.conductor.result import ConductorResult
+from yao.generators.legacy_adapter import generate_via_v2_pipeline
 from yao.generators.registry import get_generator
 from yao.ir.score_ir import ScoreIR, Section
 from yao.reflect.provenance import ProvenanceLog
@@ -183,13 +184,16 @@ class Conductor:
             output_dir = next_iteration_dir(project_dir)
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            # Generate
-            generator = get_generator(current_spec.generation.strategy)
-            score, gen_provenance = generator.generate(current_spec, trajectory)
+            # Generate via v2 pipeline (Spec → MPIR → ScoreIR)
+            score, gen_provenance = generate_via_v2_pipeline(
+                current_spec, trajectory
+            )
 
             # Merge provenance
             for record in gen_provenance.records:
                 combined_provenance.add(record)
+            for dec in gen_provenance.recoverables:
+                combined_provenance.record_recoverable(dec)
 
             # Write outputs
             midi_path = write_midi(score, output_dir / "full.mid")
@@ -221,6 +225,7 @@ class Conductor:
                 "conductor_iteration",
                 iteration=iteration,
                 pass_rate=f"{eval_report.pass_rate:.0%}",
+                quality_score=f"{eval_report.quality_score:.1f}",
                 notes=len(score.all_notes()),
             )
 

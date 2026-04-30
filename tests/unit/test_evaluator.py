@@ -11,6 +11,7 @@ from yao.verify.evaluator import (
     EvaluationReport,
     evaluate_harmony,
     evaluate_melody,
+    evaluate_rhythm,
     evaluate_score,
     evaluate_structure,
 )
@@ -141,3 +142,65 @@ class TestEvaluationReportSerialization:
         data = json.loads(report.to_json())
         assert data["title"] == "Empty"
         assert data["scores"] == []
+
+
+class TestEvaluateRhythm:
+    def test_rhythm_variety_calculated(self, minimal_spec: CompositionSpec) -> None:
+        from yao.generators.rule_based import RuleBasedGenerator
+
+        gen = RuleBasedGenerator()
+        score, _ = gen.generate(minimal_spec)
+        results = evaluate_rhythm(score)
+
+        variety = next(r for r in results if r.metric == "rhythm_variety")
+        assert 0.0 <= variety.score <= 1.0
+
+    def test_syncopation_ratio_calculated(self, minimal_spec: CompositionSpec) -> None:
+        from yao.generators.rule_based import RuleBasedGenerator
+
+        gen = RuleBasedGenerator()
+        score, _ = gen.generate(minimal_spec)
+        results = evaluate_rhythm(score)
+
+        synco = next(r for r in results if r.metric == "syncopation_ratio")
+        assert 0.0 <= synco.score <= 1.0
+
+    def test_rhythm_with_empty_score(self) -> None:
+        score = ScoreIR(
+            title="Empty", tempo_bpm=120.0, time_signature="4/4",
+            key="C major", sections=(),
+        )
+        results = evaluate_rhythm(score)
+        assert results == []
+
+
+class TestQualityScore:
+    def test_quality_score_empty_report(self) -> None:
+        report = EvaluationReport(title="Empty")
+        assert report.quality_score == 5.0
+
+    def test_quality_score_in_range(self, minimal_spec: CompositionSpec) -> None:
+        from yao.generators.rule_based import RuleBasedGenerator
+
+        gen = RuleBasedGenerator()
+        score, _ = gen.generate(minimal_spec)
+        report = evaluate_score(score, minimal_spec)
+        assert 1.0 <= report.quality_score <= 10.0
+
+    def test_quality_score_in_summary(self, minimal_spec: CompositionSpec) -> None:
+        from yao.generators.rule_based import RuleBasedGenerator
+
+        gen = RuleBasedGenerator()
+        score, _ = gen.generate(minimal_spec)
+        report = evaluate_score(score, minimal_spec)
+        assert "Quality Score:" in report.summary()
+
+    def test_quality_score_in_json(self, minimal_spec: CompositionSpec) -> None:
+        from yao.generators.rule_based import RuleBasedGenerator
+
+        gen = RuleBasedGenerator()
+        score, _ = gen.generate(minimal_spec)
+        report = evaluate_score(score, minimal_spec)
+        data = json.loads(report.to_json())
+        assert "quality_score" in data
+        assert 1.0 <= data["quality_score"] <= 10.0

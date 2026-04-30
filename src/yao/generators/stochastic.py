@@ -15,7 +15,9 @@ Same spec + different seed = different composition.
 from __future__ import annotations
 
 import hashlib
+import math
 import random
+from dataclasses import dataclass
 
 from yao.constants.instruments import INSTRUMENT_RANGES
 from yao.constants.music import CHORD_INTERVALS, DYNAMICS_TO_VELOCITY
@@ -84,6 +86,31 @@ _PAD_RHYTHM_POOL: list[list[float]] = [
 ]
 
 
+@dataclass(frozen=True)
+class StochasticConfig:
+    """Configurable parameters for the stochastic generator.
+
+    These were previously hardcoded throughout the generator.
+    Centralizing them makes tuning easier and behaviour auditable.
+    """
+
+    melody_duration_factor: float = 0.85
+    bass_duration_factor: float = 0.85
+    chord_duration_factor: float = 0.85
+    pad_duration_factor: float = 0.95
+    rhythm_duration_factor: float = 0.5
+    rest_probability_scale: float = 0.15
+    chord_velocity_offset: int = -10
+    pad_velocity_offset: int = -20
+    velocity_humanize_range: int = 5
+    downbeat_accent: int = 10
+    offbeat_accent: int = -5
+    low_temp_threshold: float = 0.3
+    seventh_chord_probability_scale: float = 0.4
+    dominant_seventh_probability_scale: float = 0.5
+    tension_velocity_scale: float = 0.4
+
+
 @register_generator("stochastic")
 class StochasticGenerator(GeneratorBase):
     """Stochastic composition generator with controlled randomness.
@@ -93,6 +120,7 @@ class StochasticGenerator(GeneratorBase):
     """
 
     _provenance: ProvenanceLog
+    config: StochasticConfig = StochasticConfig()
 
     def _record_recovery(
         self,
@@ -406,13 +434,16 @@ class StochasticGenerator(GeneratorBase):
         beats_per_bar = bars_to_beats(1, time_signature)
         scale_idx = len(all_scale) // 3  # start in lower-middle
 
+        # Select contour for this section
+        contour = self._choose_contour(section_spec.name, temperature, rng)
+
         for bar in range(bars):
             bar_start = bars_to_beats(start_bar + bar, time_signature)
             rhythm = rng.choice(_MELODY_RHYTHM_POOL)
             velocity = self._compute_velocity(section_spec, start_bar + bar, trajectory)
 
             # Occasional rest (temperature-dependent)
-            if rng.random() < temperature * 0.15:
+            if rng.random() < temperature * self.config.rest_probability_scale:
                 self._record_recovery(
                     "REST_INSERTED", "info",
                     f"bar {start_bar + bar}", "rest",
@@ -427,7 +458,7 @@ class StochasticGenerator(GeneratorBase):
                     break
 
                 # Movement: step, leap, or repeat (temperature controls leap probability)
-                movement = self._choose_movement(rng, temperature, bar, bars)
+                movement = self._choose_movement(rng, temperature, bar, bars, contour)
                 scale_idx = max(0, min(len(all_scale) - 1, scale_idx + movement))
 
                 pitch = all_scale[scale_idx]
@@ -468,7 +499,7 @@ class StochasticGenerator(GeneratorBase):
                 note = Note(
                     pitch=pitch,
                     start_beat=bar_start + beat_offset,
-                    duration_beats=dur * 0.85,
+                    duration_beats=dur * self.config.melody_duration_factor,
                     velocity=final_vel,
                     instrument=instrument,
                 )
@@ -576,36 +607,96 @@ class StochasticGenerator(GeneratorBase):
 
         return result
 
-    def _choose_movement(
-        self, rng: random.Random, temperature: float, bar: int, total_bars: int
-    ) -> int:
-        """Choose melodic movement based on position and temperature.
+    # Section name → preferred contour mapping.
+    # At low temperature (<0.3), arch is always used for predictability.
+    _SECTION_CONTOURS: dict[str, str] = {
+        "intro": "arch",
+        "verse": "arch",
+        "chorus": "ascending",
+        "bridge": "wave",
+        "outro": "descending",
+        "solo": "ascending",
+        "default": "arch",
+    }
 
-        Uses probabilistic arch contour: biases direction without forcing it,
-        producing natural direction changes (~35-45% reversal rate).
+    def _choose_contour(
+        self, section_name: str, temperature: float, rng: random.Random
+    ) -> str:
+        """Select melodic contour type based on section and temperature.
+
+        Args:
+            section_name: Section identifier (intro, verse, chorus, etc.).
+            temperature: Variation control (low = conservative).
+            rng: Seeded RNG for reproducibility.
+
+        Returns:
+            Contour type string: arch, ascending, descending, or wave.
         """
-        # Position-based direction probability (soft arch contour)
+        # Low temperature = always arch for predictability
+        if temperature < self.config.low_temp_threshold:
+            return "arch"
+
+        preferred = self._SECTION_CONTOURS.get(
+            section_name, self._SECTION_CONTOURS["default"]
+        )
+
+        # Higher temperature = chance of random contour
+        if rng.random() < temperature * 0.3:
+            return rng.choice(["arch", "ascending", "descending", "wave"])
+        return preferred
+
+    def _choose_movement(
+        self,
+        rng: random.Random,
+        temperature: float,
+        bar: int,
+        total_bars: int,
+        contour: str = "arch",
+    ) -> int:
+        """Choose melodic movement based on position, temperature, and contour.
+
+        Contour shapes bias direction probability without forcing it,
+        producing natural direction changes.
+
+        Args:
+            rng: Seeded RNG.
+            temperature: Variation control.
+            bar: Current bar within section.
+            total_bars: Total bars in section.
+            contour: Contour type (arch, ascending, descending, wave).
+
+        Returns:
+            Signed step in scale degrees.
+        """
         progress = bar / max(total_bars - 1, 1)
-        if progress < 0.4:  # noqa: PLR2004
-            up_probability = 0.65  # lean upward, but 35% chance of down
-        elif progress > 0.7:  # noqa: PLR2004
-            up_probability = 0.35  # lean downward, but 35% chance of up
+
+        if contour == "ascending":
+            # Bias upward, level off at the end
+            up_probability = 0.5 if progress > 0.85 else 0.7  # noqa: PLR2004
+        elif contour == "descending":
+            # Level start, then bias downward
+            up_probability = 0.5 if progress < 0.15 else 0.3  # noqa: PLR2004
+        elif contour == "wave":
+            # Sinusoidal oscillation between 0.3 and 0.7
+            up_probability = 0.5 + 0.2 * math.sin(progress * 2 * math.pi)
         else:
-            up_probability = 0.5  # neutral
+            # arch (default): rise, plateau, fall
+            if progress < 0.4:  # noqa: PLR2004
+                up_probability = 0.65
+            elif progress > 0.7:  # noqa: PLR2004
+                up_probability = 0.35
+            else:
+                up_probability = 0.5
 
         # Step vs leap probability
         r = rng.random()
         if r < 0.5 - temperature * 0.2:
-            # Stepwise (adjacent scale degree)
             step = 1
         elif r < 0.8 - temperature * 0.1:
-            # Small leap (2-3 scale degrees)
             step = rng.choice([2, 3])
         else:
-            # Large leap (4-5 scale degrees)
             step = rng.choice([4, 5])
 
-        # Apply probabilistic direction
         direction = 1 if rng.random() < up_probability else -1
         return step * direction
 
@@ -674,7 +765,7 @@ class StochasticGenerator(GeneratorBase):
                 note = Note(
                     pitch=pitch,
                     start_beat=bar_start + beat_offset,
-                    duration_beats=dur * 0.85,
+                    duration_beats=dur * self.config.bass_duration_factor,
                     velocity=velocity,
                     instrument=instrument,
                 )
@@ -682,6 +773,72 @@ class StochasticGenerator(GeneratorBase):
                 beat_offset += dur
 
         return notes
+
+    @staticmethod
+    def _apply_voicing(
+        pitches: list[int],
+        voicing_type: str,
+    ) -> list[int]:
+        """Apply a voicing transformation to chord pitches.
+
+        Args:
+            pitches: Root-position chord pitches (ascending order).
+            voicing_type: One of root, first_inversion, second_inversion,
+                         open, drop2.
+
+        Returns:
+            Reordered pitches with the voicing applied.
+        """
+        if len(pitches) < 2 or voicing_type == "root":  # noqa: PLR2004
+            return pitches
+
+        result = list(pitches)
+        if voicing_type == "first_inversion":
+            # Move lowest pitch up an octave
+            result[0] += 12
+            result.sort()
+        elif voicing_type == "second_inversion" and len(result) >= 3:  # noqa: PLR2004
+            # Move two lowest pitches up an octave
+            result[0] += 12
+            result[1] += 12
+            result.sort()
+        elif voicing_type == "open" and len(result) >= 3:  # noqa: PLR2004
+            # Drop 2nd note down an octave for wider spacing
+            result[1] -= 12
+            result.sort()
+        elif voicing_type == "drop2" and len(result) >= 3:  # noqa: PLR2004
+            # Take 2nd-from-top note, drop it an octave (jazz voicing)
+            idx = len(result) - 2
+            result[idx] -= 12
+            result.sort()
+
+        return result
+
+    def _choose_voicing(
+        self, temperature: float, rng: random.Random
+    ) -> str:
+        """Select chord voicing type based on temperature.
+
+        Args:
+            temperature: Variation control.
+            rng: Seeded RNG.
+
+        Returns:
+            Voicing type string.
+        """
+        if temperature < self.config.low_temp_threshold:
+            return "root"
+
+        if temperature < 0.6:  # noqa: PLR2004
+            return rng.choices(
+                ["root", "first_inversion", "second_inversion"],
+                weights=[6, 2, 2],
+            )[0]
+
+        return rng.choices(
+            ["root", "first_inversion", "second_inversion", "open", "drop2"],
+            weights=[4, 2, 2, 1, 1],
+        )[0]
 
     def _generate_chords(
         self,
@@ -698,7 +855,7 @@ class StochasticGenerator(GeneratorBase):
         rng: random.Random,
         temperature: float,
     ) -> list[Note]:
-        """Generate chords with diatonic quality and optional 7ths."""
+        """Generate chords with diatonic quality, optional 7ths, and voicings."""
         octave = self._target_octave(instrument, "chord")
         root_scale = scale_notes(root_note, scale_type, octave)
         beats_per_bar = bars_to_beats(1, time_signature)
@@ -717,11 +874,13 @@ class StochasticGenerator(GeneratorBase):
             quality = diatonic_quality(degree, scale_type)
 
             # Sometimes use 7th chords (temperature-dependent)
-            if quality == "maj" and rng.random() < temperature * 0.4:
+            seventh_prob = self.config.seventh_chord_probability_scale
+            dom_prob = self.config.dominant_seventh_probability_scale
+            if quality == "maj" and rng.random() < temperature * seventh_prob:
                 quality = "maj7"
-            elif quality == "min" and rng.random() < temperature * 0.4:
+            elif quality == "min" and rng.random() < temperature * seventh_prob:
                 quality = "min7"
-            elif quality == "maj" and degree == 4 and rng.random() < temperature * 0.5:
+            elif quality == "maj" and degree == 4 and rng.random() < temperature * dom_prob:
                 quality = "dom7"  # V7
 
             chord_intervals = CHORD_INTERVALS.get(quality)
@@ -735,14 +894,19 @@ class StochasticGenerator(GeneratorBase):
                 )
                 chord_intervals = CHORD_INTERVALS["maj"]
 
-            chord_vel = max(velocity - 10, 1)
-            for interval in chord_intervals:
-                pitch = root_pitch + interval
+            chord_vel = max(velocity + self.config.chord_velocity_offset, 1)
+
+            # Build chord pitches and apply voicing
+            chord_pitches = [root_pitch + iv for iv in chord_intervals]
+            voicing = self._choose_voicing(temperature, rng)
+            chord_pitches = self._apply_voicing(chord_pitches, voicing)
+
+            for pitch in chord_pitches:
                 if self._is_in_range(pitch, instrument):
                     note = Note(
                         pitch=pitch,
                         start_beat=bar_start,
-                        duration_beats=beats_per_bar * 0.85,
+                        duration_beats=beats_per_bar * self.config.chord_duration_factor,
                         velocity=chord_vel,
                         instrument=instrument,
                     )
@@ -819,8 +983,8 @@ class StochasticGenerator(GeneratorBase):
                         note = Note(
                             pitch=pitch,
                             start_beat=bar_start + beat_offset,
-                            duration_beats=dur * 0.95,  # legato
-                            velocity=max(velocity - 20, 1),  # softer than chords
+                            duration_beats=dur * self.config.pad_duration_factor,
+                            velocity=max(velocity + self.config.pad_velocity_offset, 1),
                             instrument=instrument,
                         )
                         notes.append(note)
@@ -885,7 +1049,7 @@ class StochasticGenerator(GeneratorBase):
                 pitch = rng.choice(rhythm_pitches)
 
                 # Accent pattern: downbeat louder, offbeats softer
-                accent = 10 if i == 0 else -5
+                accent = self.config.downbeat_accent if i == 0 else self.config.offbeat_accent
                 final_vel = max(1, min(127, velocity + accent))
 
                 # Velocity humanization
@@ -895,7 +1059,7 @@ class StochasticGenerator(GeneratorBase):
                 note = Note(
                     pitch=pitch,
                     start_beat=bar_start + beat_offset,
-                    duration_beats=dur * 0.5,  # staccato
+                    duration_beats=dur * self.config.rhythm_duration_factor,
                     velocity=final_vel,
                     instrument=instrument,
                 )
@@ -914,7 +1078,7 @@ class StochasticGenerator(GeneratorBase):
         base_velocity = DYNAMICS_TO_VELOCITY.get(section_spec.dynamics, 80)
         if trajectory is not None:
             tension = trajectory.value_at("tension", bar)
-            modifier = (tension - 0.5) * 0.4
+            modifier = (tension - 0.5) * self.config.tension_velocity_scale
             base_velocity = int(base_velocity * (1.0 + modifier))
         clamped = max(1, min(127, base_velocity))
         if clamped != base_velocity:

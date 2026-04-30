@@ -111,17 +111,10 @@ def _plan_to_traj_spec(plan: MusicalPlan) -> TrajectorySpec | None:
 
 
 def _tension_to_dynamics(tension: float) -> str:
-    """Map tension [0,1] to a dynamics marking."""
-    if tension < 0.15:
-        return "pp"
-    if tension < 0.3:
-        return "p"
-    if tension < 0.45:
-        return "mp"
-    if tension < 0.6:
-        return "mf"
-    if tension < 0.75:
-        return "f"
-    if tension < 0.9:
-        return "ff"
-    return "fff"
+    """Map tension [0,1] to a dynamics marking.
+
+    Delegates to the canonical mapping in constants/music.py.
+    """
+    from yao.constants.music import tension_to_dynamics
+
+    return tension_to_dynamics(tension)

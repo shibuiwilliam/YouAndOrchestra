@@ -6,24 +6,27 @@ Technical documentation for contributors and AI agents developing YaO.
 
 | Document | Purpose |
 |----------|---------|
-| [architecture.md](architecture.md) | System architecture, layer model (including Layer 3.5 MPIR), dependency rules, data flow |
-| [api-reference.md](api-reference.md) | Public API surface with module-by-module reference (v1 + v2.0 types) |
-| [generator-guide.md](generator-guide.md) | How to build plan generators and note realizers (v2.0 two-stage architecture) |
-| [roadmap.md](roadmap.md) | Value-driven development roadmap with milestones and phase plan |
-| [testing-strategy.md](testing-strategy.md) | Test categories (447 tests), helpers, golden tests, v2.0 testing |
-| [spec-system.md](spec-system.md) | YAML specification system design (v1 + v2 formats, templates, validation) |
+| [architecture.md](architecture.md) | Layer model, dependency rules, data flow |
+| [api-reference.md](api-reference.md) | Public API surface, module-by-module reference |
+| [generator-guide.md](generator-guide.md) | How to build plan generators and note realizers |
+| [spec-system.md](spec-system.md) | YAML specification system (v1 + v2, templates, validation) |
+| [testing-strategy.md](testing-strategy.md) | Test categories, helpers, golden tests |
+| [roadmap.md](roadmap.md) | Development roadmap with milestones |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Quick setup and contribution guide |
 
 ## See Also
 
-- [PROJECT.md](../PROJECT.md) — Project vision, design philosophy, and Capability Matrix
-- [CLAUDE.md](../CLAUDE.md) — Core development rules (v2.0)
-- [.claude/guides/](../.claude/guides/) — Focused development guides (architecture, coding conventions, music engineering, plan engineering, testing, workflow, matrix discipline, critique rules)
-- [docs/](../docs/) — User-facing documentation
+- [PROJECT.md](../PROJECT.md) — Current architecture and Capability Matrix
+- [CLAUDE.md](../CLAUDE.md) — Development rules
+- [VISION.md](../VISION.md) — Target architecture and future plans
+- [.claude/guides/](../.claude/guides/) — Focused guides (architecture, coding conventions, music engineering, testing, workflow, matrix discipline)
 
 ## Current State
 
 - **Phase:** Alpha (MPIR foundation)
-- **Tests:** 447 (unit, integration, scenario, constraint, golden)
-- **Generators:** 2 legacy (rule_based, stochastic) + 2 plan generators (form, harmony)
-- **Spec formats:** v1 (flat) + v2 (11-section)
-- **Architecture:** 8-layer model with Layer 3.5 (Musical Plan IR)
+- **Tests:** ~492 (unit 448, integration 15, scenario 16, constraint 7, golden 6)
+- **Source files:** 79 Python modules in src/yao/
+- **Generators:** 2 legacy (rule_based, stochastic) wrapped as NoteRealizers + 2 plan generators (form, harmony)
+- **Spec formats:** v1 (flat YAML) + v2 (11-section with emotion, melody, harmony, drums, etc.)
+- **Pipeline:** Spec → PlanOrchestrator → MusicalPlan → NoteRealizer → ScoreIR → MIDI
+- **Evaluation:** 10 metrics across 3 dimensions, MetricGoal type system, quality score 1.0-10.0

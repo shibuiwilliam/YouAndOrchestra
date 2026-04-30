@@ -83,4 +83,5 @@ markers = [
     "integration: integration tests",
     "golden: golden output tests",
     "music_constraints: music theory constraint tests",
+    "subagent: subagent evaluation tests",
 ]

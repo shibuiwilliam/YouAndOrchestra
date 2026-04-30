@@ -11,6 +11,7 @@ from __future__ import annotations
 # Ensure plan generators are registered
 import yao.generators.plan.form_planner as _fp  # noqa: F401
 import yao.generators.plan.harmony_planner as _hp  # noqa: F401
+from yao.errors import SpecValidationError
 from yao.generators.plan.base import PLAN_GENERATORS
 from yao.ir.plan.musical_plan import MusicalPlan
 from yao.ir.trajectory import MultiDimensionalTrajectory
@@ -39,7 +40,7 @@ class PlanOrchestrator:
         if form_key not in PLAN_GENERATORS:
             available = ", ".join(sorted(PLAN_GENERATORS.keys()))
             msg = f"Plan generator '{form_key}' not found. Available: {available}"
-            raise ValueError(msg)
+            raise SpecValidationError(msg, field="generation.plan_strategy")
 
         self._form_planner = PLAN_GENERATORS[form_key]()
         self._harmony_planner = PLAN_GENERATORS[harmony_key]()

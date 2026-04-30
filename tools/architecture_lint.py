@@ -120,7 +120,61 @@ def check_file(filepath: Path) -> list[str]:
                     f"{source_layer}/ (allowed: {', '.join(sorted(allowed_layers))})"
                 )
 
+        # Rule A: Note realizers must not import CompositionSpec at module level.
+        # Exceptions:
+        # - TYPE_CHECKING guards (type annotations only)
+        # - Function-level imports (plan→v1 conversion during Phase alpha)
+        # - Legacy adapter file
+        if _is_note_realizer(filepath) and not _is_legacy_adapter(filepath):
+            if import_name in (
+                "yao.schema.composition",
+                "yao.schema.composition_v2",
+            ):
+                if (
+                    not _is_guarded_import(source, lineno)
+                    and not _is_function_scope_import(source, lineno)
+                ):
+                    violations.append(
+                        f"{filepath}:{lineno}: Rule A violation — "
+                        f"Note realizer imports {import_name} at module level. "
+                        f"Use MusicalPlan as the sole spec information source."
+                    )
+
     return violations
+
+
+def _is_note_realizer(filepath: Path) -> bool:
+    """Check if a file is in the note realizer directory."""
+    rel = filepath.relative_to(SRC_DIR)
+    parts = rel.parts
+    return len(parts) >= 3 and parts[0] == "generators" and parts[1] == "note"
+
+
+def _is_legacy_adapter(filepath: Path) -> bool:
+    """Check if a file is the legacy adapter (exempt from Rule A)."""
+    return filepath.name == "legacy_adapter.py"
+
+
+def _is_function_scope_import(source: str, lineno: int) -> bool:
+    """Check if an import at the given line is inside a function (local import)."""
+    lines = source.split("\n")
+    if lineno - 1 >= len(lines):
+        return False
+    import_line = lines[lineno - 1]
+    return import_line.startswith(("    ", "\t"))
+
+
+def _is_guarded_import(source: str, lineno: int) -> bool:
+    """Check if an import at the given line is inside a TYPE_CHECKING block."""
+    lines = source.split("\n")
+    for i in range(lineno - 1, -1, -1):
+        line = lines[i]
+        stripped = line.strip()
+        if stripped == "if TYPE_CHECKING:":
+            return True
+        if stripped and not stripped.startswith("#") and not line.startswith((" ", "\t")):
+            break
+    return False
 
 
 def main() -> int:

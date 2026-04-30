@@ -23,6 +23,16 @@ from yao.schema.composition import CompositionSpec
 from yao.schema.trajectory import TrajectorySpec
 from yao.verify.metric_goal import MetricGoal, MetricGoalType, evaluate_metric
 
+# Dimension weights for user-facing quality score.
+# Melody and harmony are most perceptible to listeners.
+_DIMENSION_WEIGHTS: dict[str, float] = {
+    "structure": 0.25,
+    "melody": 0.30,
+    "harmony": 0.25,
+    "arrangement": 0.10,
+    "acoustics": 0.10,
+}
+
 
 @dataclass(frozen=True)
 class EvaluationScore:
@@ -75,6 +85,39 @@ class EvaluationReport:
             return 1.0
         return sum(1 for s in self.scores if s.passed) / len(self.scores)
 
+    @property
+    def quality_score(self) -> float:
+        """Aggregate quality score (1.0–10.0) for user-facing display.
+
+        Weights dimensions: melody 30%, harmony 25%, structure 25%,
+        arrangement 10%, acoustics 10%. Empty reports return 5.0.
+
+        Returns:
+            Score between 1.0 and 10.0.
+        """
+        if not self.scores:
+            return 5.0
+
+        dim_averages: dict[str, float] = {}
+        dim_counts: dict[str, int] = {}
+        for s in self.scores:
+            dim_averages[s.dimension] = dim_averages.get(s.dimension, 0.0) + s.score
+            dim_counts[s.dimension] = dim_counts.get(s.dimension, 0) + 1
+
+        weighted_sum = 0.0
+        total_weight = 0.0
+        for dim, weight in _DIMENSION_WEIGHTS.items():
+            if dim in dim_averages:
+                avg = dim_averages[dim] / dim_counts[dim]
+                weighted_sum += avg * weight
+                total_weight += weight
+
+        if total_weight == 0.0:
+            return 5.0
+
+        normalized = weighted_sum / total_weight
+        return 1.0 + normalized * 9.0
+
     def to_json(self) -> str:
         """Serialize the report to a JSON string.
 
@@ -82,6 +125,7 @@ class EvaluationReport:
             JSON string with all evaluation data.
         """
         data = asdict(self)
+        data["quality_score"] = round(self.quality_score, 1)
         return json.dumps(data, indent=2, ensure_ascii=False)
 
     def save(self, path: Path) -> None:
@@ -108,6 +152,7 @@ class EvaluationReport:
         """
         lines = [
             f"=== Evaluation: {self.title} ===",
+            f"Quality Score: {self.quality_score:.1f}/10",
             f"Pass rate: {self.pass_rate:.0%} "
             f"({sum(1 for s in self.scores if s.passed)}/{len(self.scores)})",
         ]
@@ -382,6 +427,45 @@ def evaluate_harmony(score: ScoreIR) -> list[EvaluationScore]:
     return results
 
 
+def evaluate_rhythm(score: ScoreIR) -> list[EvaluationScore]:
+    """Evaluate rhythmic complexity and variety.
+
+    Args:
+        score: The ScoreIR to evaluate.
+
+    Returns:
+        List of EvaluationScore for rhythm metrics.
+    """
+    results: list[EvaluationScore] = []
+    all_notes = score.all_notes()
+    if not all_notes:
+        return results
+
+    # Rhythm variety: number of unique duration values (capped at 8)
+    unique_durations = {round(n.duration_beats, 3) for n in all_notes}
+    variety = min(len(unique_durations) / 8.0, 1.0)
+    results.append(_score_via_goal(
+        "structure",
+        "rhythm_variety",
+        variety,
+        MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.2),
+    ))
+
+    # Syncopation ratio: notes starting on off-beats
+    offbeat_count = sum(
+        1 for n in all_notes if abs(n.start_beat - round(n.start_beat)) > 0.01
+    )
+    syncopation = offbeat_count / len(all_notes)
+    results.append(_score_via_goal(
+        "structure",
+        "syncopation_ratio",
+        syncopation,
+        MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.0, max_value=0.6),
+    ))
+
+    return results
+
+
 def evaluate_score(
     score: ScoreIR,
     spec: CompositionSpec,
@@ -401,4 +485,5 @@ def evaluate_score(
     report.scores.extend(evaluate_structure(score, spec, trajectory))
     report.scores.extend(evaluate_melody(score))
     report.scores.extend(evaluate_harmony(score))
+    report.scores.extend(evaluate_rhythm(score))
     return report

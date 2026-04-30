@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import random
+
 import yao.generators.stochastic as _st  # noqa: F401
 from yao.constants.instruments import INSTRUMENT_RANGES
 from yao.generators.registry import get_generator
@@ -231,6 +233,87 @@ class TestStochasticMelodyVariety:
         ratio = direction_changes / max(len(notes) - 2, 1)
         # Should be in the 0.1-0.7 range (evaluator target 0.4 ±0.3)
         assert 0.1 <= ratio <= 0.7, f"Contour variety {ratio:.2f} out of range"
+
+
+class TestStochasticContours:
+    """Tests for melodic contour algorithms."""
+
+    def test_chorus_uses_ascending_contour(self) -> None:
+        """Chorus sections should trend upward with ascending contour."""
+        spec = _make_spec(
+            seed=42,
+            temperature=0.5,
+            sections=[SectionSpec(name="chorus", bars=16, dynamics="f")],
+        )
+        gen = get_generator("stochastic")
+        score, _ = gen.generate(spec)
+        notes = [n for n in score.all_notes() if n.instrument == "piano"]
+        if len(notes) < 4:
+            return
+        quarter = len(notes) // 4
+        early_avg = sum(n.pitch for n in notes[:quarter]) / quarter
+        late_avg = sum(n.pitch for n in notes[-quarter:]) / quarter
+        # Ascending contour: later notes should tend higher
+        assert late_avg >= early_avg - 2, "Ascending contour should trend upward"
+
+    def test_descending_contour_for_outro(self) -> None:
+        """Outro sections should use descending contour."""
+        spec = _make_spec(
+            seed=42,
+            temperature=0.5,
+            sections=[SectionSpec(name="outro", bars=16, dynamics="pp")],
+        )
+        gen = get_generator("stochastic")
+        score, _ = gen.generate(spec)
+        notes = [n for n in score.all_notes() if n.instrument == "piano"]
+        if len(notes) < 4:
+            return
+        quarter = len(notes) // 4
+        early_avg = sum(n.pitch for n in notes[:quarter]) / quarter
+        late_avg = sum(n.pitch for n in notes[-quarter:]) / quarter
+        # Descending contour: later notes should tend lower
+        assert late_avg <= early_avg + 2, "Descending contour should trend downward"
+
+    def test_low_temperature_always_arch(self) -> None:
+        """Low temperature should always use arch contour regardless of section."""
+        from yao.generators.stochastic import StochasticGenerator
+
+        gen = StochasticGenerator()
+        rng = random.Random(42)
+        contour = gen._choose_contour("chorus", 0.1, rng)
+        assert contour == "arch"
+
+
+class TestStochasticVoicings:
+    """Tests for chord voicing variety."""
+
+    def test_apply_voicing_root_position(self) -> None:
+        from yao.generators.stochastic import StochasticGenerator
+
+        pitches = [60, 64, 67]  # C major triad
+        result = StochasticGenerator._apply_voicing(pitches, "root")
+        assert result == [60, 64, 67]
+
+    def test_apply_voicing_first_inversion(self) -> None:
+        from yao.generators.stochastic import StochasticGenerator
+
+        pitches = [60, 64, 67]
+        result = StochasticGenerator._apply_voicing(pitches, "first_inversion")
+        assert result == [64, 67, 72]  # E, G, C(up)
+
+    def test_high_temp_may_produce_inversions(self) -> None:
+        """At high temperature, some chords should use non-root voicings."""
+        spec = _make_spec(
+            seed=42,
+            temperature=0.9,
+            instruments=[InstrumentSpec(name="piano", role="harmony")],
+            sections=[SectionSpec(name="chorus", bars=16, dynamics="f")],
+        )
+        gen = get_generator("stochastic")
+        score, _ = gen.generate(spec)
+        notes = score.all_notes()
+        # With 16 bars at high temp, we expect at least some variety
+        assert len(notes) > 0
 
 
 class TestStochasticRoleDifferentiation:

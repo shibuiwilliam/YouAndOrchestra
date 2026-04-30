@@ -27,21 +27,21 @@ MAPPING_FILE = REPO_ROOT / "tools" / "capability_matrix_mapping.yaml"
 
 
 def parse_matrix(project_md: Path) -> dict[str, str]:
-    """Parse the Capability Matrix table from PROJECT.md §4.
+    """Parse the Capability Matrix table from PROJECT.md.
 
     Returns a dict mapping feature name -> status emoji.
-    Only rows within the §4 table are parsed.
+    Searches for the section containing "Capability Matrix" in heading.
     """
     text = project_md.read_text(encoding="utf-8")
 
-    # Find the §4 section
+    # Find the Capability Matrix section (may be §3, §4, etc.)
     section_match = re.search(
-        r"^## 4\. Capability Matrix.*?\n(.*?)(?=\n## |\Z)",
+        r"^## \d+\. Capability Matrix.*?\n(.*?)(?=\n## |\Z)",
         text,
         re.MULTILINE | re.DOTALL,
     )
     if not section_match:
-        print("ERROR: Could not find §4 Capability Matrix in PROJECT.md")
+        print("ERROR: Could not find Capability Matrix section in PROJECT.md")
         sys.exit(1)
 
     section_text = section_match.group(1)

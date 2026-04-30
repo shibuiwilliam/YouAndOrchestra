@@ -8,6 +8,7 @@ Belongs to Layer 2 (Generation).
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from yao.generators.plan.base import PlanGeneratorBase, register_plan_generator
@@ -57,6 +58,60 @@ def _roman_to_function(roman: str) -> HarmonicFunction:
     # Strip modifiers like "7", "/V", etc.
     base = roman.split("/")[0].rstrip("0123456789")
     return _FUNCTION_MAP.get(base, HarmonicFunction.OTHER)
+
+
+# Tension thresholds for chord selection behavior
+_TENSION_HIGH = 0.6
+_TENSION_LOW = 0.4
+
+
+def _is_active_chord(roman: str) -> bool:
+    """Check if a chord is tension-active (dominant, secondary dominant, etc.)."""
+    func = _roman_to_function(roman)
+    return func in (HarmonicFunction.DOMINANT, HarmonicFunction.PREDOMINANT) or "/" in roman
+
+
+def _is_stable_chord(roman: str) -> bool:
+    """Check if a chord is tension-stable (tonic, subdominant)."""
+    func = _roman_to_function(roman)
+    return func in (HarmonicFunction.TONIC, HarmonicFunction.SUBDOMINANT)
+
+
+def _select_chord_by_tension(
+    palette: list[str],
+    position: int,
+    tension: float,
+) -> str:
+    """Select a chord from palette, biased by tension level.
+
+    At high tension (>0.6): prefer dominant/secondary-dominant chords.
+    At low tension (<0.4): prefer tonic/subdominant chords.
+    Mid-range: normal palette cycling.
+
+    Args:
+        palette: Available chord symbols.
+        position: Sequential position (for cycling fallback).
+        tension: Current tension level [0, 1].
+
+    Returns:
+        A chord symbol from the palette.
+    """
+    if len(palette) <= 1:
+        return palette[0]
+
+    if tension >= _TENSION_HIGH:
+        # Prefer active chords (dominant, secondary dominant)
+        active = [c for c in palette if _is_active_chord(c)]
+        if active:
+            return active[position % len(active)]
+    elif tension <= _TENSION_LOW:
+        # Prefer stable chords (tonic, subdominant)
+        stable = [c for c in palette if _is_stable_chord(c)]
+        if stable:
+            return stable[position % len(stable)]
+
+    # Mid-range or no matching subset: normal cycling
+    return palette[position % len(palette)]
 
 
 @register_plan_generator("rule_based_harmony")
@@ -118,9 +173,9 @@ class RuleBasedHarmonyPlanner(PlanGeneratorBase):
                     chord_beat = bar_beat + chord_idx * (beats_per_bar / chords_per_bar)
                     chord_dur = beats_per_bar / chords_per_bar
 
-                    # Pick chord from palette (cycle through)
-                    palette_idx = (bar * chords_per_bar + chord_idx) % len(palette)
-                    roman = palette[palette_idx]
+                    # Pick chord from palette, biased by tension
+                    position = bar * chords_per_bar + chord_idx
+                    roman = _select_chord_by_tension(palette, position, tension)
 
                     # Determine cadence role for last chord in section
                     cadence_role = None
@@ -190,8 +245,6 @@ def _parse_chords_per_bar(rhythm_desc: str) -> int:
     """
     if not rhythm_desc:
         return 1
-    import re
-
     match = re.search(r"(\d+)\s*chord", rhythm_desc.lower())
     if match:
         return max(1, int(match.group(1)))

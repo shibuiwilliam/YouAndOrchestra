@@ -1,5 +1,6 @@
-.PHONY: install test test-unit test-integration test-music test-golden lint format arch-lint \
-       matrix-check validate-spec new-project compose render setup-soundfonts all-checks
+.PHONY: install test test-unit test-integration test-music test-golden test-subagent \
+       lint format arch-lint matrix-check validate-spec new-project compose render \
+       setup-soundfonts all-checks
 
 install:
 	pip install -e ".[dev]"
@@ -18,6 +19,9 @@ test-music:
 
 test-golden:
 	pytest tests/golden/ -v -m golden
+
+test-subagent:
+	pytest tests/subagent_evals/ -v -m subagent
 
 lint:
 	ruff check src/ tests/

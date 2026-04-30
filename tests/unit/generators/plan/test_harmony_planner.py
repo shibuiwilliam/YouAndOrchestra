@@ -95,3 +95,51 @@ class TestRuleBasedHarmonyPlanner:
 
         result = RuleBasedHarmonyPlanner().generate(spec, traj, prov)
         assert len(result["harmony"].chord_events) == 4
+
+    def test_high_tension_prefers_dominant_chords(self) -> None:
+        """At high tension, dominant/secondary-dominant chords should be preferred."""
+        spec = CompositionSpecV2.model_validate(_SPEC_WITH_HARMONY)
+        # All-high tension trajectory
+        high_traj = MultiDimensionalTrajectory.uniform(0.9)
+        prov = ProvenanceLog()
+
+        result = RuleBasedHarmonyPlanner().generate(spec, high_traj, prov)
+        harmony = result["harmony"]
+        # With palette ["I", "V", "vi", "IV"] and high tension,
+        # V (dominant) should appear more than in default uniform
+        dominant_count = sum(
+            1 for c in harmony.chord_events
+            if c.function == HarmonicFunction.DOMINANT
+        )
+        assert dominant_count > 0, "High tension should include dominant chords"
+
+    def test_low_tension_prefers_stable_chords(self) -> None:
+        """At low tension, tonic/subdominant chords should be preferred."""
+        spec = CompositionSpecV2.model_validate(_SPEC_WITH_HARMONY)
+        low_traj = MultiDimensionalTrajectory.uniform(0.1)
+        prov = ProvenanceLog()
+
+        result = RuleBasedHarmonyPlanner().generate(spec, low_traj, prov)
+        harmony = result["harmony"]
+        stable_count = sum(
+            1 for c in harmony.chord_events
+            if c.function in (HarmonicFunction.TONIC, HarmonicFunction.SUBDOMINANT)
+        )
+        total = len(harmony.chord_events)
+        assert stable_count > total // 2, "Low tension should prefer stable chords"
+
+    def test_tension_affects_chord_distribution(self) -> None:
+        """Different tension levels should produce different chord distributions."""
+        spec = CompositionSpecV2.model_validate(_SPEC_WITH_HARMONY)
+        low_traj = MultiDimensionalTrajectory.uniform(0.1)
+        high_traj = MultiDimensionalTrajectory.uniform(0.9)
+
+        low_result = RuleBasedHarmonyPlanner().generate(spec, low_traj, ProvenanceLog())
+        high_result = RuleBasedHarmonyPlanner().generate(spec, high_traj, ProvenanceLog())
+
+        low_romans = [c.roman for c in low_result["harmony"].chord_events]
+        high_romans = [c.roman for c in high_result["harmony"].chord_events]
+        # The distributions should differ
+        assert low_romans != high_romans, (
+            "Different tension levels should produce different chord sequences"
+        )

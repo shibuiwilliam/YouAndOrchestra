@@ -89,16 +89,17 @@ def load_trajectory_spec(path: Path) -> TrajectorySpec:
 
 def load_project_specs(
     project_dir: Path,
-) -> tuple[CompositionSpec, TrajectorySpec | None]:
+) -> tuple[CompositionSpec | CompositionSpecV2, TrajectorySpec | None]:
     """Load all specs for a project directory.
 
     Expects at minimum a ``composition.yaml``. Trajectory is optional.
+    Auto-detects v1 vs v2 composition format.
 
     Args:
         project_dir: Path to the project directory under specs/projects/.
 
     Returns:
-        Tuple of (CompositionSpec, optional TrajectorySpec).
+        Tuple of (CompositionSpec or CompositionSpecV2, optional TrajectorySpec).
 
     Raises:
         SpecValidationError: If required files are missing or invalid.
@@ -110,7 +111,7 @@ def load_project_specs(
             field="project_dir",
         )
 
-    comp = load_composition_spec(comp_path)
+    comp = load_composition_spec_auto(comp_path)
 
     traj_path = project_dir / "trajectory.yaml"
     traj = load_trajectory_spec(traj_path) if traj_path.exists() else None

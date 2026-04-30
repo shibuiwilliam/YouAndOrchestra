@@ -1,6 +1,6 @@
 # Capability Matrix verification mapping.
 #
-# Each key matches a Feature cell in PROJECT.md §4.
+# Each key matches a Feature cell in the Capability Matrix in PROJECT.md.
 # For ✅ entries: `src` and `tests` paths are checked for existence.
 # For other statuses: no file checks (they are expected to be absent).
 #
@@ -50,6 +50,14 @@
     - src/yao/generators/legacy_adapter.py
   tests:
     - tests/integration/test_v2_pipeline.py
+
+"critique base types (Finding, CritiqueRule)":
+  src:
+    - src/yao/verify/critique/types.py
+    - src/yao/verify/critique/base.py
+    - src/yao/verify/critique/registry.py
+  tests:
+    - tests/unit/verify/test_critique.py
 
 "SongFormPlan":
   src:
@@ -211,7 +219,7 @@
   tests:
     - tests/unit/test_verify.py
 
-"Evaluator (5-dimension)":
+"Evaluator (5-dimension + quality score)":
   src:
     - src/yao/verify/evaluator.py
   tests:
@@ -234,6 +242,12 @@
     - tests/golden/test_golden.py
     - tests/golden/comparison.py
     - tests/golden/tools/regenerate_goldens.py
+
+"Rhythm evaluation (variety + syncopation)":
+  src:
+    - src/yao/verify/evaluator.py
+  tests:
+    - tests/unit/test_evaluator.py
 
 "architecture lint":
   src:

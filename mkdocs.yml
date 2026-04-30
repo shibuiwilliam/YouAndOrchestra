@@ -20,18 +20,23 @@ nav:
     - Spec Templates: getting-started/templates.md
     - Audio Setup: getting-started/audio-setup.md
   - User Guide:
+    - CLI Reference: guide/cli-reference.md
     - Composition Specs: guide/composition-spec.md
     - Trajectory System: guide/trajectories.md
-    - CLI Reference: guide/cli-reference.md
     - Constraint System: guide/constraints.md
   - Architecture:
     - Layer Model: architecture/layers.md
     - Design Decisions: architecture/decisions.md
+  - Tutorials:
+    - Claude Code Workflow: tutorials/claude-code-workflow.md
   - Reference:
-    - Glossary: reference/glossary.md
-    - Provenance Schema: reference/provenance-schema.md
+    - Glossary: glossary.md
+    - Provenance Schema: provenance-schema.md
     - Supported Instruments: reference/instruments.md
     - Music Theory: reference/music-theory.md
+  - Migration:
+    - v2 Baseline Report: migration/v2-baseline-report.md
+    - Silent Fallback Inventory: migration/silent-fallback-inventory.md
 
 markdown_extensions:
   - admonition

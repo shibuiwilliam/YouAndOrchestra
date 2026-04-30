@@ -22,7 +22,7 @@ YaO turns music composition into a structured, reproducible engineering process.
 - **Score diffing** — Compare two generations to see exactly what changed musically
 - **MIDI reader** — Load existing MIDI files back into ScoreIR for analysis and iteration
 - **Claude Code integration** — 7 slash commands, 7 subagents, 4 domain skills for interactive workflow
-- **447 tests** — Unit, integration, scenario, constraint, and golden regression tests
+- **~492 tests** — Unit, integration, scenario, constraint, and golden regression tests
 
 ## Architecture (v2.0)
 
@@ -66,16 +66,30 @@ outputs/projects/<name>/iterations/v001/
 
 ## Documentation
 
+### Getting Started
 - [Quick Start](getting-started/quickstart.md) — Install and generate your first piece
 - [Templates](getting-started/templates.md) — Ready-to-use spec templates
 - [Audio Setup](getting-started/audio-setup.md) — FluidSynth installation for WAV rendering
+
+### User Guide
 - [CLI Reference](guide/cli-reference.md) — All commands and options
 - [Composition Spec](guide/composition-spec.md) — YAML schema reference (v1 + v2)
 - [Trajectories](guide/trajectories.md) — Time-axis curves for emotion shaping
 - [Constraints](guide/constraints.md) — Musical rule system
+
+### Tutorials
+- [Claude Code Workflow](tutorials/claude-code-workflow.md) — Interactive music creation with subagents
+
+### Architecture
+- [Layer Model](architecture/layers.md) — Layered architecture with Layer 3.5 (MPIR)
+- [Design Decisions](architecture/decisions.md) — Architecture decision records
+
+### Reference
+- [Glossary](glossary.md) — YaO terminology (including v2.0 terms)
+- [Provenance Schema](provenance-schema.md) — Decision log format with RecoverableDecision
 - [Instruments](reference/instruments.md) — 38 instruments with MIDI ranges
 - [Music Theory](reference/music-theory.md) — Scales, chords, dynamics
-- [Provenance Schema](reference/provenance-schema.md) — Decision log format
-- [Claude Code Workflow](tutorials/claude-code-workflow.md) — Interactive music creation
-- [Glossary](reference/glossary.md) — YaO terminology
-- [Layer Architecture](architecture/layers.md) — 8-layer model with Layer 3.5 (MPIR)
+
+### Migration
+- [v2 Baseline Report](migration/v2-baseline-report.md) — Gap analysis for v2.0 architecture
+- [Silent Fallback Inventory](migration/silent-fallback-inventory.md) — RecoverableDecision conversion sites

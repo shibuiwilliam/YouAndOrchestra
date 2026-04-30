@@ -99,3 +99,33 @@ DYNAMICS_TO_VELOCITY: dict[str, int] = {
     "fff": 127,
 }
 """Standard dynamic markings mapped to approximate MIDI velocity values."""
+
+
+TENSION_TO_DYNAMICS: list[tuple[float, str]] = [
+    (0.15, "pp"),
+    (0.30, "p"),
+    (0.45, "mp"),
+    (0.60, "mf"),
+    (0.75, "f"),
+    (0.90, "ff"),
+]
+"""Tension thresholds mapped to dynamics markings.
+
+Each entry is (upper_bound, dynamics). Tension >= 0.9 maps to "fff".
+Used by note realizers to convert trajectory tension to dynamic markings.
+"""
+
+
+def tension_to_dynamics(tension: float) -> str:
+    """Map a tension value [0, 1] to a dynamics marking.
+
+    Args:
+        tension: Tension value between 0.0 and 1.0.
+
+    Returns:
+        A dynamics marking string (e.g., "mp", "f").
+    """
+    for threshold, dynamics in TENSION_TO_DYNAMICS:
+        if tension < threshold:
+            return dynamics
+    return "fff"
