@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from yao.schema.composition import CompositionSpec
+from yao.verify.critique.types import Finding
 from yao.verify.evaluator import EvaluationReport, EvaluationScore
 
 
@@ -71,8 +72,7 @@ def _adaptation_for_metric(
                 field="generation.temperature",
                 old_value=str(current_temp),
                 new_value=str(new_temp),
-                reason=f"Pitch range too narrow ({score.detail}). "
-                f"Increasing temperature for wider intervals.",
+                reason=f"Pitch range too narrow ({score.detail}). Increasing temperature for wider intervals.",
             )
         # Range too wide — decrease temperature
         new_temp = max(current_temp - 0.15, 0.05)
@@ -80,8 +80,7 @@ def _adaptation_for_metric(
             field="generation.temperature",
             old_value=str(current_temp),
             new_value=str(new_temp),
-            reason=f"Pitch range too wide ({score.detail}). "
-            f"Decreasing temperature for tighter intervals.",
+            reason=f"Pitch range too wide ({score.detail}). Decreasing temperature for tighter intervals.",
         )
 
     if metric == "stepwise_motion_ratio":
@@ -92,8 +91,7 @@ def _adaptation_for_metric(
                 field="generation.temperature",
                 old_value=str(current_temp),
                 new_value=str(new_temp),
-                reason=f"Too many leaps ({score.detail}). "
-                f"Decreasing temperature for smoother motion.",
+                reason=f"Too many leaps ({score.detail}). Decreasing temperature for smoother motion.",
             )
         if score.score > score.target + score.tolerance:
             # Too stepwise — increase temperature
@@ -102,8 +100,7 @@ def _adaptation_for_metric(
                 field="generation.temperature",
                 old_value=str(current_temp),
                 new_value=str(new_temp),
-                reason=f"Motion too stepwise ({score.detail}). "
-                f"Increasing temperature for more leaps.",
+                reason=f"Motion too stepwise ({score.detail}). Increasing temperature for more leaps.",
             )
 
     if metric == "contour_variety":
@@ -114,8 +111,7 @@ def _adaptation_for_metric(
                 field="generation.temperature",
                 old_value=str(current_temp),
                 new_value=str(new_temp),
-                reason=f"Contour too monotonic ({score.detail}). "
-                f"Increasing temperature for more direction changes.",
+                reason=f"Contour too monotonic ({score.detail}). Increasing temperature for more direction changes.",
             )
         if score.score > score.target + score.tolerance:
             # Too erratic — decrease temperature
@@ -124,8 +120,7 @@ def _adaptation_for_metric(
                 field="generation.temperature",
                 old_value=str(current_temp),
                 new_value=str(new_temp),
-                reason=f"Contour too erratic ({score.detail}). "
-                f"Decreasing temperature for smoother contour.",
+                reason=f"Contour too erratic ({score.detail}). Decreasing temperature for smoother contour.",
             )
 
     if metric == "section_contrast" and score.score < score.target - score.tolerance:
@@ -138,8 +133,7 @@ def _adaptation_for_metric(
                 field="generation.strategy",
                 old_value="rule_based",
                 new_value="stochastic",
-                reason=f"Low pitch class variety ({score.detail}). "
-                f"Switching to stochastic generator for more variety.",
+                reason=f"Low pitch class variety ({score.detail}). Switching to stochastic generator for more variety.",
             )
         new_temp = min(current_temp + 0.2, 1.0)
         return SpecAdaptation(
@@ -166,8 +160,7 @@ def _adaptation_for_metric(
             field="total_bars",
             old_value=str(spec.total_bars or "auto"),
             new_value=str(spec_bars),
-            reason=f"Bar count mismatch ({score.detail}). "
-            f"Setting total_bars explicitly to {spec_bars}.",
+            reason=f"Bar count mismatch ({score.detail}). Setting total_bars explicitly to {spec_bars}.",
         )
 
     if metric == "section_count_match" and score.score < score.target - score.tolerance:
@@ -235,3 +228,89 @@ def apply_adaptations(
         return spec
 
     return spec.model_copy(update=updates)
+
+
+def suggest_adaptations_from_findings(
+    findings: list[Finding],
+    spec: CompositionSpec,
+) -> list[SpecAdaptation]:
+    """Map Adversarial Critic findings to concrete spec modifications.
+
+    This bridges the Critic's structured findings into actionable spec
+    changes that the Conductor can apply before the next iteration.
+
+    Args:
+        findings: Structured findings from the Critic rules.
+        spec: The current composition spec.
+
+    Returns:
+        List of suggested adaptations, ordered by severity.
+    """
+    adaptations: list[SpecAdaptation] = []
+    current_temp = spec.generation.temperature
+
+    for finding in findings:
+        adaptation = _adaptation_for_finding(finding, spec, current_temp)
+        if adaptation is not None:
+            adaptations.append(adaptation)
+
+    return adaptations
+
+
+def _adaptation_for_finding(
+    finding: Finding,
+    spec: CompositionSpec,
+    current_temp: float,
+) -> SpecAdaptation | None:
+    """Suggest an adaptation for a single Critic finding."""
+    rule_id = finding.rule_id
+
+    if rule_id == "structure.section_monotony":
+        return _differentiate_dynamics(spec)
+
+    if rule_id == "structure.climax_absence":
+        # Increase dynamics range so at least one section is 'ff'
+        sections = list(spec.sections)
+        if len(sections) >= 2:  # noqa: PLR2004
+            climax_idx = max(0, len(sections) - 2)
+            return SpecAdaptation(
+                field="sections.dynamics",
+                old_value=sections[climax_idx].dynamics,
+                new_value="ff",
+                reason=f"Critic: {finding.issue}. Setting climax dynamics.",
+            )
+        return None
+
+    if rule_id == "harmonic.monotony":
+        # Increase temperature for more harmonic variety
+        new_temp = min(current_temp + 0.15, 1.0)
+        return SpecAdaptation(
+            field="generation.temperature",
+            old_value=str(current_temp),
+            new_value=str(new_temp),
+            reason=f"Critic: {finding.issue}. Increasing temperature for chord variety.",
+        )
+
+    if rule_id == "harmonic.cliche_progression":
+        new_temp = min(current_temp + 0.2, 1.0)
+        return SpecAdaptation(
+            field="generation.temperature",
+            old_value=str(current_temp),
+            new_value=str(new_temp),
+            reason=f"Critic: {finding.issue}. Increasing temperature to break cliche patterns.",
+        )
+
+    if rule_id == "rhythm.monotony":
+        return _differentiate_dynamics(spec)
+
+    if rule_id == "emotional.intent_divergence":
+        # Intent mismatch is hard to fix automatically — change seed
+        current_seed = spec.generation.seed or 42
+        return SpecAdaptation(
+            field="generation.seed",
+            old_value=str(current_seed),
+            new_value=str(current_seed + 7),
+            reason=f"Critic: {finding.issue}. Trying new seed for better intent alignment.",
+        )
+
+    return None

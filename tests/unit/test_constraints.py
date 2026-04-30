@@ -42,8 +42,7 @@ class TestMaxDensity:
     def test_detects_high_density(self) -> None:
         # 5 notes at the same beat
         notes = tuple(
-            Note(pitch=60 + i, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano")
-            for i in range(5)
+            Note(pitch=60 + i, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano") for i in range(5)
         )
         score = _make_score_with_notes(notes)
         constraints = ConstraintsSpec(
@@ -78,9 +77,7 @@ class TestMaxDensity:
 
 class TestNoteLimits:
     def test_detects_note_above_limit(self) -> None:
-        notes = (
-            Note(pitch=84, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),
-        )
+        notes = (Note(pitch=84, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),)
         score = _make_score_with_notes(notes)
         constraints = ConstraintsSpec(
             constraints=[
@@ -92,9 +89,7 @@ class TestNoteLimits:
         assert "note_above" in results[0].rule
 
     def test_passes_within_limit(self) -> None:
-        notes = (
-            Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),
-        )
+        notes = (Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),)
         score = _make_score_with_notes(notes)
         constraints = ConstraintsSpec(
             constraints=[
@@ -107,12 +102,8 @@ class TestNoteLimits:
 
 class TestScopedConstraints:
     def test_section_scope(self) -> None:
-        notes_verse = (
-            Note(pitch=84, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),
-        )
-        notes_chorus = (
-            Note(pitch=84, start_beat=16.0, duration_beats=1.0, velocity=80, instrument="piano"),
-        )
+        notes_verse = (Note(pitch=84, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),)
+        notes_chorus = (Note(pitch=84, start_beat=16.0, duration_beats=1.0, velocity=80, instrument="piano"),)
         part_v = Part(instrument="piano", notes=notes_verse)
         part_c = Part(instrument="piano", notes=notes_chorus)
         sec_v = Section(name="verse", start_bar=0, end_bar=4, parts=(part_v,))
@@ -136,9 +127,7 @@ class TestScopedConstraints:
 
 class TestEmptyConstraints:
     def test_no_constraints_no_results(self) -> None:
-        notes = (
-            Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),
-        )
+        notes = (Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),)
         score = _make_score_with_notes(notes)
         constraints = ConstraintsSpec(constraints=[])
         results = check_constraints(score, constraints)

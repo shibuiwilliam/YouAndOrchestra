@@ -12,11 +12,14 @@ Belongs to Layer 2 (Generation).
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from yao.ir.plan.musical_plan import MusicalPlan
 from yao.ir.score_ir import ScoreIR
 from yao.reflect.provenance import ProvenanceLog
+
+if TYPE_CHECKING:
+    from yao.schema.composition import CompositionSpec
 
 NOTE_REALIZERS: dict[str, type[NoteRealizerBase]] = {}
 
@@ -54,6 +57,7 @@ class NoteRealizerBase(ABC):
         seed: int,
         temperature: float,
         provenance: ProvenanceLog,
+        original_spec: CompositionSpec | None = None,
     ) -> ScoreIR:
         """Realize a MusicalPlan into concrete notes.
 
@@ -62,6 +66,8 @@ class NoteRealizerBase(ABC):
             seed: Random seed for reproducibility.
             temperature: Variation control (0.0–1.0).
             provenance: Provenance log to record decisions.
+            original_spec: Optional original v1 spec to preserve metadata
+                during Phase α migration.
 
         Returns:
             ScoreIR with concrete notes.

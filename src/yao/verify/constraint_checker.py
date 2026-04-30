@@ -121,9 +121,7 @@ def _check_no_parallel_fifths(score: ScoreIR, constraint: Constraint) -> list[Li
             for note in sorted_notes:
                 if abs(note.start_beat - current_beat) > 0.01:
                     if current_pitches:
-                        voicings.append(
-                            (current_beat, Voicing(pitches=tuple(sorted(current_pitches))))
-                        )
+                        voicings.append((current_beat, Voicing(pitches=tuple(sorted(current_pitches)))))
                     current_beat = note.start_beat
                     current_pitches = [note.pitch]
                 else:
@@ -153,9 +151,7 @@ def _check_no_parallel_fifths(score: ScoreIR, constraint: Constraint) -> list[Li
     return results
 
 
-def _check_max_density(
-    notes: list[Note], max_density: float, constraint: Constraint
-) -> list[LintResult]:
+def _check_max_density(notes: list[Note], max_density: float, constraint: Constraint) -> list[LintResult]:
     """Check that note density doesn't exceed a maximum."""
     if not notes:
         return []
@@ -170,10 +166,7 @@ def _check_max_density(
                 LintResult(
                     rule="constraint:max_density",
                     severity=constraint.severity,  # type: ignore[arg-type]
-                    message=(
-                        f"Density {count} exceeds max {max_density} at beat {beat}. "
-                        f"{constraint.description}"
-                    ),
+                    message=(f"Density {count} exceeds max {max_density} at beat {beat}. {constraint.description}"),
                     location=f"beat {beat}",
                 )
             )
@@ -240,10 +233,7 @@ def _check_rest_ratio(
             LintResult(
                 rule="constraint:min_rest_ratio",
                 severity=constraint.severity,  # type: ignore[arg-type]
-                message=(
-                    f"Rest ratio {rest_ratio:.2f} below minimum {min_ratio}. "
-                    f"{constraint.description}"
-                ),
+                message=(f"Rest ratio {rest_ratio:.2f} below minimum {min_ratio}. {constraint.description}"),
                 location="global",
             )
         ]

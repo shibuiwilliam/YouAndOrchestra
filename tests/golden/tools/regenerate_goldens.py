@@ -70,7 +70,10 @@ def generate_one(spec_name: str, seed: int, realizer: str) -> Path:
     prov = ProvenanceLog()
 
     plan = PlanOrchestrator(plan_strategy="rule_based").build_plan(
-        spec, traj, intent, prov,
+        spec,
+        traj,
+        intent,
+        prov,
     )
 
     note_realizer = NOTE_REALIZERS[realizer]()

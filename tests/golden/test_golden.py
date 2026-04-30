@@ -34,7 +34,10 @@ def _generate_midi(spec_name: str, seed: int, realizer: str, output_path: Path) 
     prov = ProvenanceLog()
 
     plan = PlanOrchestrator(plan_strategy="rule_based").build_plan(
-        spec, traj, intent, prov,
+        spec,
+        traj,
+        intent,
+        prov,
     )
     note_realizer = NOTE_REALIZERS[realizer]()
     score = note_realizer.realize(plan, seed=seed, temperature=0.5, provenance=prov)
@@ -48,10 +51,7 @@ class TestGoldenMidi:
     @pytest.mark.parametrize(
         "spec_name,seed,realizer",
         GOLDEN_MATRIX,
-        ids=[
-            f"{s.replace('.yaml','')}_seed{sd}_{r}"
-            for s, sd, r in GOLDEN_MATRIX
-        ],
+        ids=[f"{s.replace('.yaml', '')}_seed{sd}_{r}" for s, sd, r in GOLDEN_MATRIX],
     )
     def test_golden(
         self,

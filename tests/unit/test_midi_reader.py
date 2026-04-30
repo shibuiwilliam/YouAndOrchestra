@@ -132,10 +132,20 @@ class TestMidiReaderWithoutSpec:
                         Part(
                             instrument="piano",
                             notes=(
-                                Note(pitch=60, start_beat=0.0, duration_beats=1.0,
-                                     velocity=80, instrument="piano"),
-                                Note(pitch=64, start_beat=4.0, duration_beats=1.0,
-                                     velocity=80, instrument="piano"),
+                                Note(
+                                    pitch=60,
+                                    start_beat=0.0,
+                                    duration_beats=1.0,
+                                    velocity=80,
+                                    instrument="piano",
+                                ),
+                                Note(
+                                    pitch=64,
+                                    start_beat=4.0,
+                                    duration_beats=1.0,
+                                    velocity=80,
+                                    instrument="piano",
+                                ),
                             ),
                         ),
                     ),
@@ -159,11 +169,23 @@ class TestMidiReaderWithoutSpec:
             key="C major",
             sections=(
                 Section(
-                    name="a", start_bar=0, end_bar=1,
-                    parts=(Part(instrument="piano", notes=(
-                        Note(pitch=60, start_beat=0.0, duration_beats=1.0,
-                             velocity=80, instrument="piano"),
-                    )),),
+                    name="a",
+                    start_bar=0,
+                    end_bar=1,
+                    parts=(
+                        Part(
+                            instrument="piano",
+                            notes=(
+                                Note(
+                                    pitch=60,
+                                    start_beat=0.0,
+                                    duration_beats=1.0,
+                                    velocity=80,
+                                    instrument="piano",
+                                ),
+                            ),
+                        ),
+                    ),
                 ),
             ),
         )
@@ -192,11 +214,23 @@ class TestMidiReaderEdgeCases:
             key="C major",
             sections=(
                 Section(
-                    name="a", start_bar=0, end_bar=1,
-                    parts=(Part(instrument="piano", notes=(
-                        Note(pitch=60, start_beat=0.0, duration_beats=1.0,
-                             velocity=80, instrument="piano"),
-                    )),),
+                    name="a",
+                    start_bar=0,
+                    end_bar=1,
+                    parts=(
+                        Part(
+                            instrument="piano",
+                            notes=(
+                                Note(
+                                    pitch=60,
+                                    start_beat=0.0,
+                                    duration_beats=1.0,
+                                    velocity=80,
+                                    instrument="piano",
+                                ),
+                            ),
+                        ),
+                    ),
                 ),
             ),
         )

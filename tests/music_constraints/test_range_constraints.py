@@ -65,6 +65,4 @@ class TestRangeConstraints:
         score, _ = gen.generate(spec)
 
         for note in score.all_notes():
-            assert 1 <= note.velocity <= 127, (
-                f"Velocity {note.velocity} out of range at beat {note.start_beat}"
-            )
+            assert 1 <= note.velocity <= 127, f"Velocity {note.velocity} out of range at beat {note.start_beat}"

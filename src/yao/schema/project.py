@@ -68,10 +68,7 @@ class CompositionProject:
 
         # Intent: optional, default to minimal
         intent_path = project_dir / "intent.md"
-        if intent_path.exists():
-            intent = IntentSpec.from_markdown(intent_path)
-        else:
-            intent = IntentSpec(text="", keywords=[])
+        intent = IntentSpec.from_markdown(intent_path) if intent_path.exists() else IntentSpec(text="", keywords=[])
 
         # Trajectory: optional, default to neutral
         traj_path = project_dir / "trajectory.yaml"

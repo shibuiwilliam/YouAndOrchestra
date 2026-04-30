@@ -26,6 +26,7 @@ dev = [
     "mypy>=1.8",
     "ruff>=0.2",
     "types-PyYAML",
+    "pre-commit>=3.6",
 ]
 
 [project.scripts]
@@ -71,7 +72,7 @@ ignore_missing_imports = true
 
 [tool.ruff]
 target-version = "py311"
-line-length = 99
+line-length = 120
 src = ["src", "tests"]
 
 [tool.ruff.lint]

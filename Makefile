@@ -1,9 +1,14 @@
-.PHONY: install test test-unit test-integration test-music test-golden test-subagent \
+.PHONY: install setup-hooks test test-unit test-integration test-music test-golden test-subagent \
        lint format arch-lint matrix-check validate-spec new-project compose render \
        setup-soundfonts all-checks
 
 install:
 	pip install -e ".[dev]"
+
+setup-hooks:
+	pre-commit install
+	pre-commit install --hook-type pre-push
+	@echo "Pre-commit hooks installed (commit: lint+format+arch, push: tests)"
 
 test:
 	pytest tests/

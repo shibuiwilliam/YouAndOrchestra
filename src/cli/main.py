@@ -97,19 +97,14 @@ def compose(
 
         # 2. Determine output directory with auto-versioning
         if output_dir is None:
-            if project:
-                safe_name = project.lower().replace(" ", "-")
-            else:
-                safe_name = spec.title.lower().replace(" ", "-")
+            safe_name = project.lower().replace(" ", "-") if project else spec.title.lower().replace(" ", "-")
             project_dir = Path(f"outputs/projects/{safe_name}")
             output_dir = next_iteration_dir(project_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # 3. Generate (use registry to select generator by spec config)
         strategy = spec.generation.strategy
-        click.echo(
-            f"Generating: {spec.title} ({spec.key}, {spec.tempo_bpm} BPM, strategy={strategy})"
-        )
+        click.echo(f"Generating: {spec.title} ({spec.key}, {spec.tempo_bpm} BPM, strategy={strategy})")
         generator = get_generator(strategy)
         score, provenance = generator.generate(spec, traj)
 
@@ -222,9 +217,7 @@ def new_project(name: str) -> None:
         )
 
     # Create intent.md placeholder
-    (spec_dir / "intent.md").write_text(
-        f"# {name}\n\nDescribe the intent of this composition here.\n"
-    )
+    (spec_dir / "intent.md").write_text(f"# {name}\n\nDescribe the intent of this composition here.\n")
 
     click.echo(f"Project created: {safe_name}")
     click.echo(f"  Spec: {spec_dir}/composition.yaml")
@@ -301,12 +294,8 @@ def diff_cmd(spec_path: Path, seed_a: int, seed_b: int) -> None:
         spec = load_composition_spec(spec_path)
 
         # Generate two versions with different seeds
-        gen_a = GenerationConfig(
-            strategy="stochastic", seed=seed_a, temperature=spec.generation.temperature
-        )
-        gen_b = GenerationConfig(
-            strategy="stochastic", seed=seed_b, temperature=spec.generation.temperature
-        )
+        gen_a = GenerationConfig(strategy="stochastic", seed=seed_a, temperature=spec.generation.temperature)
+        gen_b = GenerationConfig(strategy="stochastic", seed=seed_b, temperature=spec.generation.temperature)
         title_a = f"{spec.title} (seed={seed_a})"
         title_b = f"{spec.title} (seed={seed_b})"
         spec_a = spec.model_copy(update={"generation": gen_a, "title": title_a})
@@ -452,9 +441,7 @@ def conduct(
     default=3,
     help="Maximum feedback-loop iterations (default: 3).",
 )
-def regenerate_section(
-    project_name: str, section_name: str, seed: int | None, iterations: int
-) -> None:
+def regenerate_section(project_name: str, section_name: str, seed: int | None, iterations: int) -> None:
     """Regenerate a specific section while preserving the rest.
 
     \b
@@ -478,9 +465,7 @@ def regenerate_section(
     output_dir = Path(f"outputs/projects/{safe_name}")
     latest = current_iteration(output_dir)
     if latest is None:
-        raise click.ClickException(
-            f"No iterations found for project '{safe_name}'. Run compose first."
-        )
+        raise click.ClickException(f"No iterations found for project '{safe_name}'. Run compose first.")
 
     # Load existing MIDI
     midi_path = latest / "full.mid"

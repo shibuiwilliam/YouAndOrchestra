@@ -163,18 +163,17 @@ def _build_sections_from_spec(
 
         parts: list[Part] = []
         for instr_name, notes in instrument_notes.items():
-            section_notes = [
-                n for n in notes
-                if n.start_beat >= start_beat - 0.001 and n.start_beat < end_beat - 0.001
-            ]
+            section_notes = [n for n in notes if n.start_beat >= start_beat - 0.001 and n.start_beat < end_beat - 0.001]
             parts.append(Part(instrument=instr_name, notes=tuple(section_notes)))
 
-        sections.append(Section(
-            name=section_spec.name,
-            start_bar=start_bar,
-            end_bar=end_bar,
-            parts=tuple(parts),
-        ))
+        sections.append(
+            Section(
+                name=section_spec.name,
+                start_bar=start_bar,
+                end_bar=end_bar,
+                parts=tuple(parts),
+            )
+        )
         current_bar = end_bar
 
     return sections
@@ -209,14 +208,13 @@ def _build_single_section(
         beats_per_bar = bars_to_beats(1, time_signature)
         total_bars = math.ceil(max_beat / beats_per_bar)
 
-    parts = [
-        Part(instrument=name, notes=tuple(notes))
-        for name, notes in instrument_notes.items()
-    ]
+    parts = [Part(instrument=name, notes=tuple(notes)) for name, notes in instrument_notes.items()]
 
-    return [Section(
-        name="full",
-        start_bar=0,
-        end_bar=total_bars,
-        parts=tuple(parts),
-    )]
+    return [
+        Section(
+            name="full",
+            start_bar=0,
+            end_bar=total_bars,
+            parts=tuple(parts),
+        )
+    ]

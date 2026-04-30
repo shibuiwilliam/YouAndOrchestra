@@ -15,20 +15,36 @@ def _make_chord_events() -> list[ChordEvent]:
     """Create a standard I-V-vi-IV progression over 16 beats."""
     return [
         ChordEvent(
-            section_id="verse", start_beat=0.0, duration_beats=4.0,
-            roman="I", function=HarmonicFunction.TONIC, tension_level=0.2,
+            section_id="verse",
+            start_beat=0.0,
+            duration_beats=4.0,
+            roman="I",
+            function=HarmonicFunction.TONIC,
+            tension_level=0.2,
         ),
         ChordEvent(
-            section_id="verse", start_beat=4.0, duration_beats=4.0,
-            roman="V", function=HarmonicFunction.DOMINANT, tension_level=0.6,
+            section_id="verse",
+            start_beat=4.0,
+            duration_beats=4.0,
+            roman="V",
+            function=HarmonicFunction.DOMINANT,
+            tension_level=0.6,
         ),
         ChordEvent(
-            section_id="verse", start_beat=8.0, duration_beats=4.0,
-            roman="vi", function=HarmonicFunction.TONIC, tension_level=0.3,
+            section_id="verse",
+            start_beat=8.0,
+            duration_beats=4.0,
+            roman="vi",
+            function=HarmonicFunction.TONIC,
+            tension_level=0.3,
         ),
         ChordEvent(
-            section_id="verse", start_beat=12.0, duration_beats=4.0,
-            roman="IV", function=HarmonicFunction.SUBDOMINANT, tension_level=0.4,
+            section_id="verse",
+            start_beat=12.0,
+            duration_beats=4.0,
+            roman="IV",
+            function=HarmonicFunction.SUBDOMINANT,
+            tension_level=0.4,
             cadence_role=CadenceRole.PLAGAL,
         ),
     ]
@@ -39,15 +55,23 @@ class TestChordEvent:
 
     def test_end_beat(self) -> None:
         c = ChordEvent(
-            section_id="verse", start_beat=4.0, duration_beats=4.0,
-            roman="V", function=HarmonicFunction.DOMINANT, tension_level=0.6,
+            section_id="verse",
+            start_beat=4.0,
+            duration_beats=4.0,
+            roman="V",
+            function=HarmonicFunction.DOMINANT,
+            tension_level=0.6,
         )
         assert c.end_beat() == 8.0
 
     def test_round_trip(self) -> None:
         c = ChordEvent(
-            section_id="chorus", start_beat=0.0, duration_beats=2.0,
-            roman="V/V", function=HarmonicFunction.DOMINANT, tension_level=0.8,
+            section_id="chorus",
+            start_beat=0.0,
+            duration_beats=2.0,
+            roman="V/V",
+            function=HarmonicFunction.DOMINANT,
+            tension_level=0.8,
             cadence_role=CadenceRole.AUTHENTIC,
         )
         d = c.to_dict()
@@ -58,8 +82,12 @@ class TestChordEvent:
 
     def test_no_cadence(self) -> None:
         c = ChordEvent(
-            section_id="verse", start_beat=0.0, duration_beats=4.0,
-            roman="I", function=HarmonicFunction.TONIC, tension_level=0.2,
+            section_id="verse",
+            start_beat=0.0,
+            duration_beats=4.0,
+            roman="I",
+            function=HarmonicFunction.TONIC,
+            tension_level=0.2,
         )
         d = c.to_dict()
         assert d["cadence_role"] is None
@@ -103,7 +131,9 @@ class TestHarmonyPlan:
 
     def test_modulations(self) -> None:
         mod = ModulationEvent(
-            at_beat=32.0, from_key="C major", to_key="G major",
+            at_beat=32.0,
+            from_key="C major",
+            to_key="G major",
             method="pivot_chord",
         )
         plan = HarmonyPlan(modulations=[mod])

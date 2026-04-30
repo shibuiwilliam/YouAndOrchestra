@@ -36,9 +36,7 @@ def _make_spec(**overrides: object) -> CompositionSpec:
     return CompositionSpec(**defaults)  # type: ignore[arg-type]
 
 
-def _make_failing_report(
-    metric: str, score: float, target: float, tolerance: float
-) -> EvaluationReport:
+def _make_failing_report(metric: str, score: float, target: float, tolerance: float) -> EvaluationReport:
     return EvaluationReport(
         title="Test",
         scores=[
@@ -73,9 +71,7 @@ class TestFeedbackAdaptation:
         assert strat_adapt[0].new_value == "stochastic"
 
     def test_too_dissonant_decreases_temperature(self) -> None:
-        spec = _make_spec(
-            generation=GenerationConfig(strategy="stochastic", seed=1, temperature=0.8)
-        )
+        spec = _make_spec(generation=GenerationConfig(strategy="stochastic", seed=1, temperature=0.8))
         report = _make_failing_report("consonance_ratio", 0.2, 0.7, 0.3)
         adaptations = suggest_adaptations(report, spec)
         temp_adapt = [a for a in adaptations if "temperature" in a.field]
@@ -239,7 +235,9 @@ class TestConductor:
             conductor = Conductor()
             # First, generate the full piece
             initial = conductor.compose_from_spec(
-                spec=spec, project_name="test-regen", max_iterations=1,
+                spec=spec,
+                project_name="test-regen",
+                max_iterations=1,
             )
             # Regenerate only the chorus
             result = conductor.regenerate_section(
@@ -275,7 +273,9 @@ class TestConductor:
             spec = _make_spec()
             conductor = Conductor()
             initial = conductor.compose_from_spec(
-                spec=spec, project_name="test-bad-regen", max_iterations=1,
+                spec=spec,
+                project_name="test-bad-regen",
+                max_iterations=1,
             )
             with pytest.raises(SpecValidationError, match="not found"):
                 conductor.regenerate_section(

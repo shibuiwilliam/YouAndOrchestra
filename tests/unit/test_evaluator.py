@@ -120,9 +120,7 @@ class TestEvaluationReportSerialization:
             assert "score" in score_data
             assert "target" in score_data
 
-    def test_save_creates_file(
-        self, minimal_spec: CompositionSpec, tmp_path: Path
-    ) -> None:
+    def test_save_creates_file(self, minimal_spec: CompositionSpec, tmp_path: Path) -> None:
         from yao.generators.rule_based import RuleBasedGenerator
 
         gen = RuleBasedGenerator()
@@ -167,8 +165,11 @@ class TestEvaluateRhythm:
 
     def test_rhythm_with_empty_score(self) -> None:
         score = ScoreIR(
-            title="Empty", tempo_bpm=120.0, time_signature="4/4",
-            key="C major", sections=(),
+            title="Empty",
+            tempo_bpm=120.0,
+            time_signature="4/4",
+            key="C major",
+            sections=(),
         )
         results = evaluate_rhythm(score)
         assert results == []

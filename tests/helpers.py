@@ -48,9 +48,7 @@ def assert_no_parallel_fifths(voicings: list[Voicing]) -> None:
     """
     for i in range(len(voicings) - 1):
         parallels = check_parallel_fifths(voicings[i], voicings[i + 1])
-        assert not parallels, (
-            f"Parallel fifths detected between voicing {i} and {i + 1}: voice pairs {parallels}"
-        )
+        assert not parallels, f"Parallel fifths detected between voicing {i} and {i + 1}: voice pairs {parallels}"
 
 
 def assert_trajectory_match(

@@ -63,12 +63,8 @@ class TestTensionArcCreatesClimax:
         avg_climax = sum(n.velocity for n in climax_notes) / max(len(climax_notes), 1)
         avg_outro = sum(n.velocity for n in outro_notes) / max(len(outro_notes), 1)
 
-        assert avg_climax > avg_intro, (
-            f"Climax ({avg_climax:.0f}) should be louder than intro ({avg_intro:.0f})"
-        )
-        assert avg_climax > avg_outro, (
-            f"Climax ({avg_climax:.0f}) should be louder than outro ({avg_outro:.0f})"
-        )
+        assert avg_climax > avg_intro, f"Climax ({avg_climax:.0f}) should be louder than intro ({avg_intro:.0f})"
+        assert avg_climax > avg_outro, f"Climax ({avg_climax:.0f}) should be louder than outro ({avg_outro:.0f})"
 
 
 class TestDifferentSpecsProduceDifferentMusic:
@@ -80,12 +76,8 @@ class TestDifferentSpecsProduceDifferentMusic:
             instruments=[InstrumentSpec(name="piano", role="melody")],
             sections=[SectionSpec(name="verse", bars=8, dynamics="mf")],
         )
-        score_c = get_generator("rule_based").generate(
-            CompositionSpec(title="C Major", key="C major", **base)
-        )[0]
-        score_g = get_generator("rule_based").generate(
-            CompositionSpec(title="G Major", key="G major", **base)
-        )[0]
+        score_c = get_generator("rule_based").generate(CompositionSpec(title="C Major", key="C major", **base))[0]
+        score_g = get_generator("rule_based").generate(CompositionSpec(title="G Major", key="G major", **base))[0]
 
         pitches_c = {n.pitch % 12 for n in score_c.all_notes()}
         pitches_g = {n.pitch % 12 for n in score_g.all_notes()}
@@ -117,9 +109,7 @@ class TestDifferentSpecsProduceDifferentMusic:
         avg_pp = sum(n.velocity for n in score_pp.all_notes()) / len(score_pp.all_notes())
         avg_ff = sum(n.velocity for n in score_ff.all_notes()) / len(score_ff.all_notes())
 
-        assert avg_ff > avg_pp + 30, (
-            f"ff ({avg_ff:.0f}) should be much louder than pp ({avg_pp:.0f})"
-        )
+        assert avg_ff > avg_pp + 30, f"ff ({avg_ff:.0f}) should be much louder than pp ({avg_pp:.0f})"
 
 
 class TestStochasticVariation:
@@ -196,9 +186,7 @@ class TestStochasticVariation:
         pcs_low = len({n.pitch % 12 for n in score_low.all_notes()})
         pcs_high = len({n.pitch % 12 for n in score_high.all_notes()})
 
-        assert pcs_high >= pcs_low, (
-            f"High temp ({pcs_high} PCs) should have >= variety than low temp ({pcs_low} PCs)"
-        )
+        assert pcs_high >= pcs_low, f"High temp ({pcs_high} PCs) should have >= variety than low temp ({pcs_low} PCs)"
 
 
 class TestGeneratorRegistry:
@@ -250,6 +238,5 @@ class TestEvaluationProvesMusicality:
         pc_m = next(s for s in eval_m.scores if s.metric == "pitch_class_variety")
 
         assert pc_m.score >= pc_s.score, (
-            f"Multi-instrument ({pc_m.score:.2f}) should have >= pitch variety "
-            f"than single ({pc_s.score:.2f})"
+            f"Multi-instrument ({pc_m.score:.2f}) should have >= pitch variety than single ({pc_s.score:.2f})"
         )

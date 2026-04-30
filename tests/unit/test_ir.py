@@ -27,9 +27,7 @@ class TestNote:
         note.validate_range()  # Should not raise
 
     def test_range_validation_fails(self) -> None:
-        note = Note(
-            pitch=130, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="violin"
-        )
+        note = Note(pitch=130, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="violin")
         with pytest.raises(RangeViolationError) as exc_info:
             note.validate_range()
         assert exc_info.value.instrument == "violin"
@@ -41,9 +39,7 @@ class TestNote:
             note.validate_range(INSTRUMENT_RANGES["piano"])
 
     def test_unknown_instrument_skips_validation(self) -> None:
-        note = Note(
-            pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="unknown_synth"
-        )
+        note = Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="unknown_synth")
         note.validate_range()  # Should not raise for unknown instruments
 
 

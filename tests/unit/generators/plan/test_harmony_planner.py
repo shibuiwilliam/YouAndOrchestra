@@ -107,10 +107,7 @@ class TestRuleBasedHarmonyPlanner:
         harmony = result["harmony"]
         # With palette ["I", "V", "vi", "IV"] and high tension,
         # V (dominant) should appear more than in default uniform
-        dominant_count = sum(
-            1 for c in harmony.chord_events
-            if c.function == HarmonicFunction.DOMINANT
-        )
+        dominant_count = sum(1 for c in harmony.chord_events if c.function == HarmonicFunction.DOMINANT)
         assert dominant_count > 0, "High tension should include dominant chords"
 
     def test_low_tension_prefers_stable_chords(self) -> None:
@@ -122,8 +119,7 @@ class TestRuleBasedHarmonyPlanner:
         result = RuleBasedHarmonyPlanner().generate(spec, low_traj, prov)
         harmony = result["harmony"]
         stable_count = sum(
-            1 for c in harmony.chord_events
-            if c.function in (HarmonicFunction.TONIC, HarmonicFunction.SUBDOMINANT)
+            1 for c in harmony.chord_events if c.function in (HarmonicFunction.TONIC, HarmonicFunction.SUBDOMINANT)
         )
         total = len(harmony.chord_events)
         assert stable_count > total // 2, "Low tension should prefer stable chords"
@@ -140,6 +136,4 @@ class TestRuleBasedHarmonyPlanner:
         low_romans = [c.roman for c in low_result["harmony"].chord_events]
         high_romans = [c.roman for c in high_result["harmony"].chord_events]
         # The distributions should differ
-        assert low_romans != high_romans, (
-            "Different tension levels should produce different chord sequences"
-        )
+        assert low_romans != high_romans, "Different tension levels should produce different chord sequences"

@@ -21,9 +21,7 @@ def _write_minimal_v2(project_dir: Path) -> None:
         "form": {"sections": [{"id": "intro", "bars": 8}, {"id": "main", "bars": 8}]},
         "arrangement": {"instruments": {"piano": {"role": "melody"}}},
     }
-    (project_dir / "composition.yaml").write_text(
-        yaml.dump(comp, default_flow_style=False)
-    )
+    (project_dir / "composition.yaml").write_text(yaml.dump(comp, default_flow_style=False))
 
 
 def _write_v1_spec(project_dir: Path) -> None:
@@ -36,9 +34,7 @@ def _write_v1_spec(project_dir: Path) -> None:
         "instruments": [{"name": "piano", "role": "melody"}],
         "sections": [{"name": "intro", "bars": 8}],
     }
-    (project_dir / "composition.yaml").write_text(
-        yaml.dump(comp, default_flow_style=False)
-    )
+    (project_dir / "composition.yaml").write_text(yaml.dump(comp, default_flow_style=False))
 
 
 class TestProjectLoad:
@@ -68,9 +64,7 @@ class TestProjectLoad:
                 },
             }
         }
-        (tmp_path / "trajectory.yaml").write_text(
-            yaml.dump(traj, default_flow_style=False)
-        )
+        (tmp_path / "trajectory.yaml").write_text(yaml.dump(traj, default_flow_style=False))
         project = CompositionProject.load(tmp_path)
         assert project.trajectory.tension.value_at(0) == 0.2
         assert project.trajectory.tension.value_at(16) == 0.9

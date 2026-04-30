@@ -49,8 +49,7 @@ class TestRuleBasedGenerator:
         piano_range = INSTRUMENT_RANGES["piano"]
         for note in score.all_notes():
             assert piano_range.midi_low <= note.pitch <= piano_range.midi_high, (
-                f"Note {note.pitch} out of piano range "
-                f"({piano_range.midi_low}–{piano_range.midi_high})"
+                f"Note {note.pitch} out of piano range ({piano_range.midi_low}–{piano_range.midi_high})"
             )
 
     def test_respects_section_count(self) -> None:

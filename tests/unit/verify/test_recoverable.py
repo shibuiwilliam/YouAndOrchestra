@@ -169,57 +169,92 @@ class TestProvenanceLogRecoverable:
 
     def test_recoverables_by_severity(self) -> None:
         prov = ProvenanceLog()
-        prov.record_recoverable(RecoverableDecision(
-            code="VELOCITY_CLAMPED", severity="info",
-            original_value=0, recovered_value=1,
-            reason="r", musical_impact="m",
-        ))
-        prov.record_recoverable(RecoverableDecision(
-            code="BASS_NOTE_OUT_OF_RANGE", severity="warning",
-            original_value=36, recovered_value=40,
-            reason="r", musical_impact="m",
-        ))
-        prov.record_recoverable(RecoverableDecision(
-            code="VELOCITY_CLAMPED", severity="info",
-            original_value=0, recovered_value=1,
-            reason="r", musical_impact="m",
-        ))
+        prov.record_recoverable(
+            RecoverableDecision(
+                code="VELOCITY_CLAMPED",
+                severity="info",
+                original_value=0,
+                recovered_value=1,
+                reason="r",
+                musical_impact="m",
+            )
+        )
+        prov.record_recoverable(
+            RecoverableDecision(
+                code="BASS_NOTE_OUT_OF_RANGE",
+                severity="warning",
+                original_value=36,
+                recovered_value=40,
+                reason="r",
+                musical_impact="m",
+            )
+        )
+        prov.record_recoverable(
+            RecoverableDecision(
+                code="VELOCITY_CLAMPED",
+                severity="info",
+                original_value=0,
+                recovered_value=1,
+                reason="r",
+                musical_impact="m",
+            )
+        )
         assert len(prov.recoverables_by_severity("info")) == 2
         assert len(prov.recoverables_by_severity("warning")) == 1
         assert len(prov.recoverables_by_severity("error")) == 0
 
     def test_recoverables_by_code(self) -> None:
         prov = ProvenanceLog()
-        prov.record_recoverable(RecoverableDecision(
-            code="VELOCITY_CLAMPED", severity="info",
-            original_value=0, recovered_value=1,
-            reason="r", musical_impact="m",
-        ))
-        prov.record_recoverable(RecoverableDecision(
-            code="BASS_NOTE_OUT_OF_RANGE", severity="warning",
-            original_value=36, recovered_value=40,
-            reason="r", musical_impact="m",
-        ))
+        prov.record_recoverable(
+            RecoverableDecision(
+                code="VELOCITY_CLAMPED",
+                severity="info",
+                original_value=0,
+                recovered_value=1,
+                reason="r",
+                musical_impact="m",
+            )
+        )
+        prov.record_recoverable(
+            RecoverableDecision(
+                code="BASS_NOTE_OUT_OF_RANGE",
+                severity="warning",
+                original_value=36,
+                recovered_value=40,
+                reason="r",
+                musical_impact="m",
+            )
+        )
         assert len(prov.recoverables_by_code("VELOCITY_CLAMPED")) == 1
         assert len(prov.recoverables_by_code("BASS_NOTE_OUT_OF_RANGE")) == 1
         assert len(prov.recoverables_by_code("NONEXISTENT")) == 0
 
     def test_has_blocking_decisions_false(self) -> None:
         prov = ProvenanceLog()
-        prov.record_recoverable(RecoverableDecision(
-            code="VELOCITY_CLAMPED", severity="info",
-            original_value=0, recovered_value=1,
-            reason="r", musical_impact="m",
-        ))
+        prov.record_recoverable(
+            RecoverableDecision(
+                code="VELOCITY_CLAMPED",
+                severity="info",
+                original_value=0,
+                recovered_value=1,
+                reason="r",
+                musical_impact="m",
+            )
+        )
         assert not prov.has_blocking_decisions()
 
     def test_has_blocking_decisions_true(self) -> None:
         prov = ProvenanceLog()
-        prov.record_recoverable(RecoverableDecision(
-            code="VELOCITY_CLAMPED", severity="error",
-            original_value=200, recovered_value=127,
-            reason="r", musical_impact="m",
-        ))
+        prov.record_recoverable(
+            RecoverableDecision(
+                code="VELOCITY_CLAMPED",
+                severity="error",
+                original_value=200,
+                recovered_value=127,
+                reason="r",
+                musical_impact="m",
+            )
+        )
         assert prov.has_blocking_decisions()
 
     def test_empty_provenance_no_blocking(self) -> None:

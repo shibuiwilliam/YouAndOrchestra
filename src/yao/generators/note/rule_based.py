@@ -34,6 +34,7 @@ class RuleBasedNoteRealizer(NoteRealizerBase):
         seed: int,
         temperature: float,
         provenance: ProvenanceLog,
+        original_spec: CompositionSpec | None = None,
     ) -> ScoreIR:
         """Realize a MusicalPlan into ScoreIR.
 
@@ -42,13 +43,15 @@ class RuleBasedNoteRealizer(NoteRealizerBase):
             seed: Random seed (unused in rule_based, deterministic).
             temperature: Variation control (unused in rule_based).
             provenance: Provenance log.
+            original_spec: Optional original v1 spec to preserve metadata
+                (key, tempo, time_signature, instruments) during Phase α.
 
         Returns:
             ScoreIR with concrete notes.
         """
         from yao.generators.rule_based import RuleBasedGenerator
 
-        v1_spec = _plan_to_v1_spec(plan)
+        v1_spec = original_spec if original_spec is not None else _plan_to_v1_spec(plan)
         traj_spec = _plan_to_traj_spec(plan)
 
         provenance.record(
@@ -71,13 +74,19 @@ class RuleBasedNoteRealizer(NoteRealizerBase):
 
 
 def _plan_to_v1_spec(plan: MusicalPlan) -> CompositionSpec:
-    """Convert a MusicalPlan to a v1 CompositionSpec for legacy generators."""
+    """Convert a MusicalPlan to a v1 CompositionSpec for legacy generators.
+
+    Uses GlobalContext from the plan to preserve key, tempo, time signature,
+    and instruments. Falls back to defaults if GlobalContext is empty.
+    """
     from yao.schema.composition import (
         CompositionSpec,
         GenerationConfig,
         InstrumentSpec,
         SectionSpec,
     )
+
+    ctx = plan.global_context
 
     sections = [
         SectionSpec(
@@ -88,9 +97,22 @@ def _plan_to_v1_spec(plan: MusicalPlan) -> CompositionSpec:
         for s in plan.form.sections
     ]
 
+    # Use instruments from GlobalContext, falling back to piano
+    if ctx.instruments:
+        instruments = [
+            InstrumentSpec(name=name, role=role)  # type: ignore[arg-type]
+            for name, role in ctx.instruments
+        ]
+    else:
+        instruments = [InstrumentSpec(name="piano", role="melody")]
+
     return CompositionSpec(
         title=plan.intent.text[:50] if plan.intent.text else "Untitled",
-        instruments=[InstrumentSpec(name="piano", role="melody")],
+        key=ctx.key,
+        tempo_bpm=ctx.tempo_bpm,
+        time_signature=ctx.time_signature,
+        genre=ctx.genre,
+        instruments=instruments,
         sections=sections,
         generation=GenerationConfig(strategy="rule_based"),
     )

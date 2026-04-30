@@ -19,11 +19,11 @@ YaO uses a strict layered architecture with downward-only dependency flow. This 
 | Layer 4: Perception (perception/) [planned]                  |
 |   Reference matching, aesthetic judgment substitutes         |
 +--------------------------------------------------------------+
-| Layer 3.5: Musical Plan IR (ir/plan/) [v2.0]                 |
+| Layer 3a: Composition Plan IR (CPIR) (ir/plan/) [v2.0]       |
 |   SongFormPlan, HarmonyPlan, MusicalPlan                     |
 |   Structural/harmonic decisions BEFORE notes are placed      |
 +--------------------------------------------------------------+
-| Layer 3: Score IR (ir/)                                      |
+| Layer 3b: Score IR (ir/)                                     |
 |   Note, Part, Section, ScoreIR, harmony, motif, voicing      |
 +--------------------------------------------------------------+
 | Layer 2: Generation (generators/)                            |
@@ -39,9 +39,9 @@ YaO uses a strict layered architecture with downward-only dependency flow. This 
 
 The Conductor sits above all layers. It orchestrates the full generate-evaluate-adapt pipeline and can import from any layer.
 
-### Layer 3.5: Musical Plan IR (v2.0)
+### Layer 3a: Composition Plan IR (CPIR) (v2.0)
 
-Layer 3.5 is the central addition in v2.0. It sits between the Score IR (Layer 3) and Perception (Layer 4), holding structural and harmonic decisions as a plan *before* any notes are placed. The key types are:
+Layer 3a is the central addition in v2.0. It sits between the Score IR (Layer 3b) and Perception (Layer 4), holding structural and harmonic decisions as a plan *before* any notes are placed. The key types are:
 
 - **`SongFormPlan`** — Sections, bar counts, dynamics arcs
 - **`HarmonyPlan`** — Chord events, progressions per section
@@ -63,9 +63,9 @@ Lower layers cannot import upper layers. A module in `generators/` (Layer 2) can
 | 0 (constants) | nothing |
 | 1 (schema, reflect) | constants |
 | 2 (generators) | constants, schema, ir, reflect |
-| 3 (ir) | constants |
-| 3.5 (ir/plan) | constants, ir |
-| 4 (perception) | layers 0-3.5 |
+| 3b (ir) | constants |
+| 3a (ir/plan) | constants, ir |
+| 4 (perception) | layers 0-3a |
 | 5 (render) | layers 0-4 |
 | 6 (verify) | layers 0-5 |
 | conductor | all layers |
@@ -86,4 +86,4 @@ Lower layers cannot import upper layers. A module in `generators/` (Layer 2) can
 make arch-lint   # Runs tools/architecture_lint.py
 ```
 
-The linter uses AST parsing to check every import statement without executing code. It now also enforces Layer 3.5 boundaries.
+The linter uses AST parsing to check every import statement without executing code. It now also enforces Layer 3a boundaries.

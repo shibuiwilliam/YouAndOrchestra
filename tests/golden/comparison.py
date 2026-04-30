@@ -65,10 +65,7 @@ def compare_midi(actual_path: Path, expected_path: Path) -> MidiDiff:
     # Note count
     note_count_diff = len(actual_notes) - len(expected_notes)
     if note_count_diff != 0:
-        details.append(
-            f"Note count: {len(actual_notes)} vs {len(expected_notes)}"
-            f" (diff={note_count_diff})"
-        )
+        details.append(f"Note count: {len(actual_notes)} vs {len(expected_notes)} (diff={note_count_diff})")
 
     # Pitch sets
     actual_pitches = {n[0] for n in actual_notes}
@@ -134,15 +131,12 @@ def assert_midi_match(
     diff = compare_midi(actual_path, expected_path)
 
     if tolerance == 0.0:
-        assert diff.structural_match, (
-            "Golden MIDI mismatch (bit-exact mode):\n"
-            + "\n".join(f"  - {d}" for d in diff.details)
+        assert diff.structural_match, "Golden MIDI mismatch (bit-exact mode):\n" + "\n".join(
+            f"  - {d}" for d in diff.details
         )
     else:
         # Tolerance mode: allow minor velocity and timing differences
-        assert abs(diff.note_count_diff) == 0, (
-            f"Note count mismatch: {diff.note_count_diff}"
-        )
+        assert abs(diff.note_count_diff) == 0, f"Note count mismatch: {diff.note_count_diff}"
         assert abs(diff.velocity_avg_diff) <= tolerance * 127, (
             f"Velocity avg diff {diff.velocity_avg_diff:.1f} exceeds tolerance"
         )

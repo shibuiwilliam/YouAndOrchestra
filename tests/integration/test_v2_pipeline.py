@@ -131,9 +131,10 @@ class TestLegacyAdapter:
 
     def test_generate_via_v2_pipeline(self) -> None:
         spec = self._make_v1_spec()
-        score, prov = generate_via_v2_pipeline(spec)
+        score, plan, prov = generate_via_v2_pipeline(spec)
         assert len(score.all_notes()) > 0
         assert score.total_bars() > 0
+        assert plan.is_phase_alpha_complete()
 
     def test_v1_stochastic_via_v2(self) -> None:
         spec = CompositionSpec(
@@ -144,7 +145,7 @@ class TestLegacyAdapter:
             sections=[SectionSpec(name="main", bars=8, dynamics="mf")],
             generation=GenerationConfig(strategy="stochastic", seed=42, temperature=0.5),
         )
-        score, prov = generate_via_v2_pipeline(spec)
+        score, plan, prov = generate_via_v2_pipeline(spec)
         assert len(score.all_notes()) > 0
 
 

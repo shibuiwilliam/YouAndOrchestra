@@ -10,9 +10,7 @@ from yao.schema.composition import CompositionSpec
 
 
 class TestStemWriter:
-    def test_writes_stems(
-        self, multi_instrument_spec: CompositionSpec, tmp_output_dir: Path
-    ) -> None:
+    def test_writes_stems(self, multi_instrument_spec: CompositionSpec, tmp_output_dir: Path) -> None:
         from yao.generators.rule_based import RuleBasedGenerator
 
         gen = RuleBasedGenerator()
@@ -31,7 +29,6 @@ class TestStemWriter:
         sample_score_ir: ScoreIR,
         tmp_output_dir: Path,  # noqa: F821
     ) -> None:
-
         write_stems(sample_score_ir, tmp_output_dir)
         stems_dir = tmp_output_dir / "stems"
         assert stems_dir.exists()

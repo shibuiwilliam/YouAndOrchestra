@@ -91,7 +91,7 @@ class ProvenanceLog:
     def save(self, path: Path) -> None
 ```
 
-## Musical Plan IR Types (v2.0)
+## Composition Plan IR Types (CPIR) (v2.0)
 
 ### `MusicalPlan` (`yao.ir.plan.musical_plan`)
 ```python

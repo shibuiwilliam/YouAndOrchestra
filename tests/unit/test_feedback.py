@@ -88,11 +88,7 @@ class TestBarCountAdaptation:
         spec = _make_spec()
         from yao.conductor.feedback import SpecAdaptation
 
-        adaptations = [
-            SpecAdaptation(
-                field="total_bars", old_value="auto", new_value="16", reason="test"
-            )
-        ]
+        adaptations = [SpecAdaptation(field="total_bars", old_value="auto", new_value="16", reason="test")]
         result = apply_adaptations(spec, adaptations)
         assert result.total_bars == 16
 

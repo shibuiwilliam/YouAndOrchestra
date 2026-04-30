@@ -17,7 +17,11 @@ from typing import Literal
 
 import structlog
 
-from yao.conductor.feedback import apply_adaptations, suggest_adaptations
+from yao.conductor.feedback import (
+    apply_adaptations,
+    suggest_adaptations,
+    suggest_adaptations_from_findings,
+)
 from yao.conductor.result import ConductorResult
 from yao.generators.legacy_adapter import generate_via_v2_pipeline
 from yao.generators.registry import get_generator
@@ -28,68 +32,20 @@ from yao.render.midi_writer import write_midi
 from yao.render.stem_writer import write_stems
 from yao.schema.composition import (
     CompositionSpec,
-    GenerationConfig,
-    InstrumentSpec,
-    SectionSpec,
 )
-from yao.schema.trajectory import TrajectoryDimension, TrajectorySpec, Waypoint
+from yao.schema.composition_v2 import CompositionSpecV2
+from yao.schema.trajectory import TrajectorySpec
 from yao.verify.analyzer import analyze_score
+from yao.verify.critique import CRITIQUE_RULES
 from yao.verify.evaluator import EvaluationReport, evaluate_score
 
 _RoleType = Literal["melody", "harmony", "bass", "rhythm", "pad"]
 
 logger = structlog.get_logger()
 
-# Mood → key mapping for natural language spec building
-_MOOD_TO_KEY: dict[str, str] = {
-    "happy": "C major",
-    "joyful": "D major",
-    "bright": "G major",
-    "triumphant": "D major",
-    "energetic": "A major",
-    "calm": "F major",
-    "peaceful": "F major",
-    "gentle": "G major",
-    "sad": "D minor",
-    "melancholic": "D minor",
-    "melancholy": "D minor",
-    "dark": "C minor",
-    "mysterious": "A minor",
-    "suspenseful": "E minor",
-    "dramatic": "C minor",
-    "epic": "D minor",
-    "romantic": "E major",
-    "nostalgic": "A minor",
-    "dreamy": "F major",
-    "contemplative": "E minor",
-    "introspective": "F# minor",
-    "tense": "B minor",
-    "heroic": "Bb major",
-}
 
-# Instrument suggestions by role keywords
-_INSTRUMENT_KEYWORDS: dict[str, list[tuple[str, _RoleType]]] = {
-    "piano": [("piano", "melody")],
-    "strings": [("strings_ensemble", "pad"), ("cello", "bass")],
-    "orchestra": [
-        ("strings_ensemble", "pad"),
-        ("french_horn", "harmony"),
-        ("cello", "bass"),
-        ("piano", "melody"),
-    ],
-    "guitar": [("acoustic_guitar_nylon", "melody")],
-    "synth": [("synth_pad_warm", "pad"), ("synth_lead_saw", "melody")],
-    "minimal": [("piano", "melody")],
-    "ambient": [("synth_pad_warm", "pad"), ("piano", "melody")],
-    "cinematic": [
-        ("strings_ensemble", "pad"),
-        ("piano", "melody"),
-        ("cello", "bass"),
-        ("french_horn", "harmony"),
-    ],
-    "jazz": [("piano", "melody"), ("acoustic_bass", "bass")],
-    "classical": [("piano", "melody"), ("violin", "melody"), ("cello", "bass")],
-}
+# Musical knowledge (mood→key, instruments, genre) is in src/yao/sketch/compiler.py.
+# The Conductor delegates NL parsing to SpecCompiler (CLAUDE.md anti-pattern #7).
 
 
 class Conductor:
@@ -185,15 +141,30 @@ class Conductor:
             output_dir.mkdir(parents=True, exist_ok=True)
 
             # Generate via v2 pipeline (Spec → MPIR → ScoreIR)
-            score, gen_provenance = generate_via_v2_pipeline(
-                current_spec, trajectory
-            )
+            score, plan, gen_provenance = generate_via_v2_pipeline(current_spec, trajectory)
 
             # Merge provenance
             for record in gen_provenance.records:
                 combined_provenance.add(record)
             for dec in gen_provenance.recoverables:
                 combined_provenance.record_recoverable(dec)
+
+            # Adversarial Critic Gate (CLAUDE.md Rule B)
+            spec_v2 = _v1_to_v2_for_critic(current_spec)
+            critic_findings = CRITIQUE_RULES.run_all(plan, spec_v2)
+            if critic_findings:
+                combined_provenance.record(
+                    layer="conductor",
+                    operation="critic_gate",
+                    parameters={
+                        "iteration": iteration,
+                        "findings_count": len(critic_findings),
+                        "critical": sum(1 for f in critic_findings if f.severity.value == "critical"),
+                        "major": sum(1 for f in critic_findings if f.severity.value == "major"),
+                    },
+                    source="Conductor.compose_from_spec",
+                    rationale=(f"Adversarial Critic found {len(critic_findings)} issue(s) in iteration {iteration}."),
+                )
 
             # Write outputs
             midi_path = write_midi(score, output_dir / "full.mid")
@@ -255,7 +226,14 @@ class Conductor:
 
             # Not all passed and we have iterations left — adapt
             if iteration < max_iterations:
+                # Combine evaluator-based and critic-based adaptations
                 adaptations = suggest_adaptations(eval_report, current_spec)
+                if critic_findings:
+                    critic_adaptations = suggest_adaptations_from_findings(
+                        critic_findings,
+                        current_spec,
+                    )
+                    adaptations.extend(critic_adaptations)
                 if adaptations:
                     current_spec = apply_adaptations(current_spec, adaptations)
                     for a in adaptations:
@@ -275,9 +253,7 @@ class Conductor:
                 else:
                     # No adaptations possible — try a different seed
                     current_seed = current_spec.generation.seed or 42
-                    new_gen = current_spec.generation.model_copy(
-                        update={"seed": current_seed + iteration}
-                    )
+                    new_gen = current_spec.generation.model_copy(update={"seed": current_seed + iteration})
                     current_spec = current_spec.model_copy(update={"generation": new_gen})
                     adaptations_log.append(
                         f"v{iteration:03d}→v{iteration + 1:03d}: "
@@ -293,8 +269,7 @@ class Conductor:
                 "pass_rate": eval_report.pass_rate,
             },
             source="Conductor.compose_from_spec",
-            rationale=f"Max iterations ({max_iterations}) reached. "
-            f"Final pass rate: {eval_report.pass_rate:.0%}.",
+            rationale=f"Max iterations ({max_iterations}) reached. Final pass rate: {eval_report.pass_rate:.0%}.",
         )
         combined_provenance.save(output_dir / "provenance.json")
 
@@ -370,9 +345,7 @@ class Conductor:
             parameters={
                 "section": section_name,
                 "seed_override": seed_override,
-                "original_notes": sum(
-                    len(p.notes) for p in current_score.sections[old_section_idx].parts
-                ),
+                "original_notes": sum(len(p.notes) for p in current_score.sections[old_section_idx].parts),
             },
             source="Conductor.regenerate_section",
             rationale=f"Regenerating section '{section_name}' while preserving others.",
@@ -482,8 +455,8 @@ class Conductor:
     ) -> tuple[CompositionSpec, TrajectorySpec]:
         """Build a CompositionSpec from a natural language description.
 
-        Uses keyword matching to extract mood → key, pace → tempo,
-        instruments, duration, and section structure.
+        Delegates to SpecCompiler which houses all musical knowledge
+        (mood→key, pace→tempo, keyword→instruments).
 
         Args:
             description: Natural language description.
@@ -492,177 +465,22 @@ class Conductor:
         Returns:
             Tuple of (CompositionSpec, TrajectorySpec).
         """
-        desc_lower = description.lower()
+        from yao.sketch.compiler import SpecCompiler
 
-        # Key from mood
-        key = "C major"
-        for mood, mood_key in _MOOD_TO_KEY.items():
-            if mood in desc_lower:
-                key = mood_key
-                break
-
-        # Tempo from pace words
-        tempo = 120.0
-        if any(w in desc_lower for w in ("slow", "calm", "gentle", "peaceful", "ambient")):
-            tempo = 80.0
-        elif any(w in desc_lower for w in ("moderate", "walking")):
-            tempo = 100.0
-        elif any(w in desc_lower for w in ("fast", "energetic", "upbeat", "driving")):
-            tempo = 140.0
-        elif any(w in desc_lower for w in ("very fast", "frantic", "intense")):
-            tempo = 160.0
-
-        # Instruments from keywords
-        instruments: list[InstrumentSpec] = []
-        matched_instrument = False
-        for keyword, instr_list in _INSTRUMENT_KEYWORDS.items():
-            if keyword in desc_lower:
-                for name, role in instr_list:
-                    if not any(i.name == name for i in instruments):
-                        instruments.append(InstrumentSpec(name=name, role=role))
-                matched_instrument = True
-        if not matched_instrument:
-            instruments = [
-                InstrumentSpec(name="piano", role="melody"),
-                InstrumentSpec(name="acoustic_bass", role="bass"),
-            ]
-
-        # Duration → bars (at given tempo)
-        duration_seconds = 90.0  # default
-        duration_match = re.search(r"(\d+)\s*(?:second|sec|s\b)", desc_lower)
-        if duration_match:
-            duration_seconds = float(duration_match.group(1))
-        minute_match = re.search(r"(\d+)\s*(?:minute|min|m\b)", desc_lower)
-        if minute_match:
-            duration_seconds = float(minute_match.group(1)) * 60
-
-        beats = duration_seconds * tempo / 60.0
-        total_bars = max(8, round(beats / 4))  # 4/4 time
-
-        # Section structure
-        sections = _build_sections(total_bars, desc_lower)
-
-        # Generation config — stochastic by default for variety
-        generation = GenerationConfig(strategy="stochastic", seed=42, temperature=0.5)
-
-        spec = CompositionSpec(
-            title=project_name.replace("-", " ").title(),
-            genre=_detect_genre(desc_lower),
-            key=key,
-            tempo_bpm=tempo,
-            time_signature="4/4",
-            total_bars=total_bars,
-            instruments=instruments,
-            sections=sections,
-            generation=generation,
-        )
-
-        # Build trajectory
-        trajectory = _build_trajectory(total_bars, desc_lower)
-
-        return spec, trajectory
+        compiler = SpecCompiler()
+        return compiler.compile(description, project_name)
 
 
-def _build_sections(total_bars: int, desc_lower: str) -> list[SectionSpec]:
-    """Build section structure from total bars and description."""
-    if total_bars <= 8:  # noqa: PLR2004
-        return [SectionSpec(name="verse", bars=total_bars, dynamics="mf")]
+def _v1_to_v2_for_critic(spec: CompositionSpec) -> CompositionSpecV2:
+    """Convert a v1 spec to v2 for the Adversarial Critic.
 
-    if total_bars <= 16:  # noqa: PLR2004
-        half = total_bars // 2
-        return [
-            SectionSpec(name="verse", bars=half, dynamics="mp"),
-            SectionSpec(name="chorus", bars=total_bars - half, dynamics="f"),
-        ]
+    The Critic's detect() methods accept CompositionSpecV2. This bridge
+    converts on the fly during Phase α. Will be unnecessary when the
+    Conductor migrates to v2 specs natively.
+    """
+    from yao.generators.legacy_adapter import _v1_to_v2
 
-    # Standard 4-section structure
-    intro_bars = max(2, total_bars // 8)
-    outro_bars = max(2, total_bars // 8)
-    body_bars = total_bars - intro_bars - outro_bars
-    verse_bars = body_bars // 2
-    chorus_bars = body_bars - verse_bars
-
-    sections = [
-        SectionSpec(name="intro", bars=intro_bars, dynamics="pp"),
-        SectionSpec(name="verse", bars=verse_bars, dynamics="mp"),
-        SectionSpec(name="chorus", bars=chorus_bars, dynamics="f"),
-        SectionSpec(name="outro", bars=outro_bars, dynamics="pp"),
-    ]
-
-    # Add bridge if long enough
-    if total_bars >= 32:  # noqa: PLR2004
-        bridge_bars = max(4, total_bars // 8)
-        chorus_bars_adj = chorus_bars - bridge_bars
-        if chorus_bars_adj >= 4:  # noqa: PLR2004
-            sections = [
-                SectionSpec(name="intro", bars=intro_bars, dynamics="pp"),
-                SectionSpec(name="verse", bars=verse_bars, dynamics="mp"),
-                SectionSpec(name="chorus", bars=chorus_bars_adj, dynamics="f"),
-                SectionSpec(name="bridge", bars=bridge_bars, dynamics="mf"),
-                SectionSpec(name="outro", bars=outro_bars, dynamics="pp"),
-            ]
-
-    return sections
-
-
-def _build_trajectory(total_bars: int, desc_lower: str) -> TrajectorySpec:
-    """Build a trajectory from the description."""
-    # Default: gentle arch (rise to 2/3, fall at end)
-    peak_bar = total_bars * 2 // 3
-
-    if any(w in desc_lower for w in ("build", "crescendo", "rising")):
-        # Rising tension throughout
-        waypoints = [
-            Waypoint(bar=0, value=0.2),
-            Waypoint(bar=total_bars, value=0.9),
-        ]
-    elif any(w in desc_lower for w in ("calm", "peaceful", "ambient", "gentle")):
-        # Low, steady tension
-        waypoints = [
-            Waypoint(bar=0, value=0.2),
-            Waypoint(bar=total_bars // 2, value=0.35),
-            Waypoint(bar=total_bars, value=0.2),
-        ]
-    elif any(w in desc_lower for w in ("dramatic", "epic", "intense", "climax")):
-        # Strong arch with high peak
-        waypoints = [
-            Waypoint(bar=0, value=0.2),
-            Waypoint(bar=peak_bar, value=0.95),
-            Waypoint(bar=total_bars, value=0.15),
-        ]
-    else:
-        # Default arch
-        waypoints = [
-            Waypoint(bar=0, value=0.3),
-            Waypoint(bar=peak_bar, value=0.7),
-            Waypoint(bar=total_bars, value=0.25),
-        ]
-
-    return TrajectorySpec(
-        tension=TrajectoryDimension(type="linear", waypoints=waypoints),
-    )
-
-
-def _detect_genre(desc_lower: str) -> str:
-    """Detect genre from description keywords."""
-    genre_keywords: dict[str, str] = {
-        "cinematic": "cinematic",
-        "film": "cinematic",
-        "movie": "cinematic",
-        "jazz": "jazz",
-        "classical": "classical",
-        "ambient": "ambient",
-        "electronic": "electronic",
-        "rock": "rock",
-        "pop": "pop",
-        "game": "game",
-        "lofi": "lofi",
-        "lo-fi": "lofi",
-    }
-    for keyword, genre in genre_keywords.items():
-        if keyword in desc_lower:
-            return genre
-    return "general"
+    return _v1_to_v2(spec)
 
 
 def _slugify(text: str) -> str:

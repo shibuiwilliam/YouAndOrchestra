@@ -23,10 +23,10 @@
 - Trajectory compliance tests with 3 xfail (v1 limitations documented)
 - 43 tests
 
-### Step 4: MPIR (Layer 3.5) ✅ (2026-04-30)
+### Step 4: CPIR (Layer 3a) ✅ (2026-04-30)
 - `src/yao/ir/plan/` — SongFormPlan, HarmonyPlan, MusicalPlan
 - Skeleton files for Phase beta (motif, phrase, drums, arrangement)
-- Architecture lint updated for Layer 3.5
+- Architecture lint updated for Layer 3a
 - 27 tests
 
 ### Step 5: MetricGoal Type System ✅ (2026-04-30)
@@ -45,7 +45,7 @@
 - `src/yao/generators/plan/` — PlanGeneratorBase, FormPlanner, HarmonyPlanner, Orchestrator
 - `src/yao/generators/note/` — NoteRealizerBase, RuleBasedRealizer, StochasticRealizer
 - Legacy adapter bridges v1 specs to v2 pipeline
-- Full pipeline operational: Spec → MPIR → ScoreIR
+- Full pipeline operational: Spec → CPIR → ScoreIR
 - 21 tests
 
 ### Step 8: Golden MIDI Tests ✅ (2026-04-30)
@@ -88,7 +88,7 @@
 - Harmony planner now tension-responsive: high tension prefers dominant/secondary-dominant
   chords; low tension prefers tonic/subdominant. Chord distribution varies with trajectory.
 - Conductor wired to v2 pipeline: compose_from_spec() now calls generate_via_v2_pipeline()
-  (Spec → MPIR → ScoreIR) instead of legacy get_generator() direct path.
+  (Spec → CPIR → ScoreIR) instead of legacy get_generator() direct path.
 - quality_score logged in conductor iteration output.
 - 3 new harmony tension tests + conductor note realizer imports added.
 - Lint fixes: stochastic contour ternaries, test line length.

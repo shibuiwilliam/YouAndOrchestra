@@ -11,16 +11,29 @@ def _make_sections() -> list[SectionPlan]:
     """Create a standard 3-section form for testing."""
     return [
         SectionPlan(
-            id="intro", start_bar=0, bars=4, role="intro",
-            target_density=0.2, target_tension=0.1,
+            id="intro",
+            start_bar=0,
+            bars=4,
+            role="intro",
+            target_density=0.2,
+            target_tension=0.1,
         ),
         SectionPlan(
-            id="verse", start_bar=4, bars=8, role="verse",
-            target_density=0.5, target_tension=0.4,
+            id="verse",
+            start_bar=4,
+            bars=8,
+            role="verse",
+            target_density=0.5,
+            target_tension=0.4,
         ),
         SectionPlan(
-            id="chorus", start_bar=12, bars=8, role="chorus",
-            target_density=0.9, target_tension=0.8, is_climax=True,
+            id="chorus",
+            start_bar=12,
+            bars=8,
+            role="chorus",
+            target_density=0.9,
+            target_tension=0.8,
+            is_climax=True,
         ),
     ]
 
@@ -30,15 +43,24 @@ class TestSectionPlan:
 
     def test_end_bar(self) -> None:
         s = SectionPlan(
-            id="verse", start_bar=4, bars=8, role="verse",
-            target_density=0.5, target_tension=0.4,
+            id="verse",
+            start_bar=4,
+            bars=8,
+            role="verse",
+            target_density=0.5,
+            target_tension=0.4,
         )
         assert s.end_bar() == 12
 
     def test_round_trip(self) -> None:
         s = SectionPlan(
-            id="chorus", start_bar=12, bars=8, role="chorus",
-            target_density=0.9, target_tension=0.8, is_climax=True,
+            id="chorus",
+            start_bar=12,
+            bars=8,
+            role="chorus",
+            target_density=0.9,
+            target_tension=0.8,
+            is_climax=True,
         )
         d = s.to_dict()
         s2 = SectionPlan.from_dict(d)
@@ -50,8 +72,12 @@ class TestSectionPlan:
 
     def test_frozen(self) -> None:
         s = SectionPlan(
-            id="intro", start_bar=0, bars=4, role="intro",
-            target_density=0.2, target_tension=0.1,
+            id="intro",
+            start_bar=0,
+            bars=4,
+            role="intro",
+            target_density=0.2,
+            target_tension=0.1,
         )
         with pytest.raises(AttributeError):
             s.bars = 8  # type: ignore[misc]

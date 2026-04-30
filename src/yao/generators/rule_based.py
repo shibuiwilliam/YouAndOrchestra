@@ -387,8 +387,10 @@ class RuleBasedGenerator(GeneratorBase):
                     notes.append(note)
                 else:
                     self._record_recovery(
-                        "CHORD_NOTE_OUT_OF_RANGE", "info",
-                        pitch, None,
+                        "CHORD_NOTE_OUT_OF_RANGE",
+                        "info",
+                        pitch,
+                        None,
                         f"Chord note {pitch} outside {instrument} range",
                         "Chord voicing has one fewer note",
                     )
@@ -417,8 +419,10 @@ class RuleBasedGenerator(GeneratorBase):
         clamped = max(1, min(127, base_velocity))
         if clamped != base_velocity:
             self._record_recovery(
-                "VELOCITY_CLAMPED", "info",
-                base_velocity, clamped,
+                "VELOCITY_CLAMPED",
+                "info",
+                base_velocity,
+                clamped,
                 f"Base velocity {base_velocity} clamped to MIDI range",
                 "Negligible — dynamics at MIDI boundary",
             )

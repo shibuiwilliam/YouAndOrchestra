@@ -44,14 +44,14 @@
 - 4 skills populated (cinematic genre, voice-leading, piano, tension-resolution)
 - v2 spec format with 11 sections (identity, emotion, melody, harmony, etc.)
 - 3 v2 spec templates
-- Musical Plan IR (MPIR) foundation: SongFormPlan, HarmonyPlan, MusicalPlan
+- Composition Plan IR (CPIR) foundation: SongFormPlan, HarmonyPlan, MusicalPlan
 - Plan generators: form planner, harmony planner
 - MetricGoal type system for richer evaluation
 - RecoverableDecision mechanism for traceable fallbacks
 - 447 tests (unit, integration, scenario, constraint, golden)
 
 **In progress (Phase alpha):**
-- Completing MPIR as the required intermediary between specs and notes
+- Completing CPIR as the required intermediary between specs and notes
 - Golden MIDI test infrastructure
 - Capability Matrix verification (`make matrix-check`)
 
@@ -83,7 +83,7 @@
 
 ## Technical Roadmap
 
-### Phase alpha (current): MPIR Foundation
+### Phase alpha (current): CPIR Foundation
 1. SongFormPlan + HarmonyPlan as first-class intermediaries
 2. Plan generators (form planner, harmony planner)
 3. Note realizer refactoring (wrap legacy generators)

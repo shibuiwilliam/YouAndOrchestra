@@ -39,6 +39,5 @@ def validate_code(code: str) -> None:
     """
     if code not in KNOWN_CODES:
         raise VerificationError(
-            f"Unknown recoverable code: '{code}'. "
-            f"Add it to src/yao/verify/recoverable_codes.py before use."
+            f"Unknown recoverable code: '{code}'. Add it to src/yao/verify/recoverable_codes.py before use."
         )

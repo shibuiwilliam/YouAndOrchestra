@@ -3,211 +3,65 @@
 # Each key matches a Feature cell in the Capability Matrix in PROJECT.md.
 # For ✅ entries: `src` and `tests` paths are checked for existence.
 # For other statuses: no file checks (they are expected to be absent).
-#
-# Glob patterns are supported (e.g., "tests/unit/test_generator*.py").
 
-"RecoverableDecision logging":
-  src:
-    - src/yao/reflect/recoverable.py
-    - src/yao/reflect/recoverable_codes.py
-  tests:
-    - tests/unit/verify/test_recoverable.py
-
-"MetricGoal type system":
-  src:
-    - src/yao/verify/metric_goal.py
-  tests:
-    - tests/unit/verify/test_metric_goal.py
-
-"plan generator registry":
-  src:
-    - src/yao/generators/plan/base.py
-
-"note realizer registry":
-  src:
-    - src/yao/generators/note/base.py
-
-"form planner (rule_based)":
-  src:
-    - src/yao/generators/plan/form_planner.py
-  tests:
-    - tests/unit/generators/plan/test_form_planner.py
-
-"harmony planner (rule_based)":
-  src:
-    - src/yao/generators/plan/harmony_planner.py
-  tests:
-    - tests/unit/generators/plan/test_harmony_planner.py
-
-"plan orchestrator":
-  src:
-    - src/yao/generators/plan/orchestrator.py
-  tests:
-    - tests/integration/test_v2_pipeline.py
-
-"legacy adapter (v1→v2 bridge)":
-  src:
-    - src/yao/generators/legacy_adapter.py
-  tests:
-    - tests/integration/test_v2_pipeline.py
-
-"critique base types (Finding, CritiqueRule)":
-  src:
-    - src/yao/verify/critique/types.py
-    - src/yao/verify/critique/base.py
-    - src/yao/verify/critique/registry.py
-  tests:
-    - tests/unit/verify/test_critique.py
-
-"SongFormPlan":
-  src:
-    - src/yao/ir/plan/song_form.py
-  tests:
-    - tests/unit/ir/plan/test_song_form_plan.py
-
-"HarmonyPlan with functions/cadences":
-  src:
-    - src/yao/ir/plan/harmony.py
-  tests:
-    - tests/unit/ir/plan/test_harmony_plan.py
-
+# === Specification Layer ===
 "composition.yaml v1":
   src:
     - src/yao/schema/composition.py
   tests:
     - tests/unit/test_schema.py
 
-"trajectory.yaml multi-dimensional":
+"composition.yaml v2(11 セクション)":
   src:
-    - src/yao/schema/trajectory.py
+    - src/yao/schema/composition_v2.py
   tests:
-    - tests/unit/test_schema.py
+    - tests/unit/schema/test_composition_v2.py
 
-"constraints with scoping":
+"constraints + scope":
   src:
     - src/yao/schema/constraints.py
   tests:
     - tests/unit/test_constraints.py
 
-"rule_based generator (v1, spec→notes)":
+# === Generation Layer ===
+"rule_based generator(v1)":
   src:
     - src/yao/generators/rule_based.py
   tests:
     - tests/unit/test_generator.py
 
-"stochastic generator (v1, spec→notes)":
+"stochastic generator(v1)":
   src:
     - src/yao/generators/stochastic.py
   tests:
     - tests/unit/test_stochastic.py
 
-"generator registry (legacy)":
+"FormPlanner(rule_based)":
   src:
-    - src/yao/generators/registry.py
-    - src/yao/generators/base.py
+    - src/yao/generators/plan/form_planner.py
   tests:
-    - tests/unit/test_generator.py
+    - tests/unit/generators/plan/test_form_planner.py
 
-"MIDI writer + stems":
+"HarmonyPlanner(rule_based)":
   src:
-    - src/yao/render/midi_writer.py
-    - src/yao/render/stem_writer.py
+    - src/yao/generators/plan/harmony_planner.py
   tests:
-    - tests/unit/test_render.py
-    - tests/unit/test_stem_writer.py
+    - tests/unit/generators/plan/test_harmony_planner.py
 
-"audio renderer (FluidSynth)":
+"PlanOrchestrator":
   src:
-    - src/yao/render/audio_renderer.py
+    - src/yao/generators/plan/orchestrator.py
   tests:
-    - tests/unit/test_render.py
+    - tests/integration/test_v2_pipeline.py
 
-"MIDI reader":
+"legacy adapter(v1→v2)":
   src:
-    - src/yao/render/midi_reader.py
+    - src/yao/generators/legacy_adapter.py
   tests:
-    - tests/unit/test_midi_reader.py
+    - tests/integration/test_v2_pipeline.py
 
-"iteration management":
-  src:
-    - src/yao/render/iteration.py
-  tests:
-    - tests/unit/test_iteration.py
-
-"basic generate-evaluate-adapt":
-  src:
-    - src/yao/conductor/conductor.py
-    - src/yao/conductor/feedback.py
-    - src/yao/conductor/result.py
-  tests:
-    - tests/unit/test_conductor.py
-
-"section regeneration":
-  src:
-    - src/yao/conductor/conductor.py
-  tests:
-    - tests/unit/test_conductor.py
-
-"7 definitions (.claude/agents/)":
-  src:
-    - .claude/agents/composer.md
-    - .claude/agents/harmony-theorist.md
-    - .claude/agents/rhythm-architect.md
-    - .claude/agents/orchestrator.md
-    - .claude/agents/mix-engineer.md
-    - .claude/agents/adversarial-critic.md
-    - .claude/agents/producer.md
-
-"ScoreIR (Note, Section, Part)":
-  src:
-    - src/yao/ir/score_ir.py
-    - src/yao/ir/note.py
-  tests:
-    - tests/unit/test_ir.py
-
-"Harmony (Roman numerals, realize)":
-  src:
-    - src/yao/ir/harmony.py
-  tests:
-    - tests/unit/test_harmony.py
-
-"Motif (5 transforms)":
-  src:
-    - src/yao/ir/motif.py
-  tests:
-    - tests/unit/test_motif.py
-
-"Voicing (voice leading, parallel 5ths)":
-  src:
-    - src/yao/ir/voicing.py
-  tests:
-    - tests/unit/test_voicing.py
-
-"Timing (tick/beat/second)":
-  src:
-    - src/yao/ir/timing.py
-  tests:
-    - tests/unit/test_ir.py
-
-"Notation (name↔MIDI)":
-  src:
-    - src/yao/ir/notation.py
-  tests:
-    - tests/unit/test_ir.py
-
-"Provenance (append-only, queryable)":
-  src:
-    - src/yao/reflect/provenance.py
-  tests:
-    - tests/unit/test_conductor.py
-
-"Error hierarchy":
-  src:
-    - src/yao/errors.py
-  tests:
-    - tests/unit/test_errors.py
-
-"Music linter":
+# === Critique & Verification ===
+"Music lint":
   src:
     - src/yao/verify/music_lint.py
   tests:
@@ -219,52 +73,148 @@
   tests:
     - tests/unit/test_verify.py
 
-"Evaluator (5-dimension + quality score)":
+"Evaluator(5 次元 + quality score)":
   src:
     - src/yao/verify/evaluator.py
   tests:
     - tests/unit/test_evaluator.py
 
-"Score diff":
+"Score diff(modified notes)":
   src:
     - src/yao/verify/diff.py
   tests:
     - tests/unit/test_diff.py
 
-"Constraint checker":
+"MetricGoal type system":
   src:
-    - src/yao/verify/constraint_checker.py
+    - src/yao/verify/metric_goal.py
   tests:
-    - tests/unit/test_constraints.py
+    - tests/unit/verify/test_metric_goal.py
 
-"golden MIDI tests":
+"RecoverableDecision logging":
   src:
-    - tests/golden/test_golden.py
-    - tests/golden/comparison.py
-    - tests/golden/tools/regenerate_goldens.py
-
-"Rhythm evaluation (variety + syncopation)":
-  src:
-    - src/yao/verify/evaluator.py
+    - src/yao/reflect/recoverable.py
+    - src/yao/reflect/recoverable_codes.py
   tests:
-    - tests/unit/test_evaluator.py
+    - tests/unit/verify/test_recoverable.py
 
-"architecture lint":
+"Critique base types":
   src:
-    - tools/architecture_lint.py
+    - src/yao/verify/critique/types.py
+    - src/yao/verify/critique/base.py
+    - src/yao/verify/critique/registry.py
+  tests:
+    - tests/unit/verify/test_critique.py
 
-"unit tests":
+# === Rendering Layer ===
+"MIDI writer + stems":
+  src:
+    - src/yao/render/midi_writer.py
+    - src/yao/render/stem_writer.py
+  tests:
+    - tests/unit/test_render.py
+
+"Audio renderer(FluidSynth)":
+  src:
+    - src/yao/render/audio_renderer.py
+  tests:
+    - tests/unit/test_render.py
+
+"MIDI reader":
+  src:
+    - src/yao/render/midi_reader.py
+  tests:
+    - tests/unit/test_midi_reader.py
+
+"Iteration management":
+  src:
+    - src/yao/render/iteration.py
+  tests:
+    - tests/unit/test_iteration.py
+
+# === Conductor & Subagents ===
+"Conductor(v2 pipeline 経由)":
+  src:
+    - src/yao/conductor/conductor.py
+    - src/yao/conductor/feedback.py
+  tests:
+    - tests/unit/test_conductor.py
+
+"7 Subagent definitions":
+  src:
+    - .claude/agents/composer.md
+    - .claude/agents/adversarial-critic.md
+    - .claude/agents/producer.md
+
+"Section-level regeneration":
+  src:
+    - src/yao/conductor/conductor.py
+  tests:
+    - tests/unit/test_conductor.py
+
+# === CLI ===
+"yao compose / conduct / render":
+  src:
+    - src/cli/main.py
+
+"yao validate / evaluate / diff / explain":
+  src:
+    - src/cli/main.py
+
+"yao new-project / regenerate-section":
+  src:
+    - src/cli/main.py
+
+"7 slash commands":
+  src:
+    - .claude/commands/compose.md
+    - .claude/commands/sketch.md
+    - .claude/commands/critique.md
+
+# === Skills ===
+"cinematic genre skill":
+  src:
+    - .claude/skills/genres/cinematic.md
+
+# === CPIR ===
+"SongFormPlan":
+  src:
+    - src/yao/ir/plan/song_form.py
+  tests:
+    - tests/unit/ir/plan/test_song_form_plan.py
+
+"HarmonyPlan":
+  src:
+    - src/yao/ir/plan/harmony.py
+  tests:
+    - tests/unit/ir/plan/test_harmony_plan.py
+
+# === QA ===
+"Unit tests":
   src:
     - tests/unit/
 
-"integration tests":
+"Integration tests":
   src:
     - tests/integration/
 
-"scenario tests":
+"Scenario tests":
   src:
     - tests/scenarios/
 
-"music constraint tests":
+"Music constraint tests":
   src:
     - tests/music_constraints/
+
+"Golden MIDI tests":
+  src:
+    - tests/golden/test_golden.py
+    - tests/golden/comparison.py
+
+"Architecture lint":
+  src:
+    - tools/architecture_lint.py
+
+"Capability matrix check":
+  src:
+    - tools/capability_matrix_check.py

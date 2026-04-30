@@ -22,13 +22,13 @@ Terms used throughout the YaO codebase and documentation.
 
 **Constraint Violation** — An error raised when a musical rule is broken (e.g., note out of instrument range). See `yao.errors.ConstraintViolationError`.
 
-**Critic Gate** — (v2.0) A validation step between MPIR completion and Note Realization. The Adversarial Critic evaluates the plan before any notes are placed, preventing "fundamentally weak plan, beautifully realized" outcomes.
+**Critic Gate** — (v2.0) A validation step between CPIR completion and Note Realization. The Adversarial Critic evaluates the plan before any notes are placed, preventing "fundamentally weak plan, beautifully realized" outcomes.
 
 **Finding** — (v2.0) A structured critique result emitted by critique rules. Contains rule ID, severity (critical/major/minor/suggestion), evidence, location, and recommendation. Replaces free-text critique. See `yao.verify.critique.types.Finding`.
 
 **Frozen Dataclass** — Python `@dataclass(frozen=True)`. Used for all IR domain objects to ensure immutability and provenance integrity.
 
-**HarmonyPlan** — (v2.0) A component of the Musical Plan IR that specifies chord events and progressions for each section, before notes are placed. See `yao.ir.plan.harmony.HarmonyPlan`.
+**HarmonyPlan** — (v2.0) A component of the Composition Plan IR (CPIR) that specifies chord events and progressions for each section, before notes are placed. See `yao.ir.plan.harmony.HarmonyPlan`.
 
 **Iteration** — A versioned generation of a composition within a project. Numbered `v001`, `v002`, etc. Stored under `outputs/projects/<name>/iterations/`.
 
@@ -42,13 +42,13 @@ Terms used throughout the YaO codebase and documentation.
 
 **Motif** — The smallest musically meaningful unit — a short melodic/rhythmic fragment. See `yao.ir.motif.Motif`.
 
-**MPIR (Musical Plan IR)** — (v2.0) The middle-layer abstraction between specification and note generation. Contains SongFormPlan, HarmonyPlan, and (planned) MotifPlan, PhrasePlan, DrumPlan, ArrangementPlan. Layer 3.5 in the architecture. See `yao.ir.plan.musical_plan.MusicalPlan`.
+**CPIR (Composition Plan IR)** — (v2.0) The middle-layer abstraction between specification and note generation. Contains SongFormPlan, HarmonyPlan, and (planned) MotifPlan, PhrasePlan, DrumPlan, ArrangementPlan. Layer 3a in the architecture. See `yao.ir.plan.musical_plan.MusicalPlan`.
 
 **Music Lint** — Automated detection of musical constraint violations (range errors, parallel fifths, etc.). See `yao.verify.music_lint`.
 
 **Music-as-Plan** — (v2.0) YaO's evolved philosophy: what makes music compelling is decided in the *planning* phase, before any note is written. Evolved from the original "Music-as-Code" philosophy.
 
-**MusicalPlan** — (v2.0) The integrated container holding all plan components (SongFormPlan, HarmonyPlan, etc.). The central type of Layer 3.5. See `yao.ir.plan.musical_plan.MusicalPlan`.
+**MusicalPlan** — (v2.0) The integrated container holding all plan components (SongFormPlan, HarmonyPlan, etc.). The central type of Layer 3a (CPIR). See `yao.ir.plan.musical_plan.MusicalPlan`.
 
 **Negative Space** — The intentional design of silence, frequency gaps, and texture reduction. What is NOT played is as important as what IS played.
 
@@ -76,7 +76,7 @@ Terms used throughout the YaO codebase and documentation.
 
 **Sketch-to-Spec** — The interactive process of transforming a natural language description into a structured YAML specification.
 
-**SongFormPlan** — (v2.0) A component of the Musical Plan IR that specifies section structure, bar counts, and dynamics arcs. See `yao.ir.plan.song_form.SongFormPlan`.
+**SongFormPlan** — (v2.0) A component of the Composition Plan IR (CPIR) that specifies section structure, bar counts, and dynamics arcs. See `yao.ir.plan.song_form.SongFormPlan`.
 
 **Style Vector** — A multi-dimensional numerical representation of a genre or style, enabling interpolation between styles.
 

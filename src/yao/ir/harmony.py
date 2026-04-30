@@ -209,9 +209,7 @@ def make_progression(
     Returns:
         ChordProgression with diatonic qualities assigned.
     """
-    chords = tuple(
-        ChordFunction(degree=d, quality=diatonic_quality(d, scale_type)) for d in degrees
-    )
+    chords = tuple(ChordFunction(degree=d, quality=diatonic_quality(d, scale_type)) for d in degrees)
     return ChordProgression(
         chords=chords,
         key_root=key_root,

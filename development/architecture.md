@@ -21,11 +21,11 @@ YaO is a layered music production pipeline. Each layer has clear responsibilitie
 | Layer 4: Perception (perception/) [planned]                  |
 |   Reference matching, aesthetic judgment substitutes         |
 +--------------------------------------------------------------+
-| Layer 3.5: Musical Plan IR (ir/plan/) [v2.0]                 |
+| Layer 3a: Composition Plan IR (ir/plan/) [v2.0]                 |
 |   SongFormPlan, HarmonyPlan, MusicalPlan                     |
 |   Structural/harmonic decisions BEFORE notes are placed      |
 +--------------------------------------------------------------+
-| Layer 3: Score IR (ir/)                                      |
+| Layer 3b: Score IR (ir/)                                      |
 |   Note, Part, Section, ScoreIR, harmony, motif, voicing      |
 +--------------------------------------------------------------+
 | Layer 2: Generation (generators/)                            |
@@ -45,7 +45,7 @@ YaO is a layered music production pipeline. Each layer has clear responsibilitie
 |-------------|----------------|
 | constants (0) | nothing |
 | schema (1) | constants |
-| ir (3, 3.5) | constants |
+| ir (3a, 3b) | constants |
 | reflect (1) | constants |
 | generators (2) | constants, schema, ir, reflect |
 | perception (4) | constants, schema, ir, generators |
@@ -72,7 +72,7 @@ See [ADR-0001](../docs/design/0001-layer-architecture.md). IR types (`Note`, `Sc
 
 ### v2.0 Pipeline (Plan-First)
 
-The v2.0 architecture introduces a two-stage generation process. Structural and harmonic decisions are made in the **Plan** stage (Layer 3.5), before any concrete notes are placed.
+The v2.0 architecture introduces a two-stage generation process. Structural and harmonic decisions are made in the **Plan** stage (Layer 3a), before any concrete notes are placed.
 
 ```
 composition.yaml  -->  CompositionSpec  -->  Conductor
@@ -81,7 +81,7 @@ trajectory.yaml   -->  TrajectorySpec   --+     |
                                      PlanGenerator.plan()
                                                |
                                                v
-                                     MusicalPlan (MPIR)
+                                     MusicalPlan (CPIR)
                                         - SongFormPlan
                                         - HarmonyPlan
                                         - (MotifPlan, DrumPlan — planned)
@@ -116,7 +116,7 @@ trajectory.yaml   -->  TrajectorySpec   --+     |
 
 ### Legacy Pipeline (Phase α transitional)
 
-During Phase α, the legacy generators (`rule_based`, `stochastic`) still accept specs directly but are being repositioned as Note Realizers. They may internally construct a minimal MPIR and pass through it. After Phase α, the direct spec-to-ScoreIR path will be removed.
+During Phase α, the legacy generators (`rule_based`, `stochastic`) still accept specs directly but are being repositioned as Note Realizers. They may internally construct a minimal CPIR and pass through it. After Phase α, the direct spec-to-ScoreIR path will be removed.
 
 ```
 CompositionSpec  -->  GeneratorBase.generate()  -->  (ScoreIR, ProvenanceLog)
@@ -156,7 +156,7 @@ CompositionSpec  -->  GeneratorBase.generate()  -->  (ScoreIR, ProvenanceLog)
 - `ir/voicing.py` -- `Voicing`, parallel fifths/octaves detection, voice distance
 - `ir/trajectory.py` -- `MultiDimensionalTrajectory` with density, tension, energy curves
 
-### Layer 3.5: Musical Plan IR (v2.0)
+### Layer 3a: Composition Plan IR (CPIR, v2.0)
 - `ir/plan/base.py` -- `PlanNode` abstract base class
 - `ir/plan/song_form.py` -- `SongFormPlan` (sections, structure)
 - `ir/plan/harmony.py` -- `HarmonyPlan` (chord events, progressions)

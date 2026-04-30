@@ -145,7 +145,9 @@ class TestMatchCurve:
     def test_pass_exact(self) -> None:
         curve = ((0.0, 0.2), (10.0, 0.8))
         goal = MetricGoal(
-            type=MetricGoalType.MATCH_CURVE, target_curve=curve, tolerance=0.05,
+            type=MetricGoalType.MATCH_CURVE,
+            target_curve=curve,
+            tolerance=0.05,
         )
         # Actual values exactly on the curve
         actual = [(0.0, 0.2), (5.0, 0.5), (10.0, 0.8)]
@@ -155,7 +157,9 @@ class TestMatchCurve:
     def test_fail_deviation(self) -> None:
         curve = ((0.0, 0.2), (10.0, 0.8))
         goal = MetricGoal(
-            type=MetricGoalType.MATCH_CURVE, target_curve=curve, tolerance=0.05,
+            type=MetricGoalType.MATCH_CURVE,
+            target_curve=curve,
+            tolerance=0.05,
         )
         # Actual values far off the curve
         actual = [(0.0, 0.9), (5.0, 0.1), (10.0, 0.2)]
@@ -166,7 +170,9 @@ class TestMatchCurve:
     def test_boundary_tolerance(self) -> None:
         curve = ((0.0, 0.5), (10.0, 0.5))
         goal = MetricGoal(
-            type=MetricGoalType.MATCH_CURVE, target_curve=curve, tolerance=0.1,
+            type=MetricGoalType.MATCH_CURVE,
+            target_curve=curve,
+            tolerance=0.1,
         )
         actual = [(0.0, 0.6), (5.0, 0.4), (10.0, 0.6)]
         result = evaluate_metric("test", actual, goal)
@@ -175,7 +181,9 @@ class TestMatchCurve:
     def test_empty_data(self) -> None:
         curve = ((0.0, 0.5),)
         goal = MetricGoal(
-            type=MetricGoalType.MATCH_CURVE, target_curve=curve, tolerance=0.1,
+            type=MetricGoalType.MATCH_CURVE,
+            target_curve=curve,
+            tolerance=0.1,
         )
         result = evaluate_metric("test", [], goal)
         assert not result.passed

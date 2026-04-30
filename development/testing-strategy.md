@@ -93,7 +93,7 @@ assert_trajectory_match(score, trajectory, dimension="tension", tolerance=0.1)
 | Schema change | Valid acceptance + invalid rejection |
 | Conductor adaptation | Failing metric triggers correct spec change |
 | New critique rule | At least 2 tests (positive detection, negative silence) |
-| MPIR type change | Plan generators produce valid plans, note realizers consume correctly |
+| CPIR type change | Plan generators produce valid plans, note realizers consume correctly |
 | RecoverableDecision site | Decision is logged, not silently skipped |
 
 ## Scenario Tests
@@ -128,7 +128,7 @@ Golden test infrastructure is located in `tests/golden/` with:
 
 ## v2.0 Testing Additions
 
-### MPIR Tests
+### CPIR Tests
 - Plan generators produce valid `SongFormPlan` and `HarmonyPlan` objects
 - `MusicalPlan` correctly combines all plan components
 - Plans serialize/deserialize to JSON correctly

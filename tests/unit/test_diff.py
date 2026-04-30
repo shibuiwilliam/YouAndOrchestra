@@ -22,9 +22,7 @@ def _make_score(title: str, notes: tuple[Note, ...]) -> ScoreIR:
 
 class TestDiffScores:
     def test_identical_scores_no_changes(self) -> None:
-        notes = (
-            Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),
-        )
+        notes = (Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),)
         score_a = _make_score("A", notes)
         score_b = _make_score("B", notes)
         diff = diff_scores(score_a, score_b)
@@ -51,9 +49,7 @@ class TestDiffScores:
         assert diff.removed_notes[0].note.pitch == 62
 
     def test_tempo_change(self) -> None:
-        notes = (
-            Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),
-        )
+        notes = (Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),)
         score_a = _make_score("A", notes)
         part = Part(instrument="piano", notes=notes)
         section = Section(name="verse", start_bar=0, end_bar=2, parts=(part,))
@@ -68,9 +64,7 @@ class TestDiffScores:
         assert diff.tempo_changed
 
     def test_key_change(self) -> None:
-        notes = (
-            Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),
-        )
+        notes = (Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),)
         score_a = _make_score("A", notes)
         part = Part(instrument="piano", notes=notes)
         section = Section(name="verse", start_bar=0, end_bar=2, parts=(part,))
@@ -85,12 +79,8 @@ class TestDiffScores:
         assert diff.key_changed
 
     def test_modified_notes_pitch_change(self) -> None:
-        note_a = Note(
-            pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"
-        )
-        note_b = Note(
-            pitch=64, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"
-        )
+        note_a = Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano")
+        note_b = Note(pitch=64, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano")
         score_a = _make_score("A", (note_a,))
         score_b = _make_score("B", (note_b,))
         diff = diff_scores(score_a, score_b)
@@ -103,12 +93,8 @@ class TestDiffScores:
         assert len(diff.removed_notes) == 0
 
     def test_modified_notes_velocity_change(self) -> None:
-        note_a = Note(
-            pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"
-        )
-        note_b = Note(
-            pitch=60, start_beat=0.0, duration_beats=1.0, velocity=110, instrument="piano"
-        )
+        note_a = Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano")
+        note_b = Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=110, instrument="piano")
         score_a = _make_score("A", (note_a,))
         score_b = _make_score("B", (note_b,))
         diff = diff_scores(score_a, score_b)
@@ -118,9 +104,7 @@ class TestDiffScores:
 
 class TestFormatDiff:
     def test_format_no_changes(self) -> None:
-        notes = (
-            Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),
-        )
+        notes = (Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano"),)
         score_a = _make_score("A", notes)
         diff = diff_scores(score_a, score_a)
         output = format_diff(diff)

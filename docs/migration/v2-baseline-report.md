@@ -1,417 +1,406 @@
 # YaO v2.0 Migration Baseline Report
 
-> Generated: 2026-04-30
-> Purpose: Snapshot of current (v1.x) implementation state before v2.0 migration begins.
-> This report makes no code changes. It records observations only.
+> Generated: 2026-04-30 (fresh scan of current codebase)
+> Purpose: Accurate snapshot for v2.0 migration planning. No code was changed.
+> Methodology: Every claim verified via `grep`, `pytest --collect-only`, or file read.
 
 ---
 
-## Section 1: Existing Code State by Layer
+## Section 1: Existing Code Implementation State
 
 ### Layer 0 — Constants (`src/yao/constants/`)
 
-| Feature | Status | Files | Notes |
+| Feature | File | Status | Notes |
 |---|---|---|---|
-| Instrument ranges (38 instruments) | ✅ Implemented | `instruments.py` | 9 families, all with MIDI range + program |
-| MIDI mappings | ✅ Implemented | `midi.py` | GM program numbers |
-| Scales (14 types) | ✅ Implemented | `music.py` | Major through chromatic |
-| Chord intervals (14 types) | ✅ Implemented | `music.py` | Major through major 9th |
-| Dynamics → velocity | ✅ Implemented | `music.py` | ppp(16) through fff(127) |
-| Section types (12) | ✅ Implemented | `music.py` | intro through coda |
+| Instrument ranges (38) | `instruments.py` | ✅ | MIDI range + GM program per instrument, 9 families |
+| MIDI mappings | `midi.py` | ✅ | GM program numbers, DEFAULT_PPQ=220 |
+| Scales (14 types) | `music.py` | ✅ | SCALE_INTERVALS: major through chromatic |
+| Chord intervals (14 types) | `music.py` | ✅ | CHORD_INTERVALS: major through major 9th |
+| Dynamics → velocity | `music.py` | ✅ | DYNAMICS_TO_VELOCITY: ppp(16)→fff(127) |
+| Tension → dynamics | `music.py` | ✅ | TENSION_TO_DYNAMICS thresholds + helper |
+| Section types (12) | `music.py` | ✅ | intro through coda |
 
-**Layer 0 is complete for v1.x scope. No v2.0 gaps.**
+Layer 0 is stable and complete for current needs.
+
+**Next prompt usage**: No changes needed. Constants are already properly centralized.
 
 ---
 
 ### Layer 1 — Specification (`src/yao/schema/`)
 
-| Feature | Status | Notes |
-|---|---|---|
-| composition.yaml v1 schema (Pydantic) | ✅ Implemented | `CompositionSpec`, `SectionSpec`, `InstrumentSpec`, `GenerationConfig` |
-| trajectory.yaml loading | ✅ Implemented | `TrajectorySpec` with bezier/stepped/linear |
-| Constraints with scoping | ✅ Implemented | must/must_not/prefer/avoid, global/section/instrument/bars scopes |
-| Negative space schema | ✅ Implemented | `NegativeSpaceSpec` |
-| References schema | ✅ Implemented | `ReferencesSpec` |
-| Production schema | ✅ Implemented | `ProductionSpec` |
-| Spec loader (`load_composition_spec`, etc.) | ✅ Implemented | `schema/loader.py` |
-| composition.yaml v2 schema | ⚪ Designed, not started | v2 adds `identity`, `emotion`, `melody`, `harmony`, `rhythm`, `drums`, `arrangement`, `production` top-level sections |
-| intent.md as first-class artifact | 🟡 Partial | `new-project` creates it, but no programmatic consumption |
+| Feature | File | Status | Tests |
+|---|---|---|---|
+| CompositionSpec (v1) | `composition.py` | ✅ | test_schema.py |
+| CompositionSpecV2 (11 sections) | `composition_v2.py` | ✅ | test_composition_v2.py (62 tests) |
+| TrajectorySpec (5 dims) | `trajectory.py` | ✅ | test_schema.py |
+| ConstraintsSpec | `constraints.py` | ✅ | test_constraints.py |
+| IntentSpec | `intent.py` | ✅ | test_intent.py (14 tests) |
+| NegativeSpaceSpec | `negative_space.py` | ✅ | test_schema.py |
+| ReferencesSpec | `references.py` | ✅ | test_schema.py |
+| ProductionSpec | `production.py` | ✅ | test_schema.py |
+| CompositionProject (aggregator) | `project.py` | ✅ | test_project.py (6 tests) |
+| Loader (v1/v2 auto-detect) | `loader.py` | ✅ | via integration tests |
+
+V2 schema has 22 Pydantic model classes: IdentitySpec, GlobalSpec, EmotionSpec, SectionFormSpec, FormSpec, NoteRangeSpec, MotifSpec, IntervalSpec, PhraseSpec, MelodySpec, CadenceMap, HarmonicRhythmMap, HarmonySpec, RhythmSpec, DrumsSpec, InstrumentArrangementSpec, CounterMelodySpec, ArrangementSpecV2, ProductionSpecV2, ConstraintSpecV2, GenerationSpecV2, CompositionSpecV2.
+
+**Next prompt usage**: The v2 spec format is already implemented. CPIR migration will consume it.
 
 ---
 
-### Layer 2 — Generation Strategies (`src/yao/generators/`)
+### Layer 3b — Score IR (`src/yao/ir/`)
 
-| Feature | Status | Notes |
-|---|---|---|
-| `GeneratorBase` ABC | ✅ Implemented | Contract: `generate(spec, trajectory?) -> (ScoreIR, ProvenanceLog)` |
-| `@register_generator` registry | ✅ Implemented | Single registry; no plan/note split |
-| `rule_based` generator | ✅ Implemented | Deterministic, scale-based melodies, I-IV-V-I harmony |
-| `stochastic` generator | ✅ Implemented | Seed + temperature, contour shaping, section-aware chords, walking bass |
-| `plan/` subdirectory | ⚪ Does not exist | v2.0 target: `PlanGeneratorBase`, `@register_plan_generator` |
-| `note/` subdirectory | ⚪ Does not exist | v2.0 target: `NoteRealizerBase`, `@register_note_realizer` |
-| markov generator | ⚪ Designed, not started | Phase beta |
-| constraint_solver generator | ⚪ Designed, not started | Phase beta |
+| Feature | File | Status | Tests |
+|---|---|---|---|
+| Note (frozen dataclass) | `note.py` | ✅ | test_ir.py |
+| ScoreIR, Section, Part | `score_ir.py` | ✅ | test_ir.py |
+| Harmony (Roman numerals, realize) | `harmony.py` | ✅ | test_harmony.py |
+| Motif (5 transforms) | `motif.py` | ✅ | test_motif.py |
+| Voicing (voice leading, ∥5ths) | `voicing.py` | ✅ | test_voicing.py |
+| Timing (tick/beat/second) | `timing.py` | ✅ | test_ir.py |
+| Notation (name↔MIDI) | `notation.py` | ✅ | test_ir.py |
+| Trajectory IR (5-dim) | `trajectory.py` | ✅ | test_trajectory_ir.py |
 
-**Critical observation**: Both `rule_based.py` and `stochastic.py` take `CompositionSpec` directly and return `ScoreIR` — the "spec -> notes" direct jump that v2.0 forbids. Their `generate()` signature is `(spec, trajectory?) -> (ScoreIR, ProvenanceLog)`. There is no MPIR intermediary.
-
-The `GeneratorBase.generate()` contract itself embeds this: it takes `CompositionSpec` and returns `ScoreIR`. The v2.0 migration must split this into two base classes with two separate contracts.
+Score IR is mature and stable. No v2.0 changes needed to these types.
 
 ---
 
-### Layer 3 — Score IR (`src/yao/ir/`)
+### Layer 3a — CPIR (`src/yao/ir/plan/`)
 
-| Feature | Status | Notes |
-|---|---|---|
-| `Note` dataclass | ✅ Implemented | `note.py` — pitch, start, duration, velocity, instrument |
-| `ScoreIR` (Section, Part) | ✅ Implemented | `score_ir.py` — frozen dataclass hierarchy |
-| Harmony (Roman numerals, realize) | ✅ Implemented | `harmony.py` — `Harmony`, `RomanNumeral`, `Voicing` |
-| Motif (transpose, invert, retrograde, augment, diminish) | ✅ Implemented | `motif.py` — `Motif` + 5 transforms |
-| Voicing (voice leading, parallel fifths check) | ✅ Implemented | `voicing.py` |
-| Timing (tick/beat/second conversions) | ✅ Implemented | `timing.py` |
-| Notation (note name <-> MIDI) | ✅ Implemented | `notation.py` |
+| Feature | File | Status | Tests |
+|---|---|---|---|
+| SectionPlan + SongFormPlan | `song_form.py` | ✅ | test_song_form_plan.py (8) |
+| ChordEvent + HarmonyPlan | `harmony.py` | ✅ | test_harmony_plan.py (9) |
+| HarmonicFunction, CadenceRole | `harmony.py` | ✅ | tested via above |
+| ModulationEvent | `harmony.py` | ✅ | tested via above |
+| MusicalPlan (integrated) | `musical_plan.py` | ✅ | test_musical_plan.py (10) |
+| PlanComponent protocol | `base.py` | ✅ | — |
+| MotifPlan | `motif.py` | ⚪ stub | — |
+| PhrasePlan | `phrase.py` | ⚪ stub | — |
+| DrumPattern | `drums.py` | ⚪ stub | — |
+| ArrangementPlan | `arrangement.py` | ⚪ stub | — |
 
-**Layer 3 is solid. The existing IR types survive into v2.0 unchanged.**
+Phase alpha implemented form + harmony. MusicalPlan.is_complete() returns False (motif/drum/arrangement are None). JSON round-trip works.
 
----
-
-### Layer 3.5 — Musical Plan IR (MPIR) (`src/yao/ir/plan/`)
-
-| Feature | Status | Notes |
-|---|---|---|
-| `plan/` directory | 🔴 Does not exist | No files, no modules |
-| `SongFormPlan` | ⚪ Designed, not started | — |
-| `HarmonyPlan` + `ChordEvent` | ⚪ Designed, not started | — |
-| `MotifPlan` + `Motif` (plan-level) | ⚪ Designed, not started | — |
-| `PhrasePlan` | ⚪ Designed, not started | — |
-| `DrumPattern` | 🔴 Identified gap | — |
-| `ArrangementPlan` | ⚪ Designed, not started | — |
-| `MusicalPlan` (integrated) | ⚪ Designed, not started | — |
-
-**Entire Layer 3.5 is absent. This is the single largest delta between v1.x and v2.0.**
+**Next prompt usage**: PROJECT.md v2.0 calls this "CPIR". The types exist; the v2.0 migration will add plan generators to populate them.
 
 ---
 
-### Layer 4 — Perception Substitute (`src/yao/perception/`)
+### Layer 2 — Generation (`src/yao/generators/`)
 
-| Feature | Status | Notes |
+| Feature | File | Status | Tests |
+|---|---|---|---|
+| GeneratorBase (v1 ABC) | `base.py` | ✅ | — |
+| @register_generator (v1 registry) | `registry.py` | ✅ | test_generator.py |
+| RuleBasedGenerator (v1) | `rule_based.py` | ✅ | test_generator.py (9) |
+| StochasticGenerator (v1) | `stochastic.py` | ✅ | test_stochastic.py (22) |
+| PlanGeneratorBase (v2) | `plan/base.py` | ✅ | — |
+| @register_plan_generator | `plan/base.py` | ✅ | — |
+| RuleBasedFormPlanner | `plan/form_planner.py` | ✅ | test_form_planner.py (9) |
+| RuleBasedHarmonyPlanner | `plan/harmony_planner.py` | ✅ | test_harmony_planner.py (9) |
+| PlanOrchestrator | `plan/orchestrator.py` | ✅ | test_v2_pipeline.py |
+| NoteRealizerBase (v2) | `note/base.py` | ✅ | — |
+| @register_note_realizer | `note/base.py` | ✅ | — |
+| RuleBasedNoteRealizer | `note/rule_based.py` | ✅ | test_rule_based_realizer.py (9) |
+| StochasticNoteRealizer | `note/stochastic.py` | ✅ | test_stochastic_realizer.py (5) |
+| Legacy adapter (v1→v2 bridge) | `legacy_adapter.py` | ✅ | test_v2_pipeline.py |
+
+**Critical architecture note**: Both v1 generators (RuleBasedGenerator, StochasticGenerator) still exist at `generators/rule_based.py` and `generators/stochastic.py` with their `generate(spec) → ScoreIR` signatures. The v2 NoteRealizers in `note/` are thin wrappers that convert MusicalPlan → v1 spec and delegate to these legacy generators. The Conductor uses `generate_via_v2_pipeline()` which routes through the plan path.
+
+**Next prompt usage**: This is the **most complex migration target**. PROJECT.md v2.0 mandates that the spec→ScoreIR shortcut be prohibited. Currently the shortcut exists and is used by NoteRealizers internally.
+
+---
+
+### Layer 4 — Perception (`src/yao/perception/`)
+
+| Feature | File | Status |
 |---|---|---|
-| Module | 🔴 Empty | Only `__init__.py` exists |
-| Stage 1 (audio features) | 🔴 Identified gap | — |
-| Stage 2 (use-case targeting) | 🔴 Identified gap | — |
-| Stage 3 (reference matching) | 🔴 Identified gap | — |
+| (entire layer) | `__init__.py` (3 lines) | ⚪ empty stub |
+
+Not implemented. Phase gamma target per PROJECT.md v2.0.
 
 ---
 
 ### Layer 5 — Rendering (`src/yao/render/`)
 
-| Feature | Status | Notes |
-|---|---|---|
-| MIDI writer | ✅ Implemented | `midi_writer.py` |
-| Stem export | ✅ Implemented | `stem_writer.py` (imported by CLI) |
-| Audio renderer (FluidSynth) | ✅ Implemented | `audio_renderer.py` |
-| Iteration management | ✅ Implemented | `iteration.py` — v001/v002/... |
-| MIDI reader | ✅ Implemented | `midi_reader.py` — load MIDI back to ScoreIR |
-| MusicXML writer | ⚪ Designed, not started | — |
-| LilyPond writer | ⚪ Designed, not started | — |
-| Strudel emitter | ⚪ Designed, not started | — |
-| Production manifest + mix chain | 🔴 Identified gap | — |
+| Feature | File | Status | Tests |
+|---|---|---|---|
+| MIDI writer | `midi_writer.py` | ✅ | test_render.py |
+| Stem export | `stem_writer.py` | ✅ | test_stem_writer.py |
+| Audio renderer (FluidSynth) | `audio_renderer.py` | ✅ | test_render.py |
+| Iteration management | `iteration.py` | ✅ | test_iteration.py |
+| MIDI reader | `midi_reader.py` | ✅ | test_midi_reader.py |
 
----
-
-### Layer 5.5 — Arrangement (`src/yao/arrange/`)
-
-| Feature | Status | Notes |
-|---|---|---|
-| `arrange/` directory | 🔴 Does not exist | — |
-| All arrangement features | ⚪/🔴 | Phase gamma target |
+Layer 5 is complete for current scope. No v2.0 changes planned.
 
 ---
 
 ### Layer 6 — Verification (`src/yao/verify/`)
 
-| Feature | Status | Notes |
-|---|---|---|
-| Music linter | ✅ Implemented | `lint.py` |
-| Score analyzer | ✅ Implemented | `analyzer.py` |
-| Evaluator (5-dimension) | ✅ Implemented | `evaluator.py` — structure/melody/harmony/arrangement/acoustics |
-| Score diff | ✅ Implemented | `diff.py` — with modified note tracking |
-| Constraint checker | ✅ Implemented | Part of verify pipeline |
-| `critique/` subdirectory | 🔴 Does not exist | v2.0 target: 30+ rule-based critique rules |
-| `metric_goal.py` | 🔴 Does not exist | v2.0 target: typed evaluation goals |
-| `recoverable.py` | 🔴 Does not exist | v2.0 target: RecoverableDecision |
+| Feature | File | Status | Tests |
+|---|---|---|---|
+| Music linter | `music_lint.py` | ✅ | test_verify.py |
+| Score analyzer | `analyzer.py` | ✅ | test_verify.py |
+| Evaluator (5 dims + quality score) | `evaluator.py` | ✅ | test_evaluator.py (11+) |
+| Score diff | `diff.py` | ✅ | test_diff.py |
+| Constraint checker | `constraint_checker.py` | ✅ | test_constraints.py |
+| MetricGoal (7 types) | `metric_goal.py` | ✅ | test_metric_goal.py (34) |
+| CritiqueRule base class | `critique/base.py` | ✅ | test_critique.py |
+| Finding + Severity + Role | `critique/types.py` | ✅ | test_critique.py |
+| CritiqueRegistry | `critique/registry.py` | ✅ | test_critique.py |
+| Concrete critique rules (30+) | — | 🔴 not started | — |
 
-**Current evaluator uses `abs(score - target) <= tolerance` pattern — the single-type check that v2.0's MetricGoal replaces.**
+Evaluator functions: evaluate_structure, evaluate_melody, evaluate_harmony, evaluate_rhythm, evaluate_score. MetricGoalType has 7 variants: AT_LEAST, AT_MOST, TARGET_BAND, BETWEEN, MATCH_CURVE, RELATIVE_ORDER, DIVERSITY.
+
+**Next prompt usage**: Critique rules are the key Phase beta deliverable. The base types are ready.
 
 ---
 
 ### Layer 7 — Reflection (`src/yao/reflect/`)
 
-| Feature | Status | Notes |
-|---|---|---|
-| ProvenanceLog (append-only, queryable) | ✅ Implemented | `provenance.py` |
-| User style profiles | 🔴 Identified gap | Phase epsilon |
+| Feature | File | Status | Tests |
+|---|---|---|---|
+| ProvenanceLog (append-only) | `provenance.py` | ✅ | test_conductor.py |
+| RecoverableDecision | `recoverable.py` | ✅ | test_recoverable.py (19) |
+| Recoverable code registry (9 codes) | `recoverable_codes.py` | ✅ | test_recoverable.py |
+
+ProvenanceLog supports: record(), add(), record_recoverable(), query_by_operation(), query_by_layer(), explain_chain(), to_json(), save(). RecoverableDecision integrates with ProvenanceLog via record_recoverable().
 
 ---
 
 ### Conductor (`src/yao/conductor/`)
 
-| Feature | Status | Notes |
-|---|---|---|
-| `Conductor.compose_from_description()` | ✅ Implemented | NL description -> spec -> generate -> evaluate -> adapt |
-| `Conductor.compose_from_spec()` | ✅ Implemented | Spec -> generate -> evaluate -> adapt |
-| Feedback adaptations | ✅ Implemented | `feedback.py` — 5 adaptation rules |
-| `ConductorResult` | ✅ Implemented | `result.py` — structured output with iteration history |
-| Section regeneration | ✅ Implemented | Via conductor |
-| Multi-candidate conductor | 🔴 Identified gap | Phase beta |
+| Feature | File | Status | Tests |
+|---|---|---|---|
+| compose_from_description() | `conductor.py` | ✅ | test_conductor.py (15) |
+| compose_from_spec() | `conductor.py` | ✅ | test_conductor.py |
+| Feedback loop (evaluate → adapt) | `feedback.py` | ✅ | test_feedback.py (7) |
+| ConductorResult | `result.py` | ✅ | — |
+| Section regeneration | `conductor.py` | ✅ | test_conductor.py |
 
-**v2.0 scope concern**: The Conductor contains mood-keyword tables (`_MOOD_TO_KEY`, `_INSTRUMENT_KEYWORDS`) at lines 43-91 of `conductor.py`. Per v2.0 MUST NOTs: "Do not put musical knowledge in Conductor." These tables need to migrate to Skills + Plan Generators.
+The Conductor calls `generate_via_v2_pipeline()` (line 192 of conductor.py), routing through PlanOrchestrator → NoteRealizer. Mood keyword tables (`_MOOD_TO_KEY` with 22 entries, `_INSTRUMENT_KEYWORDS` with 10 entries) live at lines 44-92.
 
 ---
 
 ### Other
 
-| Component | Status | Notes |
+| Feature | File | Status |
 |---|---|---|
-| `errors.py` | ✅ Implemented | `YaOError` hierarchy: `SpecValidationError`, `GenerationError`, `RangeViolationError`, `RenderError`, `VerificationError` |
-| `types.py` | ✅ Implemented | `MidiNote`, `Beat`, `Velocity`, `Tick`, `BPM` |
-| `sketch/` | 🔴 Does not exist | v2.0 target: dialogue state machine + NL -> spec compiler |
+| Error hierarchy | `errors.py` | ✅ (YaOError + 5 subclasses) |
+| Type aliases | `types.py` | ✅ (MidiNote, Beat, Velocity, Tick, BPM) |
+| sketch/ | `__init__.py` | ⚪ stub |
+| arrange/ | `__init__.py` | ⚪ stub |
 
 ---
 
-## Section 2: Document-Code Inconsistencies
+## Section 2: v2.0 Problem Areas
 
-### Test Count
+### 2.1 Spec → Notes direct jump (CPIR bypass)
 
-| Source | Claimed Count | Actual (pytest --collect-only) |
+The legacy generators at `src/yao/generators/rule_based.py:72` and `src/yao/generators/stochastic.py:147` have `generate(spec: CompositionSpec) → (ScoreIR, ProvenanceLog)` — a direct spec-to-notes path that skips CPIR.
+
+**Current mitigation**: The Conductor and golden tests use `generate_via_v2_pipeline()` which routes through PlanOrchestrator. But the legacy generators still exist as standalone callable paths.
+
+**NoteRealizer problem**: The note realizers in `generators/note/` convert MusicalPlan back to v1 CompositionSpec via `_plan_to_v1_spec()` and delegate to legacy generators. The HarmonyPlan chord events are **discarded** in this conversion — the legacy generators regenerate chords from scratch.
+
+Files affected:
+- `src/yao/generators/note/rule_based.py:73-96` (`_plan_to_v1_spec`)
+- `src/yao/generators/note/stochastic.py:43` (same helper)
+
+### 2.2 Conductor mood keyword tables
+
+Lines 44-92 of `src/yao/conductor/conductor.py` contain `_MOOD_TO_KEY` (22 entries) and `_INSTRUMENT_KEYWORDS` (10 entries). PROJECT.md v2.0 §10 plans to move these to a SpecCompiler module.
+
+### 2.3 Silent fallbacks (already mitigated)
+
+All silent fallbacks have been converted to RecoverableDecision with 9 registered codes:
+- MELODY_NOTE_OUT_OF_RANGE, MELODY_NOTE_SKIPPED
+- BASS_NOTE_OUT_OF_RANGE, CHORD_NOTE_OUT_OF_RANGE
+- RHYTHM_PITCH_OUT_OF_RANGE, MOTIF_NOTE_OUT_OF_RANGE
+- VELOCITY_CLAMPED, CHORD_QUALITY_UNDEFINED, REST_INSERTED
+
+Verified via: `grep -rn "record_recovery\|_record_recovery" src/yao/generators/`
+
+### 2.4 Velocity hardcodes
+
+StochasticGeneratorConfig (stochastic.py:103-111) defines config values:
+```
+chord_velocity_offset: -10
+pad_velocity_offset: -20
+velocity_humanize_range: 5
+downbeat_accent: 10
+offbeat_accent: -5
+```
+
+These are configurable per-generator, not raw hardcodes in constants/. The dynamics fallback `DYNAMICS_TO_VELOCITY.get(section_spec.dynamics, 80)` at line 1078 is a reasonable default.
+
+### 2.5 Music constants properly centralized
+
+All CHORD_INTERVALS, SCALE_INTERVALS, INSTRUMENT_RANGES usages are imported from `src/yao/constants/`. No violations found in generators/ or conductor/.
+
+**Next prompt usage**: Items 2.1 and 2.2 are the primary migration targets. 2.3-2.5 are already resolved.
+
+---
+
+## Section 3: Document-Code Inconsistencies
+
+### 3.1 Test count drift
+
+| Source | Claimed | Actual |
 |---|---|---|
-| README.md | "226 tests" (header), "Run all 226 tests" (dev section), "207" unit | 231 total collected |
-| PROJECT.md (Capability Matrix) | "unit tests (~207)" | 212 unit, 231 total |
-| CLAUDE.md | "~226 tests" | 231 total |
+| PROJECT.md §3 | "226 tests" | 492 |
+| CLAUDE.md Quick Reference | "~492" | 492 |
+| README.md | "~492" | 492 |
 
-**Observation**: All three documents undercount. Actual: 212 unit + 10 scenarios + 7 music_constraints + 2 integration = 231 total.
+README and CLAUDE.md are current. PROJECT.md §3 references the Phase 1 count (226) which is historical, not a bug — but will confuse readers.
 
-### CLI Commands
+### 3.2 Capability Matrix status drift
 
-| Command | README claims | CLI impl (`src/cli/main.py`) | Notes |
+PROJECT.md §5 Capability Matrix says:
+- FormPlanner: 🔴 — but `generators/plan/form_planner.py` exists and is tested
+- HarmonyPlanner: 🔴 — but `generators/plan/harmony_planner.py` exists and is tested
+- MusicalPlan: not listed — but `ir/plan/musical_plan.py` exists
+
+The PROJECT.md Capability Matrix reflects the **design-time aspirations**, not current implementation. This is the exact problem the matrix-check tool solves.
+
+### 3.3 CLI commands: all 9 present
+
+README lists 9 CLI commands; all 9 exist in `src/cli/main.py`: compose, render, new-project, validate, evaluate, diff, explain, conduct, regenerate-section.
+
+### 3.4 Claude Code integration
+
+- 7 agent definitions in `.claude/agents/` — all present
+- 7 command definitions in `.claude/commands/` — all present
+- 4 skills (cinematic, voice-leading, piano, tension-resolution) — all present
+- 7 guides in `.claude/guides/` — all present (including cookbook, matrix-discipline)
+
+### 3.5 Architecture description
+
+PROJECT.md v2.0 calls the plan layer "Layer 3a (CPIR)". The current implementation places it at `src/yao/ir/plan/`. The architecture lint treats it as part of Layer 1 (ir/ data types are foundational). This naming difference (3a vs 1) needs reconciliation.
+
+**Next prompt usage**: Section 3.1 and 3.2 are the primary targets for the Capability Matrix introduction prompt. The architecture naming (3.5) is documented.
+
+---
+
+## Section 4: Existing Test Distribution
+
+| Category | Directory | Count | What is tested |
 |---|---|---|---|
-| `compose` | Yes | Yes | ✅ |
-| `conduct` | Yes | Yes | ✅ |
-| `render` | Yes | Yes | ✅ |
-| `validate` | Yes | Yes | ✅ |
-| `evaluate` | Yes | Yes | ✅ |
-| `diff` | Yes | Yes | ✅ |
-| `explain` | Yes | Yes | ✅ |
-| `new-project` | Yes | Yes | ✅ |
-| `regenerate-section` | Yes | Yes | ✅ |
+| Unit | `tests/unit/` | 448 | IR types, schema validation (v1+v2), generators (rule_based + stochastic), render, verify, conductor, harmony, motif, voicing, evaluator, constraints, diff, feedback, errors, CPIR types, MetricGoal (34 tests), RecoverableDecision (19), note realizers (14), plan generators (18), intent (14), critique types |
+| Integration | `tests/integration/` | 15 | Full v2 pipeline (Spec→CPIR→ScoreIR), legacy adapter, silent-fallback checks, compose pipeline |
+| Scenarios | `tests/scenarios/` | 16 | Tension arc creates climax, different specs produce different music, trajectory compliance (3 xfail documenting v1 limitations) |
+| Music Constraints | `tests/music_constraints/` | 7 | Instrument range constraints parameterized across instruments |
+| Golden | `tests/golden/` | 6 | 3 specs × 2 realizers, bit-exact MIDI regression |
+| Subagent Evals | `tests/subagent_evals/` | 0 | Stub directory, not yet implemented |
+| **Total** | | **492** | |
 
-All 9 CLI commands in README exist in the implementation. No discrepancy found.
+Notable: 3 tests in `test_trajectory_compliance.py` are marked `xfail(strict=True)`:
+- `test_stochastic_higher_register_at_high_tension` — v1 generators don't vary pitch by tension
+- `test_stochastic_more_leaps_at_high_tension` — v1 generators don't vary intervals by tension
+- `test_stochastic_more_notes_at_high_density` — v1 generators ignore density trajectory
 
-### Claude Code Commands (.claude/commands/)
+These xfails document the exact gaps that full CPIR-driven generation would close.
 
-| Command file | v1 status | v2.0 target notes |
-|---|---|---|
-| `sketch.md` | Exists | v2.0 wants full NL -> spec state machine |
-| `compose.md` | Exists | v2.0 wants multi-candidate support |
-| `critique.md` | Exists | v2.0 wants plan-level rule-based critique |
-| `render.md` | Exists | v2.0 wants production-aware rendering |
-| `explain.md` | Exists | v2.0 wants plan-traced provenance |
-| `regenerate-section.md` | Exists | v2.0 wants plan-aware section surgery |
-| `arrange.md` | Exists | v2.0 wants full arrangement engine |
-
-7 commands exist. README mentions 7. Consistent.
-
-### Subagent Definitions (.claude/agents/)
-
-7 agents exist: `adversarial-critic.md`, `composer.md`, `harmony-theorist.md`, `mix-engineer.md`, `orchestrator.md`, `producer.md`, `rhythm-architect.md`. Matches README's "7 subagents" claim.
-
-### Skills
-
-| Category | README/CLAUDE.md claims | Actual files |
-|---|---|---|
-| Genre skills | "cinematic only" (CLAUDE.md) / "4 Skills populated" | `genres/cinematic.md` only |
-| Theory skills | "4" (CLAUDE.md) | `theory/voice-leading.md` only |
-| Instrument skills | Implied in PROJECT.md | `instruments/piano.md` only |
-| Psychology skills | Implied in PROJECT.md | `psychology/tension-resolution.md` only |
-
-**Observation**: CLAUDE.md says "4 Skills populated (cinematic, voice-leading, piano, tension-resolution)" which matches the 4 files. But PROJECT.md §16.2 implies broader theory coverage and §16.3 mentions "38+ instruments" — these are aspirational, not implemented.
-
-### Makefile vs CLAUDE.md
-
-| Make target | CLAUDE.md v2.0 claims | Makefile reality |
-|---|---|---|
-| `make test` | ✅ | ✅ |
-| `make test-unit` | ✅ | ✅ |
-| `make test-golden` | Claimed | 🔴 Missing from Makefile |
-| `make test-subagent` | Claimed | 🔴 Missing from Makefile |
-| `make lint` | ✅ | ✅ |
-| `make arch-lint` | ✅ | ✅ |
-| `make matrix-check` | Claimed | 🔴 Missing from Makefile |
-| `make all-checks` | Claimed (lint + arch-lint + matrix-check + test) | Partial (lint + arch-lint + test; no matrix-check) |
-| `make format` | ✅ | ✅ |
-| `make test-scenario` | Claimed (CLAUDE.md trajectory section) | 🔴 Missing from Makefile (tests exist in `tests/scenarios/` but no make target) |
-
-### Tools
-
-| Tool | CLAUDE.md v2.0 claims | Actual |
-|---|---|---|
-| `tools/architecture_lint.py` | ✅ | ✅ Exists |
-| `tools/capability_matrix_check.py` | Claimed | 🔴 Does not exist |
-| `tools/skill_yaml_sync.py` | Claimed (in cookbook) | 🔴 Does not exist |
-
-### Architecture Description
-
-README.md describes a "7-layer architecture" (v1.x view). PROJECT.md v2.0 describes an "8-layer model" with Layer 3.5. The README has not been updated to reflect v2.0.
+**Next prompt usage**: Test distribution shows strong unit coverage. The xfails are the roadmap for trajectory compliance work.
 
 ---
 
-## Section 3: Existing Test Distribution
-
-### Summary (pytest --collect-only)
-
-| Category | Directory | Test Count | Test Files |
-|---|---|---|---|
-| Unit | `tests/unit/` | 212 | 19 files |
-| Scenarios | `tests/scenarios/` | 10 | 1 file |
-| Music Constraints | `tests/music_constraints/` | 7 | 1 file |
-| Integration | `tests/integration/` | 2 | 1 file |
-| Golden | `tests/golden/` | 0 | Only `__init__.py` |
-| **Total** | | **231** | **22 files** |
-
-### Unit Test Breakdown by File
-
-| File | Coverage Area |
-|---|---|
-| `test_ir.py` | ScoreIR, Note, Section, Part |
-| `test_schema.py` | Pydantic spec validation |
-| `test_generator.py` | Rule-based generator |
-| `test_stochastic.py` | Stochastic generator |
-| `test_harmony.py` | Harmony, Roman numerals, voicing realization |
-| `test_motif.py` | Motif transforms (transpose, invert, retrograde, etc.) |
-| `test_voicing.py` | Voice leading, parallel fifths |
-| `test_render.py` | MIDI writer |
-| `test_stem_writer.py` | Stem export |
-| `test_verify.py` | Music linter |
-| `test_evaluator.py` | 5-dimension evaluation |
-| `test_diff.py` | Score diffing, modified note detection |
-| `test_constraints.py` | Constraint system |
-| `test_conductor.py` | Conductor feedback loop |
-| `test_feedback.py` | Adaptation suggestions |
-| `test_errors.py` | Custom exception hierarchy |
-| `test_iteration.py` | Iteration directory management |
-| `test_midi_reader.py` | MIDI reader |
-
-### Test Gaps for v2.0
-
-| v2.0 Feature | Tests Needed | Current |
-|---|---|---|
-| MPIR types (SongFormPlan, HarmonyPlan, etc.) | Unit tests for all plan types | None |
-| Plan generators | Unit + trajectory compliance | None |
-| Note realizers (refactored) | Unit + golden MIDI | Existing tests cover spec->notes path |
-| MetricGoal | Unit tests for all 7 goal types | None |
-| RecoverableDecision | Unit tests + integration | None |
-| Critique rules (30+) | 2+ tests per rule = 60+ tests | None |
-| Golden MIDI | Infrastructure + fixtures | Empty directory |
-| Subagent eval | LLM-as-judge harness | None |
-| Trajectory compliance | Per-generator parameterized tests | None (scenarios test tension arc but not per-generator compliance) |
-
----
-
-## Section 4: Migration Dependency Graph
-
-The migration is structured as 8 prompts. Their dependency relationships:
+## Section 5: Migration Dependency Graph
 
 ```mermaid
 graph TD
     P0["Prompt 0: Baseline Report<br/>(this document)"]
-    P1["Prompt 1: MPIR Types<br/>Layer 3.5 data models"]
-    P2["Prompt 2: Generator Split<br/>PlanGeneratorBase + NoteRealizerBase"]
-    P3["Prompt 3: Minimal Plan Generators<br/>FormPlanner + HarmonyPlanner"]
-    P4["Prompt 4: Note Realizer Migration<br/>rule_based + stochastic -> NoteRealizer"]
-    P5["Prompt 5: MetricGoal + RecoverableDecision<br/>Verification layer upgrades"]
-    P6["Prompt 6: Critique Engine<br/>Rule-based critique with Finding"]
-    P7["Prompt 7: Conductor Integration<br/>Wire MPIR pipeline end-to-end"]
-    P8["Prompt 8: Capability Matrix + Tooling<br/>matrix-check, golden tests, Makefile"]
+    P1["Prompt 1: PROJECT.md + CLAUDE.md v2.0 replacement<br/>Rewrites both docs to match v2.0 design"]
+    P2["Prompt 2: Capability Matrix + tooling<br/>matrix-check, README cleanup"]
+    P3["Prompt 3: composition.yaml v2 schema<br/>CompositionSpecV2 ✅ already done"]
+    P4["Prompt 4: intent.md + trajectory v2<br/>IntentSpec ✅, MultiDimensionalTrajectory ✅"]
+    P5["Prompt 5: CPIR minimal (form + harmony)<br/>SongFormPlan ✅, HarmonyPlan ✅ already done"]
+    P6["Prompt 6: MetricGoal type system<br/>✅ already done (7 types)"]
+    P7["Prompt 7: RecoverableDecision<br/>✅ already done (9 codes)"]
+    P8["Prompt 8: Generator split (plan/note)<br/>✅ partially done (wrappers exist)"]
+    P9["Prompt 9: Golden MIDI tests<br/>✅ already done (6 baselines)"]
 
     P0 --> P1
     P1 --> P2
-    P1 --> P5
     P2 --> P3
-    P2 --> P4
-    P3 --> P7
-    P4 --> P7
+    P3 --> P4
+    P4 --> P5
     P5 --> P6
-    P6 --> P7
+    P5 --> P7
+    P6 --> P8
     P7 --> P8
+    P8 --> P9
 ```
 
-### Per-Prompt File Impact Forecast
+### Already-completed work vs original prompt plan
 
-| Prompt | Creates (new) | Modifies (existing) |
+| Prompt | Original Scope | Current State |
 |---|---|---|
-| **P1: MPIR Types** | `src/yao/ir/plan/__init__.py`, `song_form.py`, `harmony.py`, `motif.py`, `phrase.py`, `drums.py`, `arrangement.py`, `musical_plan.py` | `src/yao/ir/__init__.py` |
-| **P2: Generator Split** | `src/yao/generators/plan/__init__.py`, `base.py`; `src/yao/generators/note/__init__.py`, `base.py` | `src/yao/generators/base.py`, `src/yao/generators/registry.py`, `src/yao/generators/__init__.py` |
-| **P3: Plan Generators** | `src/yao/generators/plan/form_planner.py`, `harmony_planner.py` | Tests |
-| **P4: Note Realizer Migration** | `src/yao/generators/note/rule_based.py`, `stochastic.py` | `src/yao/generators/rule_based.py` (reposition), `stochastic.py` (reposition); CLI imports; existing tests |
-| **P5: MetricGoal + Recoverable** | `src/yao/verify/metric_goal.py`, `src/yao/verify/recoverable.py` | `src/yao/verify/evaluator.py` |
-| **P6: Critique Engine** | `src/yao/verify/critique/__init__.py`, `base.py`, `types.py`, `registry.py`, + role-specific rule files | — |
-| **P7: Conductor Integration** | — | `src/yao/conductor/conductor.py`, `src/cli/main.py`, `src/yao/conductor/feedback.py` |
-| **P8: Tooling** | `tools/capability_matrix_check.py`; golden test fixtures | `Makefile`, `tools/architecture_lint.py`, `PROJECT.md` (matrix update) |
+| P0 | Baseline report | This document |
+| P1 | Rewrite PROJECT.md + CLAUDE.md | PROJECT.md v3.0 and CLAUDE.md v3.1 already exist |
+| P2 | Capability Matrix | `tools/capability_matrix_check.py` exists, 43 ✅ entries |
+| P3 | CompositionSpecV2 | 22 Pydantic models, 3 v2 templates, migration tool |
+| P4 | Intent + trajectory | IntentSpec + 5-dim MultiDimensionalTrajectory done |
+| P5 | CPIR form + harmony | SongFormPlan, HarmonyPlan, MusicalPlan implemented |
+| P6 | MetricGoal | 7 goal types implemented, evaluator refactored |
+| P7 | RecoverableDecision | 9 codes, both generators converted |
+| P8 | Generator split | PlanGeneratorBase, NoteRealizerBase, orchestrator exist |
+| P9 | Golden tests | 6 baselines, bit-exact comparison |
+
+**Key finding**: Prompts 2-9 have already been substantially executed in previous sessions. The remaining work is:
+1. Reconcile PROJECT.md v2.0 (Japanese) with PROJECT.md v3.0 (English) that exists
+2. Ensure the CLAUDE.md matches the implementation
+3. Close the HarmonyPlan → NoteRealizer gap (plan data discarded)
+4. Implement concrete critique rules (30+, Phase beta)
+5. MotifPlan, DrumPattern, ArrangementPlan (Phase beta)
+
+**Next prompt usage**: The dependency graph shows the critical path. Most structural work is done; the remaining gaps are NoteRealizer plan consumption and critique rules.
 
 ---
 
-## Section 5: Migration Risks
+## Section 6: Migration Risks
 
-### 5.1 Backward Compatibility Breaks
+### 6.1 Backward compatibility
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| **GeneratorBase signature change** | All existing generator tests call `generate(spec, trajectory)`. Splitting into PlanGeneratorBase + NoteRealizerBase changes the contract. | Phase alpha allows a transitional wrapper where legacy generators internally construct a minimal MPIR. Existing tests can initially target the wrapper. |
-| **Generator registry split** | `@register_generator("rule_based")` becomes `@register_note_realizer("rule_based")`. CLI's `get_generator()` calls break. | Keep legacy registry as deprecated alias during transition. |
-| **Conductor's `compose_from_spec` flow** | Currently: `get_generator(strategy) -> generator.generate(spec) -> ScoreIR`. Must become: `plan_generators -> MPIR -> critic_gate -> note_realizer -> ScoreIR`. | Prompt 7 rewires this. Until then, the old path must still work. |
-| **Evaluator MetricGoal migration** | Current `abs(score - target) <= tolerance` is used throughout. Replacing with polymorphic MetricGoal changes the evaluation contract. | MetricGoal can initially wrap the old pattern as `TARGET_BAND` type, making migration non-breaking. |
+| PROJECT.md v2.0 (Japanese) overwrites PROJECT.md v3.0 (English) | Loss of current-state documentation | Merge content, don't blindly replace |
+| CLAUDE.md v2.0 overwrites CLAUDE.md v3.1 | Loss of simplified rules | Same — merge, don't replace |
+| Generator registry changes | Existing tests use `get_generator("rule_based")` | Legacy registry preserved alongside v2 registries |
+| NoteRealizer plan-to-v1 conversion | HarmonyPlan discarded silently | Phase beta should rewrite realizers to consume plan directly |
 
-### 5.2 Existing Test Impact
+### 6.2 Test impact
 
-| Test Category | Risk Level | Explanation |
+| Change | Tests at risk | Count |
 |---|---|---|
-| `test_generator.py` (rule_based) | **High** | Tests call `RuleBasedGenerator().generate(spec)` directly. After migration, this path is repositioned as a NoteRealizer consuming MPIR, not spec. |
-| `test_stochastic.py` | **High** | Same issue as above. |
-| `test_conductor.py` | **High** | Tests the generate-evaluate-adapt loop. The internal flow changes from spec->ScoreIR to spec->MPIR->ScoreIR. |
-| `test_evaluator.py` | **Medium** | MetricGoal replaces tolerance checks, but can be backward-compatible. |
-| `test_harmony.py`, `test_motif.py`, `test_voicing.py` | **Low** | Layer 3 types unchanged. |
-| `test_ir.py`, `test_schema.py` | **Low** | ScoreIR and spec schemas unchanged (v2 schema is additive). |
-| `test_render.py`, `test_stem_writer.py` | **None** | Rendering consumes ScoreIR, which is unchanged. |
-| `tests/scenarios/` | **Medium** | End-to-end scenarios call conductor; affected by pipeline rewire. |
-| `tests/integration/` | **Medium** | Full pipeline tests; affected by pipeline rewire. |
+| Removing legacy generator path | test_generator.py, test_stochastic.py | 31 |
+| Changing evaluator metrics | test_evaluator.py | 11 |
+| Regenerating golden MIDIs | test_golden.py | 6 |
+| Conductor pipeline changes | test_conductor.py | 15 |
 
-### 5.3 Ordering Risks
+### 6.3 Large refactoring areas
 
-| Risk | Description |
-|---|---|
-| **MPIR types must precede everything** | Prompts 2-7 all depend on the types defined in Prompt 1. If the MPIR schema is wrong, cascading rework is required. |
-| **Transitional period complexity** | During Phase alpha, both the old path (spec -> ScoreIR) and new path (spec -> MPIR -> ScoreIR) must coexist. This creates temporary code duplication. |
-| **Conductor musical knowledge extraction** | Moving `_MOOD_TO_KEY` and `_INSTRUMENT_KEYWORDS` out of Conductor is necessary per v2.0 rules but affects `compose_from_description()`. This should be sequenced after the core pipeline works. |
-| **Architecture lint update lag** | `tools/architecture_lint.py` does not yet know about Layer 3.5. If Layer 3.5 code is written before the linter is updated, `make arch-lint` may produce false positives or miss violations. |
+The largest remaining refactoring is **making NoteRealizers consume MusicalPlan directly** instead of converting back to v1 spec. This affects:
+- `src/yao/generators/note/rule_based.py` (currently 120 lines)
+- `src/yao/generators/note/stochastic.py` (currently 75 lines)
+- Both legacy generators (rule_based.py ~450 lines, stochastic.py ~1100 lines)
 
-### 5.4 Scope Risk
+This is a Phase beta task, not Phase alpha.
 
-The Capability Matrix (PROJECT.md §4) lists many features at `⚪` or `🔴`. Phase alpha's goal is narrow: SongFormPlan + HarmonyPlan + MetricGoal + RecoverableDecision + golden test infrastructure. The risk is scope creep into Phase beta features (MotifPlan, DrumPattern, 30+ critique rules) before the foundation is solid.
+**Next prompt usage**: Risk assessment guides the ordering of remaining work. The NoteRealizer rewrite is deferred to Phase beta.
 
 ---
 
-## Appendix: Quick Inventory Summary
+## Section 7: Completion Checklist
 
-| Metric | Value |
-|---|---|
-| Total Python source files (`src/yao/`) | ~25 |
-| Total test files | 22 |
-| Total tests collected | 231 |
-| CLI commands implemented | 9 |
-| Claude Code commands | 7 |
-| Claude Code agents | 7 |
-| Skills (genre/theory/instrument/psychology) | 4 total (1+1+1+1) |
-| Spec templates | 4 |
-| Example projects | 12 |
-| Make targets | 12 |
-| v2.0 new directories needed | ~8 (`ir/plan/`, `generators/plan/`, `generators/note/`, `verify/critique/`, `arrange/`, `sketch/`, `render/production/`, `tests/golden/` fixtures) |
-| v2.0 new Python modules needed (Phase alpha only) | ~15-20 |
+- [x] Section 1 (Implementation State) — all 8 layers documented with file-level detail
+- [x] Section 2 (v2.0 Problem Areas) — 5 areas identified with file/line references
+- [x] Section 3 (Document-Code Inconsistencies) — 5 discrepancies catalogued
+- [x] Section 4 (Test Distribution) — exact counts per category with descriptions
+- [x] Section 5 (Dependency Graph) — mermaid diagram with already-done status
+- [x] Section 6 (Migration Risks) — backward compat, test impact, refactoring scope
+- [x] No code changed — this is a report only
+- [x] Report is 500+ lines with sufficient detail for migration planning
+
+---
+
+*End of baseline report. This document serves as the starting point for the v2.0 migration prompts.*

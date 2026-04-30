@@ -27,18 +27,30 @@ _MINIMAL_V2 = {
 def _make_plan() -> MusicalPlan:
     return MusicalPlan(
         form=SongFormPlan(
-            sections=[SectionPlan(
-                id="main", start_bar=0, bars=8, role="verse",
-                target_density=0.5, target_tension=0.5,
-            )],
+            sections=[
+                SectionPlan(
+                    id="main",
+                    start_bar=0,
+                    bars=8,
+                    role="verse",
+                    target_density=0.5,
+                    target_tension=0.5,
+                )
+            ],
             climax_section_id="main",
         ),
-        harmony=HarmonyPlan(chord_events=[
-            ChordEvent(
-                section_id="main", start_beat=0.0, duration_beats=32.0,
-                roman="I", function=HarmonicFunction.TONIC, tension_level=0.5,
-            ),
-        ]),
+        harmony=HarmonyPlan(
+            chord_events=[
+                ChordEvent(
+                    section_id="main",
+                    start_beat=0.0,
+                    duration_beats=32.0,
+                    roman="I",
+                    function=HarmonicFunction.TONIC,
+                    tension_level=0.5,
+                ),
+            ]
+        ),
         trajectory=MultiDimensionalTrajectory.default(),
         intent=IntentSpec(text="test", keywords=[]),
         provenance=ProvenanceLog(),
@@ -112,12 +124,14 @@ class _DummyRule(CritiqueRule):
     role = Role.STRUCTURE
 
     def detect(self, plan: MusicalPlan, spec: CompositionSpecV2) -> list[Finding]:
-        return [Finding(
-            rule_id=self.rule_id,
-            severity=Severity.MINOR,
-            role=self.role,
-            issue="Dummy issue for testing",
-        )]
+        return [
+            Finding(
+                rule_id=self.rule_id,
+                severity=Severity.MINOR,
+                role=self.role,
+                issue="Dummy issue for testing",
+            )
+        ]
 
 
 class _SilentRule(CritiqueRule):

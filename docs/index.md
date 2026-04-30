@@ -26,7 +26,7 @@ YaO turns music composition into a structured, reproducible engineering process.
 
 ## Architecture (v2.0)
 
-YaO v2.0 introduces the **Musical Plan IR (MPIR)** as a middle layer. The generation pipeline is now:
+YaO v2.0 introduces the **Composition Plan IR (CPIR)** as a middle layer. The generation pipeline is now:
 
 ```
 CompositionSpec → Plan Generators → MusicalPlan → Note Realizers → ScoreIR → MIDI
@@ -81,7 +81,7 @@ outputs/projects/<name>/iterations/v001/
 - [Claude Code Workflow](tutorials/claude-code-workflow.md) — Interactive music creation with subagents
 
 ### Architecture
-- [Layer Model](architecture/layers.md) — Layered architecture with Layer 3.5 (MPIR)
+- [Layer Model](architecture/layers.md) — Layered architecture with Layer 3a (CPIR)
 - [Design Decisions](architecture/decisions.md) — Architecture decision records
 
 ### Reference

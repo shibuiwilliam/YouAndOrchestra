@@ -300,9 +300,7 @@ class TestDrums:
 
 class TestArrangement:
     def test_valid(self) -> None:
-        spec = ArrangementSpecV2(
-            instruments={"piano": InstrumentArrangementSpec(role="melody")}
-        )
+        spec = ArrangementSpecV2(instruments={"piano": InstrumentArrangementSpec(role="melody")})
         assert "piano" in spec.instruments
 
     def test_empty_instruments_fails(self) -> None:

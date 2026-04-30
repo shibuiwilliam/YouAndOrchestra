@@ -118,9 +118,7 @@ class GlobalSpec(BaseModel):
         try:
             num, den = int(parts[0]), int(parts[1])
         except ValueError as e:
-            raise SpecValidationError(
-                f"Invalid time signature '{v}'", field="global.time_signature"
-            ) from e
+            raise SpecValidationError(f"Invalid time signature '{v}'", field="global.time_signature") from e
         if num <= 0 or den <= 0:
             raise SpecValidationError(
                 f"Time signature components must be positive, got '{v}'",
@@ -281,8 +279,7 @@ class NoteRangeSpec(BaseModel):
             return self
         if min_midi >= max_midi:
             raise SpecValidationError(
-                f"melody.range.min ({self.min}={min_midi}) must be below "
-                f"melody.range.max ({self.max}={max_midi})",
+                f"melody.range.min ({self.min}={min_midi}) must be below melody.range.max ({self.max}={max_midi})",
                 field="melody.range",
             )
         return self
@@ -531,9 +528,7 @@ class ArrangementSpecV2(BaseModel):
 
     @field_validator("instruments")
     @classmethod
-    def instruments_not_empty(
-        cls, v: dict[str, InstrumentArrangementSpec]
-    ) -> dict[str, InstrumentArrangementSpec]:
+    def instruments_not_empty(cls, v: dict[str, InstrumentArrangementSpec]) -> dict[str, InstrumentArrangementSpec]:
         """At least one instrument is required."""
         if not v:
             raise SpecValidationError(
@@ -553,9 +548,7 @@ class ProductionSpecV2(BaseModel):
         vocal_space_reserved: Whether to reserve space for vocals.
     """
 
-    use_case: Literal[
-        "youtube_bgm", "game_bgm", "advertisement", "study_focus", "general"
-    ] = "general"
+    use_case: Literal["youtube_bgm", "game_bgm", "advertisement", "study_focus", "general"] = "general"
     target_lufs: float = -14.0
     stereo_width: float = 0.8
     vocal_space_reserved: bool = False
@@ -708,8 +701,7 @@ class CompositionSpecV2(BaseModel):
             raise SpecValidationError("YAML root must be a mapping")
         if data.get("version") != "2":
             raise SpecValidationError(
-                f"Expected version '2', got '{data.get('version')}'. "
-                "Use CompositionSpec (v1) for unversioned specs.",
+                f"Expected version '2', got '{data.get('version')}'. Use CompositionSpec (v1) for unversioned specs.",
                 field="version",
             )
         try:
@@ -742,10 +734,7 @@ class CompositionSpecV2(BaseModel):
             SectionSpec,
         )
 
-        instruments = [
-            InstrumentSpec(name=name, role=inst.role)
-            for name, inst in self.arrangement.instruments.items()
-        ]
+        instruments = [InstrumentSpec(name=name, role=inst.role) for name, inst in self.arrangement.instruments.items()]
         sections = [
             SectionSpec(
                 name=s.id,

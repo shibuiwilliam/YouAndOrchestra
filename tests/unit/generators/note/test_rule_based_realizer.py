@@ -24,12 +24,20 @@ def _make_plan() -> MusicalPlan:
     form = SongFormPlan(
         sections=[
             SectionPlan(
-                id="intro", start_bar=0, bars=4, role="intro",
-                target_density=0.3, target_tension=0.2,
+                id="intro",
+                start_bar=0,
+                bars=4,
+                role="intro",
+                target_density=0.3,
+                target_tension=0.2,
             ),
             SectionPlan(
-                id="main", start_bar=4, bars=8, role="verse",
-                target_density=0.6, target_tension=0.5,
+                id="main",
+                start_bar=4,
+                bars=8,
+                role="verse",
+                target_density=0.6,
+                target_tension=0.5,
             ),
         ],
         climax_section_id="main",
@@ -37,12 +45,20 @@ def _make_plan() -> MusicalPlan:
     harmony = HarmonyPlan(
         chord_events=[
             ChordEvent(
-                section_id="intro", start_beat=0.0, duration_beats=16.0,
-                roman="I", function=HarmonicFunction.TONIC, tension_level=0.2,
+                section_id="intro",
+                start_beat=0.0,
+                duration_beats=16.0,
+                roman="I",
+                function=HarmonicFunction.TONIC,
+                tension_level=0.2,
             ),
             ChordEvent(
-                section_id="main", start_beat=16.0, duration_beats=32.0,
-                roman="V", function=HarmonicFunction.DOMINANT, tension_level=0.5,
+                section_id="main",
+                start_beat=16.0,
+                duration_beats=32.0,
+                roman="V",
+                function=HarmonicFunction.DOMINANT,
+                tension_level=0.5,
             ),
         ],
         cadences={"main": CadenceRole.AUTHENTIC},

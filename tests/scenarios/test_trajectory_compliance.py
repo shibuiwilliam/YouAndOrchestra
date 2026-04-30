@@ -102,8 +102,7 @@ class TestVelocityRespondsToTension:
         avg_low = _avg_velocity(score_low)
         avg_high = _avg_velocity(score_high)
         assert avg_high > avg_low + 5, (
-            f"High tension velocity ({avg_high:.1f}) should be notably higher "
-            f"than low tension ({avg_low:.1f})"
+            f"High tension velocity ({avg_high:.1f}) should be notably higher than low tension ({avg_low:.1f})"
         )
 
     def test_rule_based_velocity_higher_at_high_tension(self) -> None:
@@ -126,15 +125,11 @@ class TestVelocityRespondsToTension:
 
 
 class TestPitchRespondsToTension:
-    """V2 target: higher tension should push melodies to higher register.
+    """V2: higher tension should push melodies to higher register.
 
-    Currently xfail because v1 generators only modify velocity.
+    Implemented: stochastic generator biases upward motion at high tension.
     """
 
-    @pytest.mark.xfail(
-        reason="v1 generators only respond to tension via velocity, not pitch register",
-        strict=True,
-    )
     def test_stochastic_higher_register_at_high_tension(self) -> None:
         spec = _make_spec()
         gen = get_generator("stochastic")
@@ -142,21 +137,15 @@ class TestPitchRespondsToTension:
         score_low, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.1))
         score_high, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.9))
 
-        assert _max_pitch(score_high) > _max_pitch(score_low), (
-            "High tension should push melody to higher register"
-        )
+        assert _max_pitch(score_high) > _max_pitch(score_low), "High tension should push melody to higher register"
 
 
 class TestLeapsRespondToTension:
-    """V2 target: higher tension should produce more melodic leaps.
+    """V2: higher tension should produce more melodic leaps.
 
-    Currently xfail because v1 generators don't vary intervals by tension.
+    Implemented: stochastic generator increases leap probability at high tension.
     """
 
-    @pytest.mark.xfail(
-        reason="v1 generators do not vary interval distribution by tension",
-        strict=True,
-    )
     def test_stochastic_more_leaps_at_high_tension(self) -> None:
         spec = _make_spec()
         gen = get_generator("stochastic")
@@ -164,21 +153,15 @@ class TestLeapsRespondToTension:
         score_low, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.1))
         score_high, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.9))
 
-        assert _count_leaps(score_high) > _count_leaps(score_low), (
-            "High tension should produce more melodic leaps"
-        )
+        assert _count_leaps(score_high) > _count_leaps(score_low), "High tension should produce more melodic leaps"
 
 
 class TestDensityRespondsToTrajectory:
-    """V2 target: higher density trajectory should produce more notes.
+    """V2: higher density trajectory should produce more notes.
 
-    Currently xfail because v1 generators ignore the density dimension.
+    Implemented: stochastic generator uses density-aware rhythm selection.
     """
 
-    @pytest.mark.xfail(
-        reason="v1 generators ignore density trajectory dimension",
-        strict=True,
-    )
     def test_stochastic_more_notes_at_high_density(self) -> None:
         spec = _make_spec()
         gen = get_generator("stochastic")
@@ -186,9 +169,7 @@ class TestDensityRespondsToTrajectory:
         score_sparse, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.5, density=0.1))
         score_dense, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.5, density=0.9))
 
-        assert _note_count(score_dense) > _note_count(score_sparse), (
-            "High density trajectory should produce more notes"
-        )
+        assert _note_count(score_dense) > _note_count(score_sparse), "High density trajectory should produce more notes"
 
 
 class TestNoDifferenceBetweenIgnoredDimensions:

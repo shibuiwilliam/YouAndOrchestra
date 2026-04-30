@@ -133,17 +133,13 @@ class TestTrajectorySpec:
     def test_value_before_first_waypoint(self) -> None:
         from yao.schema.trajectory import TrajectoryDimension
 
-        dim = TrajectoryDimension(
-            waypoints=[Waypoint(bar=5, value=0.3), Waypoint(bar=10, value=0.8)]
-        )
+        dim = TrajectoryDimension(waypoints=[Waypoint(bar=5, value=0.3), Waypoint(bar=10, value=0.8)])
         assert dim.value_at(0) == 0.3
 
     def test_value_after_last_waypoint(self) -> None:
         from yao.schema.trajectory import TrajectoryDimension
 
-        dim = TrajectoryDimension(
-            waypoints=[Waypoint(bar=0, value=0.2), Waypoint(bar=10, value=0.8)]
-        )
+        dim = TrajectoryDimension(waypoints=[Waypoint(bar=0, value=0.2), Waypoint(bar=10, value=0.8)])
         assert dim.value_at(20) == 0.8
 
     def test_target_value(self) -> None:
@@ -157,9 +153,7 @@ class TestTrajectorySpec:
         from yao.schema.trajectory import TrajectoryDimension
 
         spec = TrajectorySpec(
-            tension=TrajectoryDimension(
-                waypoints=[Waypoint(bar=0, value=0.2), Waypoint(bar=10, value=0.8)]
-            )
+            tension=TrajectoryDimension(waypoints=[Waypoint(bar=0, value=0.2), Waypoint(bar=10, value=0.8)])
         )
         assert abs(spec.value_at("tension", 5) - 0.5) < 0.01
         assert spec.value_at("density", 5) == 0.5  # undefined dimension

@@ -13,7 +13,7 @@ import yao.generators.plan.form_planner as _fp  # noqa: F401
 import yao.generators.plan.harmony_planner as _hp  # noqa: F401
 from yao.errors import SpecValidationError
 from yao.generators.plan.base import PLAN_GENERATORS
-from yao.ir.plan.musical_plan import MusicalPlan
+from yao.ir.plan.musical_plan import GlobalContext, MusicalPlan
 from yao.ir.trajectory import MultiDimensionalTrajectory
 from yao.reflect.provenance import ProvenanceLog
 from yao.schema.composition_v2 import CompositionSpecV2
@@ -66,14 +66,25 @@ class PlanOrchestrator:
         form_result = self._form_planner.generate(spec, trajectory, provenance)
         harmony_result = self._harmony_planner.generate(spec, trajectory, provenance)
 
+        # Extract global context from the spec
+        instruments = tuple((name, inst.role) for name, inst in spec.arrangement.instruments.items())
+        global_ctx = GlobalContext(
+            key=spec.global_.key,
+            tempo_bpm=spec.global_.bpm,
+            time_signature=spec.global_.time_signature,
+            genre=spec.global_.genre,
+            instruments=instruments,
+        )
+
         return MusicalPlan(
             form=form_result["form"],
             harmony=harmony_result["harmony"],
             trajectory=trajectory,
             intent=intent,
             provenance=provenance,
-            # Phase β
-            motifs_phrases=None,
+            global_context=global_ctx,
+            motif=None,
+            phrase=None,
             arrangement=None,
             drums=None,
         )

@@ -152,9 +152,7 @@ class CompositionSpec(BaseModel):
         try:
             num, den = int(parts[0]), int(parts[1])
         except (IndexError, TypeError) as e:
-            raise SpecValidationError(
-                f"Invalid time signature '{v}'", field="time_signature"
-            ) from e
+            raise SpecValidationError(f"Invalid time signature '{v}'", field="time_signature") from e
         if num <= 0 or den <= 0:
             raise SpecValidationError(
                 f"Time signature components must be positive, got '{v}'",

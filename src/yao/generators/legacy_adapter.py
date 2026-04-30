@@ -9,6 +9,7 @@ Belongs to Layer 2 (Generation).
 
 from __future__ import annotations
 
+import yao.generators.note  # noqa: F401 — trigger realizer registration
 from yao.generators.note.base import NOTE_REALIZERS
 from yao.generators.plan.orchestrator import PlanOrchestrator
 from yao.ir.plan.musical_plan import MusicalPlan
@@ -32,10 +33,7 @@ def _v1_to_v2(spec: CompositionSpec) -> CompositionSpecV2:
         }
         for s in spec.sections
     ]
-    instruments = {
-        inst.name: {"role": inst.role}
-        for inst in spec.instruments
-    }
+    instruments = {inst.name: {"role": inst.role} for inst in spec.instruments}
 
     # Estimate duration
     total_bars = sum(s.bars for s in spec.sections)
@@ -43,23 +41,25 @@ def _v1_to_v2(spec: CompositionSpec) -> CompositionSpecV2:
     beats_per_bar = int(ts_parts[0]) if len(ts_parts) == 2 else 4  # noqa: PLR2004
     duration = (total_bars * beats_per_bar * 60.0) / spec.tempo_bpm
 
-    return CompositionSpecV2.model_validate({
-        "version": "2",
-        "identity": {"title": spec.title, "duration_sec": duration},
-        "global": {
-            "key": spec.key,
-            "bpm": spec.tempo_bpm,
-            "time_signature": spec.time_signature,
-            "genre": spec.genre,
-        },
-        "form": {"sections": sections},
-        "arrangement": {"instruments": instruments},
-        "generation": {
-            "strategy": spec.generation.strategy,
-            "seed": spec.generation.seed,
-            "temperature": spec.generation.temperature,
-        },
-    })
+    return CompositionSpecV2.model_validate(
+        {
+            "version": "2",
+            "identity": {"title": spec.title, "duration_sec": duration},
+            "global": {
+                "key": spec.key,
+                "bpm": spec.tempo_bpm,
+                "time_signature": spec.time_signature,
+                "genre": spec.genre,
+            },
+            "form": {"sections": sections},
+            "arrangement": {"instruments": instruments},
+            "generation": {
+                "strategy": spec.generation.strategy,
+                "seed": spec.generation.seed,
+                "temperature": spec.generation.temperature,
+            },
+        }
+    )
 
 
 def build_plan_from_v1(
@@ -76,11 +76,7 @@ def build_plan_from_v1(
         Tuple of (MusicalPlan, ProvenanceLog).
     """
     spec_v2 = _v1_to_v2(spec)
-    traj = (
-        MultiDimensionalTrajectory.from_spec(trajectory)
-        if trajectory
-        else MultiDimensionalTrajectory.default()
-    )
+    traj = MultiDimensionalTrajectory.from_spec(trajectory) if trajectory else MultiDimensionalTrajectory.default()
     intent = IntentSpec(text="", keywords=[])
     provenance = ProvenanceLog()
 
@@ -100,7 +96,7 @@ def build_plan_from_v1(
 def generate_via_v2_pipeline(
     spec: CompositionSpec,
     trajectory: TrajectorySpec | None = None,
-) -> tuple[ScoreIR, ProvenanceLog]:
+) -> tuple[ScoreIR, MusicalPlan, ProvenanceLog]:
     """Full v1 → v2 pipeline: CompositionSpec → MusicalPlan → ScoreIR.
 
     This is the v2 equivalent of GeneratorBase.generate(). It goes through
@@ -111,7 +107,8 @@ def generate_via_v2_pipeline(
         trajectory: Optional v1 TrajectorySpec.
 
     Returns:
-        Tuple of (ScoreIR, ProvenanceLog).
+        Tuple of (ScoreIR, MusicalPlan, ProvenanceLog). The plan is returned
+        so the Conductor can pass it to the Adversarial Critic gate.
     """
     plan, provenance = build_plan_from_v1(spec, trajectory)
 
@@ -124,5 +121,7 @@ def generate_via_v2_pipeline(
     seed = spec.generation.seed if spec.generation.seed is not None else 42
     temperature = spec.generation.temperature
 
-    score = realizer.realize(plan, seed, temperature, provenance)
-    return score, provenance
+    # Pass the original v1 spec so realizers can preserve key/tempo/instruments
+    # during Phase α (the MusicalPlan doesn't carry global metadata yet).
+    score = realizer.realize(plan, seed, temperature, provenance, original_spec=spec)
+    return score, plan, provenance

@@ -10,11 +10,16 @@ Belongs to Layer 2 (Generation).
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from yao.generators.note.base import NoteRealizerBase, register_note_realizer
 from yao.generators.note.rule_based import _plan_to_traj_spec, _plan_to_v1_spec
 from yao.ir.plan.musical_plan import MusicalPlan
 from yao.ir.score_ir import ScoreIR
 from yao.reflect.provenance import ProvenanceLog
+
+if TYPE_CHECKING:
+    from yao.schema.composition import CompositionSpec
 
 
 @register_note_realizer("stochastic")
@@ -27,6 +32,7 @@ class StochasticNoteRealizer(NoteRealizerBase):
         seed: int,
         temperature: float,
         provenance: ProvenanceLog,
+        original_spec: CompositionSpec | None = None,
     ) -> ScoreIR:
         """Realize a MusicalPlan into ScoreIR via the stochastic generator.
 
@@ -35,6 +41,7 @@ class StochasticNoteRealizer(NoteRealizerBase):
             seed: Random seed for reproducibility.
             temperature: Variation control (0.0–1.0).
             provenance: Provenance log.
+            original_spec: Optional original v1 spec to preserve metadata.
 
         Returns:
             ScoreIR with concrete notes.
@@ -42,7 +49,7 @@ class StochasticNoteRealizer(NoteRealizerBase):
         from yao.generators.stochastic import StochasticGenerator
         from yao.schema.composition import GenerationConfig
 
-        v1_spec = _plan_to_v1_spec(plan)
+        v1_spec = original_spec if original_spec is not None else _plan_to_v1_spec(plan)
         # Override generation config with realizer parameters
         v1_spec = v1_spec.model_copy(
             update={

@@ -246,11 +246,7 @@ class StochasticGenerator(GeneratorBase):
                 instr_rng = self._instrument_rng(seed, instr_spec.name, section_spec.name)
 
                 # For 2nd+ melody instrument, use motif transformations
-                melody_index = (
-                    melody_instruments.index(instr_spec)
-                    if instr_spec in melody_instruments
-                    else -1
-                )
+                melody_index = melody_instruments.index(instr_spec) if instr_spec in melody_instruments else -1
                 if melody_index > 0 and primary_melody_notes:
                     notes = self._generate_melody_from_motif(
                         seed_notes=primary_melody_notes,
@@ -312,9 +308,7 @@ class StochasticGenerator(GeneratorBase):
 
         return sections
 
-    def _choose_chord_pattern(
-        self, section_name: str, rng: random.Random, temperature: float
-    ) -> list[int]:
+    def _choose_chord_pattern(self, section_name: str, rng: random.Random, temperature: float) -> list[int]:
         """Choose a chord degree pattern appropriate for the section type."""
         patterns = _CHORD_PATTERNS.get(section_name, _CHORD_PATTERNS["default"])
         if temperature < 0.2:  # noqa: PLR2004
@@ -424,9 +418,23 @@ class StochasticGenerator(GeneratorBase):
         rng: random.Random,
         temperature: float,
     ) -> list[Note]:
-        """Generate melody with contour shaping and interval variety."""
+        """Generate melody with contour shaping and interval variety.
+
+        Trajectory response (Rule #7):
+        - tension: higher tension → higher register (octave offset) + more leaps
+        - density: higher density → more subdivided rhythms (more notes per bar)
+        - register_height: shifts base octave up/down
+        """
         octave = self._target_octave(instrument, "melody")
-        all_scale = scale_notes(root_note, scale_type, octave)
+
+        # Register height trajectory shifts the base octave
+        register_offset = 0
+        if trajectory is not None:
+            reg_height = trajectory.value_at("register_height", start_bar)
+            # register_height 0.5 = neutral, 1.0 = +1 octave, 0.0 = -1 octave
+            register_offset = round((reg_height - 0.5) * 2)
+
+        all_scale = scale_notes(root_note, scale_type, octave + register_offset)
         # Extend to span 2 octaves for melodic range
         all_scale = all_scale + [n + 12 for n in all_scale]
 
@@ -439,26 +447,46 @@ class StochasticGenerator(GeneratorBase):
 
         for bar in range(bars):
             bar_start = bars_to_beats(start_bar + bar, time_signature)
-            rhythm = rng.choice(_MELODY_RHYTHM_POOL)
+
+            # Density trajectory affects rhythm selection: higher density → more subdivided
+            density = 0.5
+            if trajectory is not None:
+                density = trajectory.value_at("density", start_bar + bar)
+            rhythm = self._density_aware_rhythm(rng, density)
+
             velocity = self._compute_velocity(section_spec, start_bar + bar, trajectory)
 
             # Occasional rest (temperature-dependent)
             if rng.random() < temperature * self.config.rest_probability_scale:
                 self._record_recovery(
-                    "REST_INSERTED", "info",
-                    f"bar {start_bar + bar}", "rest",
+                    "REST_INSERTED",
+                    "info",
+                    f"bar {start_bar + bar}",
+                    "rest",
                     "Stochastic rest for natural phrasing",
                     "One fewer bar of melody, creates breathing space",
                 )
                 continue
+
+            # Get tension for this bar for trajectory-responsive movement
+            bar_tension = 0.5
+            if trajectory is not None:
+                bar_tension = trajectory.value_at("tension", start_bar + bar)
 
             beat_offset: Beat = 0.0
             for dur in rhythm:
                 if beat_offset + dur > beats_per_bar + 0.001:
                     break
 
-                # Movement: step, leap, or repeat (temperature controls leap probability)
-                movement = self._choose_movement(rng, temperature, bar, bars, contour)
+                # Movement: step, leap, or repeat (temperature + tension control)
+                movement = self._choose_movement(
+                    rng,
+                    temperature,
+                    bar,
+                    bars,
+                    contour,
+                    tension=bar_tension,
+                )
                 scale_idx = max(0, min(len(all_scale) - 1, scale_idx + movement))
 
                 pitch = all_scale[scale_idx]
@@ -469,8 +497,10 @@ class StochasticGenerator(GeneratorBase):
                     pitch = all_scale[scale_idx]
                     if not self._is_in_range(pitch, instrument):
                         self._record_recovery(
-                            "MELODY_NOTE_SKIPPED", "warning",
-                            original_pitch, None,
+                            "MELODY_NOTE_SKIPPED",
+                            "warning",
+                            original_pitch,
+                            None,
                             f"Melody pitch {original_pitch} outside {instrument} range",
                             "One note missing from melody, slight gap in phrase",
                             ["widen instrument range", "adjust melody octave"],
@@ -478,8 +508,10 @@ class StochasticGenerator(GeneratorBase):
                         beat_offset += dur
                         continue
                     self._record_recovery(
-                        "MELODY_NOTE_OUT_OF_RANGE", "info",
-                        original_pitch, pitch,
+                        "MELODY_NOTE_OUT_OF_RANGE",
+                        "info",
+                        original_pitch,
+                        pitch,
                         f"Melody pitch {original_pitch} bounced to {pitch}",
                         "Melodic contour slightly altered at this point",
                     )
@@ -490,8 +522,10 @@ class StochasticGenerator(GeneratorBase):
                 final_vel = max(1, min(127, raw_vel))
                 if final_vel != raw_vel:
                     self._record_recovery(
-                        "VELOCITY_CLAMPED", "info",
-                        raw_vel, final_vel,
+                        "VELOCITY_CLAMPED",
+                        "info",
+                        raw_vel,
+                        final_vel,
                         f"Velocity {raw_vel} clamped to MIDI range",
                         "Negligible — within normal humanization range",
                     )
@@ -577,16 +611,20 @@ class StochasticGenerator(GeneratorBase):
                     pitch = pitch - 12
                 else:
                     self._record_recovery(
-                        "MOTIF_NOTE_OUT_OF_RANGE", "warning",
-                        original_pitch, None,
+                        "MOTIF_NOTE_OUT_OF_RANGE",
+                        "warning",
+                        original_pitch,
+                        None,
                         f"Transformed motif note {original_pitch} outside {instrument} range",
                         "Note dropped from transformed motif",
                         ["adjust motif transposition interval", "use instrument with wider range"],
                     )
                     continue
                 self._record_recovery(
-                    "MOTIF_NOTE_OUT_OF_RANGE", "info",
-                    original_pitch, pitch,
+                    "MOTIF_NOTE_OUT_OF_RANGE",
+                    "info",
+                    original_pitch,
+                    pitch,
                     f"Motif note {original_pitch} octave-adjusted to {pitch}",
                     "Slight register shift in transformed melody",
                 )
@@ -619,9 +657,7 @@ class StochasticGenerator(GeneratorBase):
         "default": "arch",
     }
 
-    def _choose_contour(
-        self, section_name: str, temperature: float, rng: random.Random
-    ) -> str:
+    def _choose_contour(self, section_name: str, temperature: float, rng: random.Random) -> str:
         """Select melodic contour type based on section and temperature.
 
         Args:
@@ -636,14 +672,38 @@ class StochasticGenerator(GeneratorBase):
         if temperature < self.config.low_temp_threshold:
             return "arch"
 
-        preferred = self._SECTION_CONTOURS.get(
-            section_name, self._SECTION_CONTOURS["default"]
-        )
+        preferred = self._SECTION_CONTOURS.get(section_name, self._SECTION_CONTOURS["default"])
 
         # Higher temperature = chance of random contour
         if rng.random() < temperature * 0.3:
             return rng.choice(["arch", "ascending", "descending", "wave"])
         return preferred
+
+    def _density_aware_rhythm(self, rng: random.Random, density: float) -> list[float]:
+        """Select a rhythm pattern biased by density trajectory.
+
+        Higher density → shorter subdivisions (more notes per bar).
+        Lower density → longer note values (fewer notes per bar).
+
+        Args:
+            rng: Seeded RNG.
+            density: Current density [0, 1] from trajectory.
+
+        Returns:
+            A rhythm pattern (list of beat durations).
+        """
+        if density >= 0.7:  # noqa: PLR2004
+            # High density: prefer subdivided patterns (8th notes, 16th notes)
+            dense_pool = [p for p in _MELODY_RHYTHM_POOL if len(p) >= 5]  # noqa: PLR2004
+            if dense_pool:
+                return rng.choice(dense_pool)
+        elif density <= 0.3:  # noqa: PLR2004
+            # Low density: prefer spacious patterns (half notes, dotted)
+            sparse_pool = [p for p in _MELODY_RHYTHM_POOL if len(p) <= 3]  # noqa: PLR2004
+            if sparse_pool:
+                return rng.choice(sparse_pool)
+        # Mid density: any pattern
+        return rng.choice(_MELODY_RHYTHM_POOL)
 
     def _choose_movement(
         self,
@@ -652,11 +712,16 @@ class StochasticGenerator(GeneratorBase):
         bar: int,
         total_bars: int,
         contour: str = "arch",
+        tension: float = 0.5,
     ) -> int:
-        """Choose melodic movement based on position, temperature, and contour.
+        """Choose melodic movement based on position, temperature, contour, and tension.
 
         Contour shapes bias direction probability without forcing it,
         producing natural direction changes.
+
+        Trajectory response (Rule #7):
+        - Higher tension → more leaps (larger intervals)
+        - Higher tension → bias toward higher register (more upward motion)
 
         Args:
             rng: Seeded RNG.
@@ -664,6 +729,7 @@ class StochasticGenerator(GeneratorBase):
             bar: Current bar within section.
             total_bars: Total bars in section.
             contour: Contour type (arch, ascending, descending, wave).
+            tension: Current tension level [0, 1] from trajectory.
 
         Returns:
             Signed step in scale degrees.
@@ -671,13 +737,10 @@ class StochasticGenerator(GeneratorBase):
         progress = bar / max(total_bars - 1, 1)
 
         if contour == "ascending":
-            # Bias upward, level off at the end
             up_probability = 0.5 if progress > 0.85 else 0.7  # noqa: PLR2004
         elif contour == "descending":
-            # Level start, then bias downward
             up_probability = 0.5 if progress < 0.15 else 0.3  # noqa: PLR2004
         elif contour == "wave":
-            # Sinusoidal oscillation between 0.3 and 0.7
             up_probability = 0.5 + 0.2 * math.sin(progress * 2 * math.pi)
         else:
             # arch (default): rise, plateau, fall
@@ -688,14 +751,21 @@ class StochasticGenerator(GeneratorBase):
             else:
                 up_probability = 0.5
 
-        # Step vs leap probability
+        # Tension biases upward motion (higher register at high tension)
+        tension_up_bias = (tension - 0.5) * 0.2
+        up_probability = max(0.1, min(0.9, up_probability + tension_up_bias))
+
+        # Step vs leap probability — tension increases leap probability
+        leap_bias = tension * 0.3  # high tension → more leaps
         r = rng.random()
-        if r < 0.5 - temperature * 0.2:
+        step_threshold = 0.5 - temperature * 0.2 - leap_bias
+        leap_threshold = 0.8 - temperature * 0.1 - leap_bias * 0.5
+        if r < step_threshold:
             step = 1
-        elif r < 0.8 - temperature * 0.1:
+        elif r < leap_threshold:
             step = rng.choice([2, 3])
         else:
-            step = rng.choice([4, 5])
+            step = rng.choice([4, 5, 6])
 
         direction = 1 if rng.random() < up_probability else -1
         return step * direction
@@ -754,8 +824,10 @@ class StochasticGenerator(GeneratorBase):
 
                 if not self._is_in_range(pitch, instrument):
                     self._record_recovery(
-                        "BASS_NOTE_OUT_OF_RANGE", "warning",
-                        pitch, root_pitch,
+                        "BASS_NOTE_OUT_OF_RANGE",
+                        "warning",
+                        pitch,
+                        root_pitch,
                         f"Bass passing tone {pitch} outside {instrument} range",
                         "Bass line jumps to root, slight smoothness loss",
                         ["narrow walking bass interval pool", "use instrument with wider range"],
@@ -814,9 +886,7 @@ class StochasticGenerator(GeneratorBase):
 
         return result
 
-    def _choose_voicing(
-        self, temperature: float, rng: random.Random
-    ) -> str:
+    def _choose_voicing(self, temperature: float, rng: random.Random) -> str:
         """Select chord voicing type based on temperature.
 
         Args:
@@ -886,8 +956,10 @@ class StochasticGenerator(GeneratorBase):
             chord_intervals = CHORD_INTERVALS.get(quality)
             if chord_intervals is None:
                 self._record_recovery(
-                    "CHORD_QUALITY_UNDEFINED", "info",
-                    quality, "maj",
+                    "CHORD_QUALITY_UNDEFINED",
+                    "info",
+                    quality,
+                    "maj",
                     f"Chord quality '{quality}' not found in palette",
                     "Chord defaults to major triad",
                     ["add chord quality to constants"],
@@ -913,8 +985,10 @@ class StochasticGenerator(GeneratorBase):
                     notes.append(note)
                 else:
                     self._record_recovery(
-                        "CHORD_NOTE_OUT_OF_RANGE", "info",
-                        pitch, None,
+                        "CHORD_NOTE_OUT_OF_RANGE",
+                        "info",
+                        pitch,
+                        None,
                         f"Chord note {pitch} outside {instrument} range",
                         "Chord voicing has one fewer note",
                     )
@@ -958,8 +1032,10 @@ class StochasticGenerator(GeneratorBase):
             chord_intervals = CHORD_INTERVALS.get(quality)
             if chord_intervals is None:
                 self._record_recovery(
-                    "CHORD_QUALITY_UNDEFINED", "info",
-                    quality, "maj",
+                    "CHORD_QUALITY_UNDEFINED",
+                    "info",
+                    quality,
+                    "maj",
                     f"Pad chord quality '{quality}' not found",
                     "Pad chord defaults to major triad",
                 )
@@ -1033,8 +1109,10 @@ class StochasticGenerator(GeneratorBase):
             rhythm_pitches = [p for p in rhythm_pitches if self._is_in_range(p, instrument)]
             if not rhythm_pitches:
                 self._record_recovery(
-                    "RHYTHM_PITCH_OUT_OF_RANGE", "warning",
-                    [root_pitch, root_pitch + 7], [root_pitch],
+                    "RHYTHM_PITCH_OUT_OF_RANGE",
+                    "warning",
+                    [root_pitch, root_pitch + 7],
+                    [root_pitch],
                     f"Rhythm pitches outside {instrument} range, using root only",
                     "Rhythm part loses interval variety, only root note",
                     ["use instrument with wider range"],
@@ -1083,8 +1161,10 @@ class StochasticGenerator(GeneratorBase):
         clamped = max(1, min(127, base_velocity))
         if clamped != base_velocity:
             self._record_recovery(
-                "VELOCITY_CLAMPED", "info",
-                base_velocity, clamped,
+                "VELOCITY_CLAMPED",
+                "info",
+                base_velocity,
+                clamped,
                 f"Base velocity {base_velocity} clamped to MIDI range",
                 "Negligible — dynamics at MIDI boundary",
             )

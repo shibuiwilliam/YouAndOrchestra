@@ -179,10 +179,7 @@ class RuleBasedHarmonyPlanner(PlanGeneratorBase):
 
                     # Determine cadence role for last chord in section
                     cadence_role = None
-                    is_last_chord = (
-                        bar == section_bars - 1
-                        and chord_idx == chords_per_bar - 1
-                    )
+                    is_last_chord = bar == section_bars - 1 and chord_idx == chords_per_bar - 1
                     if is_last_chord and section_id in cadences:
                         cadence_role = cadences[section_id]
 
@@ -202,7 +199,7 @@ class RuleBasedHarmonyPlanner(PlanGeneratorBase):
 
         # Tension resolution points: end of each section
         resolution_points = [
-            float(sum(s.bars for s in spec.form.sections[:i + 1]) * beats_per_bar)
+            float(sum(s.bars for s in spec.form.sections[: i + 1]) * beats_per_bar)
             for i in range(len(spec.form.sections))
         ]
 

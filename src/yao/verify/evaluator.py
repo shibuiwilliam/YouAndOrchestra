@@ -153,8 +153,7 @@ class EvaluationReport:
         lines = [
             f"=== Evaluation: {self.title} ===",
             f"Quality Score: {self.quality_score:.1f}/10",
-            f"Pass rate: {self.pass_rate:.0%} "
-            f"({sum(1 for s in self.scores if s.passed)}/{len(self.scores)})",
+            f"Pass rate: {self.pass_rate:.0%} ({sum(1 for s in self.scores if s.passed)}/{len(self.scores)})",
         ]
         for dim in ("structure", "melody", "harmony", "arrangement", "acoustics"):
             dim_scores = [s for s in self.scores if s.dimension == dim]
@@ -164,8 +163,7 @@ class EvaluationReport:
             for s in dim_scores:
                 status = "PASS" if s.passed else "FAIL"
                 lines.append(
-                    f"    {status} {s.metric}: {s.score:.2f} "
-                    f"(target: {s.target:.2f} ±{s.tolerance:.2f}) — {s.detail}"
+                    f"    {status} {s.metric}: {s.score:.2f} (target: {s.target:.2f} ±{s.tolerance:.2f}) — {s.detail}"
                 )
         return "\n".join(lines)
 
@@ -262,34 +260,40 @@ def evaluate_structure(
                 contrasts.append(min(ratio / 2.0, 1.0))
 
         avg_contrast = sum(contrasts) / len(contrasts) if contrasts else 0.5
-        results.append(_score_via_goal(
-            "structure",
-            "section_contrast",
-            avg_contrast,
-            MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.1, max_value=0.9),
-        ))
+        results.append(
+            _score_via_goal(
+                "structure",
+                "section_contrast",
+                avg_contrast,
+                MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.1, max_value=0.9),
+            )
+        )
 
     # Bar count accuracy
     spec_bars = spec.computed_total_bars()
     actual_bars = score.total_bars()
     bar_accuracy = 1.0 - abs(spec_bars - actual_bars) / max(spec_bars, 1)
-    results.append(_score_via_goal(
-        "structure",
-        "bar_count_accuracy",
-        max(0.0, bar_accuracy),
-        MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.95),
-    ))
+    results.append(
+        _score_via_goal(
+            "structure",
+            "bar_count_accuracy",
+            max(0.0, bar_accuracy),
+            MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.95),
+        )
+    )
 
     # Section count match
     spec_sections = len(spec.sections)
     actual_sections = len(score.sections)
     section_match = 1.0 if spec_sections == actual_sections else 0.0
-    results.append(_score_via_goal(
-        "structure",
-        "section_count_match",
-        section_match,
-        MetricGoal(type=MetricGoalType.AT_LEAST, min_value=1.0),
-    ))
+    results.append(
+        _score_via_goal(
+            "structure",
+            "section_count_match",
+            section_match,
+            MetricGoal(type=MetricGoalType.AT_LEAST, min_value=1.0),
+        )
+    )
 
     return results
 
@@ -320,12 +324,14 @@ def evaluate_melody(score: ScoreIR) -> list[EvaluationScore]:
             instrument_ranges.append(max(instr_pitches) - min(instr_pitches))
     avg_range = sum(instrument_ranges) / max(len(instrument_ranges), 1)
     range_score = max(0.0, 1.0 - abs(avg_range - 18.0) / 24.0)
-    results.append(_score_via_goal(
-        "melody",
-        "pitch_range_utilization",
-        range_score,
-        MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.3, max_value=1.0),
-    ))
+    results.append(
+        _score_via_goal(
+            "melody",
+            "pitch_range_utilization",
+            range_score,
+            MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.3, max_value=1.0),
+        )
+    )
 
     # Stepwise motion and contour variety (per-instrument)
     total_stepwise = 0
@@ -357,21 +363,25 @@ def evaluate_melody(score: ScoreIR) -> list[EvaluationScore]:
 
     if total_intervals > 0:
         stepwise_ratio = total_stepwise / total_intervals
-        results.append(_score_via_goal(
-            "melody",
-            "stepwise_motion_ratio",
-            stepwise_ratio,
-            MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.3, max_value=0.9),
-        ))
+        results.append(
+            _score_via_goal(
+                "melody",
+                "stepwise_motion_ratio",
+                stepwise_ratio,
+                MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.3, max_value=0.9),
+            )
+        )
 
     if total_possible_changes > 0:
         contour_score = total_direction_changes / total_possible_changes
-        results.append(_score_via_goal(
-            "melody",
-            "contour_variety",
-            contour_score,
-            MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.1, max_value=0.7),
-        ))
+        results.append(
+            _score_via_goal(
+                "melody",
+                "contour_variety",
+                contour_score,
+                MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.1, max_value=0.7),
+            )
+        )
 
     return results
 
@@ -393,12 +403,14 @@ def evaluate_harmony(score: ScoreIR) -> list[EvaluationScore]:
     # Pitch class variety
     pitch_classes = set(n.pitch % 12 for n in all_notes)
     pc_variety = len(pitch_classes) / 12.0
-    results.append(_score_via_goal(
-        "harmony",
-        "pitch_class_variety",
-        pc_variety,
-        MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.2, max_value=0.9),
-    ))
+    results.append(
+        _score_via_goal(
+            "harmony",
+            "pitch_class_variety",
+            pc_variety,
+            MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.3, max_value=1.0),
+        )
+    )
 
     # Consonance ratio
     consonant_intervals = {0, 3, 4, 5, 7, 8, 9, 12}
@@ -417,12 +429,14 @@ def evaluate_harmony(score: ScoreIR) -> list[EvaluationScore]:
         consonance_ratio = consonance_count / pair_count
         # v2 fix: consonance uses AT_LEAST instead of TARGET_BAND.
         # "Consonance ratio too high" is not a meaningful failure.
-        results.append(_score_via_goal(
-            "harmony",
-            "consonance_ratio",
-            consonance_ratio,
-            MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.4),
-        ))
+        results.append(
+            _score_via_goal(
+                "harmony",
+                "consonance_ratio",
+                consonance_ratio,
+                MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.4),
+            )
+        )
 
     return results
 
@@ -444,24 +458,26 @@ def evaluate_rhythm(score: ScoreIR) -> list[EvaluationScore]:
     # Rhythm variety: number of unique duration values (capped at 8)
     unique_durations = {round(n.duration_beats, 3) for n in all_notes}
     variety = min(len(unique_durations) / 8.0, 1.0)
-    results.append(_score_via_goal(
-        "structure",
-        "rhythm_variety",
-        variety,
-        MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.2),
-    ))
+    results.append(
+        _score_via_goal(
+            "structure",
+            "rhythm_variety",
+            variety,
+            MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.2),
+        )
+    )
 
     # Syncopation ratio: notes starting on off-beats
-    offbeat_count = sum(
-        1 for n in all_notes if abs(n.start_beat - round(n.start_beat)) > 0.01
-    )
+    offbeat_count = sum(1 for n in all_notes if abs(n.start_beat - round(n.start_beat)) > 0.01)
     syncopation = offbeat_count / len(all_notes)
-    results.append(_score_via_goal(
-        "structure",
-        "syncopation_ratio",
-        syncopation,
-        MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.0, max_value=0.6),
-    ))
+    results.append(
+        _score_via_goal(
+            "structure",
+            "syncopation_ratio",
+            syncopation,
+            MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.0, max_value=0.6),
+        )
+    )
 
     return results
 

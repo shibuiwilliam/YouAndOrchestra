@@ -30,8 +30,18 @@ class SectionPlan:
     start_bar: int
     bars: int
     role: Literal[
-        "intro", "verse", "pre_chorus", "chorus", "bridge",
-        "solo", "interlude", "breakdown", "build", "drop", "outro", "coda",
+        "intro",
+        "verse",
+        "pre_chorus",
+        "chorus",
+        "bridge",
+        "solo",
+        "interlude",
+        "breakdown",
+        "build",
+        "drop",
+        "outro",
+        "coda",
     ]
     target_density: float
     target_tension: float

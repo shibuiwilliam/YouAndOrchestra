@@ -41,9 +41,7 @@ class TestMidiWriter:
         loaded_count = sum(len(inst.notes) for inst in loaded.instruments)
         assert loaded_count == original_count
 
-    def test_multi_instrument_midi(
-        self, multi_instrument_spec: CompositionSpec, tmp_output_dir: Path
-    ) -> None:
+    def test_multi_instrument_midi(self, multi_instrument_spec: CompositionSpec, tmp_output_dir: Path) -> None:
         from yao.generators.rule_based import RuleBasedGenerator
 
         gen = RuleBasedGenerator()

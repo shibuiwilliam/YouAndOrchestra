@@ -4,7 +4,7 @@
 
 YaO uses a two-stage generation architecture (v2.0):
 
-1. **Plan Generators** take a `CompositionSpec` and produce a `MusicalPlan` (MPIR) — structural and harmonic decisions *before* any notes are placed.
+1. **Plan Generators** take a `CompositionSpec` and produce a `MusicalPlan` (CPIR) — structural and harmonic decisions *before* any notes are placed.
 2. **Note Realizers** take a `MusicalPlan` and produce a `ScoreIR` — concrete notes faithfully realizing the plan.
 
 ```

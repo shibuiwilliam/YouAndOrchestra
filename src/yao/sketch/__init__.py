@@ -1,7 +1,8 @@
 """Sketch-to-Spec dialogue — interactive NL→spec compilation.
 
-Phase delta implementation. Currently, basic NL parsing lives in
-conductor/conductor.py. This package will house the full state machine.
+Houses the SpecCompiler which extracts musical knowledge from natural
+language descriptions. The Conductor delegates NL parsing here instead
+of containing music theory logic (CLAUDE.md anti-pattern #7).
 """
 
 from __future__ import annotations

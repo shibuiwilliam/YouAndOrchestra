@@ -273,8 +273,7 @@ def format_diff(diff: ScoreDiff) -> str:
         for nm in diff.modified_notes[:10]:
             name = midi_to_note_name(nm.note_after.pitch)
             lines.append(
-                f"    ~ {name} at beat {nm.note_after.start_beat:.1f} "
-                f"({nm.instrument}, {nm.section}): {nm.changes}"
+                f"    ~ {name} at beat {nm.note_after.start_beat:.1f} ({nm.instrument}, {nm.section}): {nm.changes}"
             )
         if len(diff.modified_notes) > 10:
             lines.append(f"    ... and {len(diff.modified_notes) - 10} more")
@@ -283,9 +282,7 @@ def format_diff(diff: ScoreDiff) -> str:
         lines.append(f"\n  Added: {len(diff.added_notes)} notes")
         for nd in diff.added_notes[:10]:
             name = midi_to_note_name(nd.note.pitch)
-            lines.append(
-                f"    + {name} at beat {nd.note.start_beat:.1f} ({nd.instrument}, {nd.section})"
-            )
+            lines.append(f"    + {name} at beat {nd.note.start_beat:.1f} ({nd.instrument}, {nd.section})")
         if len(diff.added_notes) > 10:
             lines.append(f"    ... and {len(diff.added_notes) - 10} more")
 
@@ -293,9 +290,7 @@ def format_diff(diff: ScoreDiff) -> str:
         lines.append(f"\n  Removed: {len(diff.removed_notes)} notes")
         for nd in diff.removed_notes[:10]:
             name = midi_to_note_name(nd.note.pitch)
-            lines.append(
-                f"    - {name} at beat {nd.note.start_beat:.1f} ({nd.instrument}, {nd.section})"
-            )
+            lines.append(f"    - {name} at beat {nd.note.start_beat:.1f} ({nd.instrument}, {nd.section})")
         if len(diff.removed_notes) > 10:
             lines.append(f"    ... and {len(diff.removed_notes) - 10} more")
 

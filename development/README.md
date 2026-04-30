@@ -23,7 +23,7 @@ Technical documentation for contributors and AI agents developing YaO.
 
 ## Current State
 
-- **Phase:** Alpha (MPIR foundation)
+- **Phase:** Alpha (CPIR foundation)
 - **Tests:** ~492 (unit 448, integration 15, scenario 16, constraint 7, golden 6)
 - **Source files:** 79 Python modules in src/yao/
 - **Generators:** 2 legacy (rule_based, stochastic) wrapped as NoteRealizers + 2 plan generators (form, harmony)

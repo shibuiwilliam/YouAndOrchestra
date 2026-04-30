@@ -1,5 +1,7 @@
 # You and Orchestra (YaO)
 
+[![CI](https://github.com/yao-project/yao/actions/workflows/ci.yml/badge.svg)](https://github.com/yao-project/yao/actions/workflows/ci.yml)
+
 **An agentic music production environment built on Claude Code** — where you are the conductor, and the AI is your orchestra.
 
 Describe what you want in plain English or YAML, and YaO generates a full MIDI score with per-instrument stems, quality evaluation, and a provenance log explaining every decision.
@@ -251,17 +253,17 @@ Launch Claude Code in the YaO directory and use slash commands:
 ## Architecture
 
 ```
-Conductor          — Orchestrates the generate-evaluate-adapt loop
-Layer 6: Verify    — Evaluation, linting, diffing, constraints, MetricGoal
-Layer 5: Render    — MIDI writer, stems, audio renderer, iteration management
-Layer 3.5: MPIR    — Musical Plan IR: SongFormPlan, HarmonyPlan
-Layer 3: IR        — ScoreIR, Note, harmony, motif, voicing, timing, notation
-Layer 2: Generate  — Plan generators + Note realizers (rule-based, stochastic)
-Layer 1: Schema    — Pydantic models for YAML specs (v1 + v2)
-Layer 0: Constants — Instrument ranges, MIDI maps, scales, chords, dynamics
+Conductor           — Orchestrates the generate-evaluate-adapt loop
+Layer 6: Verify     — Evaluation, linting, diffing, constraints, MetricGoal
+Layer 5: Render     — MIDI writer, stems, audio renderer, iteration management
+Layer 3a: Plan IR   — Composition Plan IR (CPIR): SongFormPlan, HarmonyPlan
+Layer 3b: Score IR  — ScoreIR, Note, harmony, motif, voicing, timing, notation
+Layer 2: Generate   — Plan generators + Note realizers (rule-based, stochastic)
+Layer 1: Schema     — Pydantic models for YAML specs (v1 + v2)
+Layer 0: Constants  — Instrument ranges, MIDI maps, scales, chords, dynamics
 ```
 
-The v2 pipeline: `Spec → PlanOrchestrator → MusicalPlan → NoteRealizer → ScoreIR → MIDI`
+The v2.0 pipeline: `Spec → PlanOrchestrator → MusicalPlan (CPIR) → NoteRealizer → ScoreIR → MIDI`
 
 All IR objects are immutable frozen dataclasses. Layer boundaries are enforced by `make arch-lint`.
 
@@ -313,8 +315,8 @@ yao compose specs/projects/my-song/composition.yaml
 ## Development
 
 ```bash
-make test              # All tests (~492)
-make test-unit         # Unit tests only (~448)
+make test              # All tests (~560)
+make test-unit         # Unit tests only (~500)
 make test-golden       # Golden MIDI regression tests (6)
 make lint              # ruff + mypy strict
 make arch-lint         # Layer boundary enforcement
@@ -327,7 +329,7 @@ make format            # Auto-format
 
 | Directory | Count | What it tests |
 |---|---|---|
-| `tests/unit/` | ~448 | Individual modules: IR, schema, generators, render, verify, conductor, MPIR, metric goals |
+| `tests/unit/` | ~500 | Individual modules: IR, schema, generators, render, verify, conductor, CPIR, metric goals, critique rules |
 | `tests/integration/` | ~15 | Full pipeline, v2 pipeline, silent-fallback checks |
 | `tests/scenarios/` | ~16 | Musical scenarios: tension arcs, trajectory compliance |
 | `tests/music_constraints/` | 7 | Instrument range constraints (parameterized) |
@@ -351,7 +353,7 @@ make format            # Auto-format
 4. **Time-axis first** — trajectory curves define the arc; notes fill the details
 5. **The human ear is the final truth** — automated scores inform; humans decide
 
-Full design: [PROJECT.md](PROJECT.md) | Development rules: [CLAUDE.md](CLAUDE.md)
+Full design: [PROJECT.md](PROJECT.md) | Development rules: [CLAUDE.md](CLAUDE.md) | Target architecture: [VISION.md](VISION.md) | [Gallery](gallery/)
 
 ---
 
