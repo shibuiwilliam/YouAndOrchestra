@@ -137,3 +137,22 @@ class TestRuleBasedHarmonyPlanner:
         high_romans = [c.roman for c in high_result["harmony"].chord_events]
         # The distributions should differ
         assert low_romans != high_romans, "Different tension levels should produce different chord sequences"
+
+    def test_very_high_tension_injects_secondary_dominants(self) -> None:
+        """At tension >= 0.8, secondary dominants (V/V, V/vi) should be injected."""
+        spec = CompositionSpecV2.model_validate(_SPEC_WITH_HARMONY)
+        # Very high tension trajectory (0.9)
+        very_high_traj = MultiDimensionalTrajectory.uniform(0.9)
+        prov = ProvenanceLog()
+
+        result = RuleBasedHarmonyPlanner().generate(spec, very_high_traj, prov)
+        harmony = result["harmony"]
+        romans = {c.roman for c in harmony.chord_events}
+
+        # At very high tension, at least one secondary dominant or borrowed chord
+        # should be injected from _SECONDARY_DOMINANTS or _BORROWED_CHORDS
+        injected = {"V/V", "V/vi", "V/IV", "bVII", "iv", "bVI"}
+        has_injected = bool(romans & injected)
+        assert has_injected, (
+            f"Very high tension should inject secondary dominants/borrowed chords. Got: {sorted(romans)}"
+        )

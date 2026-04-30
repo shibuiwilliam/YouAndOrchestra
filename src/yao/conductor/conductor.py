@@ -24,7 +24,6 @@ from yao.conductor.feedback import (
 )
 from yao.conductor.result import ConductorResult
 from yao.generators.legacy_adapter import generate_via_v2_pipeline
-from yao.generators.registry import get_generator
 from yao.ir.score_ir import ScoreIR, Section
 from yao.reflect.provenance import ProvenanceLog
 from yao.render.iteration import next_iteration_dir
@@ -370,12 +369,13 @@ class Conductor:
             }
         )
 
-        # Generate just this section
-        generator = get_generator(gen_config.strategy)
-        new_score, gen_prov = generator.generate(temp_spec, trajectory)
+        # Generate just this section via v2 pipeline (Rule A: Plan-First Boundary)
+        new_score, _plan, gen_prov = generate_via_v2_pipeline(temp_spec, trajectory)
 
         for record in gen_prov.records:
             provenance.add(record)
+        for dec in gen_prov.recoverables:
+            provenance.record_recoverable(dec)
 
         # Extract the new section (it will be the only one in new_score)
         if not new_score.sections:

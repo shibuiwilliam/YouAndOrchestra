@@ -145,8 +145,32 @@ class SpecCompiler:
 
         return spec, trajectory
 
+    # Regex for explicit key specifications like "in D minor", "key of C# major"
+    _KEY_PATTERN = re.compile(
+        r"(?:in|key of)\s+([A-Ga-g][#b]?\s+(?:major|minor))",
+        re.IGNORECASE,
+    )
+
     def _infer_key(self, desc_lower: str) -> str:
-        """Infer key signature from mood keywords."""
+        """Infer key signature from explicit key name or mood keywords.
+
+        Priority:
+        1. Explicit key name (e.g., "in D minor", "key of C# major")
+        2. Mood keyword mapping (e.g., "sad" → D minor)
+        3. Default: C major
+        """
+        # 1. Try explicit key name first
+        match = self._KEY_PATTERN.search(desc_lower)
+        if match:
+            key_str = match.group(1).strip()
+            # Normalize: capitalize note name, lowercase scale type
+            parts = key_str.split()
+            if len(parts) == 2:  # noqa: PLR2004
+                note = parts[0][0].upper() + parts[0][1:]
+                scale = parts[1].lower()
+                return f"{note} {scale}"
+
+        # 2. Fall back to mood-based inference
         for mood, mood_key in _MOOD_TO_KEY.items():
             if mood in desc_lower:
                 return mood_key

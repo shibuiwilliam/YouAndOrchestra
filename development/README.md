@@ -24,7 +24,7 @@ Technical documentation for contributors and AI agents developing YaO.
 ## Current State
 
 - **Phase:** Alpha (CPIR foundation)
-- **Tests:** ~576 (unit ~500, integration ~20, scenario ~16, constraint ~16, golden 6, subagent ~18)
+- **Tests:** ~580 (unit, integration, scenario, constraint, golden, subagent evals)
 - **Source files:** 85 Python modules in src/yao/
 - **Generators:** 2 legacy (rule_based, stochastic) wrapped as NoteRealizers + 2 plan generators (form, harmony)
 - **Critique rules:** 12 structured rules across 5 categories (structural, melodic, harmonic, rhythmic, emotional)

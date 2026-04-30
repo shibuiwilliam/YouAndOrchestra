@@ -83,15 +83,26 @@ class RuleBasedFormPlanner(PlanGeneratorBase):
 
         for s in spec.form.sections:
             role = _infer_role(s.id)
-            tension_at_start = trajectory.value_at("tension", float(current_bar))
+
+            # Sample trajectory at section midpoint (matches Critic expectation)
+            midpoint_bar = float(current_bar + s.bars / 2)
+            section_tension = trajectory.value_at("tension", midpoint_bar)
+
+            # Use trajectory density if spec density is the default (0.5),
+            # otherwise respect the user's explicit density setting.
+            section_density = s.density
+            if abs(s.density - 0.5) < 0.01:
+                # Spec didn't set density explicitly — derive from trajectory
+                section_density = trajectory.value_at("density", midpoint_bar)
+
             sections.append(
                 SectionPlan(
                     id=s.id,
                     start_bar=current_bar,
                     bars=s.bars,
                     role=cast(Any, role),
-                    target_density=s.density,
-                    target_tension=tension_at_start,
+                    target_density=section_density,
+                    target_tension=section_tension,
                     is_climax=s.climax,
                 )
             )

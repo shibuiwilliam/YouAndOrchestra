@@ -126,7 +126,7 @@ CompositionSpec  -->  GeneratorBase.generate()  -->  (ScoreIR, ProvenanceLog)
 
 ### Layer 0: Constants
 - `constants/midi.py` -- PPQ (220), default velocity (80), default BPM (120), GM program numbers (46 mappings)
-- `constants/instruments.py` -- `InstrumentRange` for 40 instruments across 9 families
+- `constants/instruments.py` -- `InstrumentRange` for 38 instruments across 9 families
 - `constants/music.py` -- 14 scales, 14 chord types, 12 section types, dynamics-to-velocity map
 
 ### Layer 1: Schema

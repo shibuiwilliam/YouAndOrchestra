@@ -21,6 +21,16 @@ from yao.schema.composition_v2 import CompositionSpecV2
 from yao.schema.intent import IntentSpec
 from yao.schema.trajectory import TrajectorySpec
 
+_DYNAMICS_TO_DENSITY: dict[str, float] = {
+    "pp": 0.2,
+    "p": 0.3,
+    "mp": 0.4,
+    "mf": 0.5,
+    "f": 0.7,
+    "ff": 0.85,
+    "fff": 0.95,
+}
+
 
 def _v1_to_v2(spec: CompositionSpec) -> CompositionSpecV2:
     """Convert a v1 CompositionSpec to v2 for pipeline processing."""
@@ -28,7 +38,7 @@ def _v1_to_v2(spec: CompositionSpec) -> CompositionSpecV2:
         {
             "id": s.name,
             "bars": s.bars,
-            "density": 0.5,
+            "density": _DYNAMICS_TO_DENSITY.get(s.dynamics, 0.5),
             "dynamics": s.dynamics,
             "climax": False,
         }

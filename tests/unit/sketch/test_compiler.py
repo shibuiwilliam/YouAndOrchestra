@@ -24,6 +24,16 @@ class TestMoodToKey:
         # "dark" matches before "mysterious"
         assert spec.key == "C minor"
 
+    def test_explicit_key_in_d_minor(self) -> None:
+        compiler = SpecCompiler()
+        spec, _ = compiler.compile("a calm piece in D minor", "test-explicit")
+        assert spec.key == "D minor"  # explicit key overrides "calm" → F major
+
+    def test_explicit_key_of_c_sharp_major(self) -> None:
+        compiler = SpecCompiler()
+        spec, _ = compiler.compile("a piece key of c# major", "test-cs")
+        assert spec.key == "C# major"
+
     def test_no_mood_defaults_to_c_major(self) -> None:
         compiler = SpecCompiler()
         spec, _ = compiler.compile("a piece of music", "test-default")
@@ -177,3 +187,13 @@ class TestCompileEndToEnd:
         assert any(i.name == "piano" for i in spec.instruments)
         assert spec.generation.strategy == "stochastic"
         assert traj.tension is not None
+
+    def test_explicit_key_overrides_mood(self) -> None:
+        """When both explicit key and mood keyword exist, explicit wins."""
+        compiler = SpecCompiler()
+        spec, _ = compiler.compile(
+            "a happy piece in E minor",
+            "test-override",
+        )
+        # Explicit "in E minor" should override "happy" → C major
+        assert spec.key == "E minor"

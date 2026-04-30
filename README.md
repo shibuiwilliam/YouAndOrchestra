@@ -268,7 +268,7 @@ Launch Claude Code in the YaO directory and use slash commands:
 
 ## Music Theory Built In
 
-- **40 instruments** across 9 families (keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, percussion)
+- **38 instruments** across 9 families (keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, percussion)
 - **14 scales** (major, minor, harmonic minor, melodic minor, dorian, mixolydian, lydian, phrygian, locrian, pentatonic major/minor, blues, whole tone, chromatic)
 - **14 chord types** (major through major 9th, including sus2, sus4, add9)
 - **Functional harmony** via Roman numeral notation (I, ii, V7/V) with `realize()` for concrete pitches
@@ -288,7 +288,7 @@ Layer 3a: Plan IR   — Composition Plan IR (CPIR): SongFormPlan, HarmonyPlan
 Layer 3b: Score IR  — ScoreIR, Note, harmony, motif, voicing, timing, notation
 Layer 2: Generate   — Plan generators + note realizers (rule-based, stochastic)
 Layer 1: Schema     — Pydantic models for YAML specs (v1 + v2)
-Layer 0: Constants  — 40 instruments, 14 scales, 14 chords, MIDI mappings
+Layer 0: Constants  — 38 instruments, 14 scales, 14 chords, MIDI mappings
 ```
 
 The v2.0 pipeline: `Spec → PlanOrchestrator → MusicalPlan (CPIR) → NoteRealizer → ScoreIR → MIDI`
@@ -369,7 +369,7 @@ yao/
 +-- src/
 |   +-- yao/                      # Main library (85 Python files)
 |   |   +-- conductor/            # Orchestration engine
-|   |   +-- constants/            # 40 instruments, 14 scales, 14 chords
+|   |   +-- constants/            # 38 instruments, 14 scales, 14 chords
 |   |   +-- schema/               # Pydantic specs (v1 + v2)
 |   |   +-- ir/                   # ScoreIR + plan/ (CPIR)
 |   |   +-- generators/           # rule_based + stochastic + plan/ + note/
@@ -389,7 +389,7 @@ yao/
 |
 +-- specs/templates/              # 4 v1 + 3 v2 YAML templates
 +-- gallery/                      # Pre-generated MIDI examples
-+-- tests/                        # 576 tests
++-- tests/                        # 580 tests
 +-- tools/                        # Architecture lint, matrix check
 +-- docs/                         # mkdocs documentation
 +-- development/                  # Developer reference docs
@@ -402,7 +402,7 @@ yao/
 ```bash
 make install           # Install with dev dependencies
 make setup-hooks       # Install pre-commit + pre-push hooks
-make test              # Run all 576 tests
+make test              # Run all 580 tests
 make test-unit         # Unit tests only
 make test-golden       # Golden MIDI regression tests
 make lint              # ruff + mypy strict
