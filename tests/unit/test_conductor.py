@@ -325,3 +325,24 @@ class TestConductor:
             assert "scores" in data
         finally:
             os.chdir(original)
+
+    def test_critic_gate_runs_during_compose(self, tmp_path: Path) -> None:
+        """Conductor must call Adversarial Critic and log findings in provenance."""
+        import os
+
+        original = os.getcwd()
+        os.chdir(tmp_path)
+        try:
+            conductor = Conductor()
+            result = conductor.compose_from_spec(
+                spec=_make_spec(),
+                project_name="test-critic-gate",
+                max_iterations=1,
+            )
+            # Provenance should contain a critic_gate record
+            critic_records = [r for r in result.provenance.records if r.operation == "critic_gate"]
+            assert len(critic_records) >= 1, "Conductor should log critic_gate in provenance"
+            # The critic_gate record should have findings_count
+            assert "findings_count" in critic_records[0].parameters
+        finally:
+            os.chdir(original)

@@ -29,6 +29,7 @@ def _v1_to_v2(spec: CompositionSpec) -> CompositionSpecV2:
             "id": s.name,
             "bars": s.bars,
             "density": 0.5,
+            "dynamics": s.dynamics,
             "climax": False,
         }
         for s in spec.sections

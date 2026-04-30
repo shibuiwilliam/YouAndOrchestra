@@ -209,8 +209,8 @@ v2.0 はこれを **Capability Matrix** で構造的に解消します。Matrix 
 |---|---|---|
 | composition.yaml v1 | ✅ | Phase 1 で完成 |
 | composition.yaml v2(11 セクション) | ✅ | 22 Pydantic モデル、3 テンプレート |
-| intent.md(自然言語意図) | 🟢 | keyword extraction 実装済、NL→emotion 推論は未 |
-| trajectory.yaml(5 次元) | 🟢 | 5 dims 定義済、generator は tension→velocity のみ |
+| intent.md(自然言語意図) | 🟢 | keyword extraction 実装済、SpecCompiler が NL→spec 変換 |
+| trajectory.yaml(5 次元) | 🟢 | 5 dims 定義済、stochastic が tension/density/register_height に応答 |
 | references.yaml | 🟡 | schema あり、reference matcher 未接続 |
 | negative-space.yaml | 🟡 | schema あり、反映機構未完成 |
 | production.yaml | 🟡 | schema あり、mix chain 未実装 |
@@ -228,8 +228,8 @@ v2.0 はこれを **Capability Matrix** で構造的に解消します。Matrix 
 | legacy adapter(v1→v2) | ✅ | CompositionSpec → v2 pipeline bridge |
 | markov generator | ⚪ | 設計済 |
 | constraint solver generator | ⚪ | 設計済 |
-| MotifPlanner | 🔴 | Phase β |
-| Drum Patterner | 🔴 | Phase β |
+| MotifPlanner | 🟡 | IR types 実装済(MotifPlan, MotifSeed, MotifPlacement)、generator 未実装 |
+| Drum Patterner | 🟡 | IR types 実装済(DrumPattern, DrumHit, KitPiece)、generator 未実装 |
 | Counter-melody generator | 🔴 | Phase β |
 
 #### Critique & Verification
@@ -243,7 +243,7 @@ v2.0 はこれを **Capability Matrix** で構造的に解消します。Matrix 
 | MetricGoal type system | ✅ | 7 types 実装済(AT_LEAST〜DIVERSITY) |
 | RecoverableDecision logging | ✅ | 9 registered codes、ProvenanceLog 統合済 |
 | Critique base types | ✅ | Finding, CritiqueRule, CritiqueRegistry 実装済 |
-| Adversarial Critic 具体ルール(30+) | 🔴 | Phase β |
+| Adversarial Critic 具体ルール(30+) | 🟢 | 12 rules 実装済(5 roles)、Conductor 統合済、30+ は Phase β |
 
 #### Perception Layer
 
@@ -274,7 +274,7 @@ v2.0 はこれを **Capability Matrix** で構造的に解消します。Matrix 
 | Multi-candidate Conductor | 🔴 | 5 候補生成→批評→選定 |
 | 7 Subagent definitions | ✅ | Markdown 完備 |
 | Composer 実装 | 🟡 | 既存 generator が部分代行 |
-| Adversarial Critic 実装 | 🔴 | Rule Registry 経由 |
+| Adversarial Critic 実装 | 🟢 | 12 rules、Conductor 統合、Finding→adaptation routing |
 | Producer 実装 | 🔴 | 統合判断ロジック |
 | Mix Engineer 実装 | 🔴 | 定義のみ |
 | Section-level regeneration | ✅ | Phase 1 完成 |
@@ -307,37 +307,27 @@ v2.0 はこれを **Capability Matrix** で構造的に解消します。Matrix 
 |---|---|---|
 | SongFormPlan | ✅ | SectionPlan + section_at_bar + JSON round-trip |
 | HarmonyPlan | ✅ | ChordEvent + HarmonicFunction + CadenceRole |
-| MusicalPlan(統合) | 🟢 | form + harmony のみ、motif/drum/arrangement は None |
-| MotifPlan | ⚪ | skeleton のみ |
-| PhrasePlan | ⚪ | skeleton のみ |
-| DrumPattern | ⚪ | skeleton のみ |
-| ArrangementPlan | ⚪ | skeleton のみ |
+| MusicalPlan(統合) | 🟢 | 6 subplans + GlobalContext、form+harmony populated、残り Phase β |
+| MotifPlan | 🟡 | IR 完備(MotifSeed, MotifPlacement, MotifTransform)、generator 未 |
+| PhrasePlan | 🟡 | IR 完備(Phrase, PhraseRole, PhraseCadence, PhraseContour)、generator 未 |
+| DrumPattern | 🟡 | IR 完備(DrumHit, KitPiece, FillLocation)、generator 未 |
+| ArrangementPlan | 🟡 | IR 完備(InstrumentAssignment, InstrumentRole)、generator 未 |
+| GlobalContext | ✅ | key/tempo/time_signature/genre/instruments carried through plan |
 
 #### QA
 
 | Feature | Status | Notes |
 |---|---|---|
-| Unit tests | ✅ | ~448 tests |
-| Integration tests | ✅ | ~15 tests(v2 pipeline 含む) |
-| Scenario tests | ✅ | ~16 tests(trajectory compliance 含む) |
+| Unit tests | ✅ | ~500 tests(IR, schema, generators, critique rules, feedback) |
+| Integration tests | ✅ | ~15 tests(v2 pipeline, silent-fallback) |
+| Scenario tests | ✅ | ~16 tests(trajectory compliance 3 dims passing) |
 | Music constraint tests | ✅ | 7 tests |
 | Golden MIDI tests | ✅ | 6 baselines(3 specs × 2 realizers) |
-| Architecture lint | ✅ | Layer boundary + Rule A enforcement |
+| Critique rule tests | ✅ | 26 tests(12 rules × 2+ positive/negative) |
+| Architecture lint | ✅ | Layer boundary + Rule A + Layer 3a/3b enforcement |
 | Capability matrix check | ✅ | tools/capability_matrix_check.py |
-
-#### QA
-
-| Feature | Status | Notes |
-|---|---|---|
-| Unit tests | ✅ | 207 件 |
-| Integration tests | ✅ | 2 件 |
-| Music constraint tests | ✅ | 7 件 |
-| Scenario tests | ✅ | 10 件 |
-| Trajectory compliance tests | 🔴 | v2.0 で導入(§7.4 を保証) |
-| Golden MIDI tests | 🔴 | v2.0 で導入(§13) |
-| Subagent eval tests | 🔴 | LLM-as-Judge |
-| Architecture lint(7+1 層対応) | 🟡 | 7 層は ✅、3a/3b 細分は 🔴 |
-| Capability Matrix check | 🔴 | tools/capability_matrix_check.py 必須 |
+| Subagent eval tests | 🔴 | LLM-as-Judge(Phase β) |
+| Total | ✅ | ~546 tests |
 
 ### Matrix の運用
 

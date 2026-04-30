@@ -68,6 +68,8 @@ Terms used throughout the YaO codebase and documentation.
 
 **Provenance** — The complete record of all generation decisions — what was decided, why, and by which component. Append-only. See `yao.reflect.provenance`.
 
+**Quality Score** — A user-facing aggregate score from 1.0 to 10.0 that weighs melody (30%), harmony (25%), structure (25%), arrangement (10%), and acoustics (10%). Computed by `EvaluationReport.quality_score`. See `yao.verify.evaluator`.
+
 **RecoverableDecision** — (v2.0) A logged, traceable fallback when a generator must compromise (e.g., note out of range). Replaces silent clamps. Records the original value, recovered value, reason, musical impact, and suggested fixes. See `yao.reflect.recoverable.RecoverableDecision`.
 
 **Score IR** — The central data structure: a complete composition represented as sections, parts, and notes. See `yao.ir.score_ir.ScoreIR`.
@@ -77,6 +79,8 @@ Terms used throughout the YaO codebase and documentation.
 **Sketch-to-Spec** — The interactive process of transforming a natural language description into a structured YAML specification.
 
 **SongFormPlan** — (v2.0) A component of the Composition Plan IR (CPIR) that specifies section structure, bar counts, and dynamics arcs. See `yao.ir.plan.song_form.SongFormPlan`.
+
+**StochasticConfig** — A frozen dataclass containing all tunable parameters for the stochastic generator (15 values: duration factors, velocity offsets, accent values, temperature thresholds, chord probability scales). Centralizes magic numbers that were previously scattered throughout the code. See `yao.generators.stochastic.StochasticConfig`.
 
 **Style Vector** — A multi-dimensional numerical representation of a genre or style, enabling interpolation between styles.
 

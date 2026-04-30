@@ -23,7 +23,7 @@
 - Section-level regeneration (keep rest, regenerate one section)
 - Score diff with modified note tracking
 - CLI diff, explain, conduct, and regenerate-section commands
-- Quality evaluation across structure, melody, and harmony (8 metrics)
+- Quality evaluation across structure, melody, and harmony (10 metrics + quality score 1-10)
 - Feedback-driven spec adaptation (9 metric-to-adaptation rules)
 - MIDI reader (load existing MIDI back to ScoreIR for analysis)
 - Evaluation report persistence (evaluation.json)
@@ -48,7 +48,7 @@
 - Plan generators: form planner, harmony planner
 - MetricGoal type system for richer evaluation
 - RecoverableDecision mechanism for traceable fallbacks
-- 447 tests (unit, integration, scenario, constraint, golden)
+- 576 tests (unit, integration, scenario, constraint, golden, subagent evals)
 
 **In progress (Phase alpha):**
 - Completing CPIR as the required intermediary between specs and notes

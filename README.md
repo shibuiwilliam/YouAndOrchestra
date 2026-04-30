@@ -23,7 +23,7 @@ YaO parses your description, picks the key, tempo, instruments, and sections, ge
 ```
 === Conductor Result ===
 Quality Score: 7.2/10
-Pass rate: 100% (9/9)
+Pass rate: 100% (10/10)
 Duration: 90.0s | Bars: 30 | Notes: 112
 Instruments: piano
 Output: outputs/projects/a-calm-piano-piece/iterations/v001/
@@ -67,7 +67,7 @@ generation:
   temperature: 0.5
 ```
 
-YaO also supports a **v2 spec format** with 11 dedicated sections for finer control over emotion, melody, harmony, rhythm, drums, arrangement, and production. See [Composition Spec Guide](docs/guide/composition-spec.md) for details.
+YaO also supports a **v2 spec format** with 11 dedicated sections for finer control over emotion, melody, harmony, rhythm, drums, arrangement, and production. See [Composition Spec Guide](docs/guide/composition-spec.md).
 
 ### 3. Claude Code (interactive, recommended)
 
@@ -86,6 +86,7 @@ git clone <repo-url>
 cd yao
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
+make setup-hooks  # Install pre-commit hooks
 ```
 
 Requires **Python 3.11+**. Audio rendering requires [FluidSynth](#audio-rendering).
@@ -106,6 +107,8 @@ outputs/projects/<name>/iterations/v001/
   evaluation.json    # Quality scores (1.0-10.0) across structure/melody/harmony
   provenance.json    # Decision log with rationale for every choice
 ```
+
+Pre-generated examples are available in [`gallery/`](gallery/).
 
 ---
 
@@ -131,12 +134,12 @@ outputs/projects/<name>/iterations/v001/
 The Conductor automates the generate-evaluate-adapt loop:
 
 ```
-Spec  ->  Plan  ->  Generate  ->  Evaluate  ->  Pass?  ->  Done
-                                     | No
-                                Adapt spec  ->  Regenerate
+Spec  →  Plan  →  Generate  →  Evaluate  →  Pass?  →  Done
+                                    | No
+                               Adapt spec  →  Regenerate
 ```
 
-It builds a Musical Plan (form + harmony), realizes it into notes, scores the result across 10 metrics in 3 dimensions (structure, melody, harmony), and adapts the spec if any metric fails. Each iteration is saved as a new version with full provenance.
+It builds a Composition Plan (form + harmony), realizes it into notes, scores the result across 10 metrics in 3 dimensions, and adapts the spec if any metric fails. Each iteration is saved as a new version with full provenance.
 
 | Problem Detected | Adaptation |
 |---|---|
@@ -168,7 +171,16 @@ generation:
   temperature: 0.5  # 0.0 = conservative, 1.0 = adventurous
 ```
 
-Features: melodic contour shaping (arch, ascending, descending, wave), section-aware chord progressions, diatonic 7th chords, 12 rhythm templates, walking bass, velocity humanization, and motif transformation (transpose, invert, retrograde, augment, diminish).
+Features:
+- **4 melodic contour algorithms** — arch, ascending, descending, wave (section-aware selection)
+- **5 chord voicing types** — root, first inversion, second inversion, open, drop2 (temperature-dependent)
+- **Section-aware chord progressions** — different patterns for verse, chorus, bridge, intro, outro
+- **Diatonic 7th chords** — maj7, min7, dom7 with temperature-dependent probability
+- **12 rhythm templates** — syncopation, dotted rhythms, mixed patterns
+- **Walking bass** — quarter-note patterns with passing tones and approach notes
+- **Velocity humanization** — dynamics-derived with trajectory tension modifier
+- **Motif transformation** — transpose, invert, retrograde, augment, diminish
+- **Configurable via `StochasticConfig`** — all tuning parameters extracted into a frozen dataclass
 
 Change the seed to get a completely different composition from the same spec.
 
@@ -198,7 +210,7 @@ Five dimensions: tension, density, predictability, brightness, and register heig
 
 ## Quality Evaluation
 
-Every composition is scored across 10 metrics in 3 dimensions, producing a quality score from 1.0 to 10.0:
+Every composition is scored across 10 metrics in 3 dimensions, producing a **quality score from 1.0 to 10.0**:
 
 | Dimension (weight) | Metrics |
 |---|---|
@@ -207,6 +219,22 @@ Every composition is scored across 10 metrics in 3 dimensions, producing a quali
 | **Harmony** (25%) | Pitch class variety, consonance ratio |
 
 Each metric uses a typed `MetricGoal` (AT_LEAST, BETWEEN, TARGET_BAND, etc.) instead of a one-size-fits-all tolerance check.
+
+---
+
+## Adversarial Critique
+
+YaO includes a **rule-based critique engine** with 12 structured rules across 5 categories:
+
+| Category | Rules |
+|---|---|
+| **Structural** | Climax absence, section monotony, form imbalance |
+| **Melodic** | Cliche motif, contour monotony, phrase closure weakness |
+| **Harmonic** | Cliche progression, voice crossing, cadence weakness |
+| **Rhythmic** | Rhythmic monotony |
+| **Emotional** | Intent divergence, trajectory violation |
+
+Each rule emits structured `Finding` objects with severity (critical/major/minor/suggestion), evidence, location, and recommendations — machine-actionable, not free text.
 
 ---
 
@@ -240,8 +268,8 @@ Launch Claude Code in the YaO directory and use slash commands:
 
 ## Music Theory Built In
 
-- **38 instruments** across 9 families (keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, percussion)
-- **14 scales** (major, minor, harmonic minor, dorian, mixolydian, lydian, phrygian, locrian, pentatonic, blues, whole tone, chromatic)
+- **40 instruments** across 9 families (keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, percussion)
+- **14 scales** (major, minor, harmonic minor, melodic minor, dorian, mixolydian, lydian, phrygian, locrian, pentatonic major/minor, blues, whole tone, chromatic)
 - **14 chord types** (major through major 9th, including sus2, sus4, add9)
 - **Functional harmony** via Roman numeral notation (I, ii, V7/V) with `realize()` for concrete pitches
 - **Voice leading** with parallel fifths/octaves detection
@@ -254,18 +282,36 @@ Launch Claude Code in the YaO directory and use slash commands:
 
 ```
 Conductor           — Orchestrates the generate-evaluate-adapt loop
-Layer 6: Verify     — Evaluation, linting, diffing, constraints, MetricGoal
+Layer 6: Verify     — Evaluation, linting, diffing, constraints, critique (12 rules)
 Layer 5: Render     — MIDI writer, stems, audio renderer, iteration management
 Layer 3a: Plan IR   — Composition Plan IR (CPIR): SongFormPlan, HarmonyPlan
 Layer 3b: Score IR  — ScoreIR, Note, harmony, motif, voicing, timing, notation
-Layer 2: Generate   — Plan generators + Note realizers (rule-based, stochastic)
+Layer 2: Generate   — Plan generators + note realizers (rule-based, stochastic)
 Layer 1: Schema     — Pydantic models for YAML specs (v1 + v2)
-Layer 0: Constants  — Instrument ranges, MIDI maps, scales, chords, dynamics
+Layer 0: Constants  — 40 instruments, 14 scales, 14 chords, MIDI mappings
 ```
 
 The v2.0 pipeline: `Spec → PlanOrchestrator → MusicalPlan (CPIR) → NoteRealizer → ScoreIR → MIDI`
 
 All IR objects are immutable frozen dataclasses. Layer boundaries are enforced by `make arch-lint`.
+
+---
+
+## Constraint System
+
+```yaml
+constraints:
+  - type: must_not
+    rule: parallel_fifths
+    scope: global
+    severity: error
+  - type: prefer
+    rule: "max_density:4"
+    scope: "section:intro"
+    severity: hint
+```
+
+Four types (`must`, `must_not`, `prefer`, `avoid`) with scopes: `global`, `section:<name>`, `instrument:<name>`, `bars:<start>-<end>`.
 
 ---
 
@@ -305,9 +351,48 @@ yao render outputs/projects/my-song/iterations/v001/full.mid
 | `v2/cinematic-3min.yaml` | Full cinematic with 11-section v2 format |
 | `v2/loopable-game-bgm.yaml` | Looping game music with loop-aware constraints |
 
-```bash
-cp specs/templates/minimal.yaml specs/projects/my-song/composition.yaml
-yao compose specs/projects/my-song/composition.yaml
+---
+
+## Project Structure
+
+```
+yao/
++-- CLAUDE.md                     # Development rules for Claude Code
++-- PROJECT.md                    # Full design documentation
++-- VISION.md                     # Target architecture
++-- README.md                     # This file
++-- pyproject.toml                # Dependencies and config
++-- Makefile                      # Development commands
++-- .pre-commit-config.yaml       # Pre-commit hook configuration
++-- .github/workflows/ci.yml      # GitHub Actions CI
+|
++-- src/
+|   +-- yao/                      # Main library (85 Python files)
+|   |   +-- conductor/            # Orchestration engine
+|   |   +-- constants/            # 40 instruments, 14 scales, 14 chords
+|   |   +-- schema/               # Pydantic specs (v1 + v2)
+|   |   +-- ir/                   # ScoreIR + plan/ (CPIR)
+|   |   +-- generators/           # rule_based + stochastic + plan/ + note/
+|   |   +-- render/               # MIDI writer, stems, audio, iterations
+|   |   +-- verify/               # Lint, eval, diff, constraints, critique/
+|   |   +-- reflect/              # Provenance, RecoverableDecision
+|   |   +-- sketch/               # NL → spec compiler
+|   |   +-- arrange/              # Arrangement engine (stub)
+|   |   +-- perception/           # Aesthetic judgment (stub)
+|   +-- cli/                      # Click CLI (9 commands)
+|
++-- .claude/
+|   +-- commands/                 # 7 slash commands
+|   +-- agents/                   # 7 subagent definitions
+|   +-- skills/                   # Domain knowledge (4 categories)
+|   +-- guides/                   # 7 development guides
+|
++-- specs/templates/              # 4 v1 + 3 v2 YAML templates
++-- gallery/                      # Pre-generated MIDI examples
++-- tests/                        # 576 tests
++-- tools/                        # Architecture lint, matrix check
++-- docs/                         # mkdocs documentation
++-- development/                  # Developer reference docs
 ```
 
 ---
@@ -315,33 +400,43 @@ yao compose specs/projects/my-song/composition.yaml
 ## Development
 
 ```bash
-make test              # All tests (~560)
-make test-unit         # Unit tests only (~500)
-make test-golden       # Golden MIDI regression tests (6)
+make install           # Install with dev dependencies
+make setup-hooks       # Install pre-commit + pre-push hooks
+make test              # Run all 576 tests
+make test-unit         # Unit tests only
+make test-golden       # Golden MIDI regression tests
 make lint              # ruff + mypy strict
+make format            # Auto-format
 make arch-lint         # Layer boundary enforcement
 make matrix-check      # Capability Matrix vs. code consistency
 make all-checks        # All of the above
-make format            # Auto-format
 ```
 
 ### Test Organization
 
-| Directory | Count | What it tests |
-|---|---|---|
-| `tests/unit/` | ~500 | Individual modules: IR, schema, generators, render, verify, conductor, CPIR, metric goals, critique rules |
-| `tests/integration/` | ~15 | Full pipeline, v2 pipeline, silent-fallback checks |
-| `tests/scenarios/` | ~16 | Musical scenarios: tension arcs, trajectory compliance |
-| `tests/music_constraints/` | 7 | Instrument range constraints (parameterized) |
-| `tests/golden/` | 6 | Bit-exact MIDI regression against committed fixtures |
+| Directory | What it tests |
+|---|---|
+| `tests/unit/` | Individual modules: IR, schema, generators, render, verify, conductor, CPIR, critique rules, metric goals |
+| `tests/integration/` | Full pipeline, v2 pipeline, silent-fallback checks |
+| `tests/scenarios/` | Musical scenarios: tension arcs, trajectory compliance |
+| `tests/music_constraints/` | Instrument range constraints (parameterized) |
+| `tests/golden/` | Bit-exact MIDI regression against committed fixtures |
 
 ### Code Standards
 
 - Python 3.11+, `from __future__ import annotations`
-- mypy strict, ruff for linting (line length: 99)
+- mypy strict, ruff for linting (line length: 120)
 - Pydantic for YAML specs, frozen dataclasses for IR
 - Custom exceptions only (`YaOError` subclasses, never bare `ValueError`)
-- Conventional commits: `feat(harmony): add secondary dominant insertion`
+- Pre-commit hooks enforce formatting, lint, type checks, and architecture boundaries on every commit
+
+### CI
+
+GitHub Actions runs on every push and PR:
+- **Lint & type check** (ruff + mypy)
+- **Architecture lint** (layer boundary enforcement)
+- **Tests** across Python 3.11, 3.12, 3.13
+- **Golden MIDI regression** (bit-exact comparison)
 
 ---
 

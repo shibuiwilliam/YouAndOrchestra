@@ -10,19 +10,21 @@ YaO turns music composition into a structured, reproducible engineering process.
 
 - **Natural language composition** — Describe music in plain English and the Conductor builds a spec, generates, evaluates, and iterates automatically
 - **Spec-driven composition** — Describe your music in YAML (v1 flat format or v2 11-section format) and generate full MIDI scores with precise control
-- **38 instruments** across 9 families — piano, strings, brass, woodwinds, guitar, bass, synths, saxophone, percussion
-- **Trajectory curves** — Shape tension, density, and emotion over time independently from notes
-- **Two generator strategies** — Deterministic (rule-based) and stochastic (seed + temperature)
-- **Quality evaluation** — Automated scoring across structure, melody, and harmony with MetricGoal-typed pass/fail criteria and feedback-driven iteration
+- **40 instruments** across 9 families — keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, percussion
+- **Trajectory curves** — Shape tension, density, predictability, brightness, and register height over time
+- **Two generator strategies** — Deterministic (rule-based) and stochastic (seed + temperature, 4 contour algorithms, 5 chord voicing types)
+- **Quality evaluation** — 10 metrics across 3 dimensions with user-facing quality score (1.0-10.0) and MetricGoal-typed pass/fail
+- **Adversarial critique** — 12 structured rules across 5 categories emitting machine-actionable `Finding` objects
 - **Music linting** — Catches range violations, parallel fifths, velocity issues
-- **Constraint system** — Define musical rules scoped to sections, instruments, or bar ranges
-- **Provenance tracking** — Every note has a recorded rationale; fallbacks are tracked via RecoverableDecision
+- **Constraint system** — Musical rules scoped to sections, instruments, or bar ranges
+- **Provenance tracking** — Every note has a recorded rationale; fallbacks tracked via RecoverableDecision
 - **Per-instrument stems** — Individual MIDI files per instrument
 - **Section regeneration** — Regenerate one section while keeping the rest intact
 - **Score diffing** — Compare two generations to see exactly what changed musically
 - **MIDI reader** — Load existing MIDI files back into ScoreIR for analysis and iteration
 - **Claude Code integration** — 7 slash commands, 7 subagents, 4 domain skills for interactive workflow
-- **~492 tests** — Unit, integration, scenario, constraint, and golden regression tests
+- **~576 tests** — Unit, integration, scenario, constraint, golden regression, and subagent eval tests
+- **CI/CD** — GitHub Actions + pre-commit hooks (ruff, mypy, arch-lint)
 
 ## Architecture (v2.0)
 
@@ -87,7 +89,7 @@ outputs/projects/<name>/iterations/v001/
 ### Reference
 - [Glossary](glossary.md) — YaO terminology (including v2.0 terms)
 - [Provenance Schema](provenance-schema.md) — Decision log format with RecoverableDecision
-- [Instruments](reference/instruments.md) — 38 instruments with MIDI ranges
+- [Instruments](reference/instruments.md) — 40 instruments with MIDI ranges
 - [Music Theory](reference/music-theory.md) — Scales, chords, dynamics
 
 ### Migration

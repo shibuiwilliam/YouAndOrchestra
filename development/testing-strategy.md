@@ -4,12 +4,13 @@
 
 | Category | Location | Purpose | Count |
 |----------|----------|---------|-------|
-| Unit | `tests/unit/` | Individual module behavior | ~448 |
-| Integration | `tests/integration/` | Full pipeline end-to-end, silent fallback checks | ~15 |
+| Unit | `tests/unit/` | Individual module behavior, CPIR, critique rules, metric goals | ~500 |
+| Integration | `tests/integration/` | Full pipeline end-to-end, silent fallback checks | ~20 |
 | Music Constraints | `tests/music_constraints/` | Music theory rule enforcement | ~16 |
-| Scenarios | `tests/scenarios/` | Prove musical value (not just mechanics) | ~7 |
+| Scenarios | `tests/scenarios/` | Prove musical value (not just mechanics) | ~16 |
 | Golden | `tests/golden/` | Fixed output regression | 6 |
-| **Total** | | | **~492** |
+| Subagent Evals | `tests/subagent_evals/` | LLM-as-judge prompt regression | ~18 |
+| **Total** | | | **~576** |
 
 ### Unit Test Coverage
 
@@ -48,7 +49,7 @@
 ## Running Tests
 
 ```bash
-make test              # All ~492 tests
+make test              # All ~576 tests
 make test-unit         # Unit tests only
 make test-integration  # Integration tests
 make test-music        # Music constraint tests

@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
-from yao.conductor.feedback import apply_adaptations, suggest_adaptations
+from yao.conductor.feedback import (
+    apply_adaptations,
+    suggest_adaptations,
+    suggest_adaptations_from_findings,
+)
 from yao.schema.composition import CompositionSpec, GenerationConfig, InstrumentSpec, SectionSpec
+from yao.verify.critique.types import Finding
 from yao.verify.evaluator import EvaluationReport, EvaluationScore
 
 
@@ -136,3 +141,82 @@ class TestSectionContrastAdaptation:
         result = apply_adaptations(spec, adaptations)
         dynamics = [s.dynamics for s in result.sections]
         assert len(set(dynamics)) > 1  # dynamics should now differ
+
+
+class TestFindingsBasedAdaptations:
+    """Tests for suggest_adaptations_from_findings (Critic → feedback)."""
+
+    def _make_finding(self, rule_id: str, issue: str = "test") -> Finding:
+        from yao.verify.critique.types import Finding, Role, Severity
+
+        return Finding(
+            rule_id=rule_id,
+            severity=Severity.MAJOR,
+            role=Role.STRUCTURE,
+            issue=issue,
+        )
+
+    def test_section_monotony_suggests_dynamics(self) -> None:
+        spec = CompositionSpec(
+            title="Test",
+            instruments=[InstrumentSpec(name="piano", role="melody")],
+            sections=[
+                SectionSpec(name="verse", bars=8, dynamics="mf"),
+                SectionSpec(name="chorus", bars=8, dynamics="mf"),
+            ],
+            generation=GenerationConfig(strategy="stochastic", seed=42, temperature=0.5),
+        )
+        findings = [self._make_finding("structure.section_monotony")]
+        adaptations = suggest_adaptations_from_findings(findings, spec)
+        assert len(adaptations) == 1
+        assert adaptations[0].field == "sections.dynamics"
+
+    def test_climax_absence_suggests_ff(self) -> None:
+        spec = _make_spec()
+        findings = [self._make_finding("structure.climax_absence")]
+        adaptations = suggest_adaptations_from_findings(findings, spec)
+        assert len(adaptations) == 0  # single section, no climax possible
+
+        # With multiple sections
+        spec_multi = CompositionSpec(
+            title="Test",
+            instruments=[InstrumentSpec(name="piano", role="melody")],
+            sections=[
+                SectionSpec(name="verse", bars=8, dynamics="mf"),
+                SectionSpec(name="chorus", bars=8, dynamics="f"),
+                SectionSpec(name="outro", bars=4, dynamics="mp"),
+            ],
+            generation=GenerationConfig(strategy="stochastic", seed=42, temperature=0.5),
+        )
+        adaptations = suggest_adaptations_from_findings(findings, spec_multi)
+        assert len(adaptations) == 1
+        assert "ff" in adaptations[0].new_value
+        assert adaptations[0].field.startswith("sections.dynamics.")
+
+    def test_harmonic_monotony_increases_temperature(self) -> None:
+        spec = _make_spec(temperature=0.4)
+        findings = [self._make_finding("harmonic.monotony")]
+        adaptations = suggest_adaptations_from_findings(findings, spec)
+        assert len(adaptations) == 1
+        assert adaptations[0].field == "generation.temperature"
+        assert float(adaptations[0].new_value) > 0.4
+
+    def test_cliche_progression_increases_temperature(self) -> None:
+        spec = _make_spec(temperature=0.3)
+        findings = [self._make_finding("harmonic.cliche_progression")]
+        adaptations = suggest_adaptations_from_findings(findings, spec)
+        assert len(adaptations) == 1
+        assert float(adaptations[0].new_value) > 0.3
+
+    def test_intent_divergence_changes_seed(self) -> None:
+        spec = _make_spec()
+        findings = [self._make_finding("emotional.intent_divergence")]
+        adaptations = suggest_adaptations_from_findings(findings, spec)
+        assert len(adaptations) == 1
+        assert adaptations[0].field == "generation.seed"
+
+    def test_unknown_rule_produces_no_adaptation(self) -> None:
+        spec = _make_spec()
+        findings = [self._make_finding("unknown.nonexistent_rule")]
+        adaptations = suggest_adaptations_from_findings(findings, spec)
+        assert len(adaptations) == 0

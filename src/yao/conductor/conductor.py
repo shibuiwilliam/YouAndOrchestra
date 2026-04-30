@@ -222,6 +222,7 @@ class Conductor:
                     iteration_history=iteration_history,
                     output_dir=output_dir,
                     adaptations_applied=adaptations_log,
+                    critic_findings=critic_findings,
                 )
 
             # Not all passed and we have iterations left — adapt
@@ -285,6 +286,7 @@ class Conductor:
             iteration_history=iteration_history,
             output_dir=output_dir,
             adaptations_applied=adaptations_log,
+            critic_findings=critic_findings,
         )
 
     def regenerate_section(

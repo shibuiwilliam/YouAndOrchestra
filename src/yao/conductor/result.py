@@ -9,6 +9,7 @@ from yao.ir.score_ir import ScoreIR
 from yao.reflect.provenance import ProvenanceLog
 from yao.schema.composition import CompositionSpec
 from yao.verify.analyzer import AnalysisReport
+from yao.verify.critique.types import Finding
 from yao.verify.evaluator import EvaluationReport
 
 
@@ -28,6 +29,7 @@ class ConductorResult:
         iteration_history: Evaluation reports from each round.
         output_dir: Path to the output directory.
         adaptations_applied: Human-readable log of spec changes made.
+        critic_findings: Structured findings from the Adversarial Critic.
     """
 
     score: ScoreIR
@@ -41,6 +43,7 @@ class ConductorResult:
     iteration_history: list[EvaluationReport] = field(default_factory=list)
     output_dir: Path = field(default_factory=lambda: Path("."))
     adaptations_applied: list[str] = field(default_factory=list)
+    critic_findings: list[Finding] = field(default_factory=list)
 
     def summary(self) -> str:
         """Human-readable summary of the composition result.
@@ -63,6 +66,17 @@ class ConductorResult:
             lines.append(f"\nAdaptations applied ({len(self.adaptations_applied)}):")
             for adaptation in self.adaptations_applied:
                 lines.append(f"  - {adaptation}")
+
+        # Critic findings
+        if self.critic_findings:
+            critical = sum(1 for f in self.critic_findings if f.severity.value == "critical")
+            major = sum(1 for f in self.critic_findings if f.severity.value == "major")
+            minor = sum(1 for f in self.critic_findings if f.severity.value == "minor")
+            lines.append(
+                f"\nCritic findings: {len(self.critic_findings)} (critical={critical}, major={major}, minor={minor})"
+            )
+            for finding in self.critic_findings:
+                lines.append(f"  [{finding.severity.value.upper()}] {finding.issue}")
 
         # Convergence: show pass rate per iteration
         if len(self.iteration_history) > 1:

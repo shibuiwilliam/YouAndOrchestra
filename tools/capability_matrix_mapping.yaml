@@ -189,6 +189,52 @@
   tests:
     - tests/unit/ir/plan/test_harmony_plan.py
 
+"MusicalPlan(統合)":
+  src:
+    - src/yao/ir/plan/musical_plan.py
+  tests:
+    - tests/unit/ir/plan/test_musical_plan.py
+
+"GlobalContext":
+  src:
+    - src/yao/ir/plan/musical_plan.py
+  tests:
+    - tests/unit/ir/plan/test_global_context.py
+
+"MotifPlan":
+  src:
+    - src/yao/ir/plan/motif.py
+  tests:
+    - tests/unit/ir/plan/test_motif_plan.py
+
+"PhrasePlan":
+  src:
+    - src/yao/ir/plan/phrase.py
+  tests:
+    - tests/unit/ir/plan/test_phrase_plan.py
+
+"DrumPattern":
+  src:
+    - src/yao/ir/plan/drums.py
+  tests:
+    - tests/unit/ir/plan/test_drums_plan.py
+
+"ArrangementPlan":
+  src:
+    - src/yao/ir/plan/arrangement.py
+  tests:
+    - tests/unit/ir/plan/test_arrangement_plan.py
+
+"Adversarial Critic 具体ルール(30+)":
+  src:
+    - src/yao/verify/critique/structural.py
+    - src/yao/verify/critique/harmonic.py
+    - src/yao/verify/critique/melodic.py
+    - src/yao/verify/critique/rhythmic.py
+    - src/yao/verify/critique/emotional.py
+  tests:
+    - tests/unit/verify/test_critique_rules.py
+
 # === QA ===
 "Unit tests":
   src:
@@ -211,6 +257,10 @@
     - tests/golden/test_golden.py
     - tests/golden/comparison.py
 
+"Critique rule tests":
+  src:
+    - tests/unit/verify/test_critique_rules.py
+
 "Architecture lint":
   src:
     - tools/architecture_lint.py
@@ -218,3 +268,7 @@
 "Capability matrix check":
   src:
     - tools/capability_matrix_check.py
+
+"Total":
+  src:
+    - tests/

@@ -43,7 +43,7 @@ Claude Code will guide you through choices:
 Runs the Conductor's automatic iteration loop:
 1. Reads the spec and confirms intent
 2. Generates the composition
-3. Evaluates quality across structure, melody, and harmony (8 metrics with MetricGoal pass/fail)
+3. Evaluates quality across structure, melody, and harmony (10 metrics, quality score 1-10)
 4. Adapts the spec if metrics fail and regenerates
 5. Shows final output with evaluation summary
 
@@ -58,9 +58,7 @@ You can also compose from natural language:
 /critique rainy-afternoon
 ```
 
-The adversarial critic finds every weakness — it never praises. Each finding includes severity (critical/major/minor/suggestion), specific bar references, and a direction for improvement. Writes `critique.md` to the iteration directory.
-
-In v2.0, critique is moving toward structured `Finding` objects with 30+ rules, replacing free-text critique for more actionable feedback.
+The adversarial critic finds every weakness — it never praises. YaO includes 12 structured critique rules across 5 categories (structural, melodic, harmonic, rhythmic, emotional). Each rule emits `Finding` objects with severity (critical/major/minor/suggestion), evidence, bar-level location, and concrete recommendations. Writes `critique.md` to the iteration directory.
 
 ### `/regenerate-section` — Fix one section
 
@@ -146,7 +144,7 @@ Claude: I'd suggest:
         Instruments: piano (melody), synth_pad_warm (pad)
         Sections: intro (4 bars, pp) -> loop_a (8 bars, mp) -> loop_b (8 bars, mf) -> outro (4 bars, pp)
         Generator: stochastic (seed 7, temperature 0.4)
-        
+
         Would you like to adjust anything?
 
 You: Make it a bit faster, 110 BPM. Add a vibraphone for the melody instead of piano.
@@ -166,7 +164,7 @@ You: /critique puzzle-bgm
 Claude: [Writes critique.md]
         MINOR: Vibraphone melody in bars 8-12 lacks contour variety
         SUGGESTION: Loop transition (bar 12->13) could use a fill
-        
+
         Want to fix something? Use /regenerate-section puzzle-bgm loop_a
 
 You: /regenerate-section puzzle-bgm loop_a

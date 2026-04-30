@@ -126,7 +126,7 @@ CompositionSpec  -->  GeneratorBase.generate()  -->  (ScoreIR, ProvenanceLog)
 
 ### Layer 0: Constants
 - `constants/midi.py` -- PPQ (220), default velocity (80), default BPM (120), GM program numbers (46 mappings)
-- `constants/instruments.py` -- `InstrumentRange` for 38 instruments across 9 families
+- `constants/instruments.py` -- `InstrumentRange` for 40 instruments across 9 families
 - `constants/music.py` -- 14 scales, 14 chord types, 12 section types, dynamics-to-velocity map
 
 ### Layer 1: Schema
@@ -170,7 +170,7 @@ CompositionSpec  -->  GeneratorBase.generate()  -->  (ScoreIR, ProvenanceLog)
 - `generators/base.py` -- `GeneratorBase` ABC: `generate() -> (ScoreIR, ProvenanceLog)`
 - `generators/registry.py` -- `@register_generator()`, `get_generator()`, `available_generators()`
 - `generators/rule_based.py` -- Deterministic scale-based generation
-- `generators/stochastic.py` -- Seeded randomness with temperature control, contour shaping, section-aware chord progressions, walking bass, 12 rhythm patterns
+- `generators/stochastic.py` -- Seeded randomness with StochasticConfig (15 tunable params), 4 contour algorithms (arch/ascending/descending/wave), 5 chord voicing types, section-aware progressions, walking bass, 12 rhythm patterns
 - `generators/legacy_adapter.py` -- Backward compatibility adapter for v1 generators
 - `generators/plan/base.py` -- `PlanGeneratorBase` ABC (v2.0)
 - `generators/plan/form_planner.py` -- Generates `SongFormPlan` from `CompositionSpec`
@@ -190,10 +190,19 @@ CompositionSpec  -->  GeneratorBase.generate()  -->  (ScoreIR, ProvenanceLog)
 ### Layer 6: Verification
 - `verify/music_lint.py` -- Range, overlap, velocity, duration, tempo checks (7 rules)
 - `verify/analyzer.py` -- `AnalysisReport` with note stats, lint results
-- `verify/evaluator.py` -- `EvaluationReport` across 5 dimensions (structure, melody, harmony, arrangement, acoustics) with 8 metrics
-- `verify/metric_goal.py` -- `MetricGoal` with typed evaluation modes (binary, target, tolerance, comparison)
+- `verify/evaluator.py` -- `EvaluationReport` across 3 dimensions (structure, melody, harmony) with 10 metrics + quality_score (1.0-10.0)
+- `verify/metric_goal.py` -- `MetricGoal` with 7 typed evaluation modes (AT_LEAST, AT_MOST, TARGET_BAND, BETWEEN, MATCH_CURVE, RELATIVE_ORDER, DIVERSITY)
 - `verify/diff.py` -- `ScoreDiff` with added, removed, and modified notes
 - `verify/constraint_checker.py` -- Evaluate constraints (density, pitch limits, parallel fifths, rest ratio)
+- `verify/critique/` -- Rule-based adversarial critique engine:
+  - `base.py` -- `CritiqueRule` ABC with `detect()` method
+  - `types.py` -- `Finding` dataclass (rule_id, severity, role, issue, evidence, location, recommendation)
+  - `registry.py` -- `CritiqueRuleRegistry` for rule discovery
+  - `structural.py` -- 3 rules: climax absence, section monotony, form imbalance
+  - `melodic.py` -- 3 rules: cliche motif, contour monotony, phrase closure weakness
+  - `harmonic.py` -- 3 rules: cliche progression, voice crossing, cadence weakness
+  - `rhythmic.py` -- 1 rule: rhythmic monotony
+  - `emotional.py` -- 2 rules: intent divergence, trajectory violation
 
 ### Conductor
 - `conductor/conductor.py` -- `Conductor` with `compose_from_description()`, `compose_from_spec()`, `regenerate_section()`, mood-to-key mapping (22 moods), instrument keyword mapping (11 groups)

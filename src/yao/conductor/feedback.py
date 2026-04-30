@@ -209,8 +209,20 @@ def apply_adaptations(
             gen_updates["strategy"] = adaptation.new_value
         elif adaptation.field == "generation.seed":
             gen_updates["seed"] = int(adaptation.new_value)
+        elif adaptation.field.startswith("sections.dynamics."):
+            # Targeted: change dynamics for a specific section by index
+            try:
+                idx = int(adaptation.field.split(".")[-1])
+                new_sections = list(spec.sections)
+                if 0 <= idx < len(new_sections):
+                    new_sections[idx] = new_sections[idx].model_copy(
+                        update={"dynamics": adaptation.new_value},
+                    )
+                    updates["sections"] = new_sections
+            except (ValueError, IndexError):
+                pass
         elif adaptation.field == "sections.dynamics":
-            # Apply a dynamic arc: pp → mp → f → mp for 4 sections
+            # Generic: apply a dynamic arc for variety
             dynamic_arc = ["pp", "mp", "f", "mp", "mf", "p", "ff", "pp"]
             new_sections = []
             for i, section in enumerate(spec.sections):
@@ -269,12 +281,12 @@ def _adaptation_for_finding(
         return _differentiate_dynamics(spec)
 
     if rule_id == "structure.climax_absence":
-        # Increase dynamics range so at least one section is 'ff'
+        # Increase dynamics for the second-to-last section (typical climax position)
         sections = list(spec.sections)
         if len(sections) >= 2:  # noqa: PLR2004
             climax_idx = max(0, len(sections) - 2)
             return SpecAdaptation(
-                field="sections.dynamics",
+                field=f"sections.dynamics.{climax_idx}",
                 old_value=sections[climax_idx].dynamics,
                 new_value="ff",
                 reason=f"Critic: {finding.issue}. Setting climax dynamics.",

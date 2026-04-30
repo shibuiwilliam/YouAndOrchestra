@@ -62,7 +62,13 @@ def _roman_to_function(roman: str) -> HarmonicFunction:
 
 # Tension thresholds for chord selection behavior
 _TENSION_HIGH = 0.6
+_TENSION_VERY_HIGH = 0.8
 _TENSION_LOW = 0.4
+
+# Secondary dominants and borrowed chords injected at high tension.
+# These are NOT in the user's palette — they're generated to satisfy Rule #7.
+_SECONDARY_DOMINANTS = ["V/V", "V/vi", "V/IV"]
+_BORROWED_CHORDS = ["bVII", "iv", "bVI"]
 
 
 def _is_active_chord(roman: str) -> bool:
@@ -84,9 +90,13 @@ def _select_chord_by_tension(
 ) -> str:
     """Select a chord from palette, biased by tension level.
 
-    At high tension (>0.6): prefer dominant/secondary-dominant chords.
-    At low tension (<0.4): prefer tonic/subdominant chords.
-    Mid-range: normal palette cycling.
+    Trajectory response (CLAUDE.md Rule #7):
+    - Very high tension (>0.8): inject secondary dominants (V/V, V/vi)
+      and borrowed chords (bVII, iv) even if not in palette.
+    - High tension (>0.6): prefer dominant/secondary-dominant chords
+      from the palette.
+    - Low tension (<0.4): prefer tonic/subdominant chords.
+    - Mid-range: normal palette cycling.
 
     Args:
         palette: Available chord symbols.
@@ -94,18 +104,31 @@ def _select_chord_by_tension(
         tension: Current tension level [0, 1].
 
     Returns:
-        A chord symbol from the palette.
+        A chord symbol from the palette (or injected tension chord).
     """
     if len(palette) <= 1:
         return palette[0]
 
-    if tension >= _TENSION_HIGH:
-        # Prefer active chords (dominant, secondary dominant)
+    if tension >= _TENSION_VERY_HIGH:
+        # Very high tension: inject secondary dominants and borrowed chords
+        # that aren't already in the palette (Rule #7 compliance)
+        extended = list(palette)
+        for chord in _SECONDARY_DOMINANTS:
+            if chord not in extended:
+                extended.append(chord)
+        for chord in _BORROWED_CHORDS:
+            if chord not in extended:
+                extended.append(chord)
+        active = [c for c in extended if _is_active_chord(c)]
+        if active:
+            return active[position % len(active)]
+    elif tension >= _TENSION_HIGH:
+        # High tension: prefer active chords from existing palette
         active = [c for c in palette if _is_active_chord(c)]
         if active:
             return active[position % len(active)]
     elif tension <= _TENSION_LOW:
-        # Prefer stable chords (tonic, subdominant)
+        # Low tension: prefer stable chords (tonic, subdominant)
         stable = [c for c in palette if _is_stable_chord(c)]
         if stable:
             return stable[position % len(stable)]
