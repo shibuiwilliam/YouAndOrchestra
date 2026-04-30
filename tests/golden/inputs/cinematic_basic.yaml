@@ -1,0 +1,40 @@
+version: "2"
+
+identity:
+  title: "Golden Cinematic"
+  duration_sec: 48
+  loopable: false
+
+global:
+  key: "D minor"
+  bpm: 80
+  time_signature: "4/4"
+  genre: "cinematic"
+
+form:
+  sections:
+    - id: intro
+      bars: 4
+      density: 0.2
+    - id: theme
+      bars: 8
+      density: 0.5
+    - id: climax
+      bars: 4
+      density: 0.9
+      climax: true
+
+harmony:
+  chord_palette: ["i", "iv", "V", "VI"]
+  cadence:
+    climax: "authentic"
+
+arrangement:
+  instruments:
+    piano:
+      role: melody
+
+generation:
+  strategy: rule_based
+  seed: 42
+  temperature: 0.5

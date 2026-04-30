@@ -52,6 +52,25 @@ class CompositionSpec(BaseModel):
     def from_yaml(cls, path: Path) -> CompositionSpec
 ```
 
+### `CompositionSpecV2` (`yao.schema.composition_v2`)
+
+The v2 spec format provides finer control over all aspects of a composition:
+
+```python
+class CompositionSpecV2(BaseModel):
+    identity: IdentitySpec       # title, purpose, duration_sec, loopable
+    globals: GlobalSpec          # key, bpm, time_signature, genre
+    emotion: EmotionSpec         # valence, energy, tension, warmth, nostalgia (0-1)
+    form: FormSpec               # sections list with dynamic properties
+    melody: MelodySpec           # contour, range, motifs
+    harmony: HarmonySpec         # progressions, voicing rules, functional harmony
+    rhythm: RhythmSpec           # patterns, syncopation, groove
+    drums: DrumsSpec             # kit, patterns, dynamics
+    arrangement: ArrangementSpec # instrumentation, layering, effects
+    production: ProductionSpec   # LUFS target, stereo width, effects
+    constraints: ConstraintsSpec # must/must_not/prefer/avoid rules
+```
+
 ### `GenerationConfig` (`yao.schema.composition`)
 ```python
 class GenerationConfig(BaseModel):
@@ -64,11 +83,44 @@ class GenerationConfig(BaseModel):
 ```python
 class ProvenanceLog:
     def record(*, layer, operation, parameters, source, rationale) -> None
+    def record_recoverable(decision: RecoverableDecision) -> None
     def query_by_operation(self, operation: str) -> list[ProvenanceRecord]
     def query_by_layer(self, layer: str) -> list[ProvenanceRecord]
     def explain_chain(self) -> str
     def to_json(self) -> str
     def save(self, path: Path) -> None
+```
+
+## Musical Plan IR Types (v2.0)
+
+### `MusicalPlan` (`yao.ir.plan.musical_plan`)
+```python
+@dataclass(frozen=True)
+class MusicalPlan:
+    song_form: SongFormPlan
+    harmony: HarmonyPlan
+    motif: MotifPlan | None = None        # Phase beta
+    phrase: PhrasePlan | None = None       # Phase beta
+    drums: DrumPlan | None = None          # Phase beta
+    arrangement: ArrangementPlan | None = None  # Phase beta
+
+    def to_json(self) -> str
+```
+
+### `SongFormPlan` (`yao.ir.plan.song_form`)
+```python
+@dataclass(frozen=True)
+class SongFormPlan(PlanNode):
+    # Structural decisions: section order, bar counts, dynamics arcs
+    sections: tuple[FormSection, ...]
+```
+
+### `HarmonyPlan` (`yao.ir.plan.harmony`)
+```python
+@dataclass(frozen=True)
+class HarmonyPlan(PlanNode):
+    # Chord events: what chord plays at each beat, progressions per section
+    events: tuple[ChordEvent, ...]
 ```
 
 ## IR Types
@@ -122,6 +174,16 @@ check_parallel_octaves(voicing_a, voicing_b) -> list[tuple[int, int]]
 voice_distance(voicing_a, voicing_b) -> int
 ```
 
+### `MultiDimensionalTrajectory` (`yao.ir.trajectory`)
+```python
+class MultiDimensionalTrajectory:
+    dimensions: dict[str, TrajectoryDimension]
+
+    def value_at(self, dimension: str, beat: Beat) -> float
+    def tension_at(self, beat: Beat) -> float
+    def density_at(self, beat: Beat) -> float
+```
+
 ### Timing (`yao.ir.timing`)
 ```python
 beats_to_ticks(beats: Beat, ppq=DEFAULT_PPQ) -> Tick
@@ -139,9 +201,43 @@ parse_key(key: str) -> tuple[str, str]       # "C major" -> ("C", "major")
 scale_notes(root: str, scale_type: str, octave: int = 4) -> list[MidiNote]
 ```
 
+## Verification Types (v2.0)
+
+### `MetricGoal` (`yao.verify.metric_goal`)
+```python
+class MetricGoal:
+    name: str
+    mode: str              # "binary", "target", "tolerance", "comparison"
+    target: float
+    tolerance: float
+    rationale: str
+```
+
+Defines how each evaluation metric is scored. Modes:
+- **binary** — pass/fail (e.g., section count matches)
+- **target** — score must exceed a threshold
+- **tolerance** — score must be within range of target
+- **comparison** — score is compared to a reference
+
+### `RecoverableDecision` (`yao.verify.recoverable` / `yao.reflect.recoverable`)
+```python
+@dataclass
+class RecoverableDecision:
+    code: str                    # e.g., "BASS_NOTE_OUT_OF_RANGE"
+    severity: str                # "warning", "error"
+    original_value: Any
+    recovered_value: Any
+    reason: str
+    musical_impact: str
+    suggested_fix: list[str]
+```
+
+Replaces silent fallbacks. Every compromise is logged, traceable, and fixable in future iterations.
+
 ## Generator API
 
-All generators implement:
+### Legacy (v1, still active in Phase alpha)
+
 ```python
 class GeneratorBase(ABC):
     @abstractmethod
@@ -155,6 +251,39 @@ class GeneratorBase(ABC):
 Register with `@register_generator("name")`. Select at runtime with `get_generator("name")`.
 
 Currently registered: `rule_based`, `stochastic`.
+
+### v2.0: Plan Generators
+
+```python
+class PlanGeneratorBase(ABC):
+    @abstractmethod
+    def plan(
+        self,
+        spec: CompositionSpec,
+        trajectory: MultiDimensionalTrajectory,
+        provenance: ProvenanceLog,
+    ) -> PlanNode: ...
+```
+
+Register with `@register_plan_generator("name")`.
+
+Implemented: `rule_based_form` (SongFormPlan), `rule_based_harmony` (HarmonyPlan).
+
+### v2.0: Note Realizers
+
+```python
+class NoteRealizerBase(ABC):
+    @abstractmethod
+    def realize(
+        self,
+        plan: MusicalPlan,
+        seed: int,
+        temperature: float,
+        provenance: ProvenanceLog,
+    ) -> ScoreIR: ...
+```
+
+Register with `@register_note_realizer("name")`.
 
 ## Conductor API
 

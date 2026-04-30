@@ -47,12 +47,37 @@ The file is a JSON array of provenance records:
 3. The `rationale` field must be meaningful — not "because the code said so"
 4. When merging provenance from multiple runs, concatenate the arrays
 
+## RecoverableDecision Records (v2.0)
+
+When a generator must compromise (e.g., a note falls outside an instrument's range), it emits a `RecoverableDecision` instead of silently clamping. These are stored in the provenance log with additional fields:
+
+```json
+{
+  "timestamp": "2026-04-30T10:00:00+00:00",
+  "layer": "generator",
+  "operation": "recoverable_decision",
+  "parameters": {
+    "code": "BASS_NOTE_OUT_OF_RANGE",
+    "severity": "warning",
+    "original_value": 36,
+    "recovered_value": 40,
+    "musical_impact": "Bass line jumps up at this point",
+    "suggested_fix": ["use synth_bass with wider range", "raise chord root"]
+  },
+  "source": "StochasticGenerator._generate_bass",
+  "rationale": "Walking bass passing tone below upright bass range"
+}
+```
+
+This makes every compromise visible and actionable in future iterations.
+
 ## Implementation
 
 See `yao.reflect.provenance.ProvenanceLog` for the Python API.
 
 ```python
 from yao.reflect.provenance import ProvenanceLog
+from yao.reflect.recoverable import RecoverableDecision
 
 prov = ProvenanceLog()
 prov.record(
@@ -62,5 +87,18 @@ prov.record(
     source="MyGenerator.generate",
     rationale="Scale-based melody in C major.",
 )
+
+# Log a compromise (v2.0)
+decision = RecoverableDecision(
+    code="NOTE_OUT_OF_RANGE",
+    severity="warning",
+    original_value=36,
+    recovered_value=40,
+    reason="Note below instrument range",
+    musical_impact="Pitch shifted up",
+    suggested_fix=["Use instrument with wider range"],
+)
+prov.record_recoverable(decision)
+
 prov.save(Path("provenance.json"))
 ```

@@ -9,19 +9,30 @@ YaO turns music composition into a structured, reproducible engineering process.
 ## What YaO Does
 
 - **Natural language composition** — Describe music in plain English and the Conductor builds a spec, generates, evaluates, and iterates automatically
-- **Spec-driven composition** — Describe your music in YAML and generate full MIDI scores with precise control
+- **Spec-driven composition** — Describe your music in YAML (v1 flat format or v2 11-section format) and generate full MIDI scores with precise control
 - **38 instruments** across 9 families — piano, strings, brass, woodwinds, guitar, bass, synths, saxophone, percussion
 - **Trajectory curves** — Shape tension, density, and emotion over time independently from notes
 - **Two generator strategies** — Deterministic (rule-based) and stochastic (seed + temperature)
-- **Quality evaluation** — Automated scoring across structure, melody, and harmony with feedback-driven iteration
+- **Quality evaluation** — Automated scoring across structure, melody, and harmony with MetricGoal-typed pass/fail criteria and feedback-driven iteration
 - **Music linting** — Catches range violations, parallel fifths, velocity issues
 - **Constraint system** — Define musical rules scoped to sections, instruments, or bar ranges
-- **Provenance tracking** — Every note has a recorded rationale
+- **Provenance tracking** — Every note has a recorded rationale; fallbacks are tracked via RecoverableDecision
 - **Per-instrument stems** — Individual MIDI files per instrument
 - **Section regeneration** — Regenerate one section while keeping the rest intact
 - **Score diffing** — Compare two generations to see exactly what changed musically
 - **MIDI reader** — Load existing MIDI files back into ScoreIR for analysis and iteration
-- **Claude Code integration** — 7 slash commands and 7 subagents for interactive workflow
+- **Claude Code integration** — 7 slash commands, 7 subagents, 4 domain skills for interactive workflow
+- **447 tests** — Unit, integration, scenario, constraint, and golden regression tests
+
+## Architecture (v2.0)
+
+YaO v2.0 introduces the **Musical Plan IR (MPIR)** as a middle layer. The generation pipeline is now:
+
+```
+CompositionSpec → Plan Generators → MusicalPlan → Note Realizers → ScoreIR → MIDI
+```
+
+This separates *what to play* (the plan) from *how to play it* (the notes), enabling richer critique, better iteration, and more musical output.
 
 ## Quick Example
 
@@ -51,6 +62,7 @@ outputs/projects/<name>/iterations/v001/
 3. **Constraints liberate** — YAML specs and music theory rules are scaffolds, not cages
 4. **Time-axis first** — Design trajectory curves before writing notes
 5. **Human ear is truth** — Automated scores inform, humans decide
+6. **Vertical alignment** — Input expressiveness, processing depth, and evaluation resolution advance together
 
 ## Documentation
 
@@ -58,7 +70,7 @@ outputs/projects/<name>/iterations/v001/
 - [Templates](getting-started/templates.md) — Ready-to-use spec templates
 - [Audio Setup](getting-started/audio-setup.md) — FluidSynth installation for WAV rendering
 - [CLI Reference](guide/cli-reference.md) — All commands and options
-- [Composition Spec](guide/composition-spec.md) — YAML schema reference
+- [Composition Spec](guide/composition-spec.md) — YAML schema reference (v1 + v2)
 - [Trajectories](guide/trajectories.md) — Time-axis curves for emotion shaping
 - [Constraints](guide/constraints.md) — Musical rule system
 - [Instruments](reference/instruments.md) — 38 instruments with MIDI ranges
@@ -66,3 +78,4 @@ outputs/projects/<name>/iterations/v001/
 - [Provenance Schema](reference/provenance-schema.md) — Decision log format
 - [Claude Code Workflow](tutorials/claude-code-workflow.md) — Interactive music creation
 - [Glossary](reference/glossary.md) — YaO terminology
+- [Layer Architecture](architecture/layers.md) — 8-layer model with Layer 3.5 (MPIR)

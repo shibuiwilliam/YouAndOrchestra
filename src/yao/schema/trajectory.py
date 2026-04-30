@@ -78,15 +78,21 @@ class TrajectoryDimension(BaseModel):
         return 0.5
 
 
+_ALL_DIMENSION_NAMES = ("tension", "density", "predictability", "brightness", "register_height")
+
+
 class TrajectorySpec(BaseModel):
     """Complete trajectory specification for a composition.
 
-    Contains one or more named trajectory dimensions (tension, density, etc.).
+    Contains one or more named trajectory dimensions. v1 supports tension,
+    density, and predictability. v2 adds brightness and register_height.
     """
 
     tension: TrajectoryDimension | None = None
     density: TrajectoryDimension | None = None
     predictability: TrajectoryDimension | None = None
+    brightness: TrajectoryDimension | None = None
+    register_height: TrajectoryDimension | None = None
 
     def value_at(self, dimension: str, bar: int) -> float:
         """Get the trajectory value for a dimension at a given bar.
@@ -127,7 +133,7 @@ class TrajectorySpec(BaseModel):
         if "trajectories" in data:
             data = data["trajectories"]
         # Convert list waypoints [[bar, val], ...] to Waypoint objects
-        for dim_name in ("tension", "density", "predictability"):
+        for dim_name in _ALL_DIMENSION_NAMES:
             if dim_name in data and isinstance(data[dim_name], dict):
                 dim_data = data[dim_name]
                 if "waypoints" in dim_data and isinstance(dim_data["waypoints"], list):

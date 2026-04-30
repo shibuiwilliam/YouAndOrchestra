@@ -1,0 +1,99 @@
+version: "2"
+
+identity:
+  title: "Pixel Quest"
+  purpose: "loopable game background music"
+  duration_sec: 60
+  loopable: true
+
+global:
+  key: "A minor"
+  bpm: 140
+  time_signature: "4/4"
+  genre: "game_bgm"
+
+emotion:
+  valence: 0.5
+  energy: 0.7
+  tension: 0.55
+  warmth: 0.35
+  nostalgia: 0.2
+
+form:
+  sections:
+    - id: loop_a
+      bars: 16
+      density: 0.5
+    - id: loop_b
+      bars: 16
+      density: 0.7
+      climax: true
+
+melody:
+  range:
+    min: "C4"
+    max: "C6"
+  contour: "wave"
+  motif:
+    length_beats: 2
+    repetition_rate: 0.7
+    variation_rate: 0.25
+  intervals:
+    stepwise_ratio: 0.65
+    max_leap: "P5"
+  phrase:
+    bars_per_phrase: 4
+    call_response: false
+
+harmony:
+  complexity: 0.4
+  chord_palette: ["i", "VI", "III", "VII", "iv"]
+  cadence:
+    loop_b: "half"
+  harmonic_rhythm:
+    loop_a: "1 chord per bar"
+    loop_b: "1 chord per bar"
+
+rhythm:
+  groove: "straight"
+  swing: 0.0
+  syncopation: 0.25
+
+drums:
+  pattern_family: "chiptune"
+  swing: 0.0
+  ghost_notes_density: 0.1
+  fills_at: ["loop_b_end"]
+
+arrangement:
+  instruments:
+    synth_lead_square:
+      role: melody
+      articulation: "staccato"
+    synth_pad_warm:
+      role: pad
+      voicing: "close"
+    synth_bass:
+      role: bass
+      motion: "root_octave_passing"
+
+production:
+  use_case: "game_bgm"
+  target_lufs: -16
+  stereo_width: 0.6
+  vocal_space_reserved: false
+
+constraints:
+  - kind: must
+    rule: "melody_within_range"
+    scope: global
+    severity: error
+  - kind: prefer
+    rule: "loop_seam_smooth"
+    scope: global
+    severity: warning
+
+generation:
+  strategy: stochastic
+  seed: 128
+  temperature: 0.45

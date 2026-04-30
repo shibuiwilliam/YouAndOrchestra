@@ -70,13 +70,14 @@ class ProvenanceRecord:
 
 @dataclass
 class ProvenanceLog:
-    """Append-only log of provenance records.
+    """Append-only log of provenance records and recoverable decisions.
 
     Records can only be added, never removed or modified.
     This ensures complete traceability of all generation decisions.
     """
 
     _records: list[ProvenanceRecord] = field(default_factory=list)
+    _recoverables: list[Any] = field(default_factory=list)  # RecoverableDecision objects
 
     def add(self, record: ProvenanceRecord) -> None:
         """Append a provenance record.
@@ -143,6 +144,60 @@ class ProvenanceLog:
             Matching records in chronological order.
         """
         return [r for r in self._records if r.layer == layer]
+
+    def record_recoverable(self, decision: Any) -> None:
+        """Record a recoverable decision.
+
+        Also creates a provenance record for the decision so the full
+        chain is visible in the explain output.
+
+        Args:
+            decision: A RecoverableDecision instance.
+        """
+        self._recoverables.append(decision)
+        self.record(
+            layer="recoverable",
+            operation="compromise",
+            parameters={
+                "code": decision.code,
+                "severity": decision.severity,
+                "original": str(decision.original_value),
+                "recovered": str(decision.recovered_value),
+            },
+            source=decision.code,
+            rationale=f"{decision.reason} | Impact: {decision.musical_impact}",
+        )
+
+    @property
+    def recoverables(self) -> list[Any]:
+        """Return a copy of all recoverable decisions."""
+        return list(self._recoverables)
+
+    def recoverables_by_severity(self, severity: str) -> list[Any]:
+        """Filter recoverable decisions by severity.
+
+        Args:
+            severity: "info", "warning", or "error".
+
+        Returns:
+            Matching decisions.
+        """
+        return [d for d in self._recoverables if d.severity == severity]
+
+    def recoverables_by_code(self, code: str) -> list[Any]:
+        """Filter recoverable decisions by code.
+
+        Args:
+            code: The decision code (e.g., "BASS_NOTE_OUT_OF_RANGE").
+
+        Returns:
+            Matching decisions.
+        """
+        return [d for d in self._recoverables if d.code == code]
+
+    def has_blocking_decisions(self) -> bool:
+        """Return True if any recoverable decision has severity 'error'."""
+        return any(d.is_blocking for d in self._recoverables)
 
     def explain_chain(self) -> str:
         """Generate a human-readable explanation of the full decision chain.

@@ -27,6 +27,7 @@ from yao.ir.note import Note
 from yao.ir.score_ir import Part, ScoreIR, Section
 from yao.ir.timing import bars_to_beats
 from yao.reflect.provenance import ProvenanceLog
+from yao.reflect.recoverable import RecoverableDecision
 from yao.schema.composition import CompositionSpec, SectionSpec
 from yao.schema.trajectory import TrajectorySpec
 from yao.types import Beat, MidiNote, Velocity
@@ -91,6 +92,30 @@ class StochasticGenerator(GeneratorBase):
     Temperature 0.0 = nearly deterministic, 1.0 = maximum variety.
     """
 
+    _provenance: ProvenanceLog
+
+    def _record_recovery(
+        self,
+        code: str,
+        severity: str,
+        original: object,
+        recovered: object,
+        reason: str,
+        impact: str,
+        fix: list[str] | None = None,
+    ) -> None:
+        """Record a RecoverableDecision on the current provenance log."""
+        decision = RecoverableDecision(
+            code=code,
+            severity=severity,  # type: ignore[arg-type]
+            original_value=original,
+            recovered_value=recovered,
+            reason=reason,
+            musical_impact=impact,
+            suggested_fix=fix or [],
+        )
+        self._provenance.record_recoverable(decision)
+
     def generate(
         self,
         spec: CompositionSpec,
@@ -110,6 +135,7 @@ class StochasticGenerator(GeneratorBase):
         rng = random.Random(seed)
 
         prov = ProvenanceLog()
+        self._provenance = prov
         prov.record(
             layer="generator",
             operation="start_generation",
@@ -387,6 +413,12 @@ class StochasticGenerator(GeneratorBase):
 
             # Occasional rest (temperature-dependent)
             if rng.random() < temperature * 0.15:
+                self._record_recovery(
+                    "REST_INSERTED", "info",
+                    f"bar {start_bar + bar}", "rest",
+                    "Stochastic rest for natural phrasing",
+                    "One fewer bar of melody, creates breathing space",
+                )
                 continue
 
             beat_offset: Beat = 0.0
@@ -401,15 +433,37 @@ class StochasticGenerator(GeneratorBase):
                 pitch = all_scale[scale_idx]
                 if not self._is_in_range(pitch, instrument):
                     # Bounce back into range
+                    original_pitch = pitch
                     scale_idx = max(0, min(len(all_scale) - 1, scale_idx - movement * 2))
                     pitch = all_scale[scale_idx]
                     if not self._is_in_range(pitch, instrument):
+                        self._record_recovery(
+                            "MELODY_NOTE_SKIPPED", "warning",
+                            original_pitch, None,
+                            f"Melody pitch {original_pitch} outside {instrument} range",
+                            "One note missing from melody, slight gap in phrase",
+                            ["widen instrument range", "adjust melody octave"],
+                        )
                         beat_offset += dur
                         continue
+                    self._record_recovery(
+                        "MELODY_NOTE_OUT_OF_RANGE", "info",
+                        original_pitch, pitch,
+                        f"Melody pitch {original_pitch} bounced to {pitch}",
+                        "Melodic contour slightly altered at this point",
+                    )
 
                 # Velocity humanization
                 vel_variation = rng.randint(-5, 5) if temperature > 0.3 else 0  # noqa: PLR2004
-                final_vel = max(1, min(127, velocity + vel_variation))
+                raw_vel = velocity + vel_variation
+                final_vel = max(1, min(127, raw_vel))
+                if final_vel != raw_vel:
+                    self._record_recovery(
+                        "VELOCITY_CLAMPED", "info",
+                        raw_vel, final_vel,
+                        f"Velocity {raw_vel} clamped to MIDI range",
+                        "Negligible — within normal humanization range",
+                    )
 
                 note = Note(
                     pitch=pitch,
@@ -484,13 +538,27 @@ class StochasticGenerator(GeneratorBase):
         for note in transformed.notes:
             pitch = note.pitch
             if not self._is_in_range(pitch, instrument):
+                original_pitch = pitch
                 # Try octave adjustments
                 if self._is_in_range(pitch + 12, instrument):
                     pitch = pitch + 12
                 elif self._is_in_range(pitch - 12, instrument):
                     pitch = pitch - 12
                 else:
-                    continue  # skip notes that can't fit
+                    self._record_recovery(
+                        "MOTIF_NOTE_OUT_OF_RANGE", "warning",
+                        original_pitch, None,
+                        f"Transformed motif note {original_pitch} outside {instrument} range",
+                        "Note dropped from transformed motif",
+                        ["adjust motif transposition interval", "use instrument with wider range"],
+                    )
+                    continue
+                self._record_recovery(
+                    "MOTIF_NOTE_OUT_OF_RANGE", "info",
+                    original_pitch, pitch,
+                    f"Motif note {original_pitch} octave-adjusted to {pitch}",
+                    "Slight register shift in transformed melody",
+                )
 
             velocity = self._compute_velocity(section_spec, start_bar, trajectory)
             vel_variation = rng.randint(-5, 5)
@@ -594,7 +662,14 @@ class StochasticGenerator(GeneratorBase):
                         pitch -= 12
 
                 if not self._is_in_range(pitch, instrument):
-                    pitch = root_pitch  # fallback to root
+                    self._record_recovery(
+                        "BASS_NOTE_OUT_OF_RANGE", "warning",
+                        pitch, root_pitch,
+                        f"Bass passing tone {pitch} outside {instrument} range",
+                        "Bass line jumps to root, slight smoothness loss",
+                        ["narrow walking bass interval pool", "use instrument with wider range"],
+                    )
+                    pitch = root_pitch
 
                 note = Note(
                     pitch=pitch,
@@ -649,8 +724,18 @@ class StochasticGenerator(GeneratorBase):
             elif quality == "maj" and degree == 4 and rng.random() < temperature * 0.5:
                 quality = "dom7"  # V7
 
-            chord_intervals = CHORD_INTERVALS.get(quality, CHORD_INTERVALS["maj"])
+            chord_intervals = CHORD_INTERVALS.get(quality)
+            if chord_intervals is None:
+                self._record_recovery(
+                    "CHORD_QUALITY_UNDEFINED", "info",
+                    quality, "maj",
+                    f"Chord quality '{quality}' not found in palette",
+                    "Chord defaults to major triad",
+                    ["add chord quality to constants"],
+                )
+                chord_intervals = CHORD_INTERVALS["maj"]
 
+            chord_vel = max(velocity - 10, 1)
             for interval in chord_intervals:
                 pitch = root_pitch + interval
                 if self._is_in_range(pitch, instrument):
@@ -658,10 +743,17 @@ class StochasticGenerator(GeneratorBase):
                         pitch=pitch,
                         start_beat=bar_start,
                         duration_beats=beats_per_bar * 0.85,
-                        velocity=max(velocity - 10, 1),
+                        velocity=chord_vel,
                         instrument=instrument,
                     )
                     notes.append(note)
+                else:
+                    self._record_recovery(
+                        "CHORD_NOTE_OUT_OF_RANGE", "info",
+                        pitch, None,
+                        f"Chord note {pitch} outside {instrument} range",
+                        "Chord voicing has one fewer note",
+                    )
 
         return notes
 
@@ -699,7 +791,15 @@ class StochasticGenerator(GeneratorBase):
             velocity = self._compute_velocity(section_spec, start_bar + bar, trajectory)
 
             quality = diatonic_quality(degree, scale_type)
-            chord_intervals = CHORD_INTERVALS.get(quality, CHORD_INTERVALS["maj"])
+            chord_intervals = CHORD_INTERVALS.get(quality)
+            if chord_intervals is None:
+                self._record_recovery(
+                    "CHORD_QUALITY_UNDEFINED", "info",
+                    quality, "maj",
+                    f"Pad chord quality '{quality}' not found",
+                    "Pad chord defaults to major triad",
+                )
+                chord_intervals = CHORD_INTERVALS["maj"]
 
             # Pad rhythm: long sustained notes
             rhythm = rng.choice(_PAD_RHYTHM_POOL)
@@ -768,6 +868,13 @@ class StochasticGenerator(GeneratorBase):
             rhythm_pitches = [root_pitch, root_pitch + 7]
             rhythm_pitches = [p for p in rhythm_pitches if self._is_in_range(p, instrument)]
             if not rhythm_pitches:
+                self._record_recovery(
+                    "RHYTHM_PITCH_OUT_OF_RANGE", "warning",
+                    [root_pitch, root_pitch + 7], [root_pitch],
+                    f"Rhythm pitches outside {instrument} range, using root only",
+                    "Rhythm part loses interval variety, only root note",
+                    ["use instrument with wider range"],
+                )
                 rhythm_pitches = [root_pitch]
 
             beat_offset: Beat = 0.0
@@ -809,7 +916,15 @@ class StochasticGenerator(GeneratorBase):
             tension = trajectory.value_at("tension", bar)
             modifier = (tension - 0.5) * 0.4
             base_velocity = int(base_velocity * (1.0 + modifier))
-        return max(1, min(127, base_velocity))
+        clamped = max(1, min(127, base_velocity))
+        if clamped != base_velocity:
+            self._record_recovery(
+                "VELOCITY_CLAMPED", "info",
+                base_velocity, clamped,
+                f"Base velocity {base_velocity} clamped to MIDI range",
+                "Negligible — dynamics at MIDI boundary",
+            )
+        return clamped
 
     def _instrument_rng(self, master_seed: int, instrument: str, section: str) -> random.Random:
         """Create a deterministic per-instrument RNG.

@@ -80,6 +80,8 @@ generation:
   temperature: 0.5
 ```
 
+YaO also supports a **v2 spec format** with 11 dedicated sections for finer control over identity, emotion, melody, harmony, rhythm, drums, arrangement, production, constraints, and more. See [Composition Spec Guide](docs/guide/composition-spec.md) for details.
+
 ### 3. Claude Code (interactive, recommended)
 
 Launch Claude Code inside the YaO directory and use slash commands:
@@ -282,7 +284,7 @@ Regenerates only the specified section while keeping everything else intact. Cre
 > /arrange my-puzzle-bgm --style jazz
 ```
 
-Applies transformations like reharmonization, regrooving, reorchestration, or style transfer to an existing piece. *(Arrangement engine is planned for Phase 2.)*
+Applies transformations like reharmonization, regrooving, reorchestration, or style transfer to an existing piece. *(Planned for a future phase.)*
 
 ### `/render` — MIDI to audio
 
@@ -350,8 +352,9 @@ generation:
 - **12 rhythm templates** — syncopation, dotted rhythms, mixed patterns
 - **Walking bass** — quarter-note patterns with passing tones and approach notes
 - **Velocity humanization** — dynamics derived from section markings and trajectory curves
+- **Motif transformation** — transpose, invert, retrograde, augment, diminish
 
-Change the seed to get a completely different composition from the same spec. New generators (Markov chains, constraint solvers) are planned.
+Change the seed to get a completely different composition from the same spec.
 
 ---
 
@@ -438,13 +441,13 @@ Every composition is automatically scored across five dimensions:
 
 | Dimension | Metrics |
 |---|---|
-| **Structure** | Bar count accuracy, section count match, section contrast |
-| **Melody** | Pitch range utilization, stepwise motion ratio, contour variety |
-| **Harmony** | Pitch class variety, consonance ratio |
-| **Arrangement** | Instrument balance, texture density |
-| **Acoustics** | Loudness, frequency balance |
+| **Structure** | Section count accuracy, section contrast |
+| **Melody** | Pitch range utilization, stepwise motion ratio |
+| **Harmony** | Consonance ratio, chord progression validity |
+| **Arrangement** | Instrument independence |
+| **Acoustics** | Dynamic range |
 
-Scores are 0.0-1.0 with pass/fail thresholds. The Conductor uses these scores to decide whether to iterate.
+Scores are 0.0–1.0 with pass/fail thresholds defined by `MetricGoal` objects. The Conductor uses these scores to decide whether to iterate. Each metric goal specifies an evaluation mode (binary, target, tolerance, or comparison) and a rationale.
 
 ```bash
 yao evaluate my-project
@@ -476,19 +479,71 @@ outputs/projects/<name>/iterations/v001/
 
 YaO ships with ready-to-use templates in `specs/templates/`:
 
+### v1 Templates
+
 | Template | Description |
 |---|---|
 | `minimal.yaml` | 8-bar solo piano in C major at 120 BPM — the simplest possible spec |
-| `bgm-90sec.yaml` | 90-second BGM with piano and acoustic bass, 4 sections (intro/verse/chorus/outro), dynamic arc |
+| `bgm-90sec.yaml` | 90-second BGM with piano and acoustic bass, 4 sections, dynamic arc |
 | `cinematic-3min.yaml` | 3-minute orchestral piece in D minor with strings, piano, cello, and french horn across 6 sections |
 | `trajectory-example.yaml` | Example tension/density/predictability curves with bezier, stepped, and linear types |
+
+### v2 Templates
+
+| Template | Description |
+|---|---|
+| `v2/bgm-90sec-pop.yaml` | Pop-style BGM with emotion, form, melody, and production sections |
+| `v2/cinematic-3min.yaml` | Full cinematic with trajectory, constraints, and 11-section format |
+| `v2/loopable-game-bgm.yaml` | Seamlessly looping game music with loop-aware constraints |
 
 ```bash
 # Start from a template
 cp specs/templates/cinematic-3min.yaml specs/projects/my-movie-score/composition.yaml
 ```
 
-YaO also ships with 7 example projects in `specs/projects/` covering styles from classical piano trio to hard rock game BGM.
+YaO also ships with example projects in `specs/projects/` covering styles from classical piano trio to hard rock game BGM.
+
+---
+
+## Architecture Overview
+
+YaO follows a strict layered architecture. Each layer can only depend on layers below it, enforced by an AST-based linter (`make arch-lint`).
+
+```
+Conductor          — Orchestrates the generate-evaluate-adapt loop
+  |
+Layer 6: Verify    — Evaluation, music linting, score diffing, constraints
+  |
+Layer 5: Render    — MIDI writer, stem export, audio renderer, iteration mgmt
+  |
+Layer 4: Perception — Aesthetic judgment (planned)
+  |
+Layer 3.5: MPIR    — Musical Plan IR: SongFormPlan, HarmonyPlan (v2.0)
+  |
+Layer 3: IR        — ScoreIR, Note, harmony, motif, voicing, timing, notation
+  |
+Layer 1: Schema    — Pydantic models for YAML specs (v1 + v2)
+  |
+Layer 0: Constants — Instrument ranges, MIDI maps, scales, chords, dynamics
+```
+
+**v2.0 introduces Layer 3.5 (Musical Plan IR)**, which separates *what to play* (the plan) from *how to play it* (the notes). The generation pipeline becomes:
+
+```
+CompositionSpec → Plan Generators → MusicalPlan → Note Realizers → ScoreIR → MIDI
+```
+
+Key data types flow through the system:
+
+- **`CompositionSpec`** (Pydantic) — validated YAML input
+- **`MusicalPlan`** (MPIR) — structural and harmonic decisions before notes are placed
+- **`ScoreIR`** (frozen dataclass) — concrete notes: `Section` -> `Part` -> `Note`
+- **`ProvenanceLog`** (append-only) — every generation decision with timestamp, parameters, and rationale
+- **`EvaluationReport`** — quality scores that drive the Conductor's feedback loop
+
+All IR objects are immutable (frozen dataclasses). All timing conversions go through `ir.timing`. All pitch conversions go through `ir.notation`.
+
+For the full architecture diagram and current implementation status, see [PROJECT.md](PROJECT.md) and the [Architecture Guide](docs/architecture/layers.md).
 
 ---
 
@@ -562,32 +617,6 @@ YaO auto-detects SoundFont files in the `soundfonts/` directory.
 
 ---
 
-## Architecture
-
-YaO follows a strict 7-layer architecture. Each layer can only depend on layers below it, enforced by an AST-based linter (`make arch-lint`):
-
-```
-Conductor         -- Orchestrates the full generate-evaluate-adapt pipeline
-  |
-Layer 6: Verify   -- Linting, analysis, evaluation, diffing, constraints
-Layer 5: Render   -- MIDI writing, stems, audio rendering, iteration management
-Layer 4: Percept  -- Aesthetic judgment substitutes (planned)
-Layer 2: Generate -- Pluggable generators (rule-based, stochastic)
-Layer 1: Spec/IR  -- YAML parsing, Pydantic models, ScoreIR, harmony, motif, voicing, timing, provenance
-Layer 0: Consts   -- Instrument ranges, MIDI mappings, scales, chords, dynamics
-```
-
-Key data types flow through the system:
-
-- **`CompositionSpec`** (Pydantic) — validated YAML input
-- **`ScoreIR`** (frozen dataclass) — the central intermediate representation containing `Section` -> `Part` -> `Note`
-- **`ProvenanceLog`** (append-only) — every generation decision with timestamp, parameters, and rationale
-- **`EvaluationReport`** — quality scores that drive the Conductor's feedback loop
-
-All IR objects are immutable (frozen dataclasses). All timing conversions go through `ir.timing`. All pitch conversions go through `ir.notation`.
-
----
-
 ## Project Structure
 
 ```
@@ -604,32 +633,37 @@ yao/
 |   |   |   +-- feedback.py       #   Evaluation-driven spec adaptation
 |   |   |   +-- result.py         #   Structured output with iteration history
 |   |   +-- constants/            # Instrument ranges, MIDI maps, scales, chords
-|   |   +-- schema/               # Pydantic models (composition, trajectory, constraints,
-|   |   |                         #   negative space, references, production)
+|   |   +-- schema/               # Pydantic models (v1 + v2 composition, trajectory,
+|   |   |                         #   constraints, intent, references, production, etc.)
 |   |   +-- ir/                   # ScoreIR, Note, harmony, motif, voicing, timing, notation
+|   |   |   +-- plan/             # Musical Plan IR (SongFormPlan, HarmonyPlan, MusicalPlan)
 |   |   +-- generators/           # Rule-based + stochastic, pluggable registry
+|   |   |   +-- plan/             # Plan generators (form planner, harmony planner)
+|   |   |   +-- note/             # Note realizers (rule-based, stochastic)
 |   |   +-- perception/           # Aesthetic judgment substitutes (planned)
 |   |   +-- render/               # MIDI writer, stem export, audio renderer, iteration mgmt
 |   |   +-- verify/               # Lint, analysis, evaluation, diff, constraint checker
-|   |   +-- reflect/              # Provenance logging with query and explain
+|   |   +-- reflect/              # Provenance logging with query, explain, and recoverable decisions
 |   |   +-- errors.py             # Custom exception hierarchy (YaOError base)
 |   |   +-- types.py              # Domain type aliases (MidiNote, Beat, Velocity, Tick, etc.)
-|   +-- cli/                      # Click CLI (conduct, compose, render, diff, evaluate, explain)
+|   +-- cli/                      # Click CLI (conduct, compose, render, diff, evaluate, explain, etc.)
 |
 +-- .claude/
 |   +-- commands/                 # Claude Code slash commands (7)
 |   +-- agents/                   # Subagent definitions (7)
-|   +-- guides/                   # Developer guides (architecture, coding, music, testing, workflow)
+|   +-- guides/                   # Developer guides (architecture, coding, music, testing, workflow, etc.)
+|   +-- skills/                   # Domain knowledge (cinematic, voice-leading, piano, tension-resolution)
 |
 +-- specs/
-|   +-- templates/                # Ready-to-use YAML templates (4)
-|   +-- projects/                 # Your compositions (7 examples included)
+|   +-- templates/                # Ready-to-use YAML templates (v1: 4, v2: 3)
+|   +-- projects/                 # Your compositions (examples included)
 |
 +-- outputs/                      # Generated MIDI, audio, analysis (git-ignored)
 +-- soundfonts/                   # SoundFont files for audio rendering
-+-- tests/                        # 226 tests across unit, integration, scenario, constraint
-+-- tools/                        # Architecture lint (layer boundary enforcement)
-+-- docs/                         # Design docs, reference, tutorials
++-- tests/                        # 447 tests: unit, integration, scenario, constraint, golden
++-- tools/                        # Architecture lint, capability matrix check, spec migration
++-- docs/                         # User-facing documentation
++-- development/                  # Developer reference documentation
 ```
 
 ---
@@ -637,25 +671,30 @@ yao/
 ## Development
 
 ```bash
-make install        # Install with dev dependencies
-make test           # Run all 226 tests
-make test-unit      # Unit tests only (207 tests)
+make install           # Install with dev dependencies
+make test              # Run all 447 tests
+make test-unit         # Unit tests only
 make test-integration  # Full pipeline tests
-make test-music     # Music constraint tests (instrument ranges, voice leading)
-make lint           # ruff + mypy (strict)
-make format         # Auto-format code
-make arch-lint      # Layer boundary enforcement (AST-based)
-make all-checks     # lint + arch-lint + test
+make test-music        # Music constraint tests (instrument ranges, voice leading)
+make test-golden       # Golden MIDI regression tests
+make lint              # ruff + mypy (strict)
+make format            # Auto-format code
+make arch-lint         # Layer boundary enforcement (AST-based)
+make matrix-check      # Verify Capability Matrix matches reality
+make all-checks        # lint + arch-lint + matrix-check + test + test-golden
 ```
+
+For current implementation status, see the [Capability Matrix in PROJECT.md](PROJECT.md#4-capability-matrix-single-source-of-truth).
 
 ### Test Organization
 
-| Directory | Tests | Purpose |
+| Directory | Purpose | Count |
 |---|---|---|
-| `tests/unit/` | 207 | Individual modules — IR, schema, generators, render, verify, conductor, harmony, motif, voicing, evaluator, constraints, diff, feedback, errors |
-| `tests/integration/` | 2 | Full spec -> MIDI -> analysis -> evaluation pipeline |
-| `tests/music_constraints/` | 7 | Instrument range constraints (parameterized across instruments) |
-| `tests/scenarios/` | 10 | Musical scenarios — tension arcs create climax, different specs produce different music, genre-specific tests |
+| `tests/unit/` | Individual modules — IR, schema, generators, render, verify, conductor, harmony, motif, voicing, evaluator, constraints, diff, feedback, errors, MPIR, metric goals, recoverable decisions | ~400 |
+| `tests/integration/` | Full spec -> MIDI -> analysis -> evaluation pipeline, silent fallback checks | ~20 |
+| `tests/music_constraints/` | Instrument range constraints (parameterized across 38 instruments) | ~15 |
+| `tests/scenarios/` | Musical scenarios — tension arcs, different specs produce different music, trajectory compliance | ~10 |
+| `tests/golden/` | Regression tests against committed MIDI fixtures | ~5 |
 
 ### Test Helpers
 
@@ -678,6 +717,40 @@ from tests.helpers import assert_in_range, assert_no_parallel_fifths, assert_tra
 
 ---
 
+## Current Status: Phase α
+
+YaO is in active development. The current phase focuses on building the scaffolding for the v2.0 **Music-as-Plan** architecture.
+
+### What works today
+- Full composition pipeline: YAML spec -> MIDI with stems, analysis, evaluation, provenance
+- Two generation strategies: rule-based (deterministic) and stochastic (seeded randomness)
+- Conductor feedback loop with automatic evaluate-adapt-regenerate
+- Section-level regeneration
+- MIDI reader (load existing MIDI back to ScoreIR)
+- Score diffing with modified note tracking
+- Constraint system with scoped rules
+- 9 CLI commands, 7 Claude Code slash commands, 7 subagent definitions
+- 447 tests across unit, integration, scenario, constraint, and golden categories
+- v1 and v2 spec formats with auto-detection
+
+### What's being built
+- Musical Plan IR (MPIR) — SongFormPlan, HarmonyPlan as first-class intermediaries
+- MetricGoal type system for richer evaluation
+- RecoverableDecision mechanism for traceable fallbacks
+- Golden MIDI test infrastructure
+
+### What's planned for future phases
+- MotifPlan, PhrasePlan, DrumPattern, ArrangementPlan
+- Adversarial Critic with 30+ structured rules
+- Multi-candidate Conductor
+- Perception layer (aesthetic judgment)
+- Arrangement engine (reharmonization, style transfer)
+- Genre-specific Skills (12 planned)
+- MusicXML / LilyPond output
+- DAW integration via MCP
+
+---
+
 ## Design Philosophy
 
 1. **The agent is an environment, not a composer** — YaO accelerates human creativity; it doesn't replace it
@@ -685,6 +758,7 @@ from tests.helpers import assert_in_range, assert_no_parallel_fifths, assert_tra
 3. **Constraints liberate** — specs and theory rules are scaffolding, not cages
 4. **Time-axis first** — trajectory curves define the arc; notes fill the details
 5. **The human ear is the final truth** — automated scores inform; humans decide
+6. **Vertical alignment** — input expressiveness, processing depth, and evaluation resolution advance together
 
 Full design: [PROJECT.md](PROJECT.md) | Development rules: [CLAUDE.md](CLAUDE.md) | Documentation: [docs/](docs/)
 

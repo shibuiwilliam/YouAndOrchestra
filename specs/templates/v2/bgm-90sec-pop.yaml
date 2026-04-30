@@ -1,0 +1,125 @@
+version: "2"
+
+identity:
+  title: "Neon Morning"
+  purpose: "product demo bgm"
+  duration_sec: 90
+  loopable: true
+
+global:
+  key: "D major"
+  bpm: 128
+  time_signature: "4/4"
+  genre: "future_pop"
+
+emotion:
+  valence: 0.8
+  energy: 0.75
+  tension: 0.45
+  warmth: 0.6
+  nostalgia: 0.3
+
+form:
+  sections:
+    - id: intro
+      bars: 4
+      density: 0.25
+    - id: verse_a
+      bars: 8
+      density: 0.45
+    - id: chorus_a
+      bars: 8
+      density: 0.9
+      climax: true
+    - id: verse_b
+      bars: 8
+      density: 0.5
+    - id: chorus_b
+      bars: 8
+      density: 0.85
+    - id: outro
+      bars: 4
+      density: 0.2
+
+melody:
+  range:
+    min: "A3"
+    max: "E5"
+  contour: "arch"
+  motif:
+    length_beats: 2
+    repetition_rate: 0.65
+    variation_rate: 0.35
+  intervals:
+    stepwise_ratio: 0.7
+    max_leap: "P5"
+  phrase:
+    bars_per_phrase: 4
+    call_response: true
+
+harmony:
+  complexity: 0.55
+  chord_palette: ["I", "V", "vi", "IV", "ii", "V/V"]
+  cadence:
+    verse_a: "half"
+    chorus_a: "authentic"
+  harmonic_rhythm:
+    verse_a: "1 chord per bar"
+    chorus_a: "2 chords per bar"
+
+rhythm:
+  groove: "four_on_the_floor"
+  swing: 0.08
+  syncopation: 0.35
+
+drums:
+  pattern_family: "pop_8beat"
+  swing: 0.1
+  ghost_notes_density: 0.3
+  fills_at: ["pre_chorus_end", "bridge_end"]
+
+arrangement:
+  instruments:
+    drums:
+      role: rhythm
+      pattern_family: "electro_pop"
+    bass:
+      role: bass
+      motion: "root_octave_passing"
+    pad:
+      role: harmony
+      voicing: "wide"
+    lead:
+      role: melody
+      articulation: "pluck"
+  counter_melody:
+    enabled_sections: ["chorus"]
+
+production:
+  use_case: "youtube_bgm"
+  target_lufs: -16
+  stereo_width: 0.7
+  vocal_space_reserved: true
+
+constraints:
+  - kind: must
+    rule: "melody_within_range"
+    scope: global
+    severity: error
+  - kind: must
+    rule: "chorus_density > verse_density"
+    scope: section_relation
+    severity: warning
+  - kind: prefer
+    rule: "motif_repetition_rate in [0.5, 0.8]"
+    scope: "section:verse"
+    severity: hint
+  - kind: avoid
+    rule: "consecutive_leaps > 2"
+    scope: "instrument:violin"
+    severity: hint
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.5

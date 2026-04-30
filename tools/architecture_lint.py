@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Architecture lint — enforces YaO's 7-layer boundary rules.
+"""Architecture lint — enforces YaO's 8-layer boundary rules.
 
 This script uses AST parsing to check import statements without executing code.
 It enforces two rules:
 
 1. Layer boundary: lower layers cannot import from upper layers.
+   Layer 3.5 (ir/plan/) is at the same level as ir/ (Layer 1) — plan types
+   are foundational data structures consumed by generators, verify, and conductor.
 2. Library restriction: pretty_midi, music21, librosa can only be imported
    in ir/, render/, verify/.
 
@@ -20,16 +22,16 @@ from pathlib import Path
 
 # Layer numbers — lower layers cannot import upper layers.
 #
-# Design note: IR data types (Note, ScoreIR) and provenance types are
+# Design note: IR data types (Note, ScoreIR, Plan IR) and provenance types are
 # foundational — all layers produce/consume them. They are placed at
-# layer 1 alongside schema. The "Layer 3" designation in PROJECT.md refers
-# to IR *processing* capabilities (analysis, complex transformations), not
-# the data types themselves. Similarly, provenance recording is a
+# layer 1 alongside schema. The "Layer 3" / "Layer 3.5" designations in
+# PROJECT.md refer to the conceptual architecture; at the import level,
+# ir/ (including ir/plan/) is layer 1. Similarly, provenance recording is a
 # cross-cutting concern that all layers must participate in.
 LAYER_MAP: dict[str, int] = {
     "constants": 0,  # available to all layers
     "schema": 1,
-    "ir": 1,         # IR data types are shared across all layers
+    "ir": 1,         # IR data types (Score IR + Plan IR) shared across all layers
     "reflect": 1,    # provenance types are cross-cutting
     "generators": 2,
     "perception": 4,

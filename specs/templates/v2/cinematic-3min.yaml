@@ -1,0 +1,122 @@
+version: "2"
+
+identity:
+  title: "The Last Dawn"
+  purpose: "cinematic trailer music"
+  duration_sec: 180
+  loopable: false
+
+global:
+  key: "D minor"
+  bpm: 72
+  time_signature: "4/4"
+  genre: "cinematic"
+
+emotion:
+  valence: 0.3
+  energy: 0.6
+  tension: 0.7
+  warmth: 0.4
+  nostalgia: 0.5
+
+form:
+  sections:
+    - id: intro
+      bars: 8
+      density: 0.15
+    - id: theme_a
+      bars: 8
+      density: 0.35
+    - id: development
+      bars: 16
+      density: 0.6
+    - id: climax
+      bars: 8
+      density: 0.95
+      climax: true
+    - id: resolution
+      bars: 8
+      density: 0.4
+    - id: outro
+      bars: 4
+      density: 0.15
+
+melody:
+  range:
+    min: "G3"
+    max: "G5"
+  contour: "arch"
+  motif:
+    length_beats: 4
+    repetition_rate: 0.5
+    variation_rate: 0.4
+  intervals:
+    stepwise_ratio: 0.6
+    max_leap: "M6"
+  phrase:
+    bars_per_phrase: 4
+    call_response: false
+
+harmony:
+  complexity: 0.7
+  chord_palette: ["i", "iv", "V", "VI", "III", "v", "bVII"]
+  cadence:
+    theme_a: "half"
+    climax: "authentic"
+    resolution: "plagal"
+  harmonic_rhythm:
+    intro: "1 chord per 2 bars"
+    climax: "2 chords per bar"
+
+rhythm:
+  groove: "straight"
+  swing: 0.0
+  syncopation: 0.15
+
+drums:
+  pattern_family: "orchestral"
+  swing: 0.0
+  ghost_notes_density: 0.0
+  fills_at: ["development_end"]
+
+arrangement:
+  instruments:
+    strings_ensemble:
+      role: pad
+      voicing: "wide"
+    piano:
+      role: melody
+      articulation: "legato"
+    cello:
+      role: bass
+      motion: "root_octave_passing"
+    french_horn:
+      role: harmony
+      voicing: "close"
+  counter_melody:
+    enabled_sections: ["climax"]
+
+production:
+  use_case: "general"
+  target_lufs: -14
+  stereo_width: 0.85
+  vocal_space_reserved: false
+
+constraints:
+  - kind: must
+    rule: "melody_within_range"
+    scope: global
+    severity: error
+  - kind: must
+    rule: "climax_density > intro_density"
+    scope: section_relation
+    severity: error
+  - kind: prefer
+    rule: "stepwise_ratio > 0.5"
+    scope: global
+    severity: hint
+
+generation:
+  strategy: stochastic
+  seed: 7
+  temperature: 0.6

@@ -32,7 +32,7 @@ Claude Code will guide you through choices:
 - Instrument selection from 38 available instruments
 - Section structure (intro/verse/chorus/outro)
 - Dynamic arc and trajectory curves
-- Writes the YAML spec and validates it for you
+- Writes the YAML spec (v1 or v2 format) and validates it for you
 
 ### `/compose` — Generate with the Conductor
 
@@ -43,7 +43,7 @@ Claude Code will guide you through choices:
 Runs the Conductor's automatic iteration loop:
 1. Reads the spec and confirms intent
 2. Generates the composition
-3. Evaluates quality across structure, melody, and harmony
+3. Evaluates quality across structure, melody, and harmony (8 metrics with MetricGoal pass/fail)
 4. Adapts the spec if metrics fail and regenerates
 5. Shows final output with evaluation summary
 
@@ -59,6 +59,8 @@ You can also compose from natural language:
 ```
 
 The adversarial critic finds every weakness — it never praises. Each finding includes severity (critical/major/minor/suggestion), specific bar references, and a direction for improvement. Writes `critique.md` to the iteration directory.
+
+In v2.0, critique is moving toward structured `Finding` objects with 30+ rules, replacing free-text critique for more actionable feedback.
 
 ### `/regenerate-section` — Fix one section
 
@@ -190,6 +192,19 @@ Behind the scenes, Claude Code can invoke specialized subagents:
 | **Orchestrator** | Assigns instruments, voicings, frequency spacing |
 | **Mix Engineer** | Manages stereo placement, dynamics, frequency balance |
 | **Adversarial Critic** | Finds weaknesses — never praises |
+
+---
+
+## Domain Skills
+
+YaO includes 4 domain knowledge skills that Claude Code can draw on:
+
+| Skill | Domain |
+|---|---|
+| `genres/cinematic` | Cinematic composition techniques and conventions |
+| `instruments/piano` | Piano-specific writing techniques |
+| `theory/voice-leading` | Voice leading rules and best practices |
+| `psychology/tension-resolution` | Emotional arc and tension/resolution patterns |
 
 ---
 

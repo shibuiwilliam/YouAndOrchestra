@@ -17,6 +17,7 @@ from yao.ir.note import Note
 from yao.ir.score_ir import Part, ScoreIR, Section
 from yao.ir.timing import bars_to_beats
 from yao.reflect.provenance import ProvenanceLog
+from yao.reflect.recoverable import RecoverableDecision
 from yao.schema.composition import CompositionSpec, SectionSpec
 from yao.schema.trajectory import TrajectorySpec
 from yao.types import BPM, Beat, MidiNote, Velocity
@@ -44,6 +45,30 @@ class RuleBasedGenerator(GeneratorBase):
     All decisions are logged to provenance.
     """
 
+    _provenance: ProvenanceLog
+
+    def _record_recovery(
+        self,
+        code: str,
+        severity: str,
+        original: object,
+        recovered: object,
+        reason: str,
+        impact: str,
+        fix: list[str] | None = None,
+    ) -> None:
+        """Record a RecoverableDecision on the current provenance log."""
+        decision = RecoverableDecision(
+            code=code,
+            severity=severity,  # type: ignore[arg-type]
+            original_value=original,
+            recovered_value=recovered,
+            reason=reason,
+            musical_impact=impact,
+            suggested_fix=fix or [],
+        )
+        self._provenance.record_recoverable(decision)
+
     def generate(
         self,
         spec: CompositionSpec,
@@ -59,6 +84,7 @@ class RuleBasedGenerator(GeneratorBase):
             Tuple of (ScoreIR, ProvenanceLog).
         """
         prov = ProvenanceLog()
+        self._provenance = prov
         prov.record(
             layer="generator",
             operation="start_generation",
@@ -347,18 +373,25 @@ class RuleBasedGenerator(GeneratorBase):
                 trajectory=trajectory,
             )
 
+            chord_vel = max(velocity - 10, 1)
             for interval in chord_intervals:
                 pitch = root_pitch + interval
-                note = Note(
-                    pitch=pitch,
-                    start_beat=bar_start,
-                    duration_beats=beats_per_bar * 0.9,
-                    velocity=max(velocity - 10, 1),  # chords slightly softer
-                    instrument=instrument,
-                )
-                # Skip notes outside the instrument range
                 if self._is_in_range(pitch, instrument):
+                    note = Note(
+                        pitch=pitch,
+                        start_beat=bar_start,
+                        duration_beats=beats_per_bar * 0.9,
+                        velocity=chord_vel,
+                        instrument=instrument,
+                    )
                     notes.append(note)
+                else:
+                    self._record_recovery(
+                        "CHORD_NOTE_OUT_OF_RANGE", "info",
+                        pitch, None,
+                        f"Chord note {pitch} outside {instrument} range",
+                        "Chord voicing has one fewer note",
+                    )
 
         return notes
 
@@ -381,7 +414,15 @@ class RuleBasedGenerator(GeneratorBase):
             modifier = (tension - 0.5) * 0.4
             base_velocity = int(base_velocity * (1.0 + modifier))
 
-        return max(1, min(127, base_velocity))
+        clamped = max(1, min(127, base_velocity))
+        if clamped != base_velocity:
+            self._record_recovery(
+                "VELOCITY_CLAMPED", "info",
+                base_velocity, clamped,
+                f"Base velocity {base_velocity} clamped to MIDI range",
+                "Negligible — dynamics at MIDI boundary",
+            )
+        return clamped
 
     def _melody_octave(self, instrument: str) -> int:
         """Choose an appropriate octave for melody based on instrument range."""
