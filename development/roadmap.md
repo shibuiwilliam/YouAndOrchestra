@@ -48,7 +48,7 @@
 - Plan generators: form planner, harmony planner
 - MetricGoal type system for richer evaluation
 - RecoverableDecision mechanism for traceable fallbacks
-- 643 tests (unit, integration, scenario, constraint, golden, subagent evals)
+- 1,094 tests (unit, integration, scenario, constraint, golden, subagent evals, subjective)
 
 **In progress (Phase alpha):**
 - Completing CPIR as the required intermediary between specs and notes

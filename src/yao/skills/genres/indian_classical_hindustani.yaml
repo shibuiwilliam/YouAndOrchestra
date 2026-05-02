@@ -1,0 +1,45 @@
+genre: indian_classical_hindustani
+cultural_context: Hindustani classical music of North India. Raga-based melodic system
+  with strict ascending/descending rules, time-of-day associations, and microtonal
+  inflections. Transmitted through guru-shishya (teacher-student) lineage. YaO does
+  not claim to represent any specific gharana (school).
+tempo_range:
+- 40
+- 160
+typical_keys:
+- C
+- D
+- G
+modal_options:
+- raga_yaman
+- raga_bhairav
+- raga_darbari
+default_swing: 0.0
+typical_drum_pattern: null
+preferred_instruments:
+- sitar
+- tabla
+- tanpura
+- sarangi
+- bansuri
+avoided_instruments:
+- electric_guitar_distortion
+- drums
+- synth_lead_saw
+forbidden_in_pure_form:
+- chord_progressions
+- equal_temperament_strict
+- drum_kit_patterns
+- functional_harmony
+allowed_relaxations:
+- fusion: Western chord pads may underlay raga melody
+- contemporary: Equal temperament approximation acceptable with disclosure
+- film: Simplified raga motifs over orchestral harmony
+expert_review_note: "Based on Jairazbhoy, N.A. 'The Rags of North Indian Music' (1971,\
+  \ Wesleyan Univ. Press); Powers, H.S. 'Indian Music and the English Language' in\
+  \ Ethnomusicology (1965). Not reviewed by a practicing Hindustani musician \u2014\
+  \ treat as educational reference, not authoritative guide."
+references:
+- Jairazbhoy, N.A. (1971). The Rags of North Indian Music. Wesleyan University Press.
+- Powers, H.S. (1965). Indian Music and the English Language. Ethnomusicology, 9(1).
+- Bor, J. (1999). The Raga Guide. Nimbus Records / Rotterdam Conservatory.

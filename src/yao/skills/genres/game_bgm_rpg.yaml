@@ -1,0 +1,63 @@
+genre: game_bgm_rpg
+cultural_context: ''
+tempo_range:
+- 60
+- 140
+typical_keys:
+- C
+- Am
+- Dm
+- F
+- G
+modal_options:
+- major
+- minor
+- dorian
+- lydian
+default_swing: 0.0
+typical_drum_pattern: null
+preferred_instruments:
+- piano
+- strings_ensemble
+- flute
+- harp
+- acoustic_guitar
+- cello
+avoided_instruments:
+- electric_guitar_distortion
+- synth_lead_saw
+typical_chord_progressions:
+- - I
+  - IV
+  - vi
+  - V
+- - vi
+  - IV
+  - I
+  - V
+- - I
+  - iii
+  - IV
+  - V
+- - i
+  - VI
+  - III
+  - VII
+characteristic_rhythms:
+- arpeggiated_accompaniment
+- gentle_ostinato
+- flowing_eighth
+common_cliches_to_avoid:
+- overuse_of_same_loop
+- jarring_loop_seam
+- ignoring_gameplay_state
+representative_techniques:
+- seamless_looping
+- layered_intensity
+- exploration_vs_battle_modes
+- memorable_town_theme
+expert_review_note: Based on Collins, K. 'Game Sound' (2008, MIT Press); Sweet, M.
+  'Writing Interactive Music for Video Games' (2014, Addison-Wesley).
+references:
+- Collins, K. (2008). Game Sound. MIT Press.
+- Sweet, M. (2014). Writing Interactive Music for Video Games. Addison-Wesley.

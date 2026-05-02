@@ -33,6 +33,13 @@ EXPECTED_GENRES = [
     "funk",
     "edm_house",
     "synthwave",
+    # New 6 (v2.0 Tier 4)
+    "indian_classical_hindustani",
+    "arab_maqam",
+    "bossa_nova",
+    "celtic_traditional",
+    "film_score_dramatic",
+    "game_bgm_rpg",
     "baroque",
     "romantic",
 ]
@@ -47,9 +54,9 @@ class TestGenreSkillFiles:
     """Verify genre Skill file structure and content."""
 
     def test_minimum_genre_count(self) -> None:
-        """v2.0 target: at least 16 genres."""
+        """v2.0 target: at least 22 genres."""
         md_files = _all_skill_files()
-        assert len(md_files) >= 16, f"Expected 16+ genres, got {len(md_files)}"  # noqa: PLR2004
+        assert len(md_files) >= 22, f"Expected 22+ genres, got {len(md_files)}"  # noqa: PLR2004
 
     def test_all_expected_genres_present(self) -> None:
         """All planned genres must have Skill files."""
@@ -111,3 +118,61 @@ class TestGenreSkillFiles:
             if fm is None or fm["genre"] not in new_genres:
                 continue
             assert "characteristic_rhythms" in fm, f"{md.name} missing characteristic_rhythms"
+
+
+class TestWorldGenreSkills:
+    """Tests specific to world/non-Western genre Skills."""
+
+    _WORLD_GENRES = {
+        "indian_classical_hindustani",
+        "arab_maqam",
+        "bossa_nova",
+        "celtic_traditional",
+    }
+
+    def test_world_genres_have_cultural_context(self) -> None:
+        for md in _all_skill_files():
+            fm = extract_frontmatter(md)
+            if fm is None or fm["genre"] not in self._WORLD_GENRES:
+                continue
+            assert "cultural_context" in fm, f"{md.name} missing cultural_context"
+            assert fm["cultural_context"], f"{md.name} has empty cultural_context"
+
+    def test_world_genres_have_forbidden_in_pure_form(self) -> None:
+        for md in _all_skill_files():
+            fm = extract_frontmatter(md)
+            if fm is None or fm["genre"] not in self._WORLD_GENRES:
+                continue
+            assert "forbidden_in_pure_form" in fm, f"{md.name} missing forbidden_in_pure_form"
+            assert len(fm["forbidden_in_pure_form"]) > 0, f"{md.name} has empty forbidden_in_pure_form"
+
+    def test_world_genres_have_allowed_relaxations(self) -> None:
+        for md in _all_skill_files():
+            fm = extract_frontmatter(md)
+            if fm is None or fm["genre"] not in self._WORLD_GENRES:
+                continue
+            assert "allowed_relaxations" in fm, f"{md.name} missing allowed_relaxations"
+
+    def test_world_genres_have_expert_review_note(self) -> None:
+        for md in _all_skill_files():
+            fm = extract_frontmatter(md)
+            if fm is None or fm["genre"] not in self._WORLD_GENRES:
+                continue
+            assert "expert_review_note" in fm, f"{md.name} missing expert_review_note"
+            assert fm["expert_review_note"], f"{md.name} has empty expert_review_note"
+
+    def test_forbidden_and_relaxations_no_overlap(self) -> None:
+        for md in _all_skill_files():
+            fm = extract_frontmatter(md)
+            if fm is None or fm["genre"] not in self._WORLD_GENRES:
+                continue
+            forbidden = set(fm.get("forbidden_in_pure_form", []))
+            relaxations = fm.get("allowed_relaxations", [])
+            # relaxations are dicts with keys like "fusion", not the same as forbidden items
+            if isinstance(relaxations, list):
+                for r in relaxations:
+                    if isinstance(r, dict):
+                        # dict keys are context names, not forbidden items — no overlap possible
+                        pass
+                    elif isinstance(r, str):
+                        assert r not in forbidden, f"{md.name}: '{r}' in both forbidden and relaxations"

@@ -103,3 +103,30 @@ class VerificationError(YaOError):
 
 class ProvenanceError(YaOError):
     """Raised when provenance recording fails or is violated."""
+
+
+class MissingRightsStatusError(YaOError):
+    """Raised when a reference has unknown or missing rights status.
+
+    All reference material must have explicit licensing.
+    ``unknown`` is not acceptable (CLAUDE.md copyright rules).
+    """
+
+
+class ForbiddenExtractionError(YaOError):
+    """Raised when attempting to extract a forbidden feature from a reference.
+
+    Features like melody_contour and chord_progression are blocked at
+    both schema level and runtime for copyright protection.
+    """
+
+
+class NeuralBackendUnavailableError(YaOError):
+    """Raised when a neural backend (torch, audiocraft, etc.) is not installed.
+
+    The error message includes installation instructions.
+    """
+
+
+class NeuralGenerationTimeoutError(YaOError):
+    """Raised when neural generation exceeds the timeout budget."""

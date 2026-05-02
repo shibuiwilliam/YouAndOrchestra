@@ -24,10 +24,10 @@ Technical documentation for contributors and AI agents developing YaO.
 ## Current State
 
 - **Phase:** Alpha (CPIR foundation)
-- **Tests:** ~643 (unit, integration, scenario, constraint, golden, subagent evals)
+- **Tests:** ~1,094 (unit, integration, scenario, constraint, golden, subagent evals, subjective)
 - **Source files:** 85 Python modules in src/yao/
 - **Generators:** 2 legacy (rule_based, stochastic) wrapped as NoteRealizers + 2 plan generators (form, harmony)
-- **Critique rules:** 15 structured rules across 6 categories (structural, melodic, harmonic, rhythmic, arrangement, emotional)
+- **Critique rules:** 20 structured rules across 8 categories (structural, melodic, harmonic, rhythmic, arrangement, emotional, genre fitness, memorability)
 - **Spec formats:** v1 (flat YAML) + v2 (11-section with emotion, melody, harmony, drums, etc.)
 - **Pipeline:** Spec → PlanOrchestrator → MusicalPlan → NoteRealizer → ScoreIR → MIDI
 - **Evaluation:** 10 metrics across 3 dimensions, MetricGoal type system, quality score 1.0-10.0

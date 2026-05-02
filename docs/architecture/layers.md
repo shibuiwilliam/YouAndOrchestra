@@ -11,7 +11,7 @@ YaO uses a strict layered architecture with downward-only dependency flow. This 
 +--------------------------------------------------------------+
 | Layer 6: Verification (verify/)                              |
 |   Linting, evaluation (10 metrics + quality score),          |
-|   critique (15 rules), constraints, diffing, MetricGoal      |
+|   critique (20 rules), constraints, diffing, MetricGoal      |
 +--------------------------------------------------------------+
 | Layer 5: Rendering (render/)                                 |
 |   MIDI writing/reading, audio rendering, stems, iterations   |

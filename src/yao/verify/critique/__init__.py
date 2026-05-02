@@ -61,3 +61,19 @@ CRITIQUE_RULES.register(TextureCollapseDetector())
 # Emotional (2)
 CRITIQUE_RULES.register(IntentDivergenceDetector())
 CRITIQUE_RULES.register(TrajectoryViolationDetector())
+# Memorability (2) — NEW
+from yao.verify.critique.memorability import (  # noqa: E402
+    HookWeaknessDetector,
+    MotifAbsenceDetector,
+)
+
+CRITIQUE_RULES.register(MotifAbsenceDetector())
+CRITIQUE_RULES.register(HookWeaknessDetector())
+# Genre Fitness (2) — NEW
+from yao.verify.critique.genre_fitness import (  # noqa: E402
+    InstrumentMismatchDetector,
+    TempoOutOfRangeDetector,
+)
+
+CRITIQUE_RULES.register(TempoOutOfRangeDetector())
+CRITIQUE_RULES.register(InstrumentMismatchDetector())

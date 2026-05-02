@@ -35,15 +35,20 @@ LAYER_MAP: dict[str, int] = {
     "reflect": 1,  # provenance types are cross-cutting
     "generators": 2,
     "perception": 4,
+    "arrange": 5,  # arrangement engine uses ir, render, schema
     "mix": 5,
     "render": 5,
     "verify": 6,
+    "runtime": 7,  # project runtime uses ir, render, reflect
+    "agents": 7,  # agent backends import subagents (like conductor)
+    "annotate": 7,  # annotation UI uses reflect + render (like conductor)
+    "subagents": 7,  # subagents coordinate across layers (like conductor)
     "conductor": 7,  # orchestrator: can import all layers (like cli)
 }
 
 # These libraries can only be imported in specific modules
 RESTRICTED_LIBRARIES: dict[str, set[str]] = {
-    "pretty_midi": {"ir", "render"},
+    "pretty_midi": {"ir", "render", "arrange"},
     "music21": {"ir", "verify", "render"},
     "librosa": {"verify", "perception"},
     "pyloudnorm": {"verify", "perception", "mix"},

@@ -102,6 +102,7 @@ class Conductor:
         trajectory: TrajectorySpec | None = None,
         project_name: str | None = None,
         max_iterations: int = 3,
+        n_candidates: int = 1,
     ) -> ConductorResult:
         """Generate a composition from an existing spec with feedback iteration.
 
@@ -110,6 +111,7 @@ class Conductor:
             trajectory: Optional trajectory for dynamic shaping.
             project_name: Project name for output directory.
             max_iterations: Maximum number of generation rounds.
+            n_candidates: Number of parallel plan candidates (1=single, 2-10=multi).
 
         Returns:
             ConductorResult with the final composition and all metadata.
@@ -142,13 +144,52 @@ class Conductor:
             output_dir.mkdir(parents=True, exist_ok=True)
 
             # Generate via v2 pipeline (Spec → MPIR → ScoreIR)
-            score, plan, gen_provenance = generate_via_v2_pipeline(current_spec, trajectory)
+            if n_candidates > 1:
+                from yao.conductor.multi_candidate import MultiCandidateOrchestrator
 
-            # Merge provenance
-            for record in gen_provenance.records:
-                combined_provenance.add(record)
-            for dec in gen_provenance.recoverables:
-                combined_provenance.record_recoverable(dec)
+                mco = MultiCandidateOrchestrator()
+                base_seed = current_spec.generation.seed or 42
+                candidates = mco.generate_candidates(
+                    current_spec,
+                    trajectory,
+                    n=n_candidates,
+                    base_seed=base_seed,
+                )
+                ranked = mco.critic_rank(candidates, current_spec)
+                plan = mco.producer_select(ranked, combined_provenance)
+
+                # Merge provenance from the winning candidate
+                winning = next((c for c in ranked if c.plan is plan), None)
+                if winning is not None:
+                    for record in winning.provenance.records:
+                        combined_provenance.add(record)
+
+                # Realize the winning plan to ScoreIR
+                from yao.generators.note.base import NOTE_REALIZERS
+
+                strategy = current_spec.generation.strategy
+                if strategy not in NOTE_REALIZERS:
+                    strategy = "rule_based"
+                realizer = NOTE_REALIZERS[strategy]()
+                seed = current_spec.generation.seed or 42
+                gen_provenance = ProvenanceLog()
+                score = realizer.realize(
+                    plan,
+                    seed,
+                    current_spec.generation.temperature,
+                    gen_provenance,
+                    original_spec=current_spec,
+                )
+                for record in gen_provenance.records:
+                    combined_provenance.add(record)
+            else:
+                score, plan, gen_provenance = generate_via_v2_pipeline(current_spec, trajectory)
+
+                # Merge provenance
+                for record in gen_provenance.records:
+                    combined_provenance.add(record)
+                for dec in gen_provenance.recoverables:
+                    combined_provenance.record_recoverable(dec)
 
             # Adversarial Critic Gate (CLAUDE.md Rule B)
             spec_v2 = _v1_to_v2_for_critic(current_spec)

@@ -1,11 +1,10 @@
-"""Arrangement engine — transform existing music under preservation contracts.
+"""Arrangement Engine — transform existing music under preservation contracts.
 
-Phase gamma implementation. This package will contain:
-- analyzer.py: Source MIDI analysis
-- plan_extractor.py: Source → MPIR conversion
-- style_vector.py: Style vector operations
-- transformer.py: Preservation/transformation contract execution
-- differ.py: Arrangement diff report generation
+MVP implementation:
+- SourcePlanExtractor: MIDI → MusicalPlan (simplified MIR)
+- StyleVectorOps: style transfer via vector arithmetic
+- ArrangementDiffWriter: markdown diff output
+- Arrangement critique rules (4 rules)
 """
 
 from __future__ import annotations

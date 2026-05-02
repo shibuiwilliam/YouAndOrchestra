@@ -1,0 +1,14 @@
+{
+  "template_name": "minimal_v2",
+  "ratings": [
+    {
+      "overall": 7.0,
+      "memorability": 6.5,
+      "emotional_fit": 7.0,
+      "technical_quality": 7.5,
+      "genre_fitness": 7.0,
+      "rater_id": "dev_initial",
+      "date": "2026-05-02"
+    }
+  ]
+}

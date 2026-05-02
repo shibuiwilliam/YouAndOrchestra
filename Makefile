@@ -28,6 +28,9 @@ test-golden:
 test-subagent:
 	pytest tests/subagent_evals/ -v -m subagent
 
+test-subjective:
+	pytest tests/subjective/ -v -m subjective
+
 lint:
 	ruff check src/ tests/
 	mypy src/yao/
@@ -51,7 +54,10 @@ validate-spec:
 sync-skills:
 	python tools/skill_yaml_sync.py
 
-all-checks: lint arch-lint matrix-check feature-status test test-golden
+sync-docs:
+	python tools/sync_docs.py
+
+all-checks: lint arch-lint matrix-check feature-status sync-docs test test-golden
 
 new-project:
 	@test -n "$(NAME)" || (echo "Usage: make new-project NAME=my-song" && exit 1)

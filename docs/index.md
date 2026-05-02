@@ -14,7 +14,7 @@ YaO turns music composition into a structured, reproducible engineering process.
 - **Trajectory curves** — Shape tension, density, predictability, brightness, and register height over time
 - **Two generator strategies** — Deterministic (rule-based) and stochastic (seed + temperature, 4 contour algorithms, 5 chord voicing types)
 - **Quality evaluation** — 10 metrics across 3 dimensions with user-facing quality score (1.0-10.0) and MetricGoal-typed pass/fail
-- **Adversarial critique** — 15 structured rules across 6 categories emitting machine-actionable `Finding` objects
+- **Adversarial critique** — 20 structured rules across 8 categories emitting machine-actionable `Finding` objects
 - **Music linting** — Catches range violations, parallel fifths, velocity issues
 - **Constraint system** — Musical rules scoped to sections, instruments, or bar ranges
 - **Provenance tracking** — Every note has a recorded rationale; fallbacks tracked via RecoverableDecision
@@ -23,7 +23,7 @@ YaO turns music composition into a structured, reproducible engineering process.
 - **Score diffing** — Compare two generations to see exactly what changed musically
 - **MIDI reader** — Load existing MIDI files back into ScoreIR for analysis and iteration
 - **Claude Code integration** — 7 slash commands, 7 subagents, 4 domain skills for interactive workflow
-- **~643 tests** — Unit, integration, scenario, constraint, golden regression, and subagent eval tests
+- **~1,094 tests** — Unit, integration, scenario, constraint, golden, subagent eval, and subjective tests
 - **CI/CD** — GitHub Actions + pre-commit hooks (ruff, mypy, arch-lint)
 
 ## Architecture (v2.0)
