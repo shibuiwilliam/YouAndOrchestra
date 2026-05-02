@@ -18,12 +18,14 @@ from yao.ir.timing import beats_to_seconds
 
 if TYPE_CHECKING:
     from yao.ir.drum import DrumHit
+    from yao.ir.expression import PerformanceLayer
     from yao.ir.score_ir import ScoreIR
 
 
 def score_ir_to_midi(
     score: ScoreIR,
     ppq: int = DEFAULT_PPQ,
+    performance_layer: PerformanceLayer | None = None,
 ) -> pretty_midi.PrettyMIDI:
     """Convert a ScoreIR to a PrettyMIDI object.
 
@@ -56,9 +58,25 @@ def score_ir_to_midi(
             for note in part.notes:
                 start_time = beats_to_seconds(note.start_beat, score.tempo_bpm)
                 end_time = beats_to_seconds(note.end_beat(), score.tempo_bpm)
+                velocity = note.velocity
+
+                # Apply PerformanceLayer overlays if available
+                if performance_layer is not None:
+                    note_id = (part.instrument, note.start_beat, note.pitch)
+                    expr = performance_layer.note_expressions.get(note_id)
+                    if expr is not None:
+                        # Microtiming: shift start time
+                        if expr.micro_timing_ms != 0.0:
+                            start_time = max(0.0, start_time + expr.micro_timing_ms / 1000.0)
+                        # Micro-dynamics: adjust velocity
+                        if expr.micro_dynamics != 0.0:
+                            velocity = max(1, min(127, round(velocity + expr.micro_dynamics * 20)))
+                        # Accent: boost velocity
+                        if expr.accent_strength > 0.0:
+                            velocity = max(1, min(127, round(velocity * (1.0 + expr.accent_strength * 0.3))))
 
                 midi_note = pretty_midi.Note(
-                    velocity=note.velocity,
+                    velocity=velocity,
                     pitch=note.pitch,
                     start=start_time,
                     end=end_time,
@@ -124,6 +142,7 @@ def write_midi(
     output_path: Path,
     ppq: int = DEFAULT_PPQ,
     drum_hits: list[DrumHit] | None = None,
+    performance_layer: PerformanceLayer | None = None,
 ) -> Path:
     """Convert a ScoreIR and write it to a MIDI file.
 
@@ -132,6 +151,8 @@ def write_midi(
         output_path: Path for the output .mid file.
         ppq: Pulses per quarter note.
         drum_hits: Optional drum hits to include as a drum track.
+        performance_layer: Optional performance expression overlay
+            (microtiming, dynamics, articulation).
 
     Returns:
         The path to the written MIDI file.
@@ -139,7 +160,7 @@ def write_midi(
     Raises:
         RenderError: If writing fails.
     """
-    midi = score_ir_to_midi(score, ppq)
+    midi = score_ir_to_midi(score, ppq, performance_layer=performance_layer)
 
     if drum_hits:
         add_drum_hits_to_midi(midi, drum_hits, score.tempo_bpm)

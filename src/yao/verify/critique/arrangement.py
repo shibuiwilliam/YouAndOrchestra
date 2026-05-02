@@ -9,10 +9,11 @@ Belongs to Layer 6 (Verification).
 from __future__ import annotations
 
 from yao.constants.instruments import INSTRUMENT_RANGES
+from yao.ir.plan.arrangement import InstrumentRole
 from yao.ir.plan.musical_plan import MusicalPlan
 from yao.schema.composition_v2 import CompositionSpecV2
 from yao.verify.critique.base import CritiqueRule
-from yao.verify.critique.types import Finding, Role, Severity
+from yao.verify.critique.types import Finding, Role, Severity, SongLocation
 
 
 class FrequencyCollisionDetector(CritiqueRule):
@@ -137,4 +138,88 @@ class TextureCollapseDetector(CritiqueRule):
                 )
             )
 
+        return findings
+
+
+class EnsembleRegisterViolationDetector(CritiqueRule):
+    """Detect when arrangement assigns overlapping registers without separation.
+
+    When two non-bass instruments are assigned to the same register band
+    (< 12 semitones apart), they risk frequency masking.
+    The Orchestrator should maintain register separation.
+
+    Wave 3.2: EnsembleConstraint integration.
+    """
+
+    rule_id = "arrangement.ensemble_register_violation"
+    role = Role.ARRANGEMENT
+
+    def detect(
+        self,
+        plan: MusicalPlan,
+        spec: CompositionSpecV2,
+    ) -> list[Finding]:
+        """Detect register overlap in arrangement assignments."""
+        findings: list[Finding] = []
+
+        if plan.arrangement is None:
+            return findings
+
+        # Group assignments by section
+        sections: dict[str, list[tuple[str, int, int, str]]] = {}
+        for a in plan.arrangement.assignments:
+            if a.role == InstrumentRole.SILENT:
+                continue
+            sections.setdefault(a.section_id, []).append((a.instrument, a.register_low, a.register_high, a.role.value))
+
+        for section_id, instruments in sections.items():
+            if len(instruments) < 2:
+                continue
+
+            for i, (name_a, low_a, high_a, role_a) in enumerate(instruments):
+                for name_b, low_b, high_b, role_b in instruments[i + 1 :]:
+                    # Skip if either is the full range (unassigned)
+                    if (low_a == 0 and high_a == 127) or (low_b == 0 and high_b == 127):
+                        continue
+
+                    # Check overlap
+                    overlap_low = max(low_a, low_b)
+                    overlap_high = min(high_a, high_b)
+                    if overlap_high <= overlap_low:
+                        continue
+
+                    overlap_size = overlap_high - overlap_low
+                    smaller_range = min(high_a - low_a, high_b - low_b)
+                    if smaller_range <= 0:
+                        continue
+
+                    overlap_ratio = overlap_size / smaller_range
+                    if overlap_ratio > 0.7:
+                        findings.append(
+                            Finding(
+                                rule_id=self.rule_id,
+                                severity=Severity.MINOR,
+                                role=self.role,
+                                issue=(
+                                    f"Instruments '{name_a}' ({role_a}) and '{name_b}' ({role_b}) "
+                                    f"have {overlap_ratio:.0%} register overlap in section '{section_id}'. "
+                                    f"Risk of frequency masking."
+                                ),
+                                evidence={
+                                    "section": section_id,
+                                    "instrument_a": name_a,
+                                    "instrument_b": name_b,
+                                    "register_a": f"{low_a}-{high_a}",
+                                    "register_b": f"{low_b}-{high_b}",
+                                    "overlap_ratio": overlap_ratio,
+                                },
+                                location=SongLocation(section=section_id),
+                                recommendation={
+                                    "arrangement": (
+                                        f"Separate registers: assign '{name_a}' and '{name_b}' "
+                                        f"to non-overlapping octave bands."
+                                    ),
+                                },
+                            )
+                        )
         return findings

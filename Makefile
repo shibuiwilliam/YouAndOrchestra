@@ -1,6 +1,7 @@
 .PHONY: install setup-hooks test test-unit test-integration test-music test-golden test-subagent \
        lint format arch-lint matrix-check feature-status validate-spec new-project compose render \
-       setup-soundfonts all-checks
+       setup-soundfonts setup-references all-checks honesty-check plan-consumption skill-grounding \
+       critic-coverage backend-honesty audit-monthly
 
 install:
 	pip install -e ".[dev]"
@@ -57,7 +58,31 @@ sync-skills:
 sync-docs:
 	python tools/sync_docs.py
 
-all-checks: lint arch-lint matrix-check feature-status sync-docs test test-golden
+honesty-check:
+	python tools/honesty_check.py
+
+plan-consumption:
+	python tools/check_plan_consumption.py
+
+skill-grounding:
+	python tools/check_skill_grounding.py
+
+critic-coverage:
+	python tools/check_critic_coverage.py
+
+backend-honesty:
+	python tools/check_backend_honesty.py
+
+audit-monthly:
+	@echo "Running monthly audit..."
+	python tools/honesty_check.py --json > docs/audit/latest-honesty.json || true
+	python tools/check_backend_honesty.py --json > docs/audit/latest-backend.json || true
+	python tools/check_plan_consumption.py --json > docs/audit/latest-plan.json || true
+	python tools/check_skill_grounding.py --json > docs/audit/latest-skills.json || true
+	python tools/check_critic_coverage.py --json > docs/audit/latest-critic.json || true
+	@echo "Audit outputs saved to docs/audit/"
+
+all-checks: lint arch-lint matrix-check feature-status honesty-check plan-consumption skill-grounding critic-coverage backend-honesty sync-docs test test-golden
 
 new-project:
 	@test -n "$(NAME)" || (echo "Usage: make new-project NAME=my-song" && exit 1)
@@ -70,6 +95,9 @@ compose:
 render:
 	@test -n "$(MIDI)" || (echo "Usage: make render MIDI=outputs/projects/my-song/iterations/v001/full.mid" && exit 1)
 	yao render $(MIDI)
+
+setup-references:
+	python tools/setup_references.py
 
 setup-soundfonts:
 	@echo "=== SoundFont Setup ==="

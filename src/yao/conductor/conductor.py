@@ -12,11 +12,17 @@ CLI commands. The Conductor manages iteration, adaptation, and provenance.
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
 import structlog
 
+from yao.conductor.audio_feedback import (
+    AudioThresholds,
+    apply_audio_adaptations,
+    suggest_audio_adaptations,
+)
 from yao.conductor.feedback import (
     apply_adaptations,
     suggest_adaptations,
@@ -47,6 +53,28 @@ logger = structlog.get_logger()
 
 # Musical knowledge (mood→key, instruments, genre) is in src/yao/sketch/compiler.py.
 # The Conductor delegates NL parsing to SpecCompiler (CLAUDE.md anti-pattern #7).
+
+
+@dataclass(frozen=True)
+class ConductorConfig:
+    """Configuration for the Conductor's audio loop.
+
+    The audio loop is opt-in (default OFF) to avoid cost/time overhead.
+    When enabled, the Conductor renders MIDI to audio after the MIDI loop,
+    analyzes the audio with PerceptualReport, and adapts the ScoreIR
+    if quality thresholds are not met.
+
+    Attributes:
+        enable_audio_loop: Enable audio render → evaluate → adapt loop.
+        max_audio_iterations: Maximum audio loop iterations (prevents infinite loop).
+        soundfont_path: Path to SoundFont file for audio rendering.
+        audio_thresholds: Quality thresholds for audio evaluation.
+    """
+
+    enable_audio_loop: bool = False
+    max_audio_iterations: int = 2
+    soundfont_path: Path | None = None
+    audio_thresholds: AudioThresholds = field(default_factory=AudioThresholds)
 
 
 class Conductor:
@@ -103,8 +131,12 @@ class Conductor:
         project_name: str | None = None,
         max_iterations: int = 3,
         n_candidates: int = 1,
+        config: ConductorConfig | None = None,
     ) -> ConductorResult:
         """Generate a composition from an existing spec with feedback iteration.
+
+        After the MIDI loop completes, optionally runs an audio loop
+        (config.enable_audio_loop) that renders, analyzes, and adapts.
 
         Args:
             spec: The composition specification.
@@ -112,6 +144,7 @@ class Conductor:
             project_name: Project name for output directory.
             max_iterations: Maximum number of generation rounds.
             n_candidates: Number of parallel plan candidates (1=single, 2-10=multi).
+            config: Audio loop configuration (default: audio loop disabled).
 
         Returns:
             ConductorResult with the final composition and all metadata.
@@ -272,8 +305,31 @@ class Conductor:
                 for record in drum_prov.records:
                     combined_provenance.add(record)
 
+            # Performance Expression (v3.0 Wave 3.1)
+            from yao.generators.performance.pipeline import realize_performance
+
+            perf_layer = realize_performance(score, trajectory, current_spec.genre)
+            combined_provenance.record(
+                layer="generator",
+                operation="performance_realization",
+                parameters={
+                    "genre": current_spec.genre,
+                    "n_expressions": len(perf_layer.note_expressions),
+                },
+                source="Conductor.compose_from_spec",
+                rationale=(
+                    f"Applied performance expression ({len(perf_layer.note_expressions)} note overlays) "
+                    f"for genre '{current_spec.genre}'."
+                ),
+            )
+
             # Write outputs
-            midi_path = write_midi(score, output_dir / "full.mid", drum_hits=drum_hits)
+            midi_path = write_midi(
+                score,
+                output_dir / "full.mid",
+                drum_hits=drum_hits,
+                performance_layer=perf_layer,
+            )
             stems = write_stems(score, output_dir)
 
             # Evaluate
@@ -316,7 +372,7 @@ class Conductor:
                     rationale="All evaluation metrics passed. Workflow complete.",
                 )
                 combined_provenance.save(output_dir / "provenance.json")
-                return ConductorResult(
+                result = ConductorResult(
                     score=score,
                     spec=current_spec,
                     midi_path=midi_path,
@@ -329,7 +385,9 @@ class Conductor:
                     output_dir=output_dir,
                     adaptations_applied=adaptations_log,
                     critic_findings=critic_findings,
+                    performance_layer=perf_layer,
                 )
+                return self._run_audio_loop(result, config or ConductorConfig())
 
             # Not all passed and we have iterations left — adapt
             if iteration < max_iterations:
@@ -380,7 +438,7 @@ class Conductor:
         )
         combined_provenance.save(output_dir / "provenance.json")
 
-        return ConductorResult(
+        result = ConductorResult(
             score=score,
             spec=current_spec,
             midi_path=midi_path,
@@ -393,6 +451,107 @@ class Conductor:
             output_dir=output_dir,
             adaptations_applied=adaptations_log,
             critic_findings=critic_findings,
+            performance_layer=perf_layer,
+        )
+        return self._run_audio_loop(result, config or ConductorConfig())
+
+    def _run_audio_loop(
+        self,
+        result: ConductorResult,
+        config: ConductorConfig,
+    ) -> ConductorResult:
+        """Run the optional audio render → evaluate → adapt loop.
+
+        Only runs if config.enable_audio_loop is True. Renders MIDI to audio,
+        analyzes with PerceptualReport, and applies adaptations (dynamics,
+        register) up to max_audio_iterations times.
+
+        Args:
+            result: The ConductorResult from the MIDI loop.
+            config: Audio loop configuration.
+
+        Returns:
+            Updated ConductorResult (may have modified ScoreIR).
+        """
+        if not config.enable_audio_loop:
+            return result
+
+        from yao.perception.audio_features import AudioPerceptionAnalyzer
+        from yao.render.audio_renderer import render_midi_to_wav
+
+        analyzer = AudioPerceptionAnalyzer()
+        current_score = result.score
+
+        for audio_iter in range(config.max_audio_iterations):
+            # Render
+            try:
+                wav_path = result.output_dir / f"audio_iter_{audio_iter}.wav"
+                render_midi_to_wav(
+                    result.midi_path,
+                    wav_path,
+                    soundfont_path=config.soundfont_path,
+                )
+            except Exception as e:
+                logger.warning("audio_loop_render_failed", error=str(e), iteration=audio_iter)
+                result.provenance.record(
+                    layer="conductor",
+                    operation="audio_loop_error",
+                    parameters={"iteration": audio_iter, "error": str(e)[:200]},
+                    source="Conductor._run_audio_loop",
+                    rationale=f"Audio render failed: {e}",
+                )
+                break
+
+            # Analyze
+            report = analyzer.analyze(wav_path)
+
+            # Suggest adaptations
+            adaptations = suggest_audio_adaptations(report, config.audio_thresholds)
+
+            result.provenance.record(
+                layer="conductor",
+                operation="audio_loop_iteration",
+                parameters={
+                    "iteration": audio_iter,
+                    "lufs": report.lufs_integrated,
+                    "masking_risk": report.masking_risk_score,
+                    "n_adaptations": len(adaptations),
+                },
+                source="Conductor._run_audio_loop",
+                rationale=(
+                    f"Audio iteration {audio_iter}: LUFS={report.lufs_integrated:.1f}, "
+                    f"masking={report.masking_risk_score:.2f}, "
+                    f"{len(adaptations)} adaptation(s) suggested."
+                ),
+            )
+
+            if not adaptations:
+                logger.info("audio_loop_converged", iteration=audio_iter)
+                break
+
+            # Apply adaptations
+            current_score = apply_audio_adaptations(current_score, adaptations)
+
+            for adapt in adaptations:
+                result.adaptations_applied.append(f"[audio_iter_{audio_iter}] {adapt.type}: {adapt.reason}")
+
+            # Re-write MIDI with adapted score
+            write_midi(current_score, result.midi_path)
+
+        # Return result with updated score
+        return ConductorResult(
+            score=current_score,
+            spec=result.spec,
+            midi_path=result.midi_path,
+            stems=result.stems,
+            analysis=result.analysis,
+            evaluation=result.evaluation,
+            provenance=result.provenance,
+            iterations=result.iterations,
+            iteration_history=result.iteration_history,
+            output_dir=result.output_dir,
+            adaptations_applied=result.adaptations_applied,
+            critic_findings=result.critic_findings,
         )
 
     def regenerate_section(

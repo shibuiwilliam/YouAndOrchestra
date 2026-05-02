@@ -42,14 +42,43 @@ class Constraint(BaseModel):
     description: str = ""
 
 
+class EnsembleConstraint(BaseModel):
+    """A constraint on the interaction between two or more instrument parts.
+
+    Unlike single-part Constraint, EnsembleConstraint expresses relationships
+    *between* instruments (register separation, consonance, parallel motion).
+
+    Attributes:
+        rule: The ensemble rule to check.
+        instruments: Which instruments are involved (empty = all pairs).
+        scope: Section scope (global or section:name).
+        severity: How serious a violation is.
+        parameters: Rule-specific parameters (e.g., min_separation_semitones).
+    """
+
+    rule: Literal[
+        "register_separation",
+        "downbeat_consonance",
+        "no_parallel_octaves",
+        "no_frequency_collision",
+        "bass_below_melody",
+    ]
+    instruments: list[str] = []
+    scope: str = "global"
+    severity: Literal["error", "warning", "hint"] = "warning"
+    parameters: dict[str, float] = {}
+
+
 class ConstraintsSpec(BaseModel):
     """Collection of constraints for a composition.
 
     Attributes:
-        constraints: List of constraints to apply.
+        constraints: List of single-part constraints.
+        ensemble_constraints: List of inter-part constraints.
     """
 
     constraints: list[Constraint] = []
+    ensemble_constraints: list[EnsembleConstraint] = []
 
     @classmethod
     def from_yaml(cls, path: Path) -> ConstraintsSpec:

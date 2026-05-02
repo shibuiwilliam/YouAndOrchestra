@@ -2,31 +2,27 @@
 
 **An agentic music production environment built on Claude Code** — where you are the conductor, and the AI is your orchestra.
 
-Describe what you want in plain English, and YaO generates a full MIDI score with per-instrument stems, quality evaluation, and a provenance log explaining every decision.
+Describe what you want in plain language, and YaO generates a full MIDI score with per-instrument stems, quality evaluation, aesthetic analysis, and a provenance log explaining every decision.
 
 > Your vision. Your taste. Your soul. — and an Orchestra ready to serve.
 
-**What's implemented?** See [FEATURE_STATUS.md](FEATURE_STATUS.md) — the single source of truth for capabilities.
+**Current state:** See [FEATURE_STATUS.md](FEATURE_STATUS.md) for the complete capability matrix.
 
 ---
 
-## Getting Started
-
-### Install
+## Quick Start
 
 ```bash
 git clone https://github.com/shibuiwilliam/YouAndOrchestra
 cd YouAndOrchestra
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-make setup-hooks  # Install pre-commit hooks
+make setup-hooks
 ```
 
 Requires **Python 3.11+**. Audio rendering requires [FluidSynth](#audio-rendering).
 
-### Open in Claude Code
-
-Launch Claude Code in the project directory to start composing:
+Then launch Claude Code:
 
 ```bash
 claude
@@ -34,190 +30,78 @@ claude
 
 ---
 
-## Usage
-
-All interaction happens through Claude Code slash commands. Describe your music, iterate on it, and render — all through conversation.
-
-### `/sketch` — Create a composition from a description
-
-Start here. Describe what you want and YaO guides you through spec creation.
+## What YaO Does
 
 ```
-> /sketch a calm piano piece in D minor for studying, 90 seconds
+/sketch  →  /compose  →  /critique  →  /regenerate-section  →  /render
 ```
 
-YaO will:
-1. Propose key, tempo, instruments, sections, and dynamics
-2. Suggest an emotional trajectory (tension/density arc)
-3. Ask for adjustments
-4. Write the spec files and validate them
-
-Example prompts:
-
-```
-> /sketch a calm piano piece in D minor for studying, 90 seconds
-> /sketch a mysterious puzzle game BGM, minimal and looping
-> /sketch an epic orchestral piece in D minor, 3 minutes, cinematic
-> /sketch a jazz trio improvisation in Bb major, relaxed swing feel
-> /sketch upbeat 8-bit chiptune for a platformer game, 60 seconds, loopable
-> /sketch a Mozart-style piano trio waltz in F major, 3/4 time, happy and elegant
-> /sketch dark ambient drone for a horror game menu screen, slow and unsettling
-> /sketch a bossa nova piece with acoustic guitar and flute, sunny afternoon vibe
-> /sketch aggressive piano solo in C major, fast tempo like heavy metal energy
-> /sketch lo-fi hip hop beat for a rainy cafe, piano and cello, 85 BPM
-> /sketch a Celtic folk tune with violin and harp in G mixolydian, 120 BPM
-> /sketch romantic string quartet in Ab major, slow waltz, Chopin-inspired
-> /sketch anime opening theme, energetic J-pop style, 150 BPM, full orchestra
-```
-
-### `/compose <project>` — Generate music
-
-Run the Conductor loop: generate, evaluate, critique, adapt, regenerate (up to 3 iterations).
-
-```
-> /compose my-song
-```
-
-Output:
-```
-=== Conductor Result ===
-Quality Score: 7.2/10
-Pass rate: 100% (10/10)
-Duration: 90.0s | Bars: 30 | Notes: 112
-Instruments: piano
-Output: outputs/projects/my-song/iterations/v001/
-```
-
-### `/critique <project>` — Find weaknesses
-
-Run adversarial critique rules against a composition. Finds every weakness — never praises.
-
-```
-> /critique my-song
-```
-
-Returns structured findings with severity (critical/major/minor), evidence, location, and recommendations.
-
-### `/regenerate-section <project> <section>` — Fix a specific section
-
-Re-generate one section while keeping the rest intact. Provide feedback on what to change.
-
-```
-> /regenerate-section my-song chorus
-```
-
-YaO will ask what should change (more energy, different melody, new seed, etc.) and create a new iteration with the merged result.
-
-### `/render <project>` — Render to audio
-
-Convert MIDI to WAV using SoundFont rendering.
-
-```
-> /render my-song
-```
-
-### `/explain <question>` — Trace decisions
-
-Query the provenance log to understand why any musical decision was made.
-
-```
-> /explain why did the chorus use a V-vi deceptive cadence?
-```
-
-### `/arrange <project>` — Transform a composition
-
-Apply style transfer to an existing composition while preserving selected elements.
-
-```
-> /arrange my-song --target-genre lofi_hiphop --preserve melody
-```
-
----
-
-## Typical Workflow
-
-```
-/sketch  -->  /compose  -->  /critique  -->  /regenerate-section  -->  /critique  -->  /render
-```
-
-1. **Sketch** — describe your idea, refine the spec interactively
-2. **Compose** — generate with automatic quality evaluation
-3. **Critique** — identify weaknesses
+1. **Sketch** — describe your idea in natural language (English or Japanese), refine through 6-turn dialogue
+2. **Compose** — generate with automatic quality evaluation + aesthetic scoring
+3. **Critique** — 20 adversarial rules find every weakness
 4. **Regenerate** — fix specific sections based on feedback
-5. **Iterate** — repeat critique/regenerate until satisfied
-6. **Render** — output to WAV audio
+5. **Render** — output to WAV audio via FluidSynth
 
 ---
 
-## What YaO Generates
+## Slash Commands
 
-Each iteration produces:
-
-```
-outputs/projects/<name>/iterations/v001/
-  full.mid           # Complete MIDI score (all instruments)
-  stems/             # Per-instrument MIDI files
-    piano.mid
-    cello.mid
-  analysis.json      # Note counts, pitch ranges, duration, lint results
-  evaluation.json    # Quality scores (1.0-10.0) across structure/melody/harmony
-  provenance.json    # Decision log with rationale for every choice
-```
-
-Pre-generated examples in [`gallery/`](gallery/).
-
----
-
-## 7 Subagents
-
-Behind each slash command, specialized subagents collaborate:
-
-| Subagent | Role |
+| Command | Purpose |
 |---|---|
-| **Producer** | Coordinates all subagents, resolves conflicts, makes final decisions |
-| **Composer** | Melodies, motifs, themes, structural outlines |
-| **Harmony Theorist** | Chord progressions, modulations, cadences |
-| **Rhythm Architect** | Drum patterns, grooves, syncopation, fills |
-| **Orchestrator** | Instruments, voicings, frequency spacing, countermelodies |
-| **Mix Engineer** | Stereo placement, dynamics, frequency balance, loudness |
-| **Adversarial Critic** | Finds weaknesses — never praises |
+| `/sketch` | 6-turn interactive dialogue → complete spec |
+| `/compose <project>` | Run Conductor loop (generate → evaluate → adapt) |
+| `/critique <project>` | Adversarial critique with structured findings |
+| `/regenerate-section <project> <section>` | Re-generate one section |
+| `/render <project>` | MIDI → WAV audio |
+| `/explain <question>` | Query the provenance log |
+| `/arrange <project>` | Style transfer with preservation contracts |
+
+### Example `/sketch` Prompts
+
+```
+/sketch a melancholic piano piece for studying on a rainy evening
+/sketch anime opening theme, energetic J-pop style, 90 BPM, full orchestra with electric sounds
+/sketch tense horror game BGM with dissonant strings and sparse percussion
+/sketch upbeat 8-bit chiptune for a retro platformer boss fight
+/sketch gentle jazz trio for a late-night cafe scene, brushed drums and walking bass
+/sketch epic orchestral trailer music building to a massive brass climax
+/sketch minimalist ambient piece with slow-evolving pad textures, 60 BPM
+/sketch funky slap bass groove with wah guitar and tight drums, 110 BPM
+/sketch classical string quartet in the style of late Romantic era, D minor
+/sketch Japanese festival matsuri music with taiko drums and shinobue flute
+```
 
 ---
 
-## 32 Domain Skills
-
-YaO draws on specialized musical knowledge:
-
-| Category | Count | Examples |
-|---|---|---|
-| **Genres** | 22 | cinematic, lofi_hiphop, j_pop, jazz_swing, bossa_nova, synthwave, celtic, arab_maqam, blues, funk, baroque, romantic... |
-| **Theory** | 4 | voice-leading, twelve-tone, microtonal, process-music |
-| **Articulation** | 4 | piano-pedaling, jazz-microtiming, strings-articulation, winds-articulation |
-| **Instruments** | 1 | piano |
-| **Psychology** | 1 | tension-resolution |
-
----
-
-## The Conductor
-
-The Conductor automates the generate-evaluate-adapt loop:
+## Architecture (8 Layers)
 
 ```
-Spec  ->  Plan  ->  Generate  ->  Evaluate + Critique  ->  Pass?  ->  Done
-                                       | No
-                                  Adapt spec  ->  Regenerate
+Layer 7: Reflection & Learning       (reflect/, agents/)
+Layer 6: Verification & Critique     (verify/, 20 rules, aesthetic metrics)
+Layer 5: Rendering                   (render/ — MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel)
+Layer 4.5: Performance Expression    (generators/performance/ — articulation, dynamics, microtiming)
+Layer 4: Perception Substitute       (perception/ — audio features, style vectors, use-case eval)
+Layer 3.5: Musical Plan IR           (ir/plan/ — form, harmony, motif, phrase, arrangement, drums)
+Layer 3: Score IR                    (ir/ — note, part, section, voicing, timing)
+Layer 2: Generation Strategy         (generators/note/ — V2 realizers consume MPIR directly)
+Layer 1: Specification               (schema/, sketch/ — YAML specs, NL compiler)
+Layer 0: Constants                   (constants/ — 38 instruments, 14 scales, 17 tuning systems)
 ```
 
-It builds a Composition Plan (form + harmony), realizes it into notes, scores the result across 10 metrics, runs 20 adversarial critique rules, and adapts the spec if issues are found. Each iteration is saved as a new version with full provenance.
+### The V2 Pipeline (7 Steps)
 
-| Problem Detected | Adaptation |
-|---|---|
-| Low pitch variety | Increase temperature or switch to stochastic |
-| Too many melodic leaps | Decrease temperature for smoother lines |
-| Sections sound too similar | Differentiate dynamics across sections |
-| Climax absence (critique) | Adjust section dynamics to create climax |
-| Cliche progression (critique) | Flag for harmonic revision |
-| Intent divergence (critique) | Realign generation parameters with intent |
+```
+Spec + Trajectory
+  → [Step 1] Form Planner      → SongFormPlan
+  → [Step 2] Harmony Planner   → HarmonyPlan
+  → [Step 3] Motif Developer   → MotifPlan + PhrasePlan
+  → [Step 4] Drum Patterner    → DrumPattern
+  → [Step 5] Arranger          → ArrangementPlan
+  ═══ Critic Gate (MPIR-level evaluation) ═══
+  → [Step 6] Note Realizer V2  → ScoreIR (100% plan consumption)
+  → [Step 6.5] Performance     → Articulation, dynamics, microtiming
+  → [Step 7] Renderer          → MIDI / WAV / Score
+```
 
 ---
 
@@ -225,22 +109,104 @@ It builds a Composition Plan (form + harmony), realizes it into notes, scores th
 
 | Strategy | Description |
 |---|---|
-| **rule_based** | Deterministic. Same spec = same output. |
-| **stochastic** | Seed + temperature. 4 contour algorithms, 5 chord voicings, 12 rhythm templates, walking bass, motif transformation. |
-| **markov** | Probabilistic transitions from learned patterns. |
-| **twelve_tone** | Serialist composition using tone rows. |
-| **process_music** | Minimalist / generative process-based composition. |
-| **constraint_solver** | Backtracking search with hard constraints. |
+| **rule_based_v2** | Deterministic, chord-aware, motif placement, phrase contour |
+| **stochastic_v2** | Seed + temperature controlled, non-chord tones, rhythmic variety |
+| **rule_based** | Legacy (deprecated) — deterministic via v1 adapter |
+| **stochastic** | Legacy (deprecated) — seed-based via v1 adapter |
+| **markov** | Probabilistic transitions from learned patterns |
+| **twelve_tone** | Serialist composition using tone rows |
+| **process_music** | Minimalist generative processes |
+| **constraint_solver** | Backtracking search with hard constraints |
 
-Additional generators: drum patterner (8 genres), counter-melody (species counterpoint), performance expression, neural bridge (texture generation).
+---
 
-All generators respond to multi-dimensional trajectory: tension affects pitch+leaps, density affects rhythm, register_height affects octave.
+## Quality Evaluation
+
+### Formal Metrics (6 dimensions)
+
+| Dimension | Weight | Metrics |
+|---|---|---|
+| Structure | 20% | Section contrast, bar count, section count, rhythm variety |
+| Melody | 25% | Pitch range, stepwise motion, contour variety |
+| Harmony | 20% | Pitch class variety, consonance ratio |
+| **Aesthetic** | **20%** | Surprise, memorability, contrast, pacing |
+| Arrangement | 10% | Texture variety, register separation |
+| Acoustics | 5% | Spectral balance |
+
+### Aesthetic Metrics (Wave 2.2)
+
+| Metric | What it measures | Source |
+|---|---|---|
+| **Surprise** | Melodic unpredictability (bigram NLL) | diatonic_bigram.yaml |
+| **Memorability** | Motif recurrence x identity strength | MusicalPlan motifs |
+| **Contrast** | Section-to-section style distance | StyleVector comparison |
+| **Pacing** | Tension arc match to plan | Velocity vs target_tension |
+
+### Adversarial Critique (20 rules)
+
+| Category | Rules |
+|---|---|
+| Structural (3) | Section monotony, climax absence, form imbalance |
+| Melodic (3) | Contour monotony, motif recurrence, phrase closure |
+| Harmonic (3) | Cliche progression, cadence weakness, harmonic monotony |
+| Rhythmic (2) | Rhythmic monotony, syncopation lack |
+| Arrangement (3) | Frequency collision, texture collapse, **ensemble register violation** |
+| Emotional (2) | Intent divergence, trajectory violation |
+| Genre Fitness (2) | Tempo out of range, instrument mismatch |
+| Memorability (2) | Hook weakness, motif absence |
+
+---
+
+## 7 Subagents
+
+| Subagent | Role | Key Output |
+|---|---|---|
+| **Producer** | Coordinates all agents, resolves conflicts | SongFormPlan |
+| **Composer** | Melodies, motifs, thematic development | MotifPlan + PhrasePlan |
+| **Harmony Theorist** | Chord progressions, cadences, modulations | HarmonyPlan |
+| **Rhythm Architect** | Drum patterns, grooves, syncopation | DrumPattern |
+| **Orchestrator** | Instruments, voicings, register separation | ArrangementPlan |
+| **Mix Engineer** | EQ, compression, reverb, loudness | ProductionManifest |
+| **Adversarial Critic** | Finds weaknesses — never praises | Findings |
+
+Subagents run via **PythonOnlyBackend** (default, CI-safe) or **AnthropicAPIBackend** (real LLM calls with structured output via tool use).
+
+---
+
+## Ensemble Constraints (Wave 3.2)
+
+Inter-part validation for multi-instrument arrangements:
+
+| Rule | What it checks |
+|---|---|
+| `register_separation` | Instruments maintain minimum distance |
+| `downbeat_consonance` | Bass-melody consonance on strong beats |
+| `no_parallel_octaves` | No parallel octave motion between parts |
+| `no_frequency_collision` | Parts don't overlap excessively in pitch |
+| `bass_below_melody` | Bass stays in lower register |
+
+---
+
+## StyleVector (Wave 3.4)
+
+Copyright-safe abstract features for style comparison:
+
+| Feature | Dims | Safe because |
+|---|---|---|
+| interval_class_histogram | 12 | No sequence order |
+| chord_quality_histogram | 8 | No progression order |
+| cadence_type_distribution | 4 | Aggregate only |
+| rhythm_complexity | 1 | Single statistic |
+| harmonic_rhythm | 1 | Rate only |
+| register_distribution | 12 | Octave histogram |
+
+**FORBIDDEN**: melody_contour, chord_sequence, chord_progression, lyrics, hook
 
 ---
 
 ## Trajectory System
 
-Shape the emotional arc independently from the notes:
+Shape the emotional arc independently from notes:
 
 ```yaml
 trajectories:
@@ -250,77 +216,37 @@ trajectories:
   density:
     type: stepped
     sections: { intro: 0.3, verse: 0.5, chorus: 0.9, outro: 0.3 }
-  predictability:
-    type: linear
-    target: 0.65
-    variance: 0.15
 ```
 
-Five dimensions: tension, density, predictability, brightness, register height. Three curve types: bezier, stepped, linear.
+Five dimensions: tension, density, predictability, brightness, register height.
 
 ---
 
-## Quality Evaluation
+## Music Theory
 
-Every composition is scored across 10 metrics in 3 dimensions, producing a **quality score from 1.0 to 10.0**:
-
-| Dimension (weight) | Metrics |
-|---|---|
-| **Structure** (25%) | Section contrast, bar count accuracy, section count match, rhythm variety, syncopation ratio |
-| **Melody** (30%) | Pitch range utilization, stepwise motion ratio, contour variety |
-| **Harmony** (25%) | Pitch class variety, consonance ratio |
-
----
-
-## Adversarial Critique
-
-A **rule-based critique engine** with 20 structured rules across 8 categories:
-
-| Category | Rules |
-|---|---|
-| **Structural** (3) | Climax absence, section monotony, form imbalance |
-| **Melodic** (3) | Cliche motif, contour monotony, phrase closure weakness |
-| **Harmonic** (3) | Cliche progression, voice crossing, cadence weakness |
-| **Rhythmic** (2) | Rhythmic monotony, groove inconsistency |
-| **Arrangement** (2) | Frequency collision, texture collapse |
-| **Emotional** (2) | Intent divergence, trajectory violation |
-| **Genre Fitness** (2) | Genre convention mismatch, idiom deviation |
-| **Memorability** (2) | Hook weakness, motif recall failure |
-
-Each rule emits structured `Finding` objects with severity, evidence, location, and recommendations.
-
----
-
-## Music Theory Built In
-
-- **38 instruments** across 9 families (keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, percussion)
-- **14 scales** (major, minor, harmonic minor, melodic minor, dorian, mixolydian, lydian, phrygian, locrian, pentatonic major/minor, blues, whole tone, chromatic)
-- **14 chord types** (major through major 9th, including sus2, sus4, add9)
-- **Functional harmony** via Roman numeral notation (I, ii, V7/V) with `realize()` for concrete pitches
+- **38 instruments** across 9 families
+- **14 scales** + 17 microtonal tuning systems (EDO, raga, maqam, gamelan, JI)
+- **14 chord types** with functional harmony (Roman numerals)
 - **Voice leading** with parallel fifths/octaves detection
-- **Motif transformations** (transpose, invert, retrograde, augment, diminish) tracked in provenance
-- **DrumPattern IR** with 15 kit pieces mapped to General MIDI, 8 genre patterns
-- **12 section types** (intro, verse, pre-chorus, chorus, bridge, solo, interlude, breakdown, build, drop, outro, coda)
+- **Motif transformations**: transpose, invert, retrograde, augment, diminish, sequence
+- **DrumPattern IR**: 15 kit pieces, 8 genre patterns, swing + ghost notes
+- **Extended time signatures**: compound meters, polymeter support
 
 ---
 
-## Constraint System
+## CI & Quality
 
-Define musical rules in your spec:
-
-```yaml
-constraints:
-  - type: must_not
-    rule: parallel_fifths
-    scope: global
-    severity: error
-  - type: prefer
-    rule: "max_density:4"
-    scope: "section:intro"
-    severity: hint
+```bash
+make all-checks    # Full quality pipeline
+make test          # All tests (~1150 pass)
+make lint          # ruff + mypy strict
+make arch-lint     # Layer boundary enforcement
+make honesty-check # Verify no stub ✅ features
+make backend-honesty
+make plan-consumption
+make skill-grounding
+make critic-coverage
 ```
-
-Four types (`must`, `must_not`, `prefer`, `avoid`) with scopes: `global`, `section:<name>`, `instrument:<name>`, `bars:<start>-<end>`.
 
 ---
 
@@ -335,35 +261,60 @@ brew install fluid-synth
 sudo apt-get install fluidsynth
 ```
 
-Place a `.sf2` SoundFont file in the `soundfonts/` directory, then use `/render` to generate WAV audio.
+Place a `.sf2` file in `soundfonts/`, then use `/render`.
 
 ---
 
-## Spec Templates
+## Project Structure
 
-| Template | Description |
-|---|---|
-| `minimal.yaml` | 8-bar solo piano in C major |
-| `bgm-90sec.yaml` | 90-second BGM with piano and bass |
-| `cinematic-3min.yaml` | 3-minute orchestral piece in D minor |
-| `lofi-cafe.yaml` | Lo-fi cafe BGM with relaxed tempo |
-| `trajectory-example.yaml` | Example tension/density/predictability curves |
-| `v2/bgm-90sec-pop.yaml` | Pop BGM with emotion, melody, harmony, production |
-| `v2/cinematic-3min.yaml` | Full cinematic in 11-section v2 format |
-| `v2/loopable-game-bgm.yaml` | Looping game music with loop-aware constraints |
+```
+src/yao/           167 Python modules
+  constants/       Instruments, scales, MIDI, theory
+  schema/          Pydantic specs (v1 + v2), constraints
+  sketch/          NL → spec compiler (EN + JP), dialogue state
+  ir/              Score IR + Plan IR (MPIR)
+  generators/      Note realizers (V2), plan generators, performance
+  perception/      Audio features, StyleVector, use-case eval
+  verify/          Evaluator, critique, aesthetic metrics, constraint checker
+  reflect/         Provenance, style profile, ratings
+  conductor/       Orchestration loop, feedback, multi-candidate
+  subagents/       7 Python subagent implementations
+  agents/          Backend protocol (PythonOnly, Anthropic API)
+  render/          MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel
+  mix/             EQ, compression, reverb, mastering
+  arrange/         Style transfer, source extraction
+  improvise/       Real-time improvisation engine
+  skills/          Genre skill loader
+tests/             126 test files, ~1235 test functions
+tools/             CI tooling (honesty checks, architecture lint)
+.claude/           Agent prompts, slash commands, genre skills
+docs/              Design docs, audits, guides
+```
 
 ---
 
 ## Design Philosophy
 
-1. **The agent is an environment, not a composer** — YaO accelerates human creativity
+1. **The agent is an environment, not a composer** — accelerates human creativity
 2. **Every decision is explainable** — provenance records why each note exists
 3. **Constraints liberate** — specs and rules are scaffolding, not cages
-4. **Time-axis first** — trajectory curves define the arc; notes fill the details
+4. **Time-axis first** — trajectory curves define the arc; notes fill details
 5. **The human ear is the final truth** — automated scores inform; humans decide
-6. **Incrementality** — do not break what works; extend each layer progressively
+6. **Vertical alignment** — input, processing, evaluation advance together
+7. **Status honesty** — a ✅ means it works, not just that tests exist
 
-Full design: [PROJECT.md](PROJECT.md) | Rules: [CLAUDE.md](CLAUDE.md) | Vision: [VISION.md](VISION.md) | Features: [FEATURE_STATUS.md](FEATURE_STATUS.md) | [Docs](https://yao-project.github.io/yao/) | [Gallery](gallery/)
+---
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [FEATURE_STATUS.md](FEATURE_STATUS.md) | Single source of truth for capabilities |
+| [PROJECT.md](PROJECT.md) | Full design (v3.0) |
+| [CLAUDE.md](CLAUDE.md) | Development rules and conventions |
+| [VISION.md](VISION.md) | Target architecture |
+| [development/](development/) | Contributor guide |
+| [docs/](docs/) | User and architecture docs |
 
 ---
 

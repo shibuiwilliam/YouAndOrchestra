@@ -168,6 +168,45 @@ def _adaptation_for_metric(
         # Re-affirm the section structure by adjusting dynamics for clarity.
         return _differentiate_dynamics(spec)
 
+    # --- Aesthetic dimension adaptations (Wave 2.2) ---
+
+    if metric == "surprise_index" and score.score < score.target - score.tolerance:
+        new_temp = min(current_temp + 0.2, 1.0)
+        return SpecAdaptation(
+            field="generation.temperature",
+            old_value=str(current_temp),
+            new_value=str(new_temp),
+            reason=f"Surprise too low ({score.detail}). Increasing temperature for less predictable melodies.",
+        )
+
+    if metric == "surprise_index" and score.score > score.target + score.tolerance:
+        new_temp = max(current_temp - 0.15, 0.05)
+        return SpecAdaptation(
+            field="generation.temperature",
+            old_value=str(current_temp),
+            new_value=str(new_temp),
+            reason=f"Surprise too high ({score.detail}). Decreasing temperature for more coherent melodies.",
+        )
+
+    if metric == "memorability_index" and score.score < score.target - score.tolerance:
+        return SpecAdaptation(
+            field="generation.motif_density",
+            old_value="default",
+            new_value="high",
+            reason=f"Low memorability ({score.detail}). Request more motif placements from Composer.",
+        )
+
+    if metric == "contrast_index" and score.score < score.target - score.tolerance:
+        return _differentiate_dynamics(spec)
+
+    if metric == "pacing_index" and score.score < score.target - score.tolerance:
+        return SpecAdaptation(
+            field="trajectory.adjustment",
+            old_value="none",
+            new_value="sharpen_arc",
+            reason=f"Pacing mismatch ({score.detail}). Trajectory arc needs sharpening.",
+        )
+
     return None
 
 

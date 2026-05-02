@@ -130,3 +130,30 @@ class NeuralBackendUnavailableError(YaOError):
 
 class NeuralGenerationTimeoutError(YaOError):
     """Raised when neural generation exceeds the timeout budget."""
+
+
+class BackendNotConfiguredError(YaOError):
+    """Raised when an agent backend is used without required configuration.
+
+    For AnthropicAPIBackend: missing ANTHROPIC_API_KEY.
+    For ClaudeCodeBackend: Claude Code SDK not available.
+    """
+
+
+class AgentBackendError(YaOError):
+    """Raised when an agent backend encounters an operational error.
+
+    Covers: API errors, timeout, malformed responses.
+    Never silently falls back — always raises.
+    """
+
+
+class AgentOutputParseError(AgentBackendError):
+    """Raised when the LLM response cannot be parsed into AgentOutput.
+
+    The raw response content is attached for debugging.
+    """
+
+    def __init__(self, message: str, *, raw_content: str | None = None) -> None:
+        self.raw_content = raw_content
+        super().__init__(message)

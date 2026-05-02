@@ -1,8 +1,9 @@
 # YaO Feature Status
 
-> Last verified: 2026-04-30 by automated check (`make feature-status`)
+> Last verified: 2026-05-03 by v3.0 implementation audit + `make honesty-check`
 > This file is the **single source of truth** for what YaO can do.
 > README.md, CLAUDE.md, and PROJECT.md link here instead of restating capabilities.
+> **v3.0 audit**: 8 items downgraded from ✅ to 🟡, 1 upgraded 🟡 → ✅ (see docs/audit/2026-05-status-reaudit.md)
 
 ## Status Legend
 
@@ -54,8 +55,8 @@
 | Notation IR | ✅ | tests/unit/test_ir.py | note_name_to_midi, midi_to_note_name |
 | Trajectory IR (5-dim) | ✅ | tests/unit/test_trajectory_ir.py | MultiDimensionalTrajectory with TrajectoryCurve; bezier/stepped/linear |
 | DrumPattern IR | ✅ | tests/unit/ir/test_drum.py | DrumHit, DrumPattern, KitPiece, GM_DRUM_MAP; 15 kit pieces mapped |
-| Performance Expression IR (Layer 4.5) | ✅ | tests/unit/ir/test_expression.py | NoteExpression, PerformanceLayer, RubatoCurve, BreathMark, PedalCurve; frozen overlay on ScoreIR; CC 0-127, pitch bend ±8192 validation |
-| Performance Realizers (4 subtypes) | ✅ | tests/unit/generators/performance/ (20 tests) | ArticulationRealizer, DynamicsCurveRenderer, MicrotimingInjector, CCCurveGenerator; pipeline merge; 4 articulation Skills; idempotent + independent |
+| Performance Expression IR (Layer 4.5) | ✅ | tests/unit/ir/test_expression.py | NoteExpression, PerformanceLayer, RubatoCurve, BreathMark, PedalCurve; integrated into Conductor pipeline and MIDI writer; micro_timing/dynamics/accents applied to MIDI output; v3.0 Wave 3.1 complete |
+| Performance Realizers (4 subtypes) | ✅ | tests/unit/generators/performance/ (20 tests) | ArticulationRealizer, DynamicsCurveRenderer, MicrotimingInjector, CCCurveGenerator; pipeline.py merges them; called from Conductor after note realization; PerformanceLayer passed to MIDI writer; v3.0 Wave 3.1 complete |
 
 ## Rendering
 
@@ -91,9 +92,10 @@
 | Critic integration in loop | ✅ | tests/unit/test_conductor.py | CRITIQUE_RULES.run_all() called; findings → adaptations |
 | Feedback adaptations (evaluator) | ✅ | tests/unit/test_feedback.py | Temperature, strategy, dynamics adaptations |
 | Feedback adaptations (critic findings) | ✅ | tests/unit/test_feedback.py | section_monotony, climax_absence, harmonic_monotony, cliche_progression, intent_divergence |
-| SpecCompiler (NL → spec) | ✅ | tests/unit/sketch/test_compiler.py | Extracted from Conductor; mood → key, pace → tempo, explicit key regex |
+| SpecCompiler (NL → spec) | 🟢 | tests/unit/sketch/ (38 tests), tests/integration/test_spec_compiler_ja.py (22 tests) | Three-stage fallback (LLM → Keyword → Default); Japanese emotion vocabulary (50+ words, valence×arousal); English 23 keywords preserved; auto language detection; LLM stage ready but requires AnthropicAPIBackend (Wave 1.2); Provenance recorded |
 | Multi-candidate Orchestrator | ✅ | tests/unit/conductor/test_multi_candidate.py | N candidates parallel via ThreadPool; critic severity ranking (critical=10,major=3,minor=1); producer top-1 select; opt-in via n_candidates param |
 | ConductorResult with critic_findings | ✅ | tests/unit/test_conductor.py | Findings visible in summary() |
+| Audio Loop (Conductor) | ✅ | tests/unit/conductor/test_audio_feedback.py (10 tests) | ConductorConfig with enable_audio_loop (opt-in, default OFF); AudioThresholds (LUFS target/tolerance, masking_risk_max); 3 adaptation types (dynamics_adjust, register_adjust, eq_adjust); max 2 audio iterations; requires SoundFont; v3.0 Wave 2.3 complete |
 
 ## CLI
 
@@ -110,12 +112,14 @@
 | yao regenerate-section | ✅ | — | Section regeneration |
 | yao preview | ✅ | tests/unit/cli/test_preview.py | In-memory generation + FluidSynth synthesis + sounddevice playback; no file output |
 | yao watch | ✅ | tests/unit/cli/test_watch.py | File-watch via watchdog + auto-regenerate + auto-play; 500ms debounce |
+| yao rate | ✅ | tests/unit/cli/test_rate.py (2 tests) | Interactive 5-dimension rating (memorability/emotional_fit/technical_quality/genre_fitness/overall) + free text; saves JSON; v3.0 Wave 3.5 |
+| yao reflect ingest | ✅ | tests/unit/cli/test_rate.py (2 tests) | Aggregates rating files into UserStyleProfile; computes preferred_range/confidence per dimension; v3.0 Wave 3.5 |
 
 ## Skills / Knowledge
 
 | Feature | Status | Tests | Notes |
 |---|---|---|---|
-| Genre Skills (22) | ✅ | tests/unit/skills/test_genre_skills.py (13 tests) | 16 Western/electronic/classical + 4 world (hindustani, arab_maqam, bossa_nova, celtic) + 2 functional (film_score_dramatic, game_bgm_rpg); world Skills have cultural_context, forbidden_in_pure_form, allowed_relaxations, expert_review_note with academic sources |
+| Genre Skills (22) | ✅ | tests/unit/skills/ (26 tests), tests/integration/test_skill_grounding.py (6 tests) | 22 genres loaded by SkillRegistry; integrated into HarmonyPlanner (chord palette), SpecCompiler (instruments/keys/tempo), genre_fitness critique (tempo range, avoided instruments); Skill edit → output change verified; v3.0 Wave 2.1 complete |
 | voice-leading theory Skill | 🟢 | — | .claude/skills/theory/voice-leading.md |
 | piano instrument Skill | 🟢 | — | .claude/skills/instruments/piano.md |
 | tension-resolution psychology Skill | 🟢 | — | .claude/skills/psychology/tension-resolution.md |
@@ -125,7 +129,7 @@
 | Feature | Status | Tests | Notes |
 |---|---|---|---|
 | 7 Subagent definitions (.md) | ✅ | — | .claude/agents/ (composer, critic, harmony-theorist, mix-engineer, orchestrator, producer, rhythm-architect) |
-| 7 Subagent Python implementations | ✅ | tests/unit/subagents/ (23 tests) | SubagentBase, AgentRole, AgentContext, AgentOutput; all 7 roles registered; dual consistency with .md; Producer-only override; pipeline Step 1-5 |
+| 7 Subagent Python implementations | ✅ | tests/unit/subagents/ (34 tests) | All 7 roles registered; Composer generates non-empty MotifPlan (Markov bigram + intent) with >= 3 placements per motif; PhrasePlan covers all sections; v3.0 Wave 1.1 complete |
 | 7 slash commands | ✅ | — | .claude/commands/ (compose, critique, sketch, regenerate-section, explain, render, arrange) |
 
 ## Tests / QA
@@ -169,11 +173,11 @@
 | Neural generator bridge (Stable Audio) | ✅ | tests/unit/generators/neural/test_stable_audio_bridge.py (8 tests) | StableAudioTextureGenerator; 5 provenance fields (model_version/prompt/seed/hash/rights); graceful ImportError → NeuralBackendUnavailableError; optional dep `pip install yao[neural]` |
 | Project Runtime | ✅ | tests/unit/runtime/test_project_runtime.py (7 tests) | Context manager; undo/redo (max 50); generation cache (spec_hash+seed+strategy); lockfile |
 | DAW project writer (Reaper RPP) | ✅ | tests/unit/render/test_reaper_writer.py (3 tests) | ScoreIR → .rpp text; per-instrument tracks; MIDI stem references |
-| DAW MCP integration | ✅ | tests/unit/render/test_daw_mcp.py (4 tests) | MCPBridge stub; connect/push/pull interface; Reaper-first |
+| DAW MCP integration | 🟡 | tests/unit/render/test_daw_mcp.py (4 tests) | limitation: stub implementation, always returns disconnected/False/None; interface defined but no real MCP connection; Wave 3+ target |
 | Strudel emitter | ✅ | tests/unit/render/test_strudel_emitter.py (4 tests) | ScoreIR → Strudel live-coding notation (.js); browser-side instant audition |
-| Reflection Layer (Style Profile) | ✅ | tests/unit/reflect/test_style_profile.py (5 tests) | UserStyleProfile; StylePreference per dimension; save/load JSON; opt-in |
+| Reflection Layer (Style Profile) | ✅ | tests/unit/reflect/test_style_profile.py (5 tests), tests/unit/cli/test_rate.py (4 tests) | `yao rate` interactive CLI for 5-dimension rating; `yao reflect ingest` aggregates ratings into UserStyleProfile; preferences stored as (range, confidence, source_count); v3.0 Wave 3.5 complete |
 | Critique rules (19 total) | ✅ | tests/unit/verify/test_critique_rules.py | 15 original + 4 new (memorability: MotifAbsence, HookWeakness; genre_fitness: TempoOutOfRange, InstrumentMismatch) |
 | Property-based tests | ✅ | tests/properties/test_genre_invariants.py | Key/range/section/provenance invariants across 4 strategies × 5 seeds |
 | Live improvisation mode | ✅ | tests/unit/improvise/ (21 tests) | RealtimeImprovisationEngine (50ms latency budget); ContextBuffer ring buffer (key/chord/tempo estimation); 4 roles (Bassist/Drummer/Accompanist/MelodyFollower); SessionLog; optional dep `pip install yao[live]` |
 | Annotation UI | ✅ | tests/unit/annotate/ (12 tests) | FastAPI local server; Annotation + AnnotationFile Pydantic models; browser UI with audio player + time-range tagging; explicit save only; optional dep `pip install yao[annotate]` |
-| Backend-Agnostic Agent Protocol | ✅ | tests/unit/agents/ (14 tests) | AgentBackend Protocol; PythonOnlyBackend (CI default); AnthropicAPIBackend + ClaudeCodeBackend (stubs with fallback); registry via YAO_AGENT_BACKEND env var; all 7 roles invocable without LLM |
+| Backend-Agnostic Agent Protocol | 🟡 | tests/unit/agents/ (29 tests) | limitation: ClaudeCodeBackend (is_stub=True) still falls back to PythonOnly; AnthropicAPIBackend is real (is_stub=False, requires ANTHROPIC_API_KEY, tool_use structured output, provenance with backend/model/prompt_hash/token_usage); Protocol and PythonOnlyBackend work; ClaudeCode is Wave 3+ target |

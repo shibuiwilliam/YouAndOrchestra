@@ -1,0 +1,51 @@
+{
+  "user_id": "local",
+  "total_annotations": 30,
+  "preferences": [
+    {
+      "dimension": "memorability",
+      "preferred_range": [
+        5.9,
+        7.9
+      ],
+      "confidence": 0.6,
+      "source_count": 6
+    },
+    {
+      "dimension": "emotional_fit",
+      "preferred_range": [
+        6.9,
+        7.9
+      ],
+      "confidence": 0.6,
+      "source_count": 6
+    },
+    {
+      "dimension": "technical_quality",
+      "preferred_range": [
+        5.9,
+        7.4
+      ],
+      "confidence": 0.6,
+      "source_count": 6
+    },
+    {
+      "dimension": "genre_fitness",
+      "preferred_range": [
+        6.7,
+        7.7
+      ],
+      "confidence": 0.6,
+      "source_count": 6
+    },
+    {
+      "dimension": "overall",
+      "preferred_range": [
+        6.9,
+        7.4
+      ],
+      "confidence": 0.6,
+      "source_count": 6
+    }
+  ]
+}

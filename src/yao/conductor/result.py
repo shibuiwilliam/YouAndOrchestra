@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from yao.ir.expression import PerformanceLayer
 from yao.ir.score_ir import ScoreIR
 from yao.reflect.provenance import ProvenanceLog
 from yao.schema.composition import CompositionSpec
@@ -44,6 +45,7 @@ class ConductorResult:
     output_dir: Path = field(default_factory=lambda: Path("."))
     adaptations_applied: list[str] = field(default_factory=list)
     critic_findings: list[Finding] = field(default_factory=list)
+    performance_layer: PerformanceLayer | None = None
 
     def summary(self) -> str:
         """Human-readable summary of the composition result.

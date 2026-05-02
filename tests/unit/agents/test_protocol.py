@@ -87,15 +87,25 @@ class TestRegistry:
             get_backend("nonexistent")
 
     def test_env_var_override(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        import yao.agents.anthropic_api_backend as backend_mod
+
+        mock_anthropic = MagicMock()
+        mock_anthropic.Anthropic.return_value = MagicMock()
+
         old = os.environ.get("YAO_AGENT_BACKEND")
         os.environ["YAO_AGENT_BACKEND"] = "anthropic_api"
+        os.environ["ANTHROPIC_API_KEY"] = "test-key-for-registry"
         try:
-            from yao.agents.anthropic_api_backend import AnthropicAPIBackend
+            with patch.object(backend_mod, "anthropic", mock_anthropic):
+                from yao.agents.anthropic_api_backend import AnthropicAPIBackend
 
-            backend = get_backend()
-            assert isinstance(backend, AnthropicAPIBackend)
+                backend = get_backend()
+                assert isinstance(backend, AnthropicAPIBackend)
         finally:
             if old is not None:
                 os.environ["YAO_AGENT_BACKEND"] = old
             else:
                 os.environ.pop("YAO_AGENT_BACKEND", None)
+            os.environ.pop("ANTHROPIC_API_KEY", None)

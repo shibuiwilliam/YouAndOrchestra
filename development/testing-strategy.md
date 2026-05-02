@@ -4,13 +4,15 @@
 
 | Category | Location | Purpose | Count |
 |----------|----------|---------|-------|
-| Unit | `tests/unit/` | Individual module behavior, CPIR, critique rules, metric goals | ~500 |
-| Integration | `tests/integration/` | Full pipeline end-to-end, silent fallback checks | ~20 |
+| Unit | `tests/unit/` | Individual module behavior, V2 realizers, aesthetic metrics, ensemble constraints | ~1,000 |
+| Integration | `tests/integration/` | Full pipeline, spec compiler (EN+JP), motif recurrence | ~40 |
 | Music Constraints | `tests/music_constraints/` | Music theory rule enforcement | ~16 |
 | Scenarios | `tests/scenarios/` | Prove musical value (not just mechanics) | ~16 |
-| Golden | `tests/golden/` | Fixed output regression | 6 |
-| Subagent Evals | `tests/subagent_evals/` | LLM-as-judge prompt regression | ~18 |
-| **Total** | | | **~1,094** |
+| Golden | `tests/golden/` | Fixed output regression (V1 + V2 baselines) | 6 |
+| Tools | `tests/tools/` | CI honesty tool unit tests | ~41 |
+| LLM Quality | `tests/llm_quality/` | PythonOnly vs LLM comparison (optional, needs API key) | ~2 |
+| Subjective | `tests/subjective/` | Human rating threshold validation | ~5 |
+| **Total** | | | **~1,150** |
 
 ### Unit Test Coverage
 

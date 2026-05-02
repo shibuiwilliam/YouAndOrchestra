@@ -1,80 +1,174 @@
-# /sketch — Interactive sketch-to-spec dialogue
+# /sketch — 6-turn interactive sketch-to-spec dialogue
 
-Transform a musical idea into a complete YAML specification through guided dialogue.
+Transform a musical idea into a complete specification through a structured 6-turn dialogue.
+Each turn proposes concrete suggestions; the user approves or adjusts.
 
-**Input:** `$ARGUMENTS` — Optional initial description of the desired music. If empty, ask the user to describe what they want.
+**Input:** `$ARGUMENTS` — Optional initial description. If empty, start Turn 1 with an open question.
 
-## Execute this protocol:
+## State Management
 
-### Step 1: Gather Intent
-If `$ARGUMENTS` is provided, use it as the starting description. Otherwise ask:
-"Describe the music you want. Include any of these you have in mind: mood, use case (game, film, study), duration, instruments, style."
-
-### Step 2: Choose Project Name
-Ask: "What should we call this project?" Use the answer to create the project:
-```bash
-yao new-project <name>
+Store dialogue state in `specs/projects/<name>/sketch_state.json`:
+```json
+{
+  "turn": 2,
+  "project_name": "rainy-cafe",
+  "intent": { "emotion": "melancholic", "purpose": "study bgm", "context": "rainy night" },
+  "references": { "like": ["Debussy preludes"], "avoid": ["harsh electronic"] },
+  "instruments": ["piano"],
+  "duration_seconds": 90,
+  "trajectory_shape": "arc",
+  "spec_draft": { ... }
+}
 ```
 
-### Step 3: Propose Spec
-Based on the description, propose concrete values. Present them as a filled-in spec and ask for confirmation:
+To resume: `/sketch resume <name>` loads the state and continues from the saved turn.
 
-"Here's what I'd suggest based on your description:
+---
 
-- **Key:** D minor (melancholic feel)
+## Turn 1: Core Emotion & Purpose
+
+**Goal:** Establish the emotional core and listening context.
+
+If `$ARGUMENTS` is provided, extract emotion/purpose from it and present:
+
+"Based on your description, I hear:
+- **Core emotion:** melancholic, introspective
+- **Purpose:** background music for studying/reading
+- **Listening context:** alone, headphones, evening
+
+Is this right? Anything to adjust?"
+
+If `$ARGUMENTS` is empty, ask:
+"Let's build your piece together. Tell me:
+1. What **feeling** should this music evoke? (e.g., peaceful, tense, triumphant, nostalgic)
+2. What is it **for**? (e.g., game menu, study BGM, film scene, personal enjoyment)
+3. Where will it be **heard**? (e.g., headphones alone, cafe speakers, live performance)"
+
+**Save:** emotion, purpose, context → `sketch_state.json`
+
+---
+
+## Turn 2: References & Anti-References
+
+"Now let's define the sound world:
+
+**Draw inspiration from** (style, not specific copyrighted melodies):
+- I'd suggest: *Debussy-like impressionism, soft jazz voicings, sparse piano*
+  (based on your 'melancholic evening' intent)
+
+**Avoid:**
+- Harsh timbres, fast tempos, major-key brightness?
+
+Are these right? Name any artists/genres/moods to draw from or avoid."
+
+**Save:** like_references, avoid_references → `sketch_state.json`
+
+---
+
+## Turn 3: Instruments, Duration, Structure
+
+"Here's what I'd suggest for your piece:
+
+- **Instruments:** piano (melody), cello (bass line), strings pad
+- **Duration:** ~90 seconds (good for a study loop)
+- **Sections:** intro (4 bars) → A (8 bars) → B (8 bars) → A' (8 bars) → outro (4 bars)
+- **Key:** D minor (melancholic)
 - **Tempo:** 72 BPM (slow, contemplative)
-- **Time signature:** 4/4
-- **Instruments:** piano (melody), cello (bass), strings_ensemble (pad)
-- **Sections:** intro (8 bars, pp) → verse (16 bars, mp) → chorus (8 bars, f) → outro (8 bars, pp)
-- **Generator:** stochastic (seed 42, temperature 0.6)
+- **Loopable:** yes (outro connects back to intro)
 
-Would you like to adjust anything? I can change instruments, tempo, key, dynamics, or section structure."
+Adjust any of these? I can change instruments, add/remove sections, or shift the feel."
 
-Use the following references for suggestions:
-- Moods → keys: happy=C major, sad=D minor, calm=F major, dark=C minor, epic=D minor, mysterious=A minor
-- Paces → tempo: slow/calm=80, moderate=100, fast/energetic=140
-- Instrument keywords: "piano", "strings", "orchestra", "guitar", "synth", "ambient", "cinematic", "jazz", "classical"
-- See `src/yao/constants/instruments.py` for all 46 available instruments
+**Derive:** Use `src/yao/sketch/compiler.py` keyword matching + emotion vocabulary to propose concrete values.
 
-### Step 4: Propose Trajectory
-"I'd suggest this emotional arc:
-- Tension starts low (0.2), builds through the verse to 0.7, peaks in the chorus at 0.9, then settles to 0.2
-- Density mirrors tension — sparse intro, full chorus, quiet outro
+**Save:** instruments, duration, sections, key, tempo → `sketch_state.json`
 
-Should I create this trajectory, or adjust the shape?"
+---
 
-### Step 5: Write Files
-Write `composition.yaml` with the agreed spec to `specs/projects/<name>/composition.yaml`.
-Write `trajectory.yaml` if agreed.
-Write `intent.md` with the original description crystallized to 1-3 sentences.
+## Turn 4: Trajectory (Emotional Arc)
 
-Validate the spec:
-```bash
-yao validate specs/projects/<name>/composition.yaml
+"Here's the emotional arc I'd suggest:
+
+```
+Tension:  ░░▓▓▓▓▓▓████████▓▓▓▓░░
+Density:  ░░▓▓▓▓▓▓████████▓▓▓▓░░
+          intro  A    B    A'  outro
 ```
 
-### Step 6: Generate
+- **Tension:** starts 0.2, rises to 0.5 in A, peaks at 0.7 in B, returns to 0.3 in A', ends 0.15
+- **Density:** mirrors tension — sparse intro, moderate verse, fullest in B
+- **Climax:** section B (the emotional peak)
+
+Does this arc feel right? I can make it more dramatic, more flat, or shift the peak."
+
+**Save:** trajectory waypoints, climax section → `sketch_state.json`
+
+---
+
+## Turn 5: Final Spec Confirmation
+
+Present the complete spec as YAML preview:
+
+"Here's your complete specification:
+
+```yaml
+title: Rainy Night Café
+key: D minor
+tempo_bpm: 72
+time_signature: 4/4
+instruments:
+  - name: piano, role: melody
+  - name: cello, role: bass
+sections:
+  - name: intro, bars: 4, dynamics: pp
+  - name: verse_a, bars: 8, dynamics: mp
+  - name: bridge, bars: 8, dynamics: mf
+  - name: verse_b, bars: 8, dynamics: mp
+  - name: outro, bars: 4, dynamics: pp
+generation:
+  strategy: stochastic_v2
+  seed: 42
+  temperature: 0.4
+```
+
+**intent.md:**
+> A melancholic piano piece for studying on a rainy evening. Inspired by impressionist harmony, with gentle cello support. Quiet, introspective, loopable.
+
+Ready to create? I'll write the files and validate."
+
+**On approval:** Write `composition.yaml`, `trajectory.yaml`, `intent.md`. Run `yao validate`.
+
+---
+
+## Turn 6: Generate & Review
+
 "Your project is ready! Generating now..."
 
-Run the composition:
 ```bash
 yao conduct --spec specs/projects/<name>/composition.yaml --project <name> --iterations 3
 ```
 
-### Step 7: Review and iterate
-After generation completes:
-1. Show the evaluation summary
-2. If metrics failed, offer: "Want me to `/critique <name>` for detailed analysis?"
-3. If specific sections are weak: "The <section> could be stronger. Want me to `/regenerate-section <name> <section>`?"
-4. If all passed: "The composition looks solid! Want to hear it? I can render with `yao render <path>`."
+After generation:
+1. Show evaluation summary + aesthetic scores
+2. If issues: offer `/critique <name>` or `/regenerate-section`
+3. If good: offer `/render <name>` for audio
 
-## Complete Workflow Loop
-```
-/sketch → (builds spec) → /compose → (generates) → /critique → (finds issues) → /regenerate-section → (fixes) → /critique → ...
-```
+---
+
+## Resume Protocol
+
+`/sketch resume <name>`:
+1. Load `specs/projects/<name>/sketch_state.json`
+2. Report: "Resuming sketch for '<name>' — we were on Turn {N}."
+3. Continue from the saved turn
+
+---
 
 ## Rules
-- Offer concrete suggestions, not open-ended questions ("D minor or F minor?" not "what key?")
-- Always validate the YAML before generating
-- Explain musical choices briefly ("D minor because you said melancholic")
-- After successful generation, always offer the next workflow step
+- **Offer concrete suggestions, not open-ended questions** ("D minor or F minor?" not "what key?")
+- **Each turn must be approvable with a single "yes"** — but adjustable with specifics
+- **Explain musical choices briefly** ("D minor because you said melancholic")
+- **Save state after each turn** (enables resume)
+- **Use Wave 1.3 SpecCompiler** for keyword → spec translation
+- **Use Wave 3.4 StyleVector** vocabulary when describing reference styles
+- **Never generate without user approval of the complete spec** (Turn 5)
+- **Generator default: stochastic_v2** (V2 pipeline, direct plan consumption)

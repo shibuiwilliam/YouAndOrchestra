@@ -46,9 +46,14 @@ class NoteRealizerBase(ABC):
 
     A note realizer takes a complete MusicalPlan and produces a ScoreIR
     with concrete notes. It does NOT read CompositionSpec directly.
+
+    Subclasses should declare consumed_plan_fields to document which
+    MusicalPlan fields they actually read. This is verified by
+    tools/check_plan_consumption.py.
     """
 
     name: str
+    consumed_plan_fields: tuple[str, ...] = ()
 
     @abstractmethod
     def realize(

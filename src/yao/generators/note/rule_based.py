@@ -26,7 +26,13 @@ if TYPE_CHECKING:
 
 @register_note_realizer("rule_based")
 class RuleBasedNoteRealizer(NoteRealizerBase):
-    """Note realizer backed by the legacy rule-based generator."""
+    """Note realizer backed by the legacy rule-based generator.
+
+    .. deprecated:: Wave 1.4
+        Use ``RuleBasedNoteRealizerV2`` ("rule_based_v2") instead.
+        This adapter converts MusicalPlan to v1 spec, discarding most
+        plan information. Will be removed in Wave 2.
+    """
 
     def realize(
         self,

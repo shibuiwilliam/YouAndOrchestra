@@ -2,218 +2,142 @@
 
 ## Overview
 
-YaO is a layered music production pipeline. Each layer has clear responsibilities and strict downward-only dependency flow. Layer boundaries are enforced by `tools/architecture_lint.py` using AST analysis.
+YaO is a layered music production pipeline with 8 layers (0 through 7) plus an intermediate Layer 4.5. Each layer has clear responsibilities and strict downward-only dependency flow. Layer boundaries are enforced by `tools/architecture_lint.py` using AST analysis.
 
 ## Layer Model
 
 ```
 +--------------------------------------------------------------+
 | Conductor (conductor/)                                       |
-|   Feedback loop: generate -> evaluate -> adapt -> regenerate |
+|   Feedback loop: generate → evaluate → adapt → regenerate    |
 +--------------------------------------------------------------+
-| Layer 6: Verification (verify/)                              |
-|   Music linting, evaluation, constraint checking, diffing,   |
-|   MetricGoal, RecoverableDecision tracking                   |
+| Layer 7: Reflection & Learning (reflect/, agents/)           |
+|   Style profiles, subjective ratings, agent backends         |
++--------------------------------------------------------------+
+| Layer 6: Verification & Critique (verify/)                   |
+|   Evaluation (6 dims), aesthetic metrics, 20 critique rules, |
+|   ensemble constraints, constraint checker, lint, diff       |
 +--------------------------------------------------------------+
 | Layer 5: Rendering (render/)                                 |
-|   MIDI writing/reading, audio rendering, stems, iterations   |
+|   MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel        |
 +--------------------------------------------------------------+
-| Layer 4: Perception (perception/) [planned]                  |
-|   Reference matching, aesthetic judgment substitutes         |
+| Layer 4.5: Performance Expression (generators/performance/)  |
+|   Articulation, dynamics curves, microtiming, CC curves      |
 +--------------------------------------------------------------+
-| Layer 3a: Composition Plan IR (ir/plan/) [v2.0]                 |
-|   SongFormPlan, HarmonyPlan, MusicalPlan                     |
-|   Structural/harmonic decisions BEFORE notes are placed      |
+| Layer 4: Perception (perception/)                            |
+|   Audio features, StyleVector (10 fields), use-case eval,    |
+|   reference matching                                         |
 +--------------------------------------------------------------+
-| Layer 3b: Score IR (ir/)                                      |
+| Layer 3.5: Musical Plan IR (ir/plan/)                        |
+|   SongFormPlan, HarmonyPlan, MotifPlan, PhrasePlan,          |
+|   ArrangementPlan, DrumPattern, MusicalPlan                  |
++--------------------------------------------------------------+
+| Layer 3: Score IR (ir/)                                      |
 |   Note, Part, Section, ScoreIR, harmony, motif, voicing      |
 +--------------------------------------------------------------+
 | Layer 2: Generation (generators/)                            |
-|   Plan generators + note realizers, pluggable registry       |
+|   Plan generators + V2 note realizers (direct plan consumption)|
 +--------------------------------------------------------------+
-| Layer 1: Foundation (schema/ + reflect/)                     |
-|   Specs (v1 + v2), provenance, recoverable decisions         |
+| Layer 1: Specification (schema/, sketch/)                    |
+|   Specs (v1+v2), NL compiler (EN+JP), dialogue state         |
 +--------------------------------------------------------------+
 | Layer 0: Constants (constants/)                              |
-|   Instrument ranges, MIDI mappings, scales, chords           |
+|   38 instruments, 14 scales, 17 tuning systems, MIDI maps    |
 +--------------------------------------------------------------+
 ```
 
 ## Dependency Rules
 
 | Source Layer | May Import From |
-|-------------|----------------|
+|---|---|
 | constants (0) | nothing |
 | schema (1) | constants |
-| ir (3a, 3b) | constants |
-| reflect (1) | constants |
+| sketch (1.5) | constants, schema |
+| ir (3, 3.5) | constants |
+| reflect (7) | constants, ir |
 | generators (2) | constants, schema, ir, reflect |
-| perception (4) | constants, schema, ir, generators |
-| render (5) | constants, schema, ir, generators, perception |
-| verify (6) | constants, schema, ir, generators, perception, render |
+| perception (4) | constants, schema, ir |
+| render (5) | constants, schema, ir, perception |
+| verify (6) | constants, schema, ir, perception |
+| agents (7) | constants, schema, ir, reflect, subagents |
 | conductor | all layers |
-| cli (consumer) | everything in yao |
+| cli | everything in yao |
 
-## Design Decision: IR and Provenance at Foundation
+## V2 Pipeline (Current Default)
 
-See [ADR-0001](../docs/design/0001-layer-architecture.md). IR types (`Note`, `ScoreIR`) and provenance types (`ProvenanceRecord`, `ProvenanceLog`) are foundational shared types, not upper-layer components. Every layer produces and consumes them.
+```
+User Input (NL or YAML)
+    │
+    ▼
+SpecCompiler (3-stage: LLM → Keyword → Default)
+    │
+    ▼
+PlanOrchestrator (7 steps)
+    │
+    ├── Step 1: FormPlanner      → SongFormPlan
+    ├── Step 2: HarmonyPlanner   → HarmonyPlan
+    ├── Step 3: Composer         → MotifPlan + PhrasePlan
+    ├── Step 4: DrumPatterner    → DrumPattern
+    └── Step 5: Orchestrator     → ArrangementPlan (with register separation)
+    │
+    ▼
+═══ MusicalPlan Complete ═══
+    │
+    ▼
+Critic Gate (MPIR-level: 20 rules + ensemble constraints)
+    │
+    ▼
+NoteRealizer V2 (100% plan consumption — no legacy adapter)
+    │
+    ▼
+Performance Pipeline (articulation, dynamics, microtiming, CC)
+    │
+    ▼
+Renderer (MIDI / WAV / MusicXML / LilyPond / Reaper / Strudel)
+    │
+    ▼
+Evaluator (6 dimensions: structure, melody, harmony, aesthetic, arrangement, acoustics)
+    │
+    ▼
+Conductor Feedback Loop (up to 3 iterations)
+```
+
+## Key Types
+
+| Type | Location | Purpose |
+|---|---|---|
+| `Note` | ir/note.py | Atomic musical unit (pitch, beat, duration, velocity) |
+| `ScoreIR` | ir/score_ir.py | Complete composition (sections → parts → notes) |
+| `MusicalPlan` | ir/plan/musical_plan.py | Pre-realization plan (the "why") |
+| `StyleVector` | perception/style_vector.py | 10-field copyright-safe style fingerprint |
+| `Finding` | verify/critique/types.py | Structured critique output |
+| `EnsembleConstraint` | schema/constraints.py | Inter-part constraint |
+| `AestheticReport` | verify/aesthetic.py | 4 metric scores (surprise/memorability/contrast/pacing) |
+| `ProvenanceLog` | reflect/provenance.py | Append-only decision record |
+| `AgentOutput` | subagents/base.py | Universal subagent output |
+| `SketchState` | sketch/dialogue_state.py | Multi-turn dialogue persistence |
 
 ## Library Confinement
 
 | Library | Allowed In | Prohibited Elsewhere |
-|---------|-----------|---------------------|
-| `pretty_midi` | ir/, render/ | Generators, verify, schema |
-| `music21` | ir/, verify/ | Generators, render, schema |
-| `librosa` | verify/, perception/ | All other layers |
-| `pyloudnorm` | verify/, perception/ | All other layers |
-| `pedalboard` | render/production/ | All other layers |
+|---|---|---|
+| `pretty_midi` | ir/, render/ | generators, verify, schema |
+| `music21` | ir/, render/ | generators, schema |
+| `librosa` | perception/ | all other layers |
+| `pyloudnorm` | perception/, mix/ | all other layers |
+| `pedalboard` | mix/ | all other layers |
+| `anthropic` | agents/anthropic_api_backend.py | everywhere else |
+| `sounddevice` | improvise/, cli (preview/watch) | all other layers |
+| `torch` | generators/neural/ | all other layers |
 
-## Data Flow
+## Honesty Enforcement
 
-### v2.0 Pipeline (Plan-First)
+5 CI tools verify implementation integrity:
 
-The v2.0 architecture introduces a two-stage generation process. Structural and harmonic decisions are made in the **Plan** stage (Layer 3a), before any concrete notes are placed.
-
-```
-composition.yaml  -->  CompositionSpec  -->  Conductor
-trajectory.yaml   -->  TrajectorySpec   --+     |
-                                               v
-                                     PlanGenerator.plan()
-                                               |
-                                               v
-                                     MusicalPlan (CPIR)
-                                        - SongFormPlan
-                                        - HarmonyPlan
-                                        - (MotifPlan, DrumPlan — planned)
-                                               |
-                                     [Critic Gate — validates plan]
-                                               |
-                                               v
-                                     NoteRealizer.realize()
-                                               |
-                                               v
-                                     (ScoreIR, ProvenanceLog)
-                                               |
-                         +---------------------+---------------------+
-                         v                     v                     v
-                   write_midi()          lint_score()          evaluate_score()
-                   write_stems()         analyze_score()       check_constraints()
-                         |               diff_scores()
-                         v                     |
-                   full.mid                    v
-                   stems/*.mid           EvaluationReport
-                                               |
-                                    [if failing metrics]
-                                               v
-                                     suggest_adaptations()
-                                               |
-                                               v
-                                     apply_adaptations() -> modified spec
-                                               |
-                                               v
-                                     regenerate (loop up to max_iterations)
-```
-
-### Legacy Pipeline (Phase α transitional)
-
-During Phase α, the legacy generators (`rule_based`, `stochastic`) still accept specs directly but are being repositioned as Note Realizers. They may internally construct a minimal CPIR and pass through it. After Phase α, the direct spec-to-ScoreIR path will be removed.
-
-```
-CompositionSpec  -->  GeneratorBase.generate()  -->  (ScoreIR, ProvenanceLog)
-```
-
-## Module Map
-
-### Layer 0: Constants
-- `constants/midi.py` -- PPQ (220), default velocity (80), default BPM (120), GM program numbers (46 mappings)
-- `constants/instruments.py` -- `InstrumentRange` for 38 instruments across 9 families
-- `constants/music.py` -- 14 scales, 14 chord types, 12 section types, dynamics-to-velocity map
-
-### Layer 1: Schema
-- `schema/composition.py` -- v1: `CompositionSpec`, `SectionSpec`, `InstrumentSpec`, `GenerationConfig`
-- `schema/composition_v2.py` -- v2: `CompositionSpecV2` with 11 sections (identity, global, emotion, form, melody, harmony, rhythm, drums, arrangement, production, constraints)
-- `schema/trajectory.py` -- `TrajectorySpec`, `TrajectoryDimension`, `Waypoint`
-- `schema/intent.py` -- `IntentSpec` (emotional/functional goals)
-- `schema/constraints.py` -- `Constraint`, `ConstraintsSpec` (must/must_not/prefer/avoid)
-- `schema/references.py` -- `ReferencesSpec` (aesthetic reference library)
-- `schema/negative_space.py` -- `NegativeSpaceSpec` (intentional silence)
-- `schema/production.py` -- `ProductionSpec` (LUFS, stereo, reverb)
-- `schema/project.py` -- `ProjectSpec` (loader for project directories)
-- `schema/loader.py` -- YAML loading, auto-detect v1/v2, project spec assembly
-
-### Layer 1: Reflect
-- `reflect/provenance.py` -- `ProvenanceRecord`, `ProvenanceLog` (append-only, queryable)
-- `reflect/recoverable.py` -- `RecoverableDecision` for traceable fallback logging
-- `reflect/recoverable_codes.py` -- Error codes for recovery classification
-
-### Layer 3: Score IR
-- `ir/note.py` -- `Note` frozen dataclass (pitch, beat, duration, velocity, instrument)
-- `ir/score_ir.py` -- `Part`, `Section`, `ScoreIR` (the central data structure)
-- `ir/timing.py` -- All beat<->tick<->second conversions
-- `ir/notation.py` -- Note name<->MIDI number, key parsing, scale generation
-- `ir/harmony.py` -- `ChordFunction`, `ChordProgression`, `realize()`, diatonic quality
-- `ir/motif.py` -- `Motif`, transpose, invert, retrograde, augment, diminish
-- `ir/voicing.py` -- `Voicing`, parallel fifths/octaves detection, voice distance
-- `ir/trajectory.py` -- `MultiDimensionalTrajectory` with density, tension, energy curves
-
-### Layer 3a: Composition Plan IR (CPIR, v2.0)
-- `ir/plan/base.py` -- `PlanNode` abstract base class
-- `ir/plan/song_form.py` -- `SongFormPlan` (sections, structure)
-- `ir/plan/harmony.py` -- `HarmonyPlan` (chord events, progressions)
-- `ir/plan/motif.py` -- `MotifPlan` (planned, Phase beta)
-- `ir/plan/phrase.py` -- `PhrasePlan` (planned, Phase beta)
-- `ir/plan/drums.py` -- `DrumPlan` (planned, Phase beta)
-- `ir/plan/arrangement.py` -- `ArrangementPlan` (planned, Phase beta)
-- `ir/plan/musical_plan.py` -- `MusicalPlan` (integrated container, JSON serialization)
-
-### Layer 2: Generators
-- `generators/base.py` -- `GeneratorBase` ABC: `generate() -> (ScoreIR, ProvenanceLog)`
-- `generators/registry.py` -- `@register_generator()`, `get_generator()`, `available_generators()`
-- `generators/rule_based.py` -- Deterministic scale-based generation
-- `generators/stochastic.py` -- Seeded randomness with StochasticConfig (15 tunable params), 4 contour algorithms (arch/ascending/descending/wave), 5 chord voicing types, section-aware progressions, walking bass, 12 rhythm patterns
-- `generators/drum_patterner.py` -- 8 genre-specific drum patterns with swing, ghost notes, trajectory density
-- `generators/counter_melody.py` -- Species counterpoint with contrary motion, density control
-- `generators/legacy_adapter.py` -- Backward compatibility adapter for v1 generators
-- `generators/plan/base.py` -- `PlanGeneratorBase` ABC (v2.0)
-- `generators/plan/form_planner.py` -- Generates `SongFormPlan` from `CompositionSpec`
-- `generators/plan/harmony_planner.py` -- Generates `HarmonyPlan` from spec + form
-- `generators/plan/orchestrator.py` -- Runs form -> harmony planners, builds MusicalPlan
-- `generators/note/base.py` -- `NoteRealizerBase` ABC (v2.0)
-- `generators/note/rule_based.py` -- Rule-based note realizer (v2.0)
-- `generators/note/stochastic.py` -- Stochastic note realizer (v2.0)
-
-### Layer 5: Rendering
-- `render/midi_writer.py` -- `ScoreIR` -> PrettyMIDI -> .mid
-- `render/midi_reader.py` -- .mid -> ScoreIR (inverse of writer, for analysis and section regeneration)
-- `render/audio_renderer.py` -- MIDI -> WAV via fluidsynth (best-effort)
-- `render/stem_writer.py` -- Per-instrument MIDI stem files
-- `render/iteration.py` -- Versioned output directories (v001, v002, ...)
-
-### Layer 6: Verification
-- `verify/music_lint.py` -- Range, overlap, velocity, duration, tempo checks (7 rules)
-- `verify/analyzer.py` -- `AnalysisReport` with note stats, lint results
-- `verify/evaluator.py` -- `EvaluationReport` across 3 dimensions (structure, melody, harmony) with 10 metrics + quality_score (1.0-10.0)
-- `verify/metric_goal.py` -- `MetricGoal` with 7 typed evaluation modes (AT_LEAST, AT_MOST, TARGET_BAND, BETWEEN, MATCH_CURVE, RELATIVE_ORDER, DIVERSITY)
-- `verify/diff.py` -- `ScoreDiff` with added, removed, and modified notes
-- `verify/constraint_checker.py` -- Evaluate constraints (density, pitch limits, parallel fifths, rest ratio)
-- `verify/critique/` -- Rule-based adversarial critique engine:
-  - `base.py` -- `CritiqueRule` ABC with `detect()` method
-  - `types.py` -- `Finding` dataclass (rule_id, severity, role, issue, evidence, location, recommendation)
-  - `registry.py` -- `CritiqueRuleRegistry` for rule discovery
-  - `structural.py` -- 3 rules: climax absence, section monotony, form imbalance
-  - `melodic.py` -- 3 rules: cliche motif, contour monotony, phrase closure weakness
-  - `harmonic.py` -- 3 rules: cliche progression, voice crossing, cadence weakness
-  - `rhythmic.py` -- 2 rules: rhythmic monotony, groove inconsistency
-  - `arrangement.py` -- 2 rules: frequency collision, texture collapse
-  - `emotional.py` -- 2 rules: intent divergence, trajectory violation
-
-### Conductor
-- `conductor/conductor.py` -- `Conductor` with `compose_from_description()`, `compose_from_spec()`, `regenerate_section()`, mood-to-key mapping, instrument keyword mapping, critique integration
-- `conductor/feedback.py` -- `suggest_adaptations()`, `apply_adaptations()`, maps failing metrics and critique findings to spec changes
-- `conductor/result.py` -- `ConductorResult` with score, spec, paths, analysis, evaluation, iteration history, critic_findings
-
-### Sketch
-- `sketch/compiler.py` -- `SpecCompiler` extracted from Conductor: mood → key, pace → tempo, explicit key regex, instrument keywords
-
-### CLI
-- `cli/main.py` -- Click commands: conduct, compose, regenerate-section, render, validate, evaluate, diff, explain, new-project, preview, watch (11 commands)
+| Tool | Checks |
+|---|---|
+| `honesty-check` | No ✅ features that are actually stubs |
+| `backend-honesty` | Stub backends declare `is_stub=True` |
+| `plan-consumption` | V2 realizers consume 80%+ of plan fields |
+| `skill-grounding` | Genre skills referenced from src/ |
+| `critic-coverage` | All severity levels have effective rules |

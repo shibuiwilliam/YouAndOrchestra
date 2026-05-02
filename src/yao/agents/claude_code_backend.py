@@ -24,6 +24,8 @@ class ClaudeCodeBackend:
     will launch Claude Code subagents for creative tasks.
     """
 
+    is_stub = True
+
     def __init__(self) -> None:
         self._fallback = PythonOnlyBackend()
 

@@ -161,6 +161,19 @@ class RuleBasedHarmonyPlanner(PlanGeneratorBase):
             Dict with "harmony" key containing a HarmonyPlan.
         """
         palette = list(spec.harmony.chord_palette)
+        skill_source: str | None = None
+
+        # v3.0 Wave 2.1: Enrich palette from SkillRegistry if available
+        if not palette or palette == ["I", "IV", "V", "vi"]:
+            from yao.skills.loader import get_skill_registry
+
+            genre = spec.global_.genre.lower() if hasattr(spec.global_, "genre") else ""
+            registry = get_skill_registry()
+            skill_palette = registry.chord_palette_for(genre)
+            if skill_palette:
+                palette = skill_palette
+                skill_source = genre
+
         if not palette:
             palette = list(_DEFAULT_PROGRESSION)
 
@@ -233,17 +246,23 @@ class RuleBasedHarmonyPlanner(PlanGeneratorBase):
             tension_resolution_points=resolution_points,
         )
 
+        prov_params: dict[str, Any] = {
+            "generator": "rule_based_harmony",
+            "n_chord_events": len(chord_events),
+            "palette": palette,
+            "cadences": {k: v.value for k, v in cadences.items()},
+        }
+        rationale = f"Harmony plan: {len(chord_events)} chords from palette {palette}."
+        if skill_source:
+            prov_params["source_skill"] = skill_source
+            rationale += f" Palette sourced from genre skill '{skill_source}'."
+
         provenance.record(
             layer="generator",
             operation="harmony_planning",
-            parameters={
-                "generator": "rule_based_harmony",
-                "n_chord_events": len(chord_events),
-                "palette": palette,
-                "cadences": {k: v.value for k, v in cadences.items()},
-            },
+            parameters=prov_params,
             source="RuleBasedHarmonyPlanner.generate",
-            rationale=f"Harmony plan: {len(chord_events)} chords from palette {palette}.",
+            rationale=rationale,
         )
 
         return {"harmony": harmony_plan}

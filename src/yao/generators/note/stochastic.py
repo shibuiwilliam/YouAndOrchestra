@@ -24,7 +24,13 @@ if TYPE_CHECKING:
 
 @register_note_realizer("stochastic")
 class StochasticNoteRealizer(NoteRealizerBase):
-    """Note realizer backed by the legacy stochastic generator."""
+    """Note realizer backed by the legacy stochastic generator.
+
+    .. deprecated:: Wave 1.4
+        Use ``StochasticNoteRealizerV2`` ("stochastic_v2") instead.
+        This adapter converts MusicalPlan to v1 spec, discarding most
+        plan information. Will be removed in Wave 2.
+    """
 
     def realize(
         self,

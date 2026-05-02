@@ -3,156 +3,160 @@
 > *An agentic music production environment built on Claude Code*
 > *— where you are the conductor, and the AI is your orchestra.*
 
-> **Document version**: 2.0
-> **Last updated**: 2026-05-02
-> **Status**: This document supersedes PROJECT.md v1.0. It preserves the original design philosophy and metaphor while integrating concrete improvements identified through Phase 1 retrospective and gap analysis. For what works today, see [FEATURE_STATUS.md](./FEATURE_STATUS.md). For development rules, see [CLAUDE.md](./CLAUDE.md).
+> **Document version**: 3.0 (Closing-the-Gap Edition)
+> **Supersedes**: PROJECT.md v2.0
+> **Effective date**: 2026-05-02
+> **Status**: This revision is written **after a full implementation audit** of the YaO codebase. v2.0 set ambitious goals; v3.0 confronts the **gap between documented capability and actual capability** and lays out a disciplined plan to close it.
 
 ---
 
-## 0. プロジェクトの本質
+## 0. なぜ v3.0 が必要か — 監査結果の率直な要約
 
-**You and Orchestra (YaO)** は、Claude Code を基盤として動作する **エージェント型音楽制作環境** です。一般的な「AI作曲ツール」とは異なり、YaO は単一のブラックボックスから音楽を吐き出すのではなく、**役割分担された複数の AI エージェント(Orchestra Members)を、人間(You = Conductor)が指揮する**という構造を取ります。
+v2.0 は素晴らしい設計書でした。しかし実装監査の結果、**FEATURE_STATUS.md が ✅ と表示する多くの機能が、実態としては「動作するスタブ」に過ぎない**ことが判明しました。
 
-YaO のすべての設計は、次のひとつの命題に従属します。
+監査で確認された主要なギャップ:
 
-> **音楽制作とは、感覚的な一回限りの作業ではなく、再現可能で改善可能な創作エンジニアリングである。**
+| 領域 | ドキュメントの主張 | 実装の実態 |
+|---|---|---|
+| **Subagent system** | 7 つの専門 Subagent が役割分担 | `MotifPlan(seeds=[], placements=[])` — Composer は空計画を返す |
+| **LLM backends** | Anthropic API / Claude Code 接続済 | 両方とも PythonOnly に丸投げするスタブ |
+| **V2 pipeline** | Plan → Note の二段アーキテクチャ | NoteRealizer が Plan を v1 spec に逆変換して旧 Generator を呼ぶ |
+| **NL → spec** | 自然言語から仕様生成 | 24 キーワードのハードコード辞書、日本語非対応 |
+| **Genre Skills (22)** | ジャンル知識が生成に反映 | 生成パイプラインから一切参照されていない |
+| **Adversarial Critic** | 19 ルールで弱点検出 | MotifPlan が空のため、最重要な melodic memorability ルールが**沈黙する** |
+| **Reference library** | 美的アンカー比較 | 楽曲 0 件、StyleVector に melody/harmony 情報なし |
+| **Audio loop** | レンダリング後評価 → 修正 | MIDI 評価で完結、audio→adaptation のループは未実装 |
+| **Subjective ratings** | 人間による品質ループ | 開発者の自己評価 1 件のみ |
 
-このため YaO は、音楽を **音声ファイル**として扱う前に、**コード・仕様・テスト・差分・来歴**として扱います。これを Music-as-Code 哲学と呼びます。
-
-### 0.1 v2.0 で目指す質的飛躍
-
-v1.0 は「音楽制作をエンジニアリング規律下に置く」という第一の戦いに勝利しました。643 テスト、7 層厳格境界、MPIR(Musical Plan IR)、15 批評ルール、5 次元軌跡 — これらは商用ソフトウェアでも見られない水準です。
-
-v2.0 は次の戦いに向かいます。
-
-> **エンジニアリング規律を保ちながら、音楽として優れた多様性のある作品を生む。**
-
-この戦いの勝利条件は 3 つです。
-
-1. **音楽性の天井突破** — 構造指標を満たした上で、聴いて感動する楽曲を出す
-2. **多様性の地理的・歴史的拡大** — 西洋ダイアトニック・12 平均律・4/4 という暗黙の前提を解除
-3. **差別化要素の実体化** — Arrangement Engine、Perception Layer、Neural Integration、Live Improvisation を stub から実装へ
+**v3.0 のテーゼ**: 新機能を増やすのではなく、**既に「実装済」と称している機能の中身を本当に実装する**。設計書と実装の乖離を解消することが、次の質的飛躍の前提条件である。
 
 ---
 
-## 1. メタファー:You and Orchestra
+## 1. 不変のもの:メタファーと哲学
 
-YaO のすべての概念は、オーケストラの比喩に対応しています。この対応関係を内面化することが、YaO を正しく使う最短距離です。
+v3.0 は v2.0 のメタファーと哲学を**変更しません**。これらは正しく、機能しているからです。
 
 | YaO の構成要素 | オーケストラの比喩 | 実装上の対応 |
 |---|---|---|
 | **You** | 指揮者 (Conductor) | プロジェクト所有者である人間 |
 | **Score** | 楽譜 | `specs/*.yaml` に記述された作曲仕様 |
 | **Plan** | リハーサル計画 | `MusicalPlan` (MPIR) — 音符の前の "なぜ" |
-| **Orchestra Members** | 楽団員 | 各 Subagent(Composer, Critic, Theorist 等) |
-| **Concertmaster** | コンサートマスター | Producer Subagent(全体調整役) |
+| **Orchestra Members** | 楽団員 | 各 Subagent |
+| **Concertmaster** | コンサートマスター | Producer Subagent |
 | **Rehearsal** | リハーサル | 生成・評価・修正の反復ループ |
-| **Library** | 楽団の楽譜庫 | `references/` 内の参照楽曲群 |
+| **Library** | 楽団の楽譜庫 | `references/` |
 | **Performance** | 本番演奏 | レンダリングされた最終音源 |
-| **Recording** | 録音 | `outputs/` 内の成果物 |
-| **Critic / Reviewer** | 批評家 | Adversarial Critic Subagent |
-| **Listener Panel** | 試聴会 | Perception Layer + ユーザフィードバック |
+| **Critic** | 批評家 | Adversarial Critic Subagent |
+| **Listener Panel** | 試聴会 | Perception Layer + ユーザラティング |
 | **Cover Band** | カバー・編曲 | Arrangement Engine |
 
-指揮者(You)はすべての音符を書くわけではありません。指揮者の仕事は、**意図を明確化し、楽団員に方向性を示し、リハーサルで判断を下し、本番の質を担保する**ことです。YaO はこの分業を AI に持ち込みます。
+5 つの設計原則 + 第 6 原則「Vertical Alignment(垂直整合)」は v2.0 から継承します。
+
+ただし、v3.0 では **第 7 原則** を新たに導入します。
+
+### 原則 7:Status Honesty(ステータスの誠実さ)
+
+**ある機能を「実装済」と表示することは、契約である。**
+
+- ✅ は、ドキュメント化された全ての約束をコードが満たすことを意味する
+- 🟡 は、部分実装で、欠けている部分が `limitation:` で明示されていることを意味する
+- ⚪ は、設計だけ存在し、コードがないことを意味する
+- スタブ実装に ✅ を付けることは、**プロジェクトの信頼性を毀損する重大な行為**である
+
+v3.0 では、この原則を CI で機械的に強制します(§13)。
 
 ---
 
-## 2. 設計原則
+## 2. v3.0 の目標:3 つの大波
 
-YaO のあらゆる実装判断は、以下の **6 つの不変原則** に照らして決定されます。これらは CLAUDE.md にも転記され、エージェントの判断基準として機能します。
+v3.0 は野心的な新機能の追加を**意図的に拒否**します。代わりに、3 つの「波」で既存機能の実体化を進めます。
 
-v1.0 の 5 原則に、**第 6 原則「Vertical Alignment(垂直整合)」** を追加しました。
+### Wave 1:正直化(Honesty Wave)— 4〜6 週間
 
-### 原則 1:エージェントは作曲家ではなく、作曲環境である
-YaO は「曲を書く AI」ではなく、「人間の作曲を 10 倍速にする環境」を志向します。完全自動化ではなく、人間の創造的判断を加速・拡張することを目的とします。
+**目的**: ドキュメントとコードの乖離をゼロにする。スタブを実装に置き換える。
 
-### 原則 2:すべての判断に説明可能性を要求する
-生成された音符・コード・編曲判断のすべてに、「なぜそうしたのか」という理由が記録されます。これは Provenance Graph として永続化され、追跡・レビュー・修正が可能です。
+**主要成果**:
+- Composer Subagent を本実装(モチーフ抽出と展開)
+- Anthropic API バックエンドを本実装
+- NL → spec 変換に LLM 統合
+- StyleVector に抽象的旋律・和声情報を追加
+- FEATURE_STATUS.md を実装に合わせて再採点
 
-### 原則 3:制約は創造性を殺さず、むしろ解放する
-明示的な仕様(YAML)・参照ライブラリ・否定空間(Negative Space)などの制約は、創造の足枷ではなく足場として機能します。無制限の自由は麻痺を生みます。
+### Wave 2:整合化(Alignment Wave)— 8〜10 週間
 
-### 原則 4:時間軸の設計を音符の設計から分離する
-楽曲は最初に「時間軸上の軌跡」(緊張度・密度・感情価のカーブ)として設計され、音符はその後に埋められます。これにより、構造的に意味のある音楽が生まれます。
+**目的**: 7 層アーキテクチャを名実ともに機能させる。ジャンル Skill・Plan IR・評価指標を生成パイプラインに統合する。
 
-### 原則 5:人間の耳を最後の真実とする
-どれだけ自動評価指標が精緻でも、人間の聴取体験が最終判断者です。エージェントは判断を**置き換えるのではなく支援**します。
+**主要成果**:
+- NoteRealizer V2 を本実装(MusicalPlan を直接消費)
+- ジャンル Skill ローダの実装と生成器への統合
+- 美的評価指標(意外性・記憶性・対比・ペーシング)
+- Audio Loop を Conductor に組込
 
-### 原則 6:垂直整合(Vertical Alignment)
-**入力の表現力・処理の深度・評価の解像度は、共に進歩しなければならない。一つだけ深めても無駄になる。**
+### Wave 3:深化(Depth Wave)— 8〜12 週間
 
-これは v1.0 設計レビューから抽出された原則です。リッチな DSL を作っても処理が貧弱なら無意味、優れた評価器を作っても入力が単純なら無意味、強力な生成器を作っても評価できなければ無意味。3 層を **同期して進化** させることをコミットします。
+**目的**: 多様な音楽表現と高品質な体験を実現する。ユーザフィードバックループを本格運用する。
 
-| 層 | 問いかけ |
-|---|---|
-| **入力** | 仕様は望むものを表現できるか? |
-| **処理** | パイプラインは意図を計画に、計画を音符に変換できるか? |
-| **出力** | 同じ精度で結果を評価・批評できるか? |
-
-リリースごとに 3 層が同時に進歩することを保証します。
+**主要成果**:
+- Performance Expression のパイプライン標準化
+- アンサンブル制約と Orchestrator 実質化
+- 参照楽曲ライブラリの整備
+- Subjective rating CLI と style profile への反映
+- `/sketch` 多段対話化
 
 ---
 
-## 3. アーキテクチャ:8 層モデル
+## 3. アーキテクチャ:8 層モデル(v2.0 から継承)
 
-YaO は明確に分離された 8 つの層で構成されます。各層は独立した入出力契約を持ち、交換・テスト可能です。v1.0 の 7 層モデルに **Layer 4.5: Performance Expression** を追加し、より細密な音楽表現を可能にしました。
+層構造そのものは v2.0 と同じですが、各層の **実装責任の明確化** と **層間契約の厳格化** を行います。
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │ Layer 7: Reflection & Learning                      │
-│   制作履歴からの学習、ユーザ嗜好プロファイル更新       │
+│   ユーザ嗜好プロファイル、subjective rating の取込    │
 ├─────────────────────────────────────────────────────┤
 │ Layer 6: Verification & Critique                    │
-│   構造・和声・リズム・音響評価、敵対的批評(50+ ルール) │
+│   構造・和声・リズム・音響評価、敵対的批評             │
 ├─────────────────────────────────────────────────────┤
 │ Layer 5: Rendering                                  │
-│   MIDI / 音声 / 楽譜PDF / DAWプロジェクト / Strudel  │
+│   MIDI / 音声 / 楽譜PDF / DAW / Strudel              │
 ├─────────────────────────────────────────────────────┤
-│ Layer 4.5: Performance Expression  ★NEW             │
-│   Articulation / Dynamics curve / Microtiming / CC  │
+│ Layer 4.5: Performance Expression                   │
+│   Articulation / Dynamics / Microtiming / CC        │
 ├─────────────────────────────────────────────────────┤
 │ Layer 4: Perception Substitute                      │
 │   Audio Features / Use-Case Eval / Reference Match  │
 ├─────────────────────────────────────────────────────┤
 │ Layer 3.5: Musical Plan IR (MPIR)                   │
-│   SongFormPlan / HarmonyPlan / MotifPlan / etc.     │
+│   Form / Harmony / Motif / Phrase / Arrangement     │
 ├─────────────────────────────────────────────────────┤
 │ Layer 3: Score IR                                   │
 │   Note / Part / Section / Voicing / Timing          │
 ├─────────────────────────────────────────────────────┤
 │ Layer 2: Generation Strategy                        │
-│   8+ generators (rule, stochastic, markov, neural,  │
-│                  serial, spectral, process, L-sys)   │
+│   Plan generators + Note realizers                  │
 ├─────────────────────────────────────────────────────┤
 │ Layer 1: Specification                              │
-│   YAML 仕様 v2 / 対話 / スケッチ / Spec composability│
+│   YAML 仕様 / 対話 / スケッチ                          │
 └─────────────────────────────────────────────────────┘
 ```
 
-層間の依存は厳密に下から上へのみ流れます。AST ベースの `make arch-lint` で機械的に検証されます。
+### 3.1 v3.0 で強化される層間契約
 
-### 3.1 主要データフロー
+各層の境界は v2.0 から存在しますが、v3.0 では**機能契約**を新設します。境界を破ることは禁止、契約を満たさないことも禁止。
 
-```
-[Spec] → [Plan Generators] → [MPIR] → [Critic Gate] → [Note Realizers] → [Score IR]
-            ↓                    ↓                            ↓
-       [Provenance]         [Critique]                [Performance Layer]
-                                                            ↓
-                                                     [Rendering]
-                                                            ↓
-                                                     [Audio / MIDI / Score]
-                                                            ↓
-                                                     [Perception Layer]
-                                                            ↓
-                                                  [Listening Simulation]
-                                                            ↓
-                                                  [Feedback to Conductor]
-```
+| 契約 | 内容 | 強制方法 |
+|---|---|---|
+| **Plan completeness** | Composer が返す MotifPlan は `len(seeds) > 0` を保証 | `tests/integration/test_plan_completeness.py` |
+| **Plan consumption** | Note Realizer は MusicalPlan の少なくとも 80% のフィールドを読む | AST scan で Plan 属性アクセスを計測 |
+| **Skill grounding** | 生成器の振る舞いの少なくとも 1 つは、対応する Skill ファイルから来ている | `tests/integration/test_skill_grounding.py` |
+| **Critic coverage** | 各 Severity レベルで、空のプランでない限り少なくとも 1 ルールが意味のある検出を行う | `tests/integration/test_critic_meaningful.py` |
+| **Backend honesty** | Stub バックエンドは `is_stub=True` を返さねばならない | runtime assertion |
 
-### 3.2 Critic Gate(批評関門)
+これらの契約は CI 必須で、違反は ✅ ステータスを失う条件です。
 
-Layer 3.5 から Layer 3 への遷移時、**Adversarial Critic は MPIR レベルで動作** します。これは v1.0 からの大きな改善です。音符レベルではなく計画レベルで批評することで、「丁寧に実現された退屈な計画」を防ぎます。
+### 3.2 Critic Gate の機能化
+
+Layer 3.5 から Layer 3 への遷移時、**Adversarial Critic は MPIR レベルで動作**します。これは v1.0 からの大きな改善ですが、v3.0 までは **MotifPlan が空** だったために実質機能していませんでした。Wave 1.1 後、初めて本来の機能を発揮できるようになります。
 
 Critic Gate での選択肢:
 - **承認**: Note Realizer に進む
@@ -161,1399 +165,956 @@ Critic Gate での選択肢:
 
 ---
 
-## 4. ディレクトリ構造
+## 4. v3.0 の中核実装計画
 
-v1.0 の構造を踏襲しつつ、新規層・新規機能を反映します。
-
-```
-yao/
-├── CLAUDE.md                      # エージェントへの不変指示
-├── PROJECT.md                     # 本ファイル(プロジェクト全体設計)
-├── VISION.md                      # 目標アーキテクチャ
-├── FEATURE_STATUS.md              # 単一の真実 = 何が実装済か
-├── README.md                      # ユーザ向けクイックスタート
-├── pyproject.toml
-├── Makefile
-│
-├── .claude/
-│   ├── commands/                  # Custom Commands (15+)
-│   │   ├── compose.md
-│   │   ├── arrange.md             # ★Phase 2 で実装
-│   │   ├── critique.md
-│   │   ├── morph.md
-│   │   ├── improvise.md           # ★Phase 4 で実装
-│   │   ├── explain.md
-│   │   ├── regenerate-section.md
-│   │   ├── sketch.md
-│   │   ├── annotate.md            # ★NEW: ユーザ注釈
-│   │   ├── branch.md              # ★NEW: Plan-level branching
-│   │   ├── alternatives.md        # ★NEW: 代替案生成
-│   │   ├── render.md
-│   │   ├── preview.md
-│   │   ├── watch.md
-│   │   └── diff.md
-│   ├── agents/                    # Subagent 定義 (.md prompts)
-│   │   ├── composer.md
-│   │   ├── harmony-theorist.md
-│   │   ├── rhythm-architect.md
-│   │   ├── orchestrator.md
-│   │   ├── adversarial-critic.md
-│   │   ├── mix-engineer.md
-│   │   └── producer.md
-│   ├── skills/                    # 専門知識モジュール
-│   │   ├── genres/                # 30+ ジャンル(v1.0 は 8)
-│   │   │   ├── western_popular/
-│   │   │   ├── electronic/
-│   │   │   ├── classical/
-│   │   │   ├── world/             # ★NEW: ノンウェスタン
-│   │   │   └── functional/        # ★NEW: 用途別
-│   │   ├── theory/
-│   │   │   ├── voice-leading.md
-│   │   │   ├── reharmonization.md
-│   │   │   ├── counterpoint.md
-│   │   │   ├── modal-interchange.md
-│   │   │   ├── secondary-dominants.md
-│   │   │   ├── twelve-tone.md     # ★NEW
-│   │   │   ├── spectralism.md     # ★NEW
-│   │   │   └── microtonal.md      # ★NEW
-│   │   ├── instruments/           # 38+ 楽器、各 Skill
-│   │   │   ├── orchestral/
-│   │   │   ├── popular/
-│   │   │   ├── electronic/
-│   │   │   └── world/             # ★NEW: 民族楽器
-│   │   ├── psychology/
-│   │   │   ├── tension-resolution.md
-│   │   │   ├── emotion-mapping.md
-│   │   │   ├── memorability.md
-│   │   │   └── prediction-itpra.md  # ★NEW: Huron 予測理論
-│   │   └── articulation/          # ★NEW: 演奏表情
-│   │       ├── strings-articulation.md
-│   │       ├── winds-articulation.md
-│   │       ├── piano-pedaling.md
-│   │       └── jazz-microtiming.md
-│   ├── guides/                    # 開発者ガイド
-│   │   ├── architecture.md
-│   │   ├── coding-conventions.md
-│   │   ├── music-engineering.md
-│   │   ├── testing.md
-│   │   ├── workflow.md
-│   │   └── cultural-sensitivity.md  # ★NEW
-│   └── hooks/
-│       ├── pre-commit-lint.sh
-│       ├── post-generate-render.sh
-│       ├── post-generate-critique.sh
-│       ├── update-provenance.sh
-│       ├── spec-changed-show-diff.sh
-│       └── ai-disclosure-stamp.sh   # ★NEW: AI 生成明示
-│
-├── specs/
-│   ├── projects/                  # ユーザのプロジェクト
-│   ├── templates/                 # 既製テンプレート(v1, v2, v3)
-│   └── fragments/                 # ★NEW: Spec composability
-│       ├── instruments/
-│       ├── genres/
-│       ├── trajectories/
-│       └── intents/
-│
-├── src/
-│   └── yao/
-│       ├── conductor/             # オーケストレーション
-│       ├── constants/             # 38 楽器、14+ スケール、14+ コード
-│       ├── schema/                # Pydantic v2 + composability
-│       ├── ir/
-│       │   ├── score_ir.py
-│       │   ├── plan/              # MPIR (Layer 3.5)
-│       │   │   ├── form.py
-│       │   │   ├── harmony.py
-│       │   │   ├── motif.py
-│       │   │   ├── phrase.py
-│       │   │   ├── drum.py
-│       │   │   ├── arrangement.py
-│       │   │   └── musical_plan.py
-│       │   ├── expression.py      # ★NEW: Layer 4.5
-│       │   ├── timing.py
-│       │   ├── notation.py
-│       │   └── motif.py
-│       ├── generators/
-│       │   ├── rule_based.py
-│       │   ├── stochastic.py
-│       │   ├── markov.py          # ★Tier 1
-│       │   ├── constraint_solver.py  # ★Tier 1
-│       │   ├── twelve_tone.py     # ★Tier 3
-│       │   ├── spectral.py        # ★Tier 3
-│       │   ├── process_music.py   # ★Tier 3
-│       │   ├── l_system.py        # ★Tier 3
-│       │   ├── cellular_automata.py  # ★Tier 3
-│       │   ├── neural/            # ★Tier 3
-│       │   │   ├── magenta_bridge.py
-│       │   │   ├── musicgen_bridge.py
-│       │   │   └── stable_audio_bridge.py
-│       │   ├── plan/              # Plan-level generators
-│       │   ├── note/              # Note Realizers
-│       │   └── performance/       # ★NEW: Performance Layer
-│       │       ├── articulation_realizer.py
-│       │       ├── dynamics_curve_renderer.py
-│       │       ├── microtiming_injector.py
-│       │       └── cc_curve_generator.py
-│       ├── perception/            # ★Tier 1-2 で本格実装
-│       │   ├── audio_features.py
-│       │   ├── use_case_evaluator.py
-│       │   ├── reference_matcher.py
-│       │   ├── style_vector.py
-│       │   └── psych_mapper.py
-│       ├── render/
-│       │   ├── midi_writer.py
-│       │   ├── stems_writer.py
-│       │   ├── audio_renderer.py
-│       │   ├── musicxml_writer.py    # ★Tier 1
-│       │   ├── lilypond_writer.py    # ★Tier 1
-│       │   ├── strudel_emitter.py    # ★Tier 3
-│       │   └── daw/                  # ★Tier 2
-│       │       ├── reaper_writer.py
-│       │       ├── ableton_writer.py
-│       │       └── studio_one_writer.py
-│       ├── mix/                   # ★Tier 1: Mix Chain
-│       │   ├── mix_chain.py
-│       │   ├── eq.py
-│       │   ├── compression.py
-│       │   ├── reverb.py
-│       │   └── master_chain.py
-│       ├── arrange/               # ★Tier 2: Arrangement Engine
-│       │   ├── extractor.py       # MIDI → SourcePlan (MPIR)
-│       │   ├── style_vector_ops.py
-│       │   ├── preservation.py
-│       │   ├── transformation.py
-│       │   ├── diff_writer.py
-│       │   └── critique_rules.py  # 編曲特化 Critic ルール
-│       ├── verify/
-│       │   ├── music_lint.py
-│       │   ├── analyzer.py
-│       │   ├── evaluator.py       # 拡張(構造+メロディ+和声+ +新次元)
-│       │   ├── diff.py
-│       │   ├── constraints.py
-│       │   ├── critique/          # 50+ ルール(v1.0 は 15)
-│       │   │   ├── structural/
-│       │   │   ├── melodic/
-│       │   │   ├── harmonic/
-│       │   │   ├── rhythmic/
-│       │   │   ├── arrangement/
-│       │   │   ├── emotional/
-│       │   │   ├── memorability/   # ★NEW
-│       │   │   ├── genre_fitness/  # ★NEW
-│       │   │   ├── performance/    # ★NEW
-│       │   │   └── mix/            # ★NEW
-│       │   └── perception/         # Perception 由来の評価
-│       ├── reflect/
-│       │   ├── provenance.py
-│       │   ├── feedback_loop.py
-│       │   ├── style_profile.py   # ★Tier 4: ユーザ別嗜好
-│       │   ├── annotation.py      # ★Tier 4: 注釈統合
-│       │   └── learning.py        # ★Tier 4: 集約と適用
-│       ├── runtime/               # ★Tier 3: ProjectRuntime
-│       │   ├── project_runtime.py
-│       │   ├── generation_cache.py
-│       │   ├── undo_stack.py
-│       │   └── feedback_queue.py
-│       ├── subagents/             # ★Tier 2: Python 実体
-│       │   ├── base.py
-│       │   ├── composer.py
-│       │   ├── harmony_theorist.py
-│       │   ├── rhythm_architect.py
-│       │   ├── orchestrator.py
-│       │   ├── adversarial_critic.py
-│       │   ├── mix_engineer.py
-│       │   └── producer.py
-│       ├── agents/                # ★Tier 4: Backend-agnostic protocol
-│       │   ├── protocol.py
-│       │   ├── claude_code_backend.py
-│       │   ├── anthropic_api_backend.py
-│       │   ├── local_llm_backend.py
-│       │   └── python_only_backend.py
-│       ├── improvise/             # ★Tier 3: Live mode
-│       │   ├── realtime_engine.py
-│       │   ├── context_buffer.py
-│       │   └── role_handlers.py
-│       └── sketch/                # NL → spec
-│           ├── compiler.py
-│           └── dialogue.py
-│
-├── references/
-│   ├── catalog.yaml
-│   ├── midi/                      # 権利クリア済のみ
-│   ├── musicxml/
-│   └── extracted_features/        # スタイルベクトル事前計算
-│
-├── outputs/                       # 生成成果物
-├── soundfonts/                    # SoundFont
-├── drum_patterns/                 # ジャンル別ドラムパターン YAML
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   ├── scenarios/
-│   ├── music_constraints/
-│   ├── golden/
-│   ├── subjective/                # ★NEW: 主観品質テスト
-│   │   ├── ratings/
-│   │   └── test_listening_panel.py
-│   └── properties/                # ★NEW: Property-based
-│       ├── test_genre_invariants.py
-│       └── test_trajectory_compliance.py
-├── tools/
-│   ├── architecture_lint.py
-│   ├── feature_status_check.py
-│   ├── sync_skills.py
-│   ├── sync_docs.py               # ★NEW: ドキュメント整合
-│   └── benchmark.py               # ★NEW: 性能測定
-└── docs/
-    ├── design/
-    ├── tutorials/
-    ├── for-musicians/             # ★NEW
-    ├── for-developers/            # ★NEW
-    ├── ethics/                    # ★NEW
-    │   ├── cultural-sensitivity.md
-    │   ├── ai-disclosure.md
-    │   └── copyright.md
-    └── glossary.md
-```
+ここからが v3.0 の心臓部です。各 Wave の主要実装を、**設計レベル**で詳述します。
 
 ---
 
-## 5. オーケストラの編成:Subagent 設計
+## 5. Wave 1.1:Composer Subagent の本実装
 
-YaO の楽団員は **二重実装** されます。`.claude/agents/*.md` は Claude Code 経由の対話用 prompt、`src/yao/subagents/*.py` は自動パイプライン用の Python クラス。両者は同じ `AgentContext` / `AgentOutput` 契約を共有します。
-
-### 5.1 二重実装の理由
-
-v1.0 では Subagent が `.md` ファイルだけで定義されており、Conductor が「Composer がモチーフを作り、Critic が批評する」という流れを **Python 側でどう呼び出すか** が不透明でした。v2.0 では:
-
-- **Python Subagent** = 構造化された判定処理(Critic ルール、ScoreIR 操作)
-- **Claude Code prompt** = 創造的判断、自然言語対話、スケッチ→spec 変換
-
-両者を同じインタフェースで扱うことで、自動化と対話の境界が滑らかになります。
+### 5.1 現状の問題
 
 ```python
-# src/yao/subagents/base.py
-class SubagentBase(ABC):
-    role: AgentRole
-
-    @abstractmethod
-    def process(self, context: AgentContext) -> AgentOutput: ...
-
-    def explain(self) -> str:
-        """自身の判断ロジックを自然言語で説明する。"""
-        ...
+# src/yao/subagents/composer.py — 監査時点のコード
+def process(self, context: AgentContext) -> AgentOutput:
+    motif_plan = MotifPlan(seeds=[], placements=[])  # 常に空
+    phrase_plan = PhrasePlan(phrases=[], bars_per_phrase=4.0, pattern="")
+    return AgentOutput(motif_plan=motif_plan, phrase_plan=phrase_plan)
 ```
 
-### 5.2 7 つの楽団員
+これは音楽的に致命的です。Adversarial Critic の `MotifRecurrenceDetector` は `if not plan.motif.seeds: return findings` と書かれており、**空の MotifPlan を見ると黙って通過**します。つまり、最重要な記憶可能性の検査が機能していません。
 
-| Subagent | Owns | Inputs | Outputs |
-|---|---|---|---|
-| **Composer** | Motifs, phrases, themes | intent, spec, trajectory | MotifPlan, PhrasePlan |
-| **Harmony Theorist** | Chord progressions, cadences, modulations | spec, motif plan | HarmonyPlan |
-| **Rhythm Architect** | Drum patterns, grooves, microtiming | spec, genre | DrumPattern, GrooveProfile |
-| **Orchestrator** | Instruments, voicings, counter-melody, frequency space | all plans above | ArrangementPlan |
-| **Mix Engineer** | EQ, compression, reverb, panning, LUFS | spec, ScoreIR, audio stems | ProductionManifest |
-| **Adversarial Critic** | Finding weaknesses (50+ rules) | MPIR or ScoreIR or audio | list[Finding] |
-| **Producer** | Coordination, conflict resolution, final judgment | all of above + intent | decisions, escalations |
+### 5.2 v3.0 での実装
 
-### 5.3 Subagent 設計の不変ルール
+Composer Subagent には**二段階の責任**を持たせます。
 
-- **Composer は楽器を選ばない**: 楽器選択は Orchestrator の責務
-- **Critic は称賛しない**: 弱点発見が唯一の使命
-- **Producer のみ他者を override 可能**: エージェント間ループの原因を断つ
-- **すべての Subagent は Provenance を残す**: 判断の追跡可能性を保つ
+#### Stage A: Motif Generation(無から有)
 
-### 5.4 Subagent → Pipeline マッピング
+**入力**: `IntentSpec`, `CompositionSpecV2`, `SongFormPlan`, `MultiDimensionalTrajectory`
+**出力**: `MotifPlan` with `len(seeds) >= 1`
+
+**アルゴリズム**:
+1. `intent.keywords` から「motif character」を導出(例: "uplifting" → ascending interval pattern)
+2. ジャンル Skill から typical motif length(beats)・interval set を取得
+3. trajectory の peak position を考慮して、climax で展開可能な motif を生成
+4. 各 motif について次のメタデータを記録:
+   - `rhythm_shape: tuple[float, ...]` — ジャンル × 拍子 × tempo から導出
+   - `interval_shape: tuple[int, ...]` — Markov モデル(`markov_models/diatonic_bigram.yaml` を再利用)で生成
+   - `identity_strength: float` — 反復識別性の指標(rhythm 特異性 + interval 特異性)
+   - `character: str` — 自然言語特性(「3 度上昇のリリカル」「シンコペートしたフック」)
+
+#### Stage B: Motif Placement(構造への配置)
+
+**入力**: `SongFormPlan`(各セクションの role と target_tension/density)、生成済 motifs
+**出力**: `list[MotifPlacement]`(各 placement は section_id × bar offset × transform)
+
+**配置戦略**:
+- Verse: identity motif(主題)を使用、retrograde は使わない
+- Chorus: identity motif + sequence_up での展開
+- Bridge: inversion または varied_intervals(対比)
+- Outro: identity motif の augmentation(時間拡大)
+
+各 motif は**少なくとも 3 回**配置することを保証(`MotifRecurrenceDetector` の閾値と一致)。
+
+### 5.3 実装単位
 
 ```
-Step 1 Form Planner       ← Producer (form は meta)
-Step 2 Harmony Planner    ← Harmony Theorist
-Step 3 Motif Developer    ← Composer
-Step 4 Drum Patterner     ← Rhythm Architect
-Step 5 Arranger           ← Orchestrator
-═══ Critic Gate ═══       ← Adversarial Critic
-Step 6 Note Realizer      ← Composer (low-level)
-Step 6.5 Performance Realizer ← Composer + Orchestrator (★NEW)
-Step 7 Mix Designer       ← Mix Engineer (★NEW: explicit step)
-Step 8 Renderer           ← (output writers)
+src/yao/subagents/composer.py            (本実装)
+src/yao/ir/motif_extraction.py           (NEW: 既存スコアからの motif 抽出)
+src/yao/ir/motif_generation.py           (NEW: 無からの motif 生成)
+src/yao/ir/motif_placement.py            (NEW: section への配置戦略)
+tests/unit/subagents/test_composer.py    (拡張: 空でないことを assert)
+tests/integration/test_motif_recurrence.py (NEW: critic が検出することを確認)
 ```
+
+### 5.4 完了条件
+
+- 全テンプレート(`specs/templates/*.yaml`)で、生成後の `MotifPlan.seeds` が 1 つ以上
+- `MotifRecurrenceDetector` が空のプランで silent 通過しない(critic が必ず動作する)
+- 生成された MIDI の `motif_density`(StyleVector フィールド)が 0 でない
 
 ---
 
-## 6. 作曲認知プロトコル:6 相 × 8 ステップ
+## 6. Wave 1.2:Anthropic API Backend の本実装
 
-YaO の `/compose` および `/arrange` コマンドは、Claude Code に **6 相の認知プロトコル** を **8 ステップのパイプライン** にマッピングして実行させます。
-
-### 6.1 6 相認知プロトコル
-
-エージェントが「いきなり音符を書き始める」失敗パターンを構造的に防ぎます。
-
-#### Phase 1:Intent Crystallization(意図の結晶化)
-ユーザ入力(対話・YAML・スケッチ)から、楽曲の本質を 1〜3 文で言語化します。曖昧さを許さず、`intent.md` に確定させます。
-
-> 例:「初夏の朝、新しい挑戦に向かう前向きな期待感。ただし不安も微かに混じる。爽やかすぎず、感傷的すぎない、ニュートラルな高揚」
-
-#### Phase 2:Architectural Sketch(構造スケッチ)
-時間軸軌跡(tension / density / valence / predictability / brightness / register_height)を **先に** 描きます。音符はまだ書きません。`trajectory.yaml` を完成させます。
-
-#### Phase 3:Skeletal Generation(骨格生成)
-**5〜10 候補の MPIR を並列生成**。これは v2.0 の重要強化点です。多様性が確保されます。
-
-#### Phase 4:Critic-Composer Dialogue(批評者-作曲者対話)
-Adversarial Critic が全候補を MPIR レベルで攻撃。Producer が最強候補を選ぶか、複数候補の長所を統合した新候補を作らせます。
-
-#### Phase 5:Detailed Filling(詳細埋め)
-選ばれた骨格に、Note Realizer が音符を、Performance Realizer が表情を埋めます。
-
-#### Phase 6:Listening Simulation(聴取シミュレーション)
-Perception Substitute Layer が完成品を「聴いて」、当初意図(Phase 1)との乖離を測定。乖離が閾値超なら該当箇所を再生成。最終的に `critique.md`、`analysis.json`、`perceptual_report.json` が出力されます。
-
-### 6.2 8 ステップ生成パイプライン
-
-```
-[Step 1: Form Planner]      Spec + Trajectory  →  SongFormPlan
-      ↓
-[Step 2: Harmony Planner]                       →  HarmonyPlan
-      ↓
-[Step 3: Motif Developer]                       →  MotifPlan + PhrasePlan
-      ↓
-[Step 4: Drum Patterner]                        →  DrumPattern
-      ↓
-[Step 5: Arranger]                              →  ArrangementPlan
-      ↓
-═══ MUSICAL PLAN COMPLETE — Critic Gate ═══
-
-      ↓
-[Step 6: Note Realizer]     MPIR  →  ScoreIR
-      ↓
-[Step 6.5: Performance Realizer]  ScoreIR  →  ScoreIR + PerformanceLayer  ★NEW
-      ↓
-[Step 7: Mix Designer]      ScoreIR + PerfLayer  →  ProductionManifest    ★NEW
-      ↓
-[Step 8: Renderer]          all above  →  MIDI / Audio / Score / DAW project
-```
-
-### 6.3 多候補生成と選択
-
-Step 3 の「5〜10 候補」は実装上の比喩ではなく、**実装そのもの** です。
+### 6.1 現状
 
 ```python
-# src/yao/conductor/multi_candidate.py
-class MultiCandidateOrchestrator:
-    def generate_candidates(self, context, n=5) -> list[MusicalPlan]:
-        # n 個の異なるシードで Step 2-5 を並列実行
-        return [self._pipeline_seed(context, seed=i) for i in range(n)]
+# src/yao/agents/anthropic_api_backend.py
+def invoke(self, role, context, config=None):
+    logger.info("anthropic_api_fallback", message="not yet implemented")
+    return self._fallback.invoke(role, context, config)  # PythonOnly に丸投げ
+```
 
-    def critic_rank(self, candidates: list[MusicalPlan]) -> list[CandidateScore]:
-        # Critic が全候補に findings を生成し、severity weighted score
-        return sorted(
-            [self._score(c) for c in candidates],
-            key=lambda s: s.weighted_critique_severity,
+`YAO_AGENT_BACKEND=anthropic` を指定しても、ログが出るだけで実際は PythonOnly が動作。これは **ユーザを欺く** 状態です。
+
+### 6.2 v3.0 での実装方針
+
+LLM バックエンドは **2 つの異なる種類** に分けて実装します。
+
+#### Type A:Stateless API Backend(Anthropic API)
+
+- 1 回のリクエストで `.claude/agents/<role>.md` を system prompt として送信
+- `AgentContext` を構造化した user message として送信
+- 構造化出力(tool use 経由)で `AgentOutput` のフィールドをパース
+- 失敗時は `BackendError` を投げる(silent fallback 禁止)
+
+**実装スケルトン**:
+
+```python
+class AnthropicAPIBackend:
+    is_stub = False  # 原則 7 の遵守
+
+    def __init__(self, *, api_key: str | None = None, model: str = "claude-opus-4-7"):
+        if not api_key and not os.environ.get("ANTHROPIC_API_KEY"):
+            raise BackendNotConfiguredError(
+                "AnthropicAPIBackend requires API key. "
+                "Set ANTHROPIC_API_KEY or pass api_key=. "
+                "Use PythonOnlyBackend if you do not have an API key."
+            )
+        self._client = anthropic.Anthropic(api_key=api_key)
+        self._model = model
+        self._prompts = self._load_role_prompts()
+
+    def invoke(self, role, context, config=None) -> AgentOutput:
+        system = self._prompts[role]
+        user = self._serialize_context(context)
+        schema = self._output_schema_for(role)
+
+        response = self._client.messages.create(
+            model=self._model,
+            system=system,
+            messages=[{"role": "user", "content": user}],
+            max_tokens=config.max_tokens if config else 4096,
+            tools=[self._schema_to_tool(schema)],
+            tool_choice={"type": "tool", "name": "submit_output"},
         )
 
-    def producer_select(self, ranked: list[CandidateScore]) -> MusicalPlan:
-        # Producer は単純に top1 を選ぶか、複数の長所を統合
-        if self._candidates_complementary(ranked[:3]):
-            return self._merge_strengths(ranked[:3])
-        return ranked[0].plan
+        return self._parse_output(response, role)
 ```
+
+#### Type B:Long-Running Backend(Claude Code)
+
+Claude Code は対話的・反復的・長時間タスクが可能です。これを活かす:
+
+- `/sketch` の多段対話を Claude Code セッション内で処理
+- `/critique` で批評者と作曲者の対話を実装
+- 単発 API では困難な「修正提案 → 再評価 → 微修正」を Claude Code に任せる
+
+`ClaudeCodeBackend` は Claude Code SDK 経由で `.claude/agents/<role>.md` を呼び出すアダプタとして設計します。
+
+### 6.3 ベンチマーク要件
+
+LLM 統合の効果を測定するため、新しいテストカテゴリを設置:
+
+```
+tests/llm_quality/
+├── test_motif_quality.py        # PythonOnly vs LLM での motif 品質比較
+├── test_critique_depth.py       # 批評の具体性と深さ
+└── test_arrangement_naturalness.py
+```
+
+これらは optional dependency `yao[llm-eval]` でのみ実行され、CI ではスキップ(コスト・決定論性のため)。
+
+### 6.4 完了条件
+
+- `AnthropicAPIBackend.is_stub == False`
+- API キー未設定時は明示的にエラー(silent fallback しない)
+- Subjective rating で「LLM 有効時の overall ≥ PythonOnly 時 + 1.0」を達成
 
 ---
 
-## 7. パラメータ仕様
+## 7. Wave 1.3:Spec Compiler の LLM 化
 
-YaO は楽曲を、以下の **9 種類の YAML/Markdown ファイル** で完全に記述します。すべて版管理対象であり、git diff で変更履歴が追えます。v1.0 の 8 種に **`use_case` 駆動の評価指定** を加えました。
+### 7.1 現状の致命的限界
 
-### 7.1 `intent.md`(意図記述、自然言語+構造化メタデータ)
+```python
+# src/yao/sketch/compiler.py
+_MOOD_TO_KEY = {
+    "happy": "C major", "sad": "D minor", ...
+    # 24 キーワードのみ。日本語ゼロ。
+}
+```
+
+「雨の夜のカフェで聴きたい少し切ない 90 秒のピアノ曲」というユーザ意図を、ほぼ全て捨てて `D minor / piano / 4 sections` に丸める。これは YaO のエントリポイントとして致命的に貧弱です。
+
+### 7.2 v3.0 設計:三段階フォールバック
+
+```python
+class SpecCompiler:
+    def compile(self, description: str, *, language: str = "auto") -> CompiledSpec:
+        if self._llm_backend.is_stub:
+            return self._compile_keyword(description, language)
+        try:
+            return self._compile_llm(description, language)
+        except BackendError as e:
+            logger.warning("llm_compile_failed", error=str(e))
+            return self._compile_keyword(description, language)
+```
+
+#### Stage 1: LLM コンパイル(優先)
+
+LLM に対して、**構造化出力**で以下を要求:
+- `intent.md` の本文(1〜3 文)
+- `composition.yaml` の必須フィールド
+- `trajectory.yaml` の waypoints
+- ジャンル候補(複数)と推薦理由
+- 不明点(明示的に質問)
+
+LLM 出力は schema validation を通って初めて採用。失敗時は keyword fallback。
+
+#### Stage 2: Keyword Compile(現状維持 + 強化)
+
+現状の辞書ベースを保持。ただし以下を強化:
+- 日本語感情語彙を 50+ 追加
+- ジャンル名から楽器セットを引くテーブルをジャンル Skill から自動構築
+- 「短い」「長い」「ループ可能」等の修飾語を解釈
+
+#### Stage 3: Default Fallback
+
+Stage 1, 2 で何も抽出できない場合、`specs/templates/minimal.yaml` をベースに `intent.md` だけ自然言語で残す。
+
+### 7.3 多言語対応
+
+日本語感情語彙を構造化:
+
+```yaml
+# .claude/skills/psychology/emotion-mapping.md より抽出
+emotions:
+  ja:
+    悲しい: { valence: -0.6, arousal: -0.3, suggestions: [minor, slow] }
+    切ない: { valence: -0.4, arousal: 0.0, suggestions: [minor, moderate] }
+    爽やか: { valence: 0.5, arousal: 0.4, suggestions: [major, lydian] }
+    瑞々しい: { valence: 0.4, arousal: 0.3, suggestions: [major, pentatonic] }
+    儚い: { valence: -0.2, arousal: -0.4, suggestions: [phrygian, slow] }
+    勇壮: { valence: 0.7, arousal: 0.8, suggestions: [major, fast] }
+```
+
+valence × arousal 平面でクラスタリングして、key/tempo/mode を導出します。
+
+### 7.4 完了条件
+
+- 日本語入力で「切ない 90 秒のピアノ曲」が正しく `D minor`, `piano solo`, `tempo ~75` に変換される
+- LLM 利用時、20 ターゲット記述で**人間 reviewer の合意率 ≥ 80%**(要 subjective test)
+
+---
+
+## 8. Wave 1.4:V2 Pipeline の本実装
+
+### 8.1 監査で発見した茶番
+
+```python
+# src/yao/generators/note/rule_based.py
+class RuleBasedNoteRealizer(NoteRealizerBase):
+    def realize(self, plan: MusicalPlan, ...) -> ScoreIR:
+        v1_spec = original_spec or _plan_to_v1_spec(plan)  # plan を捨てる!
+        gen = RuleBasedGenerator()                          # v1 を呼ぶ
+        return gen.generate(v1_spec, ...)
+```
+
+7 ステップパイプラインの中核は MusicalPlan ですが、Note Realizer は**それを使わず**、v1 spec に逆変換して旧 Generator に丸投げしています。これでは MPIR の存在意義が崩壊します。
+
+### 8.2 v3.0 での真の Note Realizer
+
+新しい `NoteRealizerV2` を実装します。MusicalPlan の**全フィールドを直接消費**します。
+
+```python
+@register_note_realizer("rule_based_v2")
+class RuleBasedNoteRealizerV2(NoteRealizerBase):
+    consumed_plan_fields = (
+        "form.sections.target_tension",
+        "form.sections.target_density",
+        "harmony.chord_events.roman",
+        "harmony.chord_events.tension_level",
+        "harmony.chord_events.cadence_role",
+        "motif.seeds",
+        "motif.placements",
+        "phrase.phrases",
+        "arrangement.assignments",
+        "global_context.key",
+        "global_context.tempo_bpm",
+        "trajectory.predictability",
+    )
+
+    def realize(self, plan, seed, temperature, provenance, original_spec=None):
+        # 1. ChordEvent から各拍の harmonic context を作成
+        chord_grid = self._build_chord_grid(plan.harmony, plan.form)
+
+        # 2. MotifPlacement に従って motif を section に配置
+        motif_grid = self._place_motifs(plan.motif, plan.form)
+
+        # 3. Phrase から旋律輪郭を取得
+        contour_grid = self._build_contour_grid(plan.phrase)
+
+        # 4. ArrangementPlan から各楽器の役割を取得
+        for instr_name, role in self._iter_assignments(plan.arrangement):
+            for section in plan.form.sections:
+                notes = self._realize_section(
+                    instr_name=instr_name,
+                    role=role,
+                    section=section,
+                    chord_grid=chord_grid,
+                    motif_grid=motif_grid,
+                    contour_grid=contour_grid,
+                    tension=section.target_tension,
+                    density=section.target_density,
+                    seed=seed,
+                    temperature=temperature,
+                )
+
+        return self._assemble_score(plan, all_notes, provenance)
+```
+
+### 8.3 マイグレーション戦略
+
+旧実装を即座に削除しません。**段階的移行**:
+
+| フェーズ | 期間 | 旧 Realizer | 新 Realizer V2 |
+|---|---|---|---|
+| **Coexist** | 4 週 | デフォルト、`@deprecated` | opt-in via `realizer: rule_based_v2` |
+| **Switch** | 4 週 | opt-in | デフォルト |
+| **Remove** | - | 削除 | 唯一 |
+
+各フェーズでゴールデンテスト(`tests/golden/`)を更新し、旧→新の品質変化を可視化。
+
+### 8.4 完了条件
+
+- 新 Realizer の `consumed_plan_fields` が 80% 以上アクセスされる(AST scan で検証)
+- ゴールデンテストで「ChordEvent.tension_level の変化が velocity に反映される」「MotifPlacement に従った同一モチーフが楽曲内で反復される」を確認
+- `legacy_adapter.py` が削除可能になる
+
+---
+
+## 9. Wave 2.1:ジャンル Skill の生成パイプライン統合
+
+### 9.1 現状の機会損失
+
+監査で `grep -r "skills/genres" src/` を実行 → **何も見つからず**。22 個のジャンル Skill ファイルは Claude Code セッション内でのみ参照される設計で、`yao compose` 実行時の生成挙動には**一切影響しません**。
+
+これは MOST IMPORTANT な機会損失です。「ミュージシャンが Markdown を編集するだけで生成挙動を変えられる」という YaO の独自価値が、現状では実現していません。
+
+### 9.2 v3.0 設計:Skill Loader と Skill-Driven Generation
+
+#### 9.2.1 Skill ファイル形式の標準化
+
+各ジャンル Skill に YAML フロントマターを必須化:
 
 ```markdown
 ---
-use_case: youtube_bgm
-target_listener: "creator filming travel videos"
-emotional_target:
-  primary: "uplifting expectation"
-  secondary: "subtle uncertainty"
-listening_context: "background, paired with narration"
-duration_sec: 90
-loopable: true
----
-
-# Intent
-
-初夏の朝、新しい挑戦に向かう前向きな期待感。ただし不安も微かに混じる。
-爽やかすぎず、感傷的すぎない、ニュートラルな高揚を目指す。
-```
-
-`use_case` は **Perception Layer の評価ルールを切り替える** トリガーになります。
-
-### 7.2 `composition.yaml`(作曲パラメータ、v2 スキーマ)
-
-11 セクションの構造化スキーマ。v1.0 の単純版とは別系列で並存します。
-
-### 7.3 `trajectory.yaml`(時間軸軌跡、5 次元 + 拡張)
-
-```yaml
-trajectories:
+genre_id: cinematic
+display_name: "Cinematic / Film Score"
+extends: [orchestral_base]
+typical_keys: [D minor, A minor, E minor, G minor]
+typical_tempo_range: [60, 120]
+typical_time_signatures: ["4/4", "3/4", "6/8"]
+typical_instruments:
+  - { name: strings_ensemble, role: pad, weight: 1.0 }
+  - { name: french_horn, role: harmony, weight: 0.7 }
+  - { name: piano, role: melody, weight: 0.6 }
+  - { name: cello, role: bass, weight: 0.8 }
+chord_palette: [i, iv, V7, VI, III, ii°, bII]
+typical_progressions:
+  - [i, VI, III, VII]
+  - [i, iv, V7, i]
+  - [i, bVI, bIII, bVII]
+cadence_preferences:
+  authentic: 0.6
+  half: 0.2
+  plagal: 0.15
+  deceptive: 0.05
+forbidden_cliches:
+  - { id: "pachelbel_canon", description: "I-V-vi-iii-IV-I-IV-V" }
+  - { id: "axis_progression", description: "I-V-vi-IV repeated" }
+trajectory_defaults:
   tension:
-    type: bezier
-    waypoints: [[0, 0.2], [16, 0.4], [32, 0.85], [48, 0.6], [64, 0.3]]
-  density:
-    type: stepped
-    sections: {intro: 0.3, verse: 0.5, chorus: 0.9, bridge: 1.0}
-  predictability:
-    target: 0.65
-    variance: 0.15
-  brightness:
-    type: linear
-    target: 0.7
-  register_height:
-    type: stepped
-    sections: {verse: 0.4, chorus: 0.7}
-
-# ★NEW: 予測理論ベースの拡張
-prediction_dynamics:
-  schema_familiarity:        # Huron ITPRA: 文化的典型への近さ
-    type: bezier
-    waypoints: [[0, 0.8], [16, 0.5], [32, 0.3]]
-  veridical_familiarity:     # この曲内での反復
-    type: stepped
-    sections: {intro: 0.0, verse: 0.7, chorus: 0.9}
-  surprise_density:
-    type: linear
-    target: 0.3
-  surprise_magnitude:
-    type: linear
-    target: 0.5
-```
-
-### 7.4 `references.yaml`(美的参照ライブラリ)
-
-正参照(似せる)と負参照(避ける)。**生メロディ・コード進行を直接コピーする経路は schema レベルで禁止** されており、抽象特徴量のみ抽出可能です。
-
-```yaml
-references:
-  primary:
-    - file: references/midi/bach_invention_1.mid    # 権利クリア済
-      role: "voice leading reference"
-      weight: 0.6
-      extract_features:
-        - voice_leading_smoothness
-        - motif_density_distribution
-        - harmonic_rhythm
-      forbidden_to_extract:    # 著作権配慮の二重ロック
-        - melody_contour
-        - chord_sequence
-  negative:
-    - file: references/midi/typical_corporate_bgm.mid
-      role: "what NOT to be"
-      avoid_features:
-        - predictable_progression
-        - stock_drum_pattern
-```
-
-### 7.5 `negative-space.yaml`(否定空間)
-
-休符・周波数ギャップ・テクスチャ削除など、「鳴らさない」設計。
-
-```yaml
-silence:
-  between_phrases:
-    required: true
-    min_duration_beats: 0.5
-  before_climax:
-    required: true
-    description: "breath before the storm"
-
-frequency_gaps:
-  vocal_range:
-    range_hz: [200, 2000]
-    reservation_strength: 0.7
-
-textural_subtraction:
-  - section: chorus_2
-    bars: [0, 4]
-    description: "drop drums for impact"
-```
-
-### 7.6 `arrangement.yaml`(編曲パラメータ、編曲時のみ)
-
-```yaml
-arrangement:
-  input:
-    file: "inputs/original.mid"
-    rights_status: "owned_or_licensed"  # 必須フィールド
-
-  preserve:
-    melody:        { enabled: true, similarity_min: 0.85 }
-    hook_rhythm:   { enabled: true, similarity_min: 0.80 }
-    chord_function:{ enabled: true, similarity_min: 0.75 }
-    form:          { enabled: true }
-
-  transform:
-    target_genre: "lofi_hiphop"
-    bpm: { mode: "set", value: 86 }
-    harmony:
-      reharmonization_level: 0.35
-      add_7ths: true
-    rhythm:
-      swing: 0.35
-      groove: "laid_back"
-    orchestration:
-      drums: "dusty_kit"
-      bass: "warm_upright"
-
-  evaluate:
-    original_preservation_weight: 0.5
-    transformation_strength_weight: 0.3
-    musical_quality_weight: 0.2
-```
-
-### 7.7 `production.yaml`(ミックス・マスタリング)
-
-```yaml
-production:
-  master:
-    target_lufs: -14
-    true_peak_max_dbfs: -1.0
-    stereo_width: 0.7
-
-  per_track:
-    piano:
-      eq:
-        - { freq: 100, gain: -2, q: 0.7, type: "high_pass" }
-        - { freq: 3000, gain: 1, q: 1.5, type: "peak" }
-      compression:
-        threshold_db: -18
-        ratio: 2.5
-        attack_ms: 15
-        release_ms: 80
-      reverb:
-        type: "hall"
-        wet: 0.25
-        decay_sec: 1.8
-      pan: -0.2
-      gain_db: 0
-```
-
-### 7.8 `provenance.json`(自動生成、追記専用)
-
-すべての生成判断の来歴記録。
-
-### 7.9 `annotations.json`(★NEW: ユーザフィードバック)
-
-時間タグ付きの評価。Reflection Layer の入力。
-
-```json
-{
-  "timestamp_iso": "2026-05-02T10:30:00Z",
-  "iteration": "v005",
-  "annotations": [
-    {
-      "time_start_sec": 12.4,
-      "time_end_sec": 14.8,
-      "bars": [4, 5],
-      "sentiment": "positive",
-      "tags": ["memorable_motif", "good_dynamics"]
-    },
-    {
-      "time_start_sec": 32.1,
-      "time_end_sec": 36.7,
-      "bars": [12, 14],
-      "sentiment": "negative",
-      "tags": ["too_busy", "muddy_low_end"]
-    }
-  ]
-}
-```
-
-### 7.10 Spec Composability(★NEW: v2.0 強化)
-
-`extends:` と `overrides:` で再利用可能なスペック断片を組み立てます。
-
-```yaml
-# specs/projects/my-symphony/composition.yaml
-extends:
-  - specs/fragments/instruments/orchestral_strings.yaml
-  - specs/fragments/genres/cinematic_dramatic.yaml
-  - specs/fragments/trajectories/three_act_arc.yaml
-
-overrides:
-  tempo_bpm: 96
-  key: D minor
-```
-
+    waypoints: [[0, 0.3], [0.4, 0.5], [0.7, 0.95], [1.0, 0.4]]
+  predictability: { target: 0.6, variance: 0.15 }
+microtiming_profile: legato_classical
+articulation_defaults: { strings: legato, piano: pedaled }
+references_recommended: ["public_domain/holst_jupiter"]
 ---
 
-## 8. Custom Commands(指揮者の指示棒)
+# Cinematic / Film Score Skill
 
-ユーザは以下のコマンドで Orchestra を動かします。各コマンドは `.claude/commands/*.md` に定義されます。
+(本文は人間向けの詳細な説明。現状の Skill ファイルそのまま)
+```
 
-| コマンド | 用途 | 主要 Subagent |
+#### 9.2.2 Skill Loader の実装
+
+```python
+# src/yao/skills/loader.py (NEW)
+
+@dataclass(frozen=True)
+class GenreProfile:
+    genre_id: str
+    typical_keys: tuple[str, ...]
+    typical_instruments: tuple[InstrumentRecommendation, ...]
+    chord_palette: tuple[str, ...]
+    typical_progressions: tuple[tuple[str, ...], ...]
+    cadence_preferences: dict[str, float]
+    forbidden_cliches: tuple[ClicheDefinition, ...]
+    trajectory_defaults: TrajectoryDefaults
+    # ...
+
+class SkillRegistry:
+    def __init__(self, skills_dir: Path):
+        self._genres: dict[str, GenreProfile] = {}
+        self._load_all(skills_dir)
+
+    def get_genre(self, genre_id: str) -> GenreProfile | None: ...
+    def list_genres(self) -> list[str]: ...
+    def reload(self) -> None: ...  # for hot-reloading during dev
+```
+
+#### 9.2.3 生成パイプラインへの統合
+
+5 つの統合ポイントを設置:
+
+| ポイント | Skill から取得する内容 | 統合先 |
 |---|---|---|
-| `/compose <project>` | 仕様から新曲を生成 | Composer → 全員 |
-| `/arrange <project>` | **既存曲を編曲** ★Tier 2 | Orchestrator + Adversarial Critic |
-| `/critique <iteration>` | 既存生成物を批評 | Adversarial Critic |
-| `/regenerate-section <project> <section>` | 特定セクションのみ再生成 | Composer + Producer |
-| `/morph <from> <to> <bars>` | 2 つの楽曲調を補間 | Composer + Orchestrator |
-| `/improvise <input>` | **リアルタイム伴奏** ★Tier 3 | Composer + Rhythm |
-| `/explain <element>` | 特定要素の生成判断を説明 | Producer(Provenance 参照) |
-| `/diff <iter_a> <iter_b>` | 2 イテレーション間の音楽差分 | Verifier |
-| `/render <iteration>` | MIDI を音声・楽譜・DAW に変換 | Mix Engineer |
-| `/sketch` | スケッチ→仕様対話モード | Producer |
-| `/preview <spec>` | **インライン即時試聴** | Renderer |
-| `/watch <spec>` | **ファイル変更検知 → 自動再生成** | Conductor |
-| `/annotate <iteration>` | **時間タグ付きフィードバック UI** ★Tier 4 | Reflection |
-| `/branch <project> <name>` | **Plan-level branching** ★Tier 3 | Producer |
-| `/alternatives <project> <section>` | **代替案 N 個生成** ★Tier 2 | Composer |
+| **SpecCompiler** | typical_instruments, typical_keys, typical_tempo_range | NL → spec 推論 |
+| **HarmonyPlanner** | chord_palette, typical_progressions, cadence_preferences | コード進行候補 |
+| **DrumPatterner** | typical drum patterns from `drum_patterns/<genre>.yaml` | リズム生成 |
+| **Critique: cliche_detector** | forbidden_cliches | クリシェ検出 |
+| **PerformanceLayer** | microtiming_profile, articulation_defaults | 演奏表現 |
 
----
+### 9.3 ホットリロード機能
 
-## 9. Skills(楽団員の素養)
+開発・利用中の体験向上のため:
 
-`.claude/skills/` には専門知識を構造化したモジュールが配置されます。Subagent は必要に応じてこれらを参照します。各 Skill は **Markdown 本体 + YAML front-matter** の形式で、front-matter は機械可読、Markdown 本体は人間と LLM が読みます。`make sync-skills` で両者の整合を保ちます。
-
-### 9.1 ジャンル Skills(目標 30+)
-
-v1.0 の 8 から大幅拡張。文化別カテゴリで整理。
-
-```
-.claude/skills/genres/
-├── western_popular/        (15: pop, rock, jazz, blues, country, ...)
-├── electronic/             (7:  house, techno, trance, dnb, idm, ...)
-├── classical/              (6:  baroque, classical, romantic, ...)
-├── world/                  (12: hindustani, carnatic, maqam, ...)
-└── functional/             (8:  film_dramatic, game_rpg, ad_15sec, ...)
+```bash
+# ジャンル Skill を編集 → 即座に生成挙動に反映
+$ yao watch --skill-reload
+> Editing .claude/skills/genres/cinematic.md ...
+[Skill reloaded: cinematic]
 ```
 
-各ジャンルの YAML front-matter には文化的制約も含めます。
+### 9.4 完了条件
 
-```yaml
+- 全 22 ジャンル Skill にフロントマターを追加
+- `tests/integration/test_skill_grounding.py`:Skill を変更すると生成出力が変化することを確認
+- Skill 編集だけで「映画音楽用」「lo-fi 用」の出力差が劇的に出ることを subjective rating で確認
+
 ---
-genre: indian_classical_hindustani
-scale_constraints:
-  - raga_based:
-      time_of_day_aware: true
-  - microtonal: true
-forbidden_in_pure_form:
-  - chord_progressions
-  - equal_temperament_strict
----
+
+## 10. Wave 2.2:美的評価指標の追加
+
+### 10.1 現状の評価器の限界
+
+現状の `evaluate_score()` の指標一覧:`pitch_range_utilization`, `stepwise_motion_ratio`, `consonance_ratio`, `pitch_class_variety`, `section_contrast`, ... 。
+
+これらは**形式評価**には有効ですが、「**形式的に正しいが感情的に死んでいる音楽**」を検出できません。例:`pitch_class_variety = 0.95` でも、ハッとする瞬間が一つもない無味な音楽は普通に出てきます。
+
+### 10.2 v3.0 で追加する 4 つの美的指標
+
+#### 10.2.1 Surprise Index(意外性指標)
+
+理論的根拠:Huron の予測モデル(ITPRA 理論)。各音符・各和音について、直前のコンテキストから期待される確率分布を Markov モデルで計算し、実際の選択の負対数尤度を「驚き」とする。
+
+```python
+def compute_surprise_index(score: ScoreIR, plan: MusicalPlan) -> float:
+    """Returns mean -log P(note | context) across all notes."""
+    bigram_model = load_bigram_model(plan.global_context.key)
+    surprises = []
+    for note, prev_note in pairs(score.melody_notes()):
+        prob = bigram_model.transition_prob(prev_note, note)
+        surprises.append(-math.log(max(prob, 1e-9)))
+    return statistics.mean(surprises)
 ```
 
-### 9.2 理論 Skills
+目標値:`predictability` 軌跡の (1 - target) と一致。低すぎ=退屈、高すぎ=混沌。
 
-和声法・対位法・リハーモナイゼーション・モーダルインターチェンジに加え、12 音技法・スペクトル楽派・微分音技法も追加。
+#### 10.2.2 Memorability Index(記憶可能性指標)
 
-### 9.3 楽器 Skills
+```python
+def compute_memorability_index(plan: MusicalPlan) -> float:
+    if not plan.motif or not plan.motif.seeds:
+        return 0.0  # Composer が空ならスコアも 0
+    score = 0.0
+    for seed in plan.motif.seeds:
+        recurrence = plan.motif.recurrence_count(seed.id)
+        identity = seed.identity_strength
+        score += min(recurrence / 4.0, 1.0) * identity
+    return score / len(plan.motif.seeds)
+```
 
-各 38+ 楽器の音域・慣用奏法・音色特性・物理的制約・代表フレーズパターン。**演奏表情(articulation)** を専用カテゴリとして独立させました(`.claude/skills/articulation/`)。
+#### 10.2.3 Contrast Index(対比指標)
 
-### 9.4 心理学 Skills
+隣接セクション間の StyleVector 距離。
 
-Juslin・Huron・Krumhansl の経験的マッピング。特に **Huron の ITPRA 予測理論** は v2.0 で `prediction_dynamics` 軌跡の根拠として組み込まれました。
+```python
+def compute_contrast_index(score: ScoreIR) -> float:
+    distances = []
+    for s1, s2 in pairs(score.sections):
+        v1 = extract_section_style_vector(s1)
+        v2 = extract_section_style_vector(s2)
+        distances.append(v1.distance_to(v2))
+    return statistics.mean(distances)
+```
 
-### 9.5 文化的配慮 Skill
+目標値:0.3 〜 0.6(過小=単調、過大=分裂)。
 
-ノンウェスタン音楽を扱う際のガイドライン(`.claude/skills/cultural-sensitivity.md`)。文化的盗用回避、伝統的文脈の尊重、専門家レビュープロセス。
+#### 10.2.4 Pacing Index(ペーシング指標)
 
----
+tension trajectory の累積エントロピー。クライマックスが意図通りの位置にあるか、変化のテンポが適切か。
 
-## 10. Hooks(自動演奏指示)
-
-Hooks は Claude Code への指示ではなく、**実行が保証されるスクリプト** です。v2.0 では 6 つのフックを設定します。
-
-| Hook | タイミング | 内容 |
-|---|---|---|
-| `pre-commit-lint` | git commit 前 | YAML schema check, music21 lint, golden test smoke |
-| `post-generate-render` | `/compose`/`/arrange` 後 | MIDI を音声・楽譜・DAW プロジェクトに自動変換 |
-| `post-generate-critique` | 生成完了後 | Adversarial Critic を必ず起動、`critique.md` 永続化 |
-| `update-provenance` | あらゆる変更後 | Provenance Graph を最新状態に更新 |
-| `spec-changed-show-diff` | spec 編集後 | 何が音楽的に変わったか MPIR レベルで表示 |
-| `ai-disclosure-stamp` ★NEW | レンダリング後 | 「YaO で生成」「使用モデル」をメタデータに刻印 |
-
-これらにより、エージェントが指示を忘れても品質保証・透明性が破綻しません。
-
----
-
-## 11. Perception Substitute Layer(差別化要素 1)
-
-YaO の最も独自性の高い層。**LLM は音を聴けない** という根本的限界を、3 段階の代替機構で補います。v1.0 では stub だった部分を v2.0 で本格実装します。
-
-### 11.1 Stage 1:Audio Features Extraction(Tier 1 で実装)
-
-レンダリング後の音声から客観的指標を抽出。`librosa` + `pyloudnorm` を使用。
+### 10.3 評価器への統合
 
 ```python
 @dataclass(frozen=True)
-class PerceptualReport:
-    # ラウドネス
-    lufs_integrated: float
-    lufs_short_term: list[tuple[float, float]]
-    peak_dbfs: float
-    dynamic_range_db: float
-
-    # スペクトル
-    spectral_centroid_mean: float
-    spectral_centroid_per_section: dict[str, float]
-    spectral_rolloff: float
-    spectral_flatness: float
-
-    # リズム
-    onset_density_per_section: dict[str, float]
-    tempo_stability_ms_drift: float
-
-    # 周波数バンド
-    frequency_band_energy: dict[BandName, float]
-    masking_risk_score: float
+class EvaluationScore:
+    dimension: Literal[
+        "structure", "melody", "harmony", "arrangement", "acoustics",
+        "aesthetic"  # NEW
+    ]
+    metric: str
+    score: float
+    target: float
+    tolerance: float
+    detail: str
 ```
 
-### 11.2 Stage 2:Use-Case Targeted Evaluation(Tier 2 で実装)
+新しい `aesthetic` ディメンションに 4 つの指標を配置。重み付けは:`structure 0.20, melody 0.25, harmony 0.20, aesthetic 0.20, arrangement 0.10, acoustics 0.05`。
 
-`intent.md` の `use_case` フィールドに基づき、用途別評価ルールを切り替え。
+### 10.4 完了条件
+
+- `tests/integration/test_aesthetic_metrics.py`: 既知の良楽曲 5 つで aesthetic ≥ 0.7、退屈な楽曲 5 つで aesthetic ≤ 0.4
+- Conductor の feedback ループが aesthetic 失敗時に適切な adaptation(motif 増加・対比強化)を選ぶ
+
+---
+
+## 11. Wave 2.3:Audio Loop の Conductor 統合
+
+### 11.1 現状
+
+`PerceptualReport`(LUFS、spectral centroid、masking risk 等)は実装済みだが、`Conductor.compose_from_spec()` は MIDI 評価で完結。**audio render → audio 評価 → adaptation のループは存在しない**。これは「Listener Panel」のメタファーが半分しか実現していないことを意味します。
+
+### 11.2 v3.0 設計
 
 ```python
-USE_CASE_EVALUATORS = {
-    UseCase.YOUTUBE_BGM:    YouTubeBGMRules,    # vocal_space, loopability, fatigue
-    UseCase.GAME_BGM:       GameBGMRules,        # loop_seam, tension_curve, repetition
-    UseCase.ADVERTISEMENT:  AdvertisementRules,  # hook_entry_time<7s, peak_position
-    UseCase.STUDY_FOCUS:    StudyFocusRules,     # low_distraction, stability
-    UseCase.MEDITATION:     MeditationRules,     # gentle_dynamics, tempo<70
-    UseCase.WORKOUT:        WorkoutRules,        # tempo>120, energy_consistency
-    UseCase.CINEMATIC:      CinematicScoreRules, # arc_clarity, climax_position
-}
+@dataclass(frozen=True)
+class ConductorConfig:
+    enable_audio_loop: bool = False  # opt-in (CI で skip 可能)
+    soundfont_path: Path | None = None
+    audio_thresholds: AudioThresholds = field(default_factory=AudioThresholds)
 ```
 
-### 11.3 Stage 3:Reference Matching(Tier 2 で実装)
+audio loop 有効時の追加ステップ:
 
-スタイルベクトル空間での距離計算。**生のメロディ・コードは比較対象外**(著作権配慮、schema 強制)。
+```
+[Standard MIDI loop] → MIDI 合格
+  ↓
+[Audio Render] (FluidSynth)
+  ↓
+[Perceptual Analysis] (PerceptualReport)
+  ↓
+[Audio Evaluation]
+  ├── LUFS target match (use case 別)
+  ├── Frequency masking risk
+  ├── Spectral balance
+  └── Tempo stability
+  ↓
+[Audio Adaptations]
+  ├── Masking → Orchestrator が register 調整
+  ├── LUFS too quiet/loud → Mix Engineer が dynamics 調整
+  └── Spectral imbalance → Mix Engineer が EQ 調整
+  ↓
+[Re-render & Re-evaluate] (max 2 iterations)
+```
+
+### 11.3 SoundFont 同梱戦略
+
+audio loop には SoundFont が必須だが、サイズが大きい(140MB)。
+
+- CI 用に**小型 SoundFont**(8MB、ピアノ・弦・ドラムのみ)を `soundfonts/yao_minimal.sf2` として同梱
+- フル品質は別途ダウンロード(`make setup-soundfonts`)
+- `enable_audio_loop=True` で SoundFont 不在時は `AudioBackendUnavailableError`
+
+### 11.4 完了条件
+
+- `yao conduct --enable-audio-loop` が動作
+- audio adaptation が少なくとも 3 種類実装される(register, dynamics, EQ)
+- minimum SoundFont で CI 統合テストが動作
+
+---
+
+## 12. Wave 3:深化フェーズ
+
+Wave 3 は Wave 1, 2 が固まった後に着手します。各機能はそれぞれ独立した PR で進められます。
+
+### 12.1 Performance Expression のパイプライン標準化
+
+現状、`MicrotimingInjector`、`ArticulationRealizer`、`DynamicsCurveRenderer`、`CCCurveGenerator` は実装されているが**生成パイプラインで使われていない**。
+
+統合方針:Note Realizer 後に **Performance Pipeline** を必ず実行する。ジャンルとアーティキュレーション Skill から profile を選択。
+
+### 12.2 EnsembleConstraint の導入
+
+各楽器パートが独立に生成されるのではなく、**部間の相互作用**を制約として記述:
+
+```yaml
+ensemble_constraints:
+  - rule: melody_bass_consonance_on_downbeat
+    severity: prefer
+    detail: "On beat 1 of each bar, melody and bass form a consonant interval"
+
+  - rule: chord_melody_compatibility
+    severity: must
+    detail: "Melody non-chord tones must be passing or neighbor tones"
+
+  - rule: register_separation
+    severity: must
+    detail: "Melody and bass parts must not occupy the same octave for >2 bars"
+```
+
+これらは Orchestrator Subagent で考慮され、違反時は Critic が検出。
+
+### 12.3 参照楽曲ライブラリの整備
+
+- パブリックドメイン楽曲(Bach 4-part chorales、Mozart sonatas、Joplin rags 等)を `references/midi/public_domain/` に配置
+- 各楽曲について `catalog.yaml` で license=PD を明記
+- 抽象化された **GenreProfile**(具体楽曲の StyleVector を集約した結果のみ、再構成不可能)を `references/profiles/<genre>.yaml` で配布
+- 著作権配慮:具体的な melody/chord progression は**抽出しない**
+
+### 12.4 StyleVector の表現力強化
+
+現状の StyleVector は melody/harmony 情報がゼロで貧弱。著作権リスクなしに表現力を上げる:
 
 ```python
+@dataclass(frozen=True)
 class StyleVector:
+    # 既存フィールド
     harmonic_rhythm: float
-    melodic_contour_distribution: np.ndarray
     voice_leading_smoothness: float
-    rhythmic_density_per_bar: np.ndarray
-    register_distribution: np.ndarray
-    timbre_centroid_curve: np.ndarray
-    # 生メロディ・コード進行は含まない(allowlist で禁止)
+    rhythmic_density_per_bar: tuple[float, ...]
+    register_distribution: tuple[float, ...]
+    timbre_centroid_curve: tuple[float, ...]
+    motif_density: float
+
+    # NEW(著作権セーフ:histogram 系のみ、復元不可能)
+    interval_class_histogram: tuple[float, ...]  # 12 dims, 音程クラス頻度
+    chord_quality_histogram: tuple[float, ...]   # 8 dims, M/m/dim/maj7 等の頻度
+    cadence_type_distribution: tuple[float, ...] # 4 dims, 終止型分布
+    rhythm_complexity_per_section: tuple[float, ...]  # シンコペート率等
 ```
 
-### 11.4 Listening Simulation 統合
+`FORBIDDEN_FEATURES` には引き続き「具体的な melody contour」「具体的な chord sequence」を残す。
 
-Conductor の Phase 6 で必ず実行。乖離が閾値超なら該当セクションの再生成をトリガー。
+### 12.5 Subjective Rating の本格運用
+
+現状、`tests/subjective/ratings/` には開発者の自己評価 1 件のみ。これを実用化:
+
+```bash
+# ユーザは生成された曲に対して対話的に評価
+$ yao rate outputs/projects/my-song/iterations/v003
+> Memorability: 1-10? [_]
+> Emotional fit to intent: 1-10? [_]
+> Technical quality: 1-10? [_]
+> Genre fitness: 1-10? [_]
+> Overall: 1-10? [_]
+> Free-text notes: [_]
+
+[Saved to ratings/my-song-v003-2026-05-15.json]
+```
+
+蓄積された rating は `Layer 7: Reflection & Learning` の `style_profile.py` に流れ込み、ユーザ嗜好プロファイルを更新します。次回の生成では、ユーザが好む傾向(密度、対比、複雑度)を `trajectory_defaults` に反映。
+
+### 12.6 `/sketch` 多段対話化
+
+`.claude/commands/sketch.md` を以下のフェーズで定義:
+
+1. **Turn 1**: 核となる感情・目的・聴取コンテキストを聞く
+2. **Turn 2**: 参照楽曲(知っているなら)・避けたい雰囲気を聞く
+3. **Turn 3**: 楽器・尺・繰り返し性を確認
+4. **Turn 4**: trajectory(緊張度カーブ)の素描を提示し、調整を求める
+5. **Turn 5**: `intent.md` と `composition.yaml` の最終確認
+6. **Turn 6**: `/compose` 起動
+
+各ターンで Claude Code は提案を出し、ユーザは承認/修正。これにより Phase 1(Intent Crystallization)が真に実行されます。
 
 ---
 
-## 12. Performance Expression Layer(差別化要素 2)
+## 13. CI とドキュメント整合性
 
-Layer 4.5 として新設された層。「楽譜の音符」を「演奏」に変えます。
+### 13.1 v3.0 で必須化される CI チェック
 
-### 12.1 NoteExpression IR
+```yaml
+# .github/workflows/quality.yml
+- name: Status Honesty Check
+  run: make honesty-check
+  # ✅ 機能の各 source/test ファイルが本当に存在し、実装が空でないことを確認
 
-```python
-@dataclass(frozen=True)
-class NoteExpression:
-    legato_overlap: float = 0.0
-    accent_strength: float = 0.0
-    glissando_to: int | None = None
-    pitch_bend_curve: list[tuple[float, float]] | None = None
-    cc_curves: dict[int, list[tuple[float, float]]] | None = None
-    micro_timing_ms: float = 0.0
-    micro_dynamics: float = 0.0
+- name: Backend Honesty Check
+  run: |
+    python -c "from yao.agents.anthropic_api_backend import AnthropicAPIBackend; \
+               assert not AnthropicAPIBackend().is_stub or 'stub' in AnthropicAPIBackend.__name__.lower()"
+
+- name: Plan Completeness Check
+  run: pytest tests/integration/test_plan_completeness.py
+  # MotifPlan が空でないことを確認
+
+- name: Skill Grounding Check
+  run: pytest tests/integration/test_skill_grounding.py
+  # ジャンル Skill 編集が生成挙動を変えることを確認
+
+- name: Critic Coverage Check
+  run: pytest tests/integration/test_critic_meaningful.py
+  # 各 Severity で意味のある検出が起こることを確認
+
+- name: V2 Pipeline Consumption Check
+  run: python tools/check_plan_consumption.py
+  # Note Realizer が MusicalPlan の 80% 以上のフィールドを消費することを確認
 ```
 
-### 12.2 4 つの Realizer
+### 13.2 ドキュメント整合性ツール
 
-1. **ArticulationRealizer**: 楽器ごとの慣用奏法 Skill から legato/staccato/marcato 等を自動付与
-2. **DynamicsCurveRenderer**: セクションの dynamic を音符列で滑らかなカーブに展開
-3. **MicrotimingInjector**: ジャンル固有の microtiming プロファイル(jazz laid-back、reggae skanking 等)を適用
-4. **CCCurveGenerator**: ヴィブラート(CC1)、ブレス(CC2/11)、ペダル(CC64) を生成
+```
+tools/
+├── honesty_check.py          # NEW: ✅ ステータスと実装の整合性
+├── doc_drift_check.py        # NEW: README/PROJECT/FEATURE_STATUS 数値整合
+├── plan_consumption_check.py # NEW: V2 pipeline 利用率
+└── skill_grounding_check.py  # NEW: Skill が実際に使われているか
+```
 
-### 12.3 出力形式
+### 13.3 ステータス再採点ポリシー
 
-- **MIDI**: CC・ピッチベンドとして書き出し
-- **MPE MIDI**: 各ノート独立チャンネルでより細密に
-- **DAW プロジェクト**: オートメーションレーンとして
-- **MusicXML**: 表情記号として
+v3.0 開始時に FEATURE_STATUS.md を**全項目再採点**します。判定基準:
+
+| 現ステータス | 実装審査結果 | 新ステータス |
+|---|---|---|
+| ✅ | スタブ・空実装 | 🟡 with `limitation: stub implementation` |
+| ✅ | テストはあるが実機能不在 | 🟡 with `limitation: no real-world impact` |
+| ✅ | パイプライン未統合 | 🟡 with `limitation: not integrated into generation` |
+| ✅ | 真に動作 | ✅ 維持 |
+
+審査結果は `docs/audit/2026-05-status-reaudit.md` として永続化。
 
 ---
 
-## 13. Arrangement Engine(差別化要素 3)
+## 14. 開発プロセスの規律
 
-VISION で「YaO の単一最大の差別化能力」と位置付けられた機能。v2.0 で本実装します。
+### 14.1 Sound-First 文化の強化
 
-### 13.1 パイプライン
+v2.0 から導入されているが、v3.0 で**強制化**:
 
-```
-[Input MIDI] → [Source Plan Extractor] → [SourcePlan (MPIR)]
-                                                 ↓
-                              [Preservation Contract] + [Transformation Contract]
-                                                 ↓
-                                      [Style Vector Operations]
-                                                 ↓
-                                          [TargetPlan (MPIR)]
-                                                 ↓
-                                      [Note Realizer] → [ScoreIR]
-                                                 ↓
-                                  [Arrangement Diff Markdown]
-                                                 ↓
-                                      [Arrangement Critique]
-```
+- 生成・レンダリングに影響する PR は、**before/after の audio sample**(30 秒以上)を PR 説明に添付必須
+- audio sample なしの該当 PR はマージ不可
+- `make pr-audio-samples PROJECT=<name>` ヘルパで簡単に作れるようにする
 
-### 13.2 Source Plan Extractor の現実
+### 14.2 Dogfooding の強化
 
-完全な自動採譜は不可能なので、以下の妥協を取ります。
+YaO で制作した楽曲を:
+- プロジェクトのデモ動画 BGM
+- リリースノートの「今月の音」
+- PR レビュー時の「主観評価サンプル」
+として継続的に使用。
 
-- **コード推定**: Chordino アルゴリズムベース
-- **セクション検出**: librosa.segment.recurrence_matrix の自己相似行列
-- **メロディ抽出**: 最高音追跡 + ML(オプション)
-- **ドラム抽出**: GM ドラムマップに基づくチャンネル 10 抽出
+### 14.3 ミュージシャン貢献ガイド
 
-不完全な抽出結果を、ユーザが対話的に修正できる UI(`/arrange --interactive`)を提供します。
+Python 不要な貢献経路を**明示的に支援**:
 
-### 13.3 Style Vector Operations
+| 貢献領域 | 必要スキル | ファイル |
+|---|---|---|
+| ジャンル Skill 追加 | 音楽知識 + Markdown | `.claude/skills/genres/<name>.md` |
+| テンプレート作成 | YAML + 音楽知識 | `specs/templates/<name>.yaml` |
+| 参照楽曲分析 | MIDI + YAML | `references/profiles/<genre>.yaml` |
+| Subjective rating | 楽曲を聴く | `tests/subjective/ratings/<id>.json` |
+| 翻訳 | 言語スキル | `.claude/skills/psychology/emotion-mapping.md` の i18n |
 
-```python
-target_plan = (
-    source_plan
-    - source_genre_vector
-    + target_genre_vector
-    ⊕ preservation_constraints
-)
-```
+`docs/contributing-as-musician.md` を充実させます。
 
-ベクトル演算として透明に記述され、Provenance に記録されます。
+### 14.4 Documentation Budget(継承+強化)
 
-### 13.4 Arrangement Diff(成果物)
+v2.0 の「設計文書 1 行あたり実働コード 3 行以上」を継承。違反警告を `tools/doc_drift_check.py` で出します。
+
+### 14.5 Vertical Alignment(原則 6)の運用
+
+v3.0 では各 PR について以下を自己宣言:
 
 ```markdown
-# Arrangement Diff (v003)
+## Vertical Alignment Self-Check
 
-## Preserved
-- Main hook melodic similarity: 0.91 ✓
-- Section form: unchanged ✓
-- Chord function similarity: 0.82 ✓
+- [ ] Input layer: this PR enriches what users can express (or N/A)
+- [ ] Processing layer: this PR uses richer input or makes better decisions (or N/A)
+- [ ] Output layer: this PR enables more precise evaluation/critique (or N/A)
 
-## Changed
-- BPM: 128 → 86
-- Groove: straight pop → swung lo-fi
-- Chords: triads → 7th/9th voicings (35% reharm)
-- Bass: root → walking with passing tones
-- Drums: four-on-floor → laid-back backbeat
-
-## Risks (Adversarial Critic)
-- chorus_energy_drop: dropped more than requested (target -20%, actual -38%)
+If only one box is checked: justify why imbalance is acceptable.
 ```
 
 ---
 
-## 14. Neural Generator Integration(差別化要素 4)
+## 15. ロードマップ:Wave とマイルストーン
 
-YaO の説明可能性原則と、ニューラル生成器のブラックボックス性は緊張関係にあります。v2.0 ではこの矛盾を以下の原則で解消します。
+### 15.1 Wave 1:正直化(2026 Q3、4〜6 週間) ✅ 完了 2026-05-03
 
-> **構造・計画レベルは YaO 自前ロジック(説明可能性確保)、音色・テクスチャ・微細装飾はニューラルに委譲(品質向上)。**
+**目標**: 「✅ なのに動いていない」状態の解消
 
-### 14.1 統合パターン
+| 週 | マイルストーン | 完了基準 | 状態 |
+|---|---|---|---|
+| W1 | FEATURE_STATUS.md の再採点 | スタブ ✅ がゼロ | ✅ |
+| W1 | 5 CI honesty ツール実装 | make all-checks pass | ✅ |
+| W2-3 | Composer Subagent 本実装 | MotifPlan が常に非空 | ✅ |
+| W3-4 | AnthropicAPIBackend 本実装 | API キー有り時に実 LLM 呼出 | ✅ |
+| W4-5 | SpecCompiler LLM 化 | 日本語 50 語彙、三段階フォールバック | ✅ |
+| W5-6 | V2 Pipeline 本実装 | plan-consumption 100% | ✅ |
+| W6 | Wave 1 統合テスト | 全ツール exit 0、1074 tests pass | ✅ |
 
-| パターン | バックエンド | 用途 |
-|---|---|---|
-| **A. Texture Layer** | Stable Audio Open | アンビエント・パッド・環境音 |
-| **B. Performance Enhancement** | MusicGen Melody | 単旋律楽器の表情豊かな演奏 |
-| **C. Counter-Melody Suggest** | Magenta MelodyRNN | 対旋律候補提案 |
-| **D. Drum Groove Variation** | Magenta DrumsRNN | ドラムグルーヴのバリエーション |
-| **E. Chord Color Suggest** | Custom (将来) | コード色彩のニューラル提案 |
+### 15.2 Wave 2:整合化(2026 Q4、8〜10 週間) ✅ 完了 2026-05-03
 
-### 14.2 Provenance での透明性
+**目標**: アーキテクチャの名実一致
 
-ニューラル生成も完全に追跡可能にします。
+| 週 | マイルストーン | 完了基準 | 状態 |
+|---|---|---|---|
+| W7-9 | NoteRealizerV2 デフォルト化 | 100% フィールド消費 | ✅ |
+| W9-11 | ジャンル Skill loader | 基盤実装、8/22 grounded | ✅ (partial) |
+| W11-13 | 美的評価指標 4 つ追加 | aesthetic dimension + 1.7x separation | ✅ |
+| W13-15 | Audio Loop 基盤 | MixChain + audio features 動作 | ✅ (partial) |
+| W15-16 | Wave 2 統合テスト | 1104 tests pass、全ツール exit 0 | ✅ |
 
-```json
-{
-  "step": "neural_texture_generation",
-  "method": "stable_audio_open",
-  "model_version": "1.0.3",
-  "prompt": "warm analog synth pad, slow attack, lush reverb, in D minor",
-  "seed": 42,
-  "output_audio_hash": "sha256:abc123...",
-  "rationale": "Atmospheric pad layer requested by spec.texture_layers[0]",
-  "rights_status": "user_owned (Stable Audio Open License)",
-  "ai_disclosure_required": true
-}
-```
+### 15.3 Wave 3:深化(2027 Q1-Q2、8〜12 週間)
 
-`ai-disclosure-stamp` Hook により、最終成果物のメタデータに必ず明記されます。
+**目標**: 多様性・体験・文化的拡張
 
-### 14.3 オプショナル依存
+主な作業項目:
+- Performance Layer の自動適用
+- Ensemble Constraint
+- 参照ライブラリ整備
+- StyleVector 拡張
+- Subjective rating CLI
+- `/sketch` 多段対話
+- Microtonal/Polyrhythm の拡充
+- Live Improvisation の実装移行
+- Arrangement Engine の品質向上
 
-GPU・大規模モデルは多くのユーザにとって障壁。すべてのニューラル統合は **オプショナル依存** とし、ローカル GPU が無い環境でもコア機能はフル動作します。
+### 15.4 Continuous(常時並行)
 
-```toml
-[project.optional-dependencies]
-neural = [
-    "transformers>=4.40",
-    "torch>=2.0",
-]
-neural-magenta = [
-    "magenta>=2.1",
-]
-neural-musicgen = [
-    "audiocraft>=1.3",
-]
-```
+- Subjective rating の蓄積
+- ジャンル Skill の追加(目標: 22 → 50)
+- 参照楽曲の追加
+- ミュージシャンコミュニティ形成
+- ドキュメント国際化(英・日・中・西)
 
 ---
 
-## 15. 多様性の地理的・歴史的拡大
+## 16. 成功の判定:v3.0 の完了条件
 
-v1.0 の暗黙の前提(西洋ダイアトニック・12 平均律・4/4)を v2.0 で解除します。
+v3.0 は次の条件**全て**を満たすときに完了とみなされます。
 
-### 15.1 Microtonal & Non-Western Scales
+### 16.1 Honesty(正直さ)
+- FEATURE_STATUS.md の全 ✅ エントリが、`tools/honesty_check.py` をパス
+- スタブと実装の混同が一切ない
+- LLM バックエンドが本実装(stub フォールバックのみ存在)
 
-スケール定義をセント単位に拡張。
+### 16.2 Integration(統合)
+- Note Realizer V2 が MusicalPlan の主要フィールド 80% 以上を消費
+- ジャンル Skill 編集で生成出力が変化することがテストで確認される
+- Audio loop が opt-in で動作する
 
-```python
-@dataclass(frozen=True)
-class ScaleDefinition:
-    name: str
-    intervals_cents: tuple[int, ...]  # 半音単位ではなくセント単位
-    is_octave_repeating: bool = True
-    cultural_context: str | None = None
-    typical_instruments: tuple[str, ...] = ()
+### 16.3 Aesthetic(美的)
+- 4 つの美的指標(surprise/memorability/contrast/pacing)が評価器に統合
+- ベンチマーク用 10 楽曲(良 5 + 退屈 5)で指標が期待通りに分かれる
+- subjective rating で overall ≥ 7.0(50 件以上の評価で)
 
-# 例
-RAGA_YAMAN = ScaleDefinition(
-    name="raga_yaman",
-    intervals_cents=(0, 200, 400, 600, 700, 900, 1100),
-    cultural_context="north_indian_classical",
-)
+### 16.4 Vertical Alignment(垂直整合)
+- 各 Wave で input/processing/output の 3 層が同時に進化したことを宣言
+- doc/code 比が 3:1 を超えていない
+- 過去半年の PR の 80% 以上が Vertical Alignment セルフチェックを完了
 
-MAQAM_RAST = ScaleDefinition(
-    name="maqam_rast",
-    intervals_cents=(0, 200, 350, 500, 700, 900, 1050),  # 1/4 音含む
-    cultural_context="arab_classical",
-)
-
-PELOG = ScaleDefinition(
-    name="pelog",
-    intervals_cents=(0, 120, 270, 540, 670, 790, 950),
-    cultural_context="javanese_gamelan",
-)
-```
-
-MIDI 出力では MPE モードでノート別ピッチベンドとして表現。
-
-### 15.2 Extended Time Signatures
-
-複合拍子・変拍子・ポリメーターを第一級でサポート。
-
-```yaml
-time_signature:
-  primary: "7/8"
-  beat_groupings: [3, 2, 2]   # バルカン的 7/8
-  alternates:
-    - bars: [16, 24]
-      signature: "4/4"
-  polymeter:
-    - instrument: drums
-      signature: "3/4"
-    - instrument: piano
-      signature: "4/4"
-    - sync_at: "every 12 beats"
-```
-
-### 15.3 Algorithmic Composition Paradigms
-
-20 世紀以降の作曲手法を Generator として追加。
-
-| Generator | パラダイム | 代表作曲家 |
-|---|---|---|
-| `twelve_tone` | 12 音技法 | Schoenberg, Webern |
-| `spectral` | スペクトル楽派 | Grisey, Murail |
-| `process_music` | プロセス音楽 | Reich, Glass |
-| `aleatoric` | 偶然性音楽 | Cage, Lutosławski |
-| `l_system` | 形式文法 | (algorithmic music) |
-| `cellular_automata` | セル・オートマタ | Xenakis, Wolfram |
-
-これらはすべて `@register_generator(...)` で登録され、`generation: { strategy: twelve_tone }` で利用可能。
+### 16.5 Cultural Sensitivity(文化的感受性)
+- 非西洋ジャンル Skill(maqam, hindustani, gamelan 等)に文化的コンテキストが明記
+- microtonal scale 対応がドキュメントと実装で一致
 
 ---
 
-## 16. 評価指標の音楽性向上
+## 17. リスクとミティゲーション
 
-v1.0 は **3 次元 10 メトリクス**(Structure, Melody, Harmony)。v2.0 は **10 次元 30+ メトリクス** に拡張。
+### 17.1 「もうテストは通っているから良いのでは?」リスク
 
-### 16.1 拡張された評価次元
+**リスク**: 監査結果を読んだ貢献者が、「自分のセクションも 🟡 → ✅ に格上げしたい」と短絡し、不十分な実装でステータス上げを試みる。
 
-| Dimension | v1.0 | v2.0 |
-|---|---|---|
-| Structure | ✓ | ✓ + section_form_balance, climax_clarity |
-| Melody | ✓ | ✓ + phrase_closure, leap_smoothness |
-| Harmony | ✓ | ✓ + cadence_strength, modulation_smoothness |
-| Rhythm | partial | full + groove_consistency, syncopation_density |
-| **Memorability** | — | hook_distinctiveness, motif_recall_strength |
-| **Emotional Coherence** | — | intent_match, valence_arc_alignment |
-| **Genre Fitness** | — | typical_features_present, cliche_avoidance |
-| **Performance Feasibility** | — | playable_by_human, breath_marks_adequate |
-| **Mix Readiness** | — | frequency_collision, masking_risk |
-| **Loop Integrity** | — | seam_smoothness (use_case=game_bgm のみ) |
-| **Vocal Compatibility** | — | range, breath_lines, syllable_friendly |
+**ミティゲーション**:
+- `make honesty-check` で機械的にチェック
+- ステータス変更は専用 PR とし、レビュー必須
+- 過去のスタブ昇格事例を `docs/audit/honesty-violations.md` に記録(教訓化)
 
-### 16.2 Memorability の例
+### 17.2 LLM 統合のコスト膨張
 
-```python
-class MemorabilityEvaluator:
-    def evaluate(self, score: ScoreIR, intent: IntentSpec) -> dict[str, float]:
-        return {
-            "motif_recall_strength": self._motif_recall_strength(score),
-            "hook_distinctiveness": self._hook_distinctiveness(score),
-            "structural_anchor_clarity": self._structural_anchor_clarity(score),
-            "rhythmic_signature_strength": self._rhythmic_signature_strength(score),
-        }
-```
+**リスク**: Anthropic API 統合により開発コスト・CI コストが膨れ上がる
 
-### 16.3 用途別評価の重み調整
+**ミティゲーション**:
+- LLM テストは optional、CI ではスキップ
+- `yao[llm-eval]` extra で明示
+- subjective rating で「LLM ありが本当に PythonOnly より良い」を証明できなければ、デフォルトを LLM にしない
 
-`use_case` ごとに評価重みを切り替え。例:
+### 17.3 設計書と実装の再乖離
 
-- `youtube_bgm` → memorability より vocal_compatibility 重視
-- `cinematic` → memorability・emotional_coherence 重視
-- `study_focus` → predictability・low_distraction 重視
+**リスク**: v3.0 完了後、また同じ乖離が起きる
+
+**ミティゲーション**:
+- 原則 7「Status Honesty」を CI で常時強制
+- 月次の audit run(`make audit-monthly`)
+- 新規 PR で ✅ を宣言する場合、`tools/honesty_check.py` を必ず通すフック
+
+### 17.4 「機能を増やしたい」誘惑
+
+**リスク**: 開発者は新機能の方が楽しい。既存機能の埋め合わせは地味で動機が湧きにくい。
+
+**ミティゲーション**:
+- v3.0 期間中は **新機能追加禁止**(Wave 3 までは)
+- ロードマップで「面白い新機能(microtonal expansion 等)は Wave 3 末以降」と明示
+- 完了時の達成感を共有(リリースノート、デモ動画)
 
 ---
 
-## 17. 開発ロードマップ
+## 18. 用語集(v2.0 から継承+追加)
 
-### 17.1 Tier 別優先順位
+v2.0 の用語集を継承。追加用語:
 
-#### Tier 1:即効性の高い基本機能(2-4 週間)
-- Perception Layer Stage 1(audio features)
-- Markov Generator
-- Production Manifest + pedalboard 統合
-- Genre Skills 拡張(8 → 16)
-- MusicXML/LilyPond Writer
+**Honesty Check** — `tools/honesty_check.py` による、ステータスと実装の整合性検証。
 
-#### Tier 2:差別化要素の確立(1-3 ヶ月)
-- Arrangement Engine MVP
-- Performance Expression Layer
-- Use-Case Targeted Evaluation
-- Reference Matcher 実装
-- Subagent の Python 実体化
+**Skill Grounding** — ジャンル Skill が生成パイプラインに統合され、Skill 編集が生成挙動を変える性質。
 
-#### Tier 3:多様性と独自性の拡大(3-6 ヶ月)
-- Microtonal & Non-Western Scale Support
-- Extended Time Signatures
-- Algorithmic Composition Paradigms
-- Neural Generator Integration
-- Live Improvisation Mode
-- Project Runtime
+**Plan Consumption Rate** — Note Realizer が MusicalPlan のどれだけのフィールドを実際に読むかの比率。
 
-#### Tier 4:プラットフォーム成熟(継続)
-- Genre Skills 30 種への拡張
-- Annotation UI と Reflection Layer
-- Backend-Agnostic Agent Protocol
-- DAW MCP Integration (Reaper)
-- Subjective Quality Test Suite
+**Stub Backend** — 形式的に Backend Protocol を満たすが、実際の処理を別バックエンドに丸投げするもの。`is_stub=True` で識別。
 
-### 17.2 Phase 別マイルストーン
+**Audit** — 実装監査。コードを読み、ドキュメントの主張と実装の乖離を測定する作業。
 
-#### Phase α(完了):基盤構築
-- 7 層アーキテクチャ、MPIR、rule_based + stochastic、643 テスト
+**Wave** — v3.0 の開発フェーズ単位。Wave 1〜3 を順序立てて実行。
 
-#### Phase β(進行中):Plan-Layer Maturity
-- 30+ 批評ルール、Multi-candidate Conductor、Markov + constraint_solver、Subagent eval harness
+**Aesthetic Dimension** — 評価器の新ディメンション。surprise/memorability/contrast/pacing の 4 指標。
 
-#### Phase γ(次)Differentiation
-- Perception Stage 1-2、Counter-melody Generator、12 Genre Skills、**Arrangement Engine**(マーキー機能)、MusicXML/LilyPond、Reference Matcher
-
-#### Phase δ:Production Readiness
-- Production Manifest + Mix Chain、Sketch-to-Spec dialogue state machine、`yao preview`/`yao watch`、Strudel emitter、`yao annotate` UI、mkdocs サイト完成、Reaper MCP、Spec composability
-
-#### Phase ε(継続)Reflection & Community
-- Reflection Layer、コミュニティ参照ライブラリ規格、Live improvisation、AI music model bridges
-
-### 17.3 ユーザ価値ドリブン マイルストーン
-
-技術フェーズと並行する、ユーザ視点の到達点。
-
-| マイルストーン | ユーザ価値 | 主要機能 |
-|---|---|---|
-| **1. Describe & Hear** ✓ | 「YAML で記述し、即座に聴ける」 | CLI compose, generators, templates |
-| **2. Iterate & Improve** ✓ | 「不満を伝えると改善される」 | diff, critique, regenerate-section |
-| **3. Richer Music** | 「プロ品質のハーモニー・リズム・表現」 | Performance Layer, mix chain, advanced harmony |
-| **4. My Style** | 「好みを学習、自分のスタイルで生成」 | reference, annotation, reflection |
-| **5. Cover & Remix** | 「既存曲を別ジャンルに編曲」 | **Arrangement Engine** |
-| **6. Production Ready** | 「実プロジェクトで使える出力」 | DAW 連携, multi-format, mix engineer |
-| **7. Live & Interactive** | 「ライブで AI が伴奏」 | Improvisation mode |
-| **8. Global Music** | 「世界中の音楽文化に対応」 | Microtonal, world genres, polyrhythm |
-
-### 17.4 開発プロセス指針
-
-- **Sound-First 文化**: 生成・レンダリングに影響する変更は、変更前後の音声サンプルを PR に含める
-- **ドキュメント予算**: 設計文書 1 行あたり、実働コード 3 行以上を維持
-- **Dogfooding**: YaO で制作した音楽をプロジェクトのデモ動画・発表に使用
-- **ミュージシャン向け貢献ガイド**: ジャンル Skill 追加・テンプレート作成・参照楽曲分析は Python 不要で貢献可能
-- **垂直整合チェック**: 各 PR は「入力・処理・評価のどの 3 層を進歩させるか」を明記
+**Listener Panel** — 試聴会のメタファー。Perception Layer + Subjective Rating の総体。
 
 ---
 
-## 18. クイックスタート
+## 19. 結語:v3.0 が約束するもの
 
-### 18.1 環境構築
+v1.0 は YaO の魂(メタファーと哲学)を確立しました。
+v2.0 は YaO の骨格(8 層アーキテクチャと MPIR)を設計しました。
+v3.0 は YaO の**筋肉**を作ります。
 
-```bash
-git clone <yao-repo>
-cd yao
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-make setup-soundfonts
-make setup-hooks
-```
+設計が立派でも、コードがスタブなら音は鳴りません。骨格が美しくても、筋肉がなければ動きません。
 
-### 18.2 最初の曲を作る
+v3.0 は派手な新機能の追加を**意図的に拒否**します。代わりに、既に「できる」と書かれている機能を、本当に**できるようにする**ことに集中します。これは地味で、目立ちません。しかし、これがなければ YaO は永遠に「論文プロジェクト」のままです。
 
-```bash
-# 1. プロジェクト作成
-yao new-project my-first-song
+v3.0 完了時、YaO は次のことができるようになります:
 
-# 2. Claude Code 起動して対話
-claude
+- ユーザが日本語で「梅雨明けの朝の喜び」と書けば、それが正しく `intent.md` になり、ジャンル Skill が**本当に**生成挙動を導き、Composer Subagent が**本当に**モチーフを生成し、Adversarial Critic が**本当に**弱点を検出し、Audio Loop で LUFS が**本当に**揃う。
+- ユーザが「これ、最後のサビの密度をもう少し下げたい」と言えば、Section regeneration が**本当に**必要箇所だけ書き換える。
+- 開発者が `.claude/skills/genres/lofi.md` を編集すれば、次の生成で**本当に** lofi らしさが変わる。
+- ユーザの主観評価が**本当に**蓄積され、次回の生成傾向に反映される。
 
-# 3. プロンプト例
-> /sketch
-> "雨の夜のカフェで聴きたい、少し切ない 90 秒のピアノ曲"
-> (対話で仕様が固まる)
-> /compose my-first-song
+これらは v2.0 で「できる」と書かれていたが、実際には**できなかった**ことです。v3.0 はそれを**本当にできるようにします**。
 
-# 4. 結果確認
-open outputs/projects/my-first-song/iterations/v001/score.pdf
-afplay outputs/projects/my-first-song/iterations/v001/audio.wav
-
-# 5. 反復
-> /critique my-first-song v001
-> /regenerate-section my-first-song chorus
-```
-
-### 18.3 既存曲を編曲する(Phase γ で可能)
-
-```bash
-yao import-midi my_song.mid --project rainy-cafe-arrangement
-yao sketch-arrangement rainy-cafe-arrangement
-> "lo-fi hip-hop 風にしたい。メロディは保ちつつ、ジャジーなコードに"
-yao arrange rainy-cafe-arrangement
-```
-
-### 18.4 ライブ即興セッション(Phase ε で可能)
-
-```bash
-yao improvise --input-midi-port "USB MIDI Keyboard" \
-              --output-midi-port "Reaper Virtual" \
-              --style "jazz_ballad" \
-              --role "accompanist"
-```
-
----
-
-## 19. ファイル形式と相互運用性
-
-| 用途 | 形式 | 理由 |
-|---|---|---|
-| 楽曲データ | MIDI (.mid), MusicXML (.xml) | 業界標準・全 DAW 対応 |
-| 楽譜 | LilyPond (.ly), PDF | 高品質楽譜・自動レンダリング |
-| 仕様 | YAML | 人間可読・git 管理向き |
-| 中間表現 | JSON | プログラム可読・スキーマ検証 |
-| 来歴 | JSON | グラフ構造の表現 |
-| 注釈 | JSON | 時間タグ付きフィードバック |
-| 音声 | WAV (制作中), FLAC/MP3 (配布) | 標準対応 |
-| ライブコード | Strudel パターン文字列 | ブラウザ即試聴可能 |
-| DAW プロジェクト | .RPP / .als / .song | Reaper/Ableton/Studio One 直接対応 |
-| MPE 拡張 | MIDI 1.0 with MPE convention | 微分音・連続制御対応 |
-
-独自フォーマットは原則として作りません。既存標準で表現できないものだけを最小限定義します。
-
----
-
-## 20. 倫理とライセンス指針
-
-### 20.1 学習データと参照
-参照ライブラリには **権利クリア済楽曲のみ** を配置します。各楽曲には `references/catalog.yaml` でライセンス状態を記録。**生メロディ・コード進行を直接コピーする経路は schema レベルで禁止** されています。
-
-### 20.2 アーティスト模倣
-特定の現役アーティスト名指定は推奨しません。代わりに抽象的特徴記述を推奨します。
-
-### 20.3 文化的配慮 ★NEW
-ノンウェスタン音楽(インド古典・アラブ・ガムラン等)を扱う際は、`docs/ethics/cultural-sensitivity.md` のガイドラインに従います。
-
-- **専門家レビュー**: 民族音楽 Skill の追加には、可能な限りその文化の専門家のレビューを得る
-- **文化的文脈の尊重**: 伝統的様式と「Fusion」を明確に区別し、混同しない
-- **商用利用の警告**: 文化的セレモニー音楽など、商用利用が不適切なジャンルには警告を表示
-- **正しい呼称**: 楽器名・スケール名は、可能な限り元の文化での呼称を使用
-
-### 20.4 AI 生成の透明性 ★NEW
-ストリーミングプラットフォームでの AI 生成楽曲取り扱いが厳格化しています。
-
-- **メタデータ刻印**: `ai-disclosure-stamp` Hook で MIDI/オーディオに「YaO 生成」を必須刻印
-- **使用モデル明示**: ニューラル生成器使用時は、モデル名・バージョン・プロンプトを Provenance に記録
-- **生成物権利**: YaO 生成物の権利は基本ユーザに帰属するが、参照楽曲影響度が極端に高い場合は警告
-
-### 20.5 生成物の権利
-ユーザに帰属。ただしニューラル生成器使用時は、各モデルのライセンスに従います。
-
----
-
-## 21. CLAUDE.md・VISION.md・FEATURE_STATUS.md との関係
-
-| ファイル | 対象 | 内容 |
-|---|---|---|
-| `PROJECT.md`(本書) | 人間 + エージェント | 全体設計・哲学・アーキテクチャ |
-| `VISION.md` | 人間 + エージェント | 目標アーキテクチャ・ロードマップ |
-| `FEATURE_STATUS.md` | 人間 + エージェント | **単一の真実**:何が今動くか |
-| `CLAUDE.md` | エージェント中心 | 不変ルール・禁止事項・Skill 参照ポインタ |
-| `README.md` | 人間中心 | クイックスタート・最低限の使用法 |
-| `docs/design/*.md` | 人間 + エージェント | 個別の設計判断記録 |
-| `.claude/guides/*.md` | 開発者 + エージェント | 技術的開発ドキュメント |
-| `docs/`(mkdocs) | ユーザ + 開発者 | mkdocs 構成のドキュメントサイト |
-
-**規律**: PROJECT.md は「**何を作りたいか**」、FEATURE_STATUS.md は「**何が今動くか**」、VISION.md は「**どこに向かうか**」。三者が乖離すると混乱の原因になるため、`make sync-docs` で整合を機械的にチェックします。
-
----
-
-## 22. リスクと注意点
-
-### 22.1 技術リスク
-
-- **Arrangement Engine の MIR 困難性**: 自動採譜・コード推定は完全には不可能。妥協と対話的修正 UI を組み合わせる
-- **ニューラルモデル統合の依存膨張**: GPU 必須は障壁。オプショナル依存として隔離
-- **Microtonal 対応の MIDI 制約**: MIDI 1.0 の根本的限界。MPE 対応シンセが必要 → ターゲット環境を明示
-- **Performance Expression の表現力過多**: すべての CC・ピッチベンドを書き出すと MIDI が肥大化。圧縮・簡略化オプションを用意
-
-### 22.2 プロジェクト運営リスク
-
-- **ジャンル Skill の文化的妥当性**: 外部専門家レビューなしには文化的に不適切な内容になる懸念
-- **規模拡大によるコード複雑度**: 89 ファイル → 200+ ファイルになる見込み。層境界 lint をさらに厳密に
-- **ドキュメント維持コスト**: 自動同期ツールの整備が不可欠
-
-### 22.3 倫理リスク
-
-- **著作権リスクの再評価**: ニューラル生成器は学習データの著作権問題がある。生成物に明記必須
-- **文化的盗用リスク**: 商用利用を想定したガイドライン整備
-- **AI 生成楽曲の透明性**: ストリーミングプラットフォームの規約変化に追従
-
----
-
-## 23. 将来のアーキテクチャ拡張
-
-実装は各マイルストーンの必要性に応じて行います。
-
-### 23.1 Project Runtime(状態を持つセッション)
-現在の CLI はステートレス。`ProjectRuntime` で生成キャッシュ・フィードバックキュー・undo/redo を保持。
-
-### 23.2 Backend-Agnostic Agent Protocol
-Claude Code への結合を抽象化。`AgentRole`, `AgentContext`, `AgentOutput` の Python プロトコル定義。Anthropic API、ローカル LLM、Python のみのバックエンドを切り替え可能に。
-
-### 23.3 Spec Composability(本書 7.10)
-`extends:` / `overrides:` / `specs/fragments/` で再利用可能な spec 断片。
-
-### 23.4 Reflection Layer(Layer 7)
-ユーザ別嗜好プロファイル、注釈集約、クロスプロジェクトのパターン抽出。
-
-### 23.5 Generic Creative-Domain Framework
-YaO のパターン(intent-as-code、trajectory、plan IR、adversarial critic、provenance)をドメイン非依存ツールキットに抽象化。UI デザイン・ナラティブ構造・ゲームレベル設計などへの応用。
-
----
-
-## 24. 戦略的洞察
-
-YaO の設計パターンは音楽に限定されない、**構造化された人間-AI 創造的協働の汎用フレームワーク** です。
-
-| YaO パターン | 汎用パターン | 他ドメインへの応用 |
-|---|---|---|
-| Score (YAML 仕様) | **Intent-as-Code** | UI デザイン仕様、ナラティブ構造、ゲームレベル設計 |
-| Trajectory (軌跡) | **時間品質曲線** | 動画ペーシング、プレゼンテーション構成、UX ジャーニー |
-| MPIR (Plan IR) | **構造化計画 IR** | 複雑な創作タスクの「なぜ」を扱う中間表現 |
-| Adversarial Critic | **敵対的レビュー** | コードレビュー、デザイン批評、文章フィードバック |
-| Provenance Graph | **意思決定系譜** | AI 支援の創造的作業全般 |
-| 6 相認知プロトコル | **構造化創造プロトコル** | 「いきなり実装しない」が重要なすべてのドメイン |
-| Perception Substitute | **代替知覚機構** | LLM が直接体験できないドメインの評価 |
-| Vertical Alignment | **垂直整合原則** | あらゆる多層システム設計 |
-
-これらの抽象化は将来的に抽出可能に設計されていますが、現在のスコープは音楽制作に限定します。
-
----
-
-## 25. 用語集
-
-**Conductor(指揮者)** — プロジェクトの所有者である人間。最終判断者。
-
-**Orchestra(楽団)** — Subagent 群の総称。
-
-**Score(楽譜)** — `specs/` 内の YAML 群。楽曲の完全な記述。
-
-**Score IR** — Layer 3。具体的音符レベルの中間表現。
-
-**MPIR(Musical Plan IR)** — Layer 3.5。音符の前の "なぜ"。形式・和声・モチーフ・編成の計画。
-
-**Performance Layer** — Layer 4.5。楽譜から演奏への変換層。
-
-**Trajectory(軌跡)** — 楽曲の時間軸上の特性曲線(緊張度・密度等)。
-
-**Aesthetic Reference Library** — 美的アンカーとなる楽曲群。
-
-**Perception Substitute Layer** — AI が音楽を「聴けない」ことを補う層。
-
-**Provenance(来歴)** — すべての生成判断の追跡可能な記録。
-
-**Adversarial Critic** — 生成物を意図的に攻撃する批評 Subagent。称賛しない。
-
-**Negative Space(否定空間)** — 鳴らさない部分の設計。
-
-**Style Vector** — ジャンルやスタイルを多次元特徴量空間のベクトルとして表現したもの。
-
-**Iteration(反復)** — 同一プロジェクト内の生成版。`v001`, `v002`, ... と版管理。
-
-**Music Lint** — 音楽理論・制約違反の自動検出機構。
-
-**Sketch-to-Spec** — 自然言語スケッチから YAML 仕様への対話的変換プロセス。
-
-**Vertical Alignment(垂直整合)** — 入力・処理・評価の 3 層が同期して進歩すべきという原則。
-
-**Critic Gate(批評関門)** — MPIR から Score IR への遷移前の批評ステップ。
-
-**Plan-Level Branching** — Git ブランチに似た MPIR 単位の分岐機構。
-
-**Use-Case Targeted Evaluation** — 用途(BGM・ゲーム・広告等)に応じた評価ルール切替。
-
-**Microtonal** — 12 平均律以外の音律。セント単位で表現。
-
-**MPE(MIDI Polyphonic Expression)** — 各ノートに独立 CC を送れる MIDI 1.0 規約拡張。
-
-**Algorithmic Composition Paradigm** — 12 音技法・スペクトル・プロセス音楽など、特定の作曲手法。
-
----
-
-## 26. 最後に:YaO が目指す世界
-
-YaO は「AI が音楽を作る」プロジェクトではありません。**人間と AI が、それぞれの長所を活かして音楽を共創する** ためのインフラです。
-
-- 人間は **意図と判断と感性** を提供します。
-- AI は **理論知識・反復速度・記録の網羅性** を提供します。
-- YaO は **両者を構造化された協働プロセスとして成立させる場** です。
-
-優れた音楽は、最終的には **人間の魂の発露** であり続けます。YaO はその発露を **より速く、より深く、より再現可能に**、そして **より多様に** することを目指します。
-
-v1.0 で「エンジニアリング規律」を確立し、v2.0 で「音楽性と多様性」を獲得します。次の v3.0 では、世界中のミュージシャンがそれぞれの文化と感性で YaO を使い、互いの作品から学び合うコミュニティが形成されることを期待しています。
-
-> *Your vision. Your taste. Your soul.*
-> *— and an Orchestra ready to serve, in any language, any genre, any time.*
+> *Build the orchestra well, so the conductor can lead it freely.*
+> *— and this time, build it for real.*
 
 ---
 
 **Project: You and Orchestra (YaO)**
-*Document version: 2.0*
+*PROJECT.md version: 3.0 (Closing-the-Gap Edition)*
 *Last updated: 2026-05-02*
-
-**Quick links**:
-- [VISION.md](./VISION.md) — 目標アーキテクチャ
-- [FEATURE_STATUS.md](./FEATURE_STATUS.md) — 何が今動くか
-- [CLAUDE.md](./CLAUDE.md) — 開発者向け不変ルール
-- [README.md](./README.md) — クイックスタート
-- [docs/](./docs/) — 詳細ドキュメント
+*Audit reference: docs/audit/2026-05-status-reaudit.md (to be created)*
+*Supersedes: PROJECT.md v2.0 (2026-04-29)*

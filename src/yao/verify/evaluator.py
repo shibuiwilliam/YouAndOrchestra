@@ -25,12 +25,14 @@ from yao.verify.metric_goal import MetricGoal, MetricGoalType, evaluate_metric
 
 # Dimension weights for user-facing quality score.
 # Melody and harmony are most perceptible to listeners.
+# v3.0 Wave 2.2: added aesthetic dimension.
 _DIMENSION_WEIGHTS: dict[str, float] = {
-    "structure": 0.25,
-    "melody": 0.30,
-    "harmony": 0.25,
+    "structure": 0.20,
+    "melody": 0.25,
+    "harmony": 0.20,
+    "aesthetic": 0.20,
     "arrangement": 0.10,
-    "acoustics": 0.10,
+    "acoustics": 0.05,
 }
 
 
@@ -47,7 +49,7 @@ class EvaluationScore:
         detail: Human-readable explanation.
     """
 
-    dimension: Literal["structure", "melody", "harmony", "arrangement", "acoustics"]
+    dimension: Literal["structure", "melody", "harmony", "aesthetic", "arrangement", "acoustics"]
     metric: str
     score: float
     target: float
@@ -155,7 +157,7 @@ class EvaluationReport:
             f"Quality Score: {self.quality_score:.1f}/10",
             f"Pass rate: {self.pass_rate:.0%} ({sum(1 for s in self.scores if s.passed)}/{len(self.scores)})",
         ]
-        for dim in ("structure", "melody", "harmony", "arrangement", "acoustics"):
+        for dim in ("structure", "melody", "harmony", "aesthetic", "arrangement", "acoustics"):
             dim_scores = [s for s in self.scores if s.dimension == dim]
             if not dim_scores:
                 continue
@@ -174,7 +176,7 @@ class EvaluationReport:
 
 
 def _score_via_goal(
-    dimension: Literal["structure", "melody", "harmony", "arrangement", "acoustics"],
+    dimension: Literal["structure", "melody", "harmony", "aesthetic", "arrangement", "acoustics"],
     metric: str,
     value: float,
     goal: MetricGoal,

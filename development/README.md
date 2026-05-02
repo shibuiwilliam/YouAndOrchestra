@@ -16,20 +16,26 @@ Technical documentation for contributors and AI agents developing YaO.
 
 ## See Also
 
-- [PROJECT.md](../PROJECT.md) — Current architecture and Capability Matrix
-- [CLAUDE.md](../CLAUDE.md) — Development rules
-- [VISION.md](../VISION.md) — Target architecture and future plans
-- [.claude/guides/](../.claude/guides/) — Focused guides (architecture, coding conventions, music engineering, testing, workflow, cookbook, matrix discipline)
+- [PROJECT.md](../PROJECT.md) — Full project design (v3.0)
+- [CLAUDE.md](../CLAUDE.md) — Development rules and 7 principles
+- [VISION.md](../VISION.md) — Target architecture
+- [FEATURE_STATUS.md](../FEATURE_STATUS.md) — Capability matrix (single source of truth)
+- [.claude/guides/](../.claude/guides/) — Focused guides (architecture, coding, music engineering, testing, workflow)
 
 ## Current State
 
-- **Phase:** Alpha (CPIR foundation)
-- **Tests:** ~1,094 (unit, integration, scenario, constraint, golden, subagent evals, subjective)
-- **Source files:** 85 Python modules in src/yao/
-- **Generators:** 2 legacy (rule_based, stochastic) wrapped as NoteRealizers + 2 plan generators (form, harmony)
-- **Critique rules:** 20 structured rules across 8 categories (structural, melodic, harmonic, rhythmic, arrangement, emotional, genre fitness, memorability)
-- **Spec formats:** v1 (flat YAML) + v2 (11-section with emotion, melody, harmony, drums, etc.)
-- **Pipeline:** Spec → PlanOrchestrator → MusicalPlan → NoteRealizer → ScoreIR → MIDI
-- **Evaluation:** 10 metrics across 3 dimensions, MetricGoal type system, quality score 1.0-10.0
-- **CI:** GitHub Actions (lint, arch-lint, tests across Python 3.11-3.13, golden regression)
-- **Pre-commit:** ruff lint+format, mypy, arch-lint on commit; unit tests on push
+- **Phase:** v3.0 — Wave 3 (Depth)
+- **Tests:** ~1,150 passing (unit, integration, scenario, constraint, golden, subjective, aesthetic)
+- **Source files:** 167 Python modules in `src/yao/`
+- **Note Realizers:** 4 registered — 2 V2 (rule_based_v2, stochastic_v2 with 100% plan consumption) + 2 legacy deprecated
+- **Critique rules:** 20 structured rules across 8 categories + ensemble constraint rules
+- **Aesthetic metrics:** 4 (surprise, memorability, contrast, pacing) in a dedicated dimension
+- **Ensemble constraints:** 5 inter-part rules (register separation, downbeat consonance, etc.)
+- **Spec formats:** v1 (flat YAML) + v2 (11-section with emotion, melody, harmony, drums)
+- **Pipeline:** Spec → PlanOrchestrator → MusicalPlan → NoteRealizer V2 → ScoreIR → Performance → MIDI
+- **Evaluation:** 10+ metrics across 6 dimensions (structure, melody, harmony, aesthetic, arrangement, acoustics)
+- **Backends:** PythonOnlyBackend (CI default) + AnthropicAPIBackend (real LLM, is_stub=False)
+- **Genre Skills:** 22 files across 5 categories, 8 grounded in pipeline
+- **StyleVector:** 10 copyright-safe features (histograms + statistics, never sequences)
+- **Sketch:** 6-turn interactive dialogue with state persistence and resume
+- **CI:** GitHub Actions + pre-commit hooks + 5 honesty check tools

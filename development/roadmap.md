@@ -2,116 +2,81 @@
 
 ## Value-Driven Milestones
 
-### Milestone 1: "Describe and Hear" -- COMPLETE
+### Milestone 1: "Describe and Hear" — COMPLETE
 **User value:** Describe what you want in YAML, generate it, hear it.
 
-**Delivered:**
-- CLI compose pipeline (spec -> generate -> MIDI -> stems -> analysis -> evaluation)
-- Rule-based and stochastic generators with seed/temperature control
-- 4 spec templates (minimal, bgm-90sec, cinematic-3min, trajectory-example)
-- Trajectory-driven dynamics (tension curves shape velocity)
-- Auto-versioned iterations (v001, v002, ...)
-- Full provenance tracking
-- Example projects in specs/projects/
+**Delivered:** CLI pipeline, 2 generators, 4 templates, trajectory dynamics, versioning, provenance.
 
-### Milestone 2: "Iterate and Improve" -- COMPLETE
+### Milestone 2: "Iterate and Improve" — COMPLETE
 **User value:** Tell YaO what you don't like, and it improves.
 
-**Delivered:**
-- Conductor feedback loop (generate -> evaluate -> adapt -> regenerate)
-- Natural language composition via `yao conduct "<description>"`
-- Section-level regeneration (keep rest, regenerate one section)
-- Score diff with modified note tracking
-- CLI diff, explain, conduct, and regenerate-section commands
-- Quality evaluation across structure, melody, and harmony (10 metrics + quality score 1-10)
-- Feedback-driven spec adaptation (9 metric-to-adaptation rules)
-- MIDI reader (load existing MIDI back to ScoreIR for analysis)
-- Evaluation report persistence (evaluation.json)
-- 7 Claude Code slash commands with full workflow integration
-- 7 subagent definitions for specialized roles
+**Delivered:** Conductor loop, NL composition, section regeneration, 10-metric evaluation, 7 slash commands, 7 subagents.
 
-### Milestone 3: "Richer Music" -- IN PROGRESS
+### Milestone 3: "Richer Music" — COMPLETE
 **User value:** Music sounds professional with proper harmony, rhythm, dynamics.
 
-**Delivered:**
-- Harmony IR (Roman numeral chord functions, realize(), diatonic quality)
-- Motif transformations (transpose, invert, retrograde, augment, diminish)
-- Voice leading checks (parallel fifths/octaves, voice distance)
-- Constraint system (must/must_not/prefer/avoid with scoped rules)
-- Walking bass patterns, syncopation, dotted rhythms
-- Section-aware chord progressions (different patterns per section type)
-- Diatonic 7th chords
-- 4 skills populated (cinematic genre, voice-leading, piano, tension-resolution)
-- v2 spec format with 11 sections (identity, emotion, melody, harmony, etc.)
-- 3 v2 spec templates
-- Composition Plan IR (CPIR) foundation: SongFormPlan, HarmonyPlan, MusicalPlan
-- Plan generators: form planner, harmony planner
-- MetricGoal type system for richer evaluation
-- RecoverableDecision mechanism for traceable fallbacks
-- 1,094 tests (unit, integration, scenario, constraint, golden, subagent evals, subjective)
+**Delivered:** Harmony IR, motif transforms, voice leading, constraints, v2 spec format, CPIR foundation, MetricGoal, RecoverableDecision.
 
-**In progress (Phase alpha):**
-- Completing CPIR as the required intermediary between specs and notes
-- Golden MIDI test infrastructure
-- Capability Matrix verification (`make matrix-check`)
+---
 
-**Next:**
-- Negative space enforcement in generators
-- More chord progression variety (secondary dominants, modulation)
-- Multi-octave voice leading optimization
-- MotifPlan, PhrasePlan, DrumPattern (Phase beta)
-- Adversarial Critic with 30+ structured rules (Phase beta)
+## v3.0 Waves
 
-### Milestone 4: "My Style"
-**User value:** YaO learns your preferences and produces music in your taste.
+### Wave 1: Honesty — COMPLETE (2026-05-03)
 
-**Next:**
-- Reference library matching (positive/negative references)
-- Spec fragments and composability (extends/overrides in YAML)
-- Style profile persistence
-- Arrangement mode (reharmonize, regroove, reorchestrate)
-- 12 genre Skills
+Closed the gap between documented capability and actual implementation.
 
-### Milestone 5: "Production Ready"
-**User value:** Use YaO output in a real project.
+| Sprint | Deliverable |
+|---|---|
+| W1.0 | 5 CI honesty tools (honesty-check, backend-honesty, plan-consumption, skill-grounding, critic-coverage) |
+| W1.1 | Composer Subagent — non-empty MotifPlan generation |
+| W1.2 | AnthropicAPIBackend — real LLM calls, is_stub=False |
+| W1.3 | SpecCompiler — Japanese support, 3-stage fallback |
+| W1.4 | V2 Pipeline — rule_based_v2 + stochastic_v2 (100% plan consumption) |
 
-**Next:**
-- DAW integration (Reaper MCP)
-- LilyPond/MusicXML score export
-- Mix engineer pipeline (EQ, compression, spatial)
-- Multi-format export (stems, MusicXML, LilyPond, Strudel)
+### Wave 2: Alignment — COMPLETE (2026-05-03)
 
-## Technical Roadmap
+Made the architecture genuinely functional end-to-end.
 
-### Phase alpha (current): CPIR Foundation
-1. SongFormPlan + HarmonyPlan as first-class intermediaries
-2. Plan generators (form planner, harmony planner)
-3. Note realizer refactoring (wrap legacy generators)
-4. MetricGoal type system
-5. RecoverableDecision mechanism
-6. Golden MIDI test infrastructure
-7. Capability Matrix validation
+| Sprint | Deliverable |
+|---|---|
+| W2.1 | V2 realizers registered as default candidates; Skill loader base |
+| W2.2 | 4 aesthetic metrics (surprise, memorability, contrast, pacing); evaluator dimension |
+| W2.3 | Audio feature extraction + MixChain foundation |
 
-### Phase beta: Rich Plans
-1. MotifPlan, PhrasePlan, DrumPattern, ArrangementPlan
-2. Adversarial Critic with 30+ rules (Finding objects, not free text)
-3. Multi-candidate Conductor
-4. Markov chain generator
-5. Constraint solver generator
+### Wave 3: Depth — IN PROGRESS
 
-### Phase gamma: Perception & Arrangement
-1. Reference feature extraction (spectral, rhythmic, harmonic)
-2. Similarity scoring between generated and reference works
-3. Arrangement engine (reharmonization, style transfer)
-4. Production manifest + mix chain
+Expanding capabilities and user experience.
 
-### Phase delta: Integration
-1. DAW MCP integration
-2. MusicXML / LilyPond / Strudel writers
-3. Sketch dialogue state machine
-4. Live mode
+| Sprint | Status | Deliverable |
+|---|---|---|
+| W3.1 | Planned | Performance Layer auto-integration in Conductor |
+| W3.2 | **Done** | EnsembleConstraint (5 inter-part rules, Orchestrator register assignment) |
+| W3.3 | Planned | Reference library (public domain MIDI + StyleVector cache) |
+| W3.4 | **Done** | StyleVector enhancement (4 copyright-safe histogram fields) |
+| W3.5 | Planned | Subjective Rating CLI (multi-rater, append-only) |
+| W3.6 | **Done** | /sketch 6-turn dialogue with state persistence |
+| W3.7 | Planned | Microtonal/Polyrhythm in V2 realizers |
+| W3.8 | Planned | Live Improvisation V2 pipeline integration |
+| W3.9 | Planned | Arrangement Engine quality (transfer + extraction) |
 
-### Phase epsilon: Scale
-1. AI bridge generator (external model integration via API)
-2. Abstract AgentProtocol (backend-agnostic)
-3. Session runtime with generation cache and feedback queue
+### Wave 4+ (Post v3.0)
+
+Future exploration — requires roadmap PR after Wave 3 completion:
+- Multi-model orchestration
+- Real-time collaboration
+- VST3 host integration
+- Cloud API server mode
+- Video sync
+
+---
+
+## Test Coverage Growth
+
+| Phase | Tests |
+|---|---|
+| Milestone 1 | ~200 |
+| Milestone 2 | ~500 |
+| Milestone 3 | ~1,094 |
+| Wave 1 complete | ~1,074 |
+| Wave 2 complete | ~1,104 |
+| Wave 3 current | **~1,150** |

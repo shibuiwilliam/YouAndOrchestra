@@ -2,96 +2,102 @@
 
 **An agentic music production environment built on Claude Code.**
 
-YaO turns music composition into a structured, reproducible engineering process. Describe what you want in plain English or YAML, and YaO generates a full MIDI score with per-instrument stems, quality evaluation, and a provenance log explaining every decision.
+YaO turns music composition into a structured, reproducible process. Describe what you want in plain language (English or Japanese), and YaO generates a full MIDI score with per-instrument stems, quality evaluation, aesthetic analysis, and a provenance log explaining every decision.
 
 > *Your vision. Your taste. Your soul. — and an Orchestra ready to serve.*
 
 ## What YaO Does
 
-- **Natural language composition** — Describe music in plain English and the Conductor builds a spec, generates, evaluates, and iterates automatically
-- **Spec-driven composition** — Describe your music in YAML (v1 flat format or v2 11-section format) and generate full MIDI scores with precise control
-- **38 instruments** across 9 families — keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, percussion
-- **Trajectory curves** — Shape tension, density, predictability, brightness, and register height over time
-- **Two generator strategies** — Deterministic (rule-based) and stochastic (seed + temperature, 4 contour algorithms, 5 chord voicing types)
-- **Quality evaluation** — 10 metrics across 3 dimensions with user-facing quality score (1.0-10.0) and MetricGoal-typed pass/fail
-- **Adversarial critique** — 20 structured rules across 8 categories emitting machine-actionable `Finding` objects
-- **Music linting** — Catches range violations, parallel fifths, velocity issues
-- **Constraint system** — Musical rules scoped to sections, instruments, or bar ranges
-- **Provenance tracking** — Every note has a recorded rationale; fallbacks tracked via RecoverableDecision
-- **Per-instrument stems** — Individual MIDI files per instrument
-- **Section regeneration** — Regenerate one section while keeping the rest intact
-- **Score diffing** — Compare two generations to see exactly what changed musically
-- **MIDI reader** — Load existing MIDI files back into ScoreIR for analysis and iteration
-- **Claude Code integration** — 7 slash commands, 7 subagents, 4 domain skills for interactive workflow
-- **~1,094 tests** — Unit, integration, scenario, constraint, golden, subagent eval, and subjective tests
-- **CI/CD** — GitHub Actions + pre-commit hooks (ruff, mypy, arch-lint)
+- **Multi-turn sketch dialogue** — 6-turn interactive conversation refines your idea into a complete spec
+- **Natural language composition** — English and Japanese input with 3-stage fallback (LLM → Keyword → Default)
+- **Spec-driven composition** — YAML specs (v1 flat or v2 11-section) with precise control
+- **V2 Pipeline** — 7-step plan-first generation (Form → Harmony → Motif → Drums → Arrangement → Realization)
+- **4 Note Realizers** — rule_based_v2 and stochastic_v2 consume 100% of the MusicalPlan directly
+- **38 instruments** across 9 families with register-aware orchestration
+- **Trajectory curves** — Shape tension, density, predictability, brightness, register height
+- **6-dimension evaluation** — Structure, melody, harmony, aesthetic, arrangement, acoustics
+- **4 aesthetic metrics** — Surprise (bigram NLL), memorability, contrast, pacing
+- **20 adversarial critique rules** — Structured findings with severity and remediation
+- **5 ensemble constraints** — Register separation, downbeat consonance, parallel octave detection
+- **StyleVector** — 10 copyright-safe abstract features for style comparison
+- **Provenance tracking** — Every note has a recorded rationale
+- **7 subagents** — Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Critic, Producer
+- **LLM backend** — AnthropicAPIBackend with structured output (tool use), or PythonOnly for CI
+- **~1,150 tests** — Unit, integration, scenario, constraint, golden, aesthetic, subjective
+- **5 honesty tools** — CI verification that features actually work (not just exist)
 
-## Architecture (v2.0)
-
-YaO v2.0 introduces the **Composition Plan IR (CPIR)** as a middle layer. The generation pipeline is now:
+## Architecture (v3.0)
 
 ```
-CompositionSpec → Plan Generators → MusicalPlan → Note Realizers → ScoreIR → MIDI
+Spec → PlanOrchestrator → MusicalPlan → Critic Gate → NoteRealizer V2 → Performance → Renderer
 ```
 
-This separates *what to play* (the plan) from *how to play it* (the notes), enabling richer critique, better iteration, and more musical output.
+8 layers with strict downward-only dependency. Plan-first generation separates *what to play* from *how to play it*.
 
 ## Quick Example
 
 ```bash
-# Natural language (fastest)
+# Interactive (recommended)
+/sketch a calm piano piece in D minor for studying
+
+# Natural language (one-shot)
 yao conduct "a calm piano piece in D minor for studying, 90 seconds"
 
-# From a spec (full control)
+# From spec (full control)
 yao compose specs/templates/bgm-90sec.yaml
 ```
 
-This generates:
+Output:
 ```
 outputs/projects/<name>/iterations/v001/
-  +-- full.mid           # Complete MIDI score
-  +-- stems/piano.mid    # Per-instrument stems
-  +-- stems/acoustic_bass.mid
-  +-- analysis.json      # Quality analysis
-  +-- evaluation.json    # Quality scores with pass/fail
-  +-- provenance.json    # Decision log
+  full.mid           # Complete MIDI score
+  stems/piano.mid    # Per-instrument stems
+  analysis.json      # Quality analysis
+  evaluation.json    # Quality scores (6 dimensions)
+  provenance.json    # Decision log
 ```
 
 ## Design Philosophy
 
-1. **Agent = environment, not composer** — YaO accelerates human creativity, it doesn't replace it
-2. **Explain everything** — Every note has a provenance record with a rationale
-3. **Constraints liberate** — YAML specs and music theory rules are scaffolds, not cages
-4. **Time-axis first** — Design trajectory curves before writing notes
-5. **Human ear is truth** — Automated scores inform, humans decide
-6. **Vertical alignment** — Input expressiveness, processing depth, and evaluation resolution advance together
+1. **Agent = environment, not composer** — YaO accelerates human creativity
+2. **Explain everything** — Every note has a provenance record
+3. **Constraints liberate** — Specs and rules are scaffolds, not cages
+4. **Time-axis first** — Trajectory curves before notes
+5. **Human ear is truth** — Automated scores inform; humans decide
+6. **Vertical alignment** — Input, processing, evaluation advance together
+7. **Status honesty** — A ✅ means it actually works
 
 ## Documentation
 
 ### Getting Started
 - [Quick Start](getting-started/quickstart.md) — Install and generate your first piece
 - [Templates](getting-started/templates.md) — Ready-to-use spec templates
-- [Audio Setup](getting-started/audio-setup.md) — FluidSynth installation for WAV rendering
+- [Audio Setup](getting-started/audio-setup.md) — FluidSynth installation
 
 ### User Guide
 - [CLI Reference](guide/cli-reference.md) — All commands and options
-- [Composition Spec](guide/composition-spec.md) — YAML schema reference (v1 + v2)
-- [Trajectories](guide/trajectories.md) — Time-axis curves for emotion shaping
+- [Composition Spec](guide/composition-spec.md) — YAML schema (v1 + v2)
+- [Trajectories](guide/trajectories.md) — Emotion-shaping curves
 - [Constraints](guide/constraints.md) — Musical rule system
 
 ### Tutorials
-- [Claude Code Workflow](tutorials/claude-code-workflow.md) — Interactive music creation with subagents
+- [Claude Code Workflow](tutorials/claude-code-workflow.md) — Interactive composition with subagents
 
 ### Architecture
-- [Layer Model](architecture/layers.md) — Layered architecture with Layer 3a (CPIR)
-- [Design Decisions](architecture/decisions.md) — Architecture decision records
+- [Layer Model](architecture/layers.md) — 8-layer architecture
+- [Design Decisions](architecture/decisions.md) — ADRs
 
 ### Reference
-- [Glossary](glossary.md) — YaO terminology (including v2.0 terms)
-- [Provenance Schema](provenance-schema.md) — Decision log format with RecoverableDecision
+- [Glossary](glossary.md) — YaO terminology
+- [Provenance Schema](provenance-schema.md) — Decision log format
 - [Instruments](reference/instruments.md) — 38 instruments with MIDI ranges
 - [Music Theory](reference/music-theory.md) — Scales, chords, dynamics
 
+### Audits & Design
+- [Wave 1 Completion](audit/wave-1-completion.md) — Honesty wave results
+- [Wave 2 Completion](audit/wave-2-completion.md) — Alignment wave results
+- [Aesthetic Benchmark](wave-2-2-aesthetic-benchmark.md) — Metric validation
+
 ### Migration
-- [v2 Baseline Report](migration/v2-baseline-report.md) — Gap analysis for v2.0 architecture
-- [Silent Fallback Inventory](migration/silent-fallback-inventory.md) — RecoverableDecision conversion sites
+- [v2 Baseline Report](migration/v2-baseline-report.md) — Gap analysis
+- [Silent Fallback Inventory](migration/silent-fallback-inventory.md) — RecoverableDecision sites

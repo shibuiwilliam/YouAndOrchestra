@@ -7,6 +7,7 @@ src/cli/ separate from src/yao/ to enforce clean separation.
 from __future__ import annotations
 
 import shutil
+from datetime import UTC
 from pathlib import Path
 
 import click
@@ -664,6 +665,173 @@ def watch(spec_path: Path, seed: int, soundfont: Path | None) -> None:
         sd.stop()
         observer.stop()
     observer.join()
+
+
+# ── yao rate ────────────────────────────────────────────────────────────
+
+
+@cli.command("rate")
+@click.argument("iteration_path", type=click.Path(exists=True))
+@click.option("--rater", default=None, help="Rater identifier (default: prompted)")
+def rate_command(iteration_path: str, rater: str | None) -> None:
+    """Rate a composition iteration interactively.
+
+    Saves a JSON rating file with 5 dimensions + free-text notes.
+
+    ITERATION_PATH: Path to the iteration directory (e.g., outputs/projects/my-song/iterations/v001)
+    """
+    import json
+    from datetime import datetime
+
+    iter_path = Path(iteration_path)
+    project_name = iter_path.parent.parent.name if iter_path.parent.parent.exists() else "unknown"
+    iteration_name = iter_path.name
+
+    if rater is None:
+        rater = click.prompt("Rater ID", default="anonymous")
+
+    click.echo(f"\n=== Rating: {project_name} / {iteration_name} ===\n")
+
+    dimensions = {
+        "memorability": "Memorability (1-10): How memorable are the melodies/motifs?",
+        "emotional_fit": "Emotional fit to intent (1-10): Does it match the described mood?",
+        "technical_quality": "Technical quality (1-10): Voice leading, rhythm, harmony?",
+        "genre_fitness": "Genre fitness (1-10): Does it sound like the intended genre?",
+        "overall": "Overall (1-10): Your overall impression?",
+    }
+
+    scores: dict[str, float] = {}
+    for key, prompt_text in dimensions.items():
+        while True:
+            try:
+                val = float(click.prompt(prompt_text))
+                if 1.0 <= val <= 10.0:
+                    scores[key] = val
+                    break
+                click.echo("  Please enter a value between 1 and 10.")
+            except ValueError:
+                click.echo("  Please enter a number.")
+
+    notes = click.prompt("\nFree-text notes (optional)", default="", show_default=False)
+
+    date_str = datetime.now(tz=UTC).strftime("%Y-%m-%d")
+
+    rating = {
+        "project": project_name,
+        "iteration": iteration_name,
+        "rater_id": rater,
+        "date": date_str,
+        **scores,
+        "notes": notes,
+    }
+
+    # Save to project-local ratings directory (not tests/subjective/ratings/)
+    ratings_dir = iter_path / "ratings" if iter_path.is_dir() else Path("ratings")
+    ratings_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{project_name}-{iteration_name}-{rater}-{date_str}.json"
+    output_path = ratings_dir / filename
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(rating, f, indent=2, ensure_ascii=False)
+
+    click.echo(f"\n[Saved to {output_path}]")
+    click.echo(f"Overall: {scores['overall']}/10")
+
+
+# ── yao reflect ─────────────────────────────────────────────────────────
+
+
+@cli.group("reflect")
+def reflect_group() -> None:
+    """Reflection and learning commands."""
+
+
+@reflect_group.command("ingest")
+@click.argument("ratings_dir", type=click.Path(exists=True), default="tests/subjective/ratings")
+@click.option("--profile-path", default="user_style_profile.json", help="Path to save/load profile")
+def reflect_ingest(ratings_dir: str, profile_path: str) -> None:
+    """Ingest rating files into UserStyleProfile.
+
+    Reads all JSON rating files from RATINGS_DIR and updates the user's
+    style profile with preference dimensions derived from the ratings.
+    """
+    import json
+
+    from yao.reflect.style_profile import StylePreference, UserStyleProfile
+
+    ratings_path = Path(ratings_dir)
+    profile_file = Path(profile_path)
+
+    # Load or create profile
+    if profile_file.exists():
+        profile = UserStyleProfile.load(profile_file)
+        click.echo(f"Loaded existing profile: {profile.user_id}")
+    else:
+        profile = UserStyleProfile(user_id="local")
+        click.echo("Created new profile.")
+
+    # Read all rating JSON files
+    rating_files = sorted(ratings_path.glob("*.json"))
+    if not rating_files:
+        click.echo("No rating files found.")
+        return
+
+    all_scores: dict[str, list[float]] = {
+        "memorability": [],
+        "emotional_fit": [],
+        "technical_quality": [],
+        "genre_fitness": [],
+        "overall": [],
+    }
+
+    for rf in rating_files:
+        with open(rf, encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Handle both single-rating and multi-rating formats
+        if "ratings" in data:
+            # Multi-rating format (template files)
+            for r in data["ratings"]:
+                for dim in all_scores:
+                    if dim in r:
+                        all_scores[dim].append(float(r[dim]))
+        else:
+            # Single-rating format (yao rate output)
+            for dim in all_scores:
+                if dim in data:
+                    all_scores[dim].append(float(data[dim]))
+
+    # Compute preferences
+    for dim, scores in all_scores.items():
+        if not scores:
+            continue
+        avg = sum(scores) / len(scores)
+        # Preferred range: center on average, width based on variance
+        spread = max(0.5, max(scores) - min(scores)) if len(scores) > 1 else 1.0
+        lo = max(0.0, avg - spread / 2)
+        hi = min(10.0, avg + spread / 2)
+        confidence = min(1.0, len(scores) / 10.0)
+
+        profile.add_preference(
+            StylePreference(
+                dimension=dim,
+                preferred_range=(round(lo, 1), round(hi, 1)),
+                confidence=round(confidence, 2),
+                source_count=len(scores),
+            )
+        )
+
+    profile.total_annotations = sum(len(v) for v in all_scores.values())
+    profile.save(profile_file)
+
+    click.echo(f"\nIngested {len(rating_files)} rating file(s)")
+    click.echo(f"Total annotations: {profile.total_annotations}")
+    click.echo(f"Profile saved to: {profile_file}")
+
+    for dim in all_scores:
+        pref = profile.get_preference(dim)
+        if pref:
+            click.echo(f"  {dim}: range={pref.preferred_range}, confidence={pref.confidence}, n={pref.source_count}")
 
 
 def _find_soundfont() -> Path | None:

@@ -30,6 +30,11 @@ ALLOWED_FEATURES: frozenset[str] = frozenset(
         "register_distribution",
         "timbre_centroid_curve",
         "motif_density",
+        # Wave 3.4: histogram-based features (non-reconstructible)
+        "interval_class_histogram",
+        "chord_quality_histogram",
+        "cadence_type_distribution",
+        "rhythm_complexity",
     }
 )
 
