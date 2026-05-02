@@ -18,8 +18,11 @@ import yao.generators.rule_based as _rb  # noqa: F401
 import yao.generators.stochastic as _st  # noqa: F401
 from cli.main import preview
 
-# sounddevice requires PortAudio — skip tests on CI without it
-_sd = pytest.importorskip("sounddevice", reason="PortAudio not available")
+# sounddevice requires PortAudio �� skip entire module on CI without it
+try:
+    import sounddevice as _sd  # noqa: F401
+except OSError:
+    pytest.skip("PortAudio not available", allow_module_level=True)
 
 MINIMAL_SPEC = """\
 title: "Preview Test"
