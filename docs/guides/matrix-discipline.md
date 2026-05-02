@@ -1,5 +1,5 @@
 # Capability Matrix Discipline
 
-> Canonical version: [.claude/guides/matrix-discipline.md](../../.claude/guides/matrix-discipline.md)
+The authoritative guide for Capability Matrix / Feature Status discipline lives in `.claude/guides/matrix-discipline.md` alongside other developer guides.
 
-This is a convenience copy. The authoritative guide lives in `.claude/guides/` alongside the other developer guides.
+The current feature matrix is in `FEATURE_STATUS.md` at the repository root. Run `make feature-status` to verify it matches the code.

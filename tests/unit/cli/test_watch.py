@@ -9,12 +9,16 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
 from click.testing import CliRunner
 
 # Ensure generators are registered
 import yao.generators.rule_based as _rb  # noqa: F401
 import yao.generators.stochastic as _st  # noqa: F401
 from cli.main import watch
+
+# sounddevice requires PortAudio — skip tests on CI without it
+_sd = pytest.importorskip("sounddevice", reason="PortAudio not available")
 
 MINIMAL_SPEC = """\
 title: "Watch Test"

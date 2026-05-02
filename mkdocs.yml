@@ -27,15 +27,25 @@ nav:
   - Architecture:
     - Layer Model: architecture/layers.md
     - Design Decisions: architecture/decisions.md
+    - "ADR-0001: Layer Architecture": design/0001-layer-architecture.md
   - Tutorials:
     - Claude Code Workflow: tutorials/claude-code-workflow.md
+  - Guides:
+    - Matrix Discipline: guides/matrix-discipline.md
+    - Feature Status Discipline: guides/feature-status-discipline.md
   - Reference:
     - Glossary: glossary.md
     - Provenance Schema: provenance-schema.md
     - Supported Instruments: reference/instruments.md
     - Music Theory: reference/music-theory.md
   - Migration:
+    - v1.1 Baseline Report: migration/v1.1-baseline-report.md
     - v2 Baseline Report: migration/v2-baseline-report.md
+    - v2 Progress: migration/v2-progress.md
+    - v2 Gap Closure Plan: migration/v2-gap-closure-plan.md
+    - v2 Improvement Plan: migration/v2-improvement-plan.md
+    - v2 Functional Improvement: migration/v2-functional-improvement-plan.md
+    - v2 Document Transition: migration/v2-document-transition.md
     - Silent Fallback Inventory: migration/silent-fallback-inventory.md
 
 markdown_extensions:
