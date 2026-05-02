@@ -1,26 +1,26 @@
-# CLAUDE.md — YaO Core Rules (v2.0)
+# CLAUDE.md — YaO Core Rules (v1.1)
 
 > *Read this file at session start. Detailed guides are in `.claude/guides/`.*
 > *In case of conflict: CLAUDE.md > PROJECT.md > other docs.*
-> *Implementation reality: see [Capability Matrix in PROJECT.md §5](./PROJECT.md#5-capability-matrix透明性の核-v20) — never trust descriptions over the Matrix.*
+> *Feature reality: see [FEATURE_STATUS.md](./FEATURE_STATUS.md) — never trust descriptions over the matrix.*
 
 ---
 
-## What's New in v2.0
+## What changed in v1.1
 
-YaO has evolved past Phase 1. The architecture and rules have changed accordingly.
+YaO is evolving through **9 progressive improvements** rather than a large redesign. This is a deliberate choice — v1.0 is working, and our job is to magnify it without breaking it.
 
-**Key architectural change**: a new layer **3a (Composition Plan IR, "CPIR")** sits above ScoreIR. The pipeline is now `Spec → CPIR → ScoreIR`, not `Spec → ScoreIR`. **Most non-trivial work touches CPIR or its consumers.** If you don't know what CPIR is, stop and read [PROJECT.md §7](./PROJECT.md#7-composition-plan-ircpir-v20-の心臓部) first.
+**Key concepts new in v1.1**:
+- **Principle 6: Incrementality** — "do not break what works"
+- **Feature Status Matrix** — single source of truth for what's implemented
+- **9 progressive improvements (★1–★9)** — each is one PR, 1–2 weeks
+- **DrumPattern IR** (★1), **counter-melody** (★2), **multi-dim trajectory** (★3)
+- **Mechanized Adversarial Critic** with 15+ rules (★4)
+- **`yao preview` / `yao watch`** for instant audition (★6)
+- **RecoverableDecision** to replace silent fallbacks (★8)
+- **Golden MIDI tests** for regression detection (★9)
 
-**Other v2.0 additions**:
-- **Capability Matrix** is the single source of truth for what works
-- **Vertical Alignment** — input / processing / evaluation must advance together (Principle 6)
-- **MetricGoal** type system replaces single tolerance check
-- **RecoverableDecision** replaces silent fallbacks
-- **Adversarial Critic Rule Registry** (30+ rules) replaces free-text critique
-- **Music-as-Plan** philosophy supersedes Music-as-Code
-
-The 5 design principles from v1.0 are intact. We added a 6th meta-principle.
+**Core architecture is unchanged**: still 7 layers, still 7 subagents, still 5 (now 6) principles. We extend each layer; we do not add layers.
 
 ---
 
@@ -29,633 +29,299 @@ The 5 design principles from v1.0 are intact. We added a 6th meta-principle.
 ```bash
 make test                # All tests
 make test-unit           # Unit only
-make test-golden         # ★v2.0: Golden MIDI tests
-make test-subagent       # ★v2.0: Subagent eval tests
+make test-golden         # Golden MIDI tests (NEW in v1.1, after ★9)
 make lint                # ruff + mypy strict
-make arch-lint           # Layer boundary check (now Layer 3a/3b aware)
-make matrix-check        # ★v2.0: Capability Matrix vs reality
-make all-checks          # lint + arch-lint + matrix-check + test
+make arch-lint           # Layer boundary check
+make all-checks          # lint + arch-lint + matrix-check + feature-status + test + golden
 make format              # Auto-format
+make feature-status      # Verify FEATURE_STATUS.md matches code (NEW in v1.1, after ★5)
 ```
 
-### Key directories (v2.0)
+### Key directories (largely unchanged from v1.0)
 
 ```
-src/yao/constants/        Layer 0 — hardcoded values
-src/yao/schema/           Layer 1 — Pydantic models for YAML
-src/yao/ir/
-  ├── score_ir.py         Layer 3b — concrete notes (existing)
-  ├── plan/               ★v2.0 Layer 3a — CPIR
-  │   ├── form.py
-  │   ├── harmony.py
-  │   ├── motif.py
-  │   ├── phrase.py
-  │   ├── drums.py
-  │   ├── arrangement.py
-  │   └── composition_plan.py
-  ├── trajectory.py       5-dimensional curves
-  ├── timing.py           Tick/beat/second
-  ├── notation.py         Note ↔ MIDI
-  └── voicing.py
-src/yao/reflect/          Provenance (cross-cutting)
-src/yao/generators/
-  ├── plan/               ★v2.0: produce CPIR
-  │   ├── form_planner.py
-  │   ├── harmony_planner.py
-  │   ├── motif_planner.py
-  │   ├── drum_patterner.py
-  │   └── arranger.py
-  └── note/               ★v2.0: CPIR → ScoreIR
-      ├── rule_based.py   (existing, repositioned)
-      ├── stochastic.py   (existing, repositioned)
-      ├── markov.py
-      └── constraint_solver.py
-src/yao/perception/       Layer 4 — substitute hearing (3 stages)
-src/yao/render/
-  ├── midi_writer.py
-  ├── audio_renderer.py
-  ├── musicxml_writer.py  ★v2.0
-  ├── lilypond_writer.py  ★v2.0
-  ├── strudel_emitter.py  ★v2.0
-  └── production/         ★v2.0: manifest, mix chain
-src/yao/verify/
-  ├── critique/           ★v2.0: Rule Registry (30+)
-  ├── metric_goal.py      ★v2.0: typed evaluation goals
-  ├── recoverable.py      ★v2.0: explicit fallback tracking
-  ├── lint.py
+src/yao/constants/      # Layer 0 — hardcoded values (ranges, scales, MIDI mappings)
+src/yao/schema/         # Layer 1 — Pydantic models for YAML
+src/yao/ir/             # Layer 3 — core data types
+  ├── score_ir.py
+  ├── trajectory.py     # ★3 will extend this with multi-dim coupling
+  ├── motif.py
+  ├── harmony.py
+  ├── voicing.py
+  ├── drum.py           # ★1 NEW — DrumPattern IR
+  ├── timing.py
+  └── notation.py
+src/yao/generators/     # Layer 2
+  ├── rule_based.py
+  ├── stochastic.py
+  ├── drum_patterner.py # ★1 NEW
+  └── counter_melody.py # ★2 NEW
+src/yao/render/         # Layer 5 — MIDI / audio / stems
+src/yao/verify/         # Layer 6
+  ├── music_lint.py
   ├── analyzer.py
   ├── evaluator.py
-  └── diff.py
-src/yao/arrange/          ★v2.0: Layer 5.5 — arrangement engine
-src/yao/conductor/
-  ├── conductor.py
-  ├── multi_candidate.py  ★v2.0
-  └── feedback.py
-src/yao/sketch/           ★v2.0: NL → spec dialogue
-src/yao/errors.py
-src/yao/types.py
-drum_patterns/            ★v2.0: 12+ genre YAMLs
+  ├── diff.py
+  ├── recoverable.py    # ★8 NEW
+  └── critique/         # ★4 NEW — 15+ rules
+      ├── base.py
+      ├── registry.py
+      └── (per role)
+src/yao/reflect/        # Provenance
+src/yao/conductor/      # Generate-evaluate-adapt loop
+src/yao/errors.py       # All custom exceptions
+src/cli/                # CLI commands
+  ├── compose.py
+  ├── conduct.py
+  ├── render.py
+  ├── preview.py        # ★6 NEW
+  └── watch.py          # ★6 NEW
+
+drum_patterns/          # ★1 NEW — 8+ genre drum YAMLs
 ```
 
-### Key types (v2.0)
+### Key types
 
 ```
-Note                   → src/yao/ir/score_ir.py
-ScoreIR                → src/yao/ir/score_ir.py
-CompositionPlan        → src/yao/ir/plan/composition_plan.py     ★v2.0
-FormPlan               → src/yao/ir/plan/form.py                 ★v2.0
-HarmonyPlan            → src/yao/ir/plan/harmony.py              ★v2.0
-MotifPlan, PhrasePlan  → src/yao/ir/plan/motif.py, phrase.py     ★v2.0
-DrumPattern            → src/yao/ir/plan/drums.py                ★v2.0
-ArrangementPlan        → src/yao/ir/plan/arrangement.py          ★v2.0
+Note                 → src/yao/ir/score_ir.py
+ScoreIR              → src/yao/ir/score_ir.py
+DrumPattern, DrumHit → src/yao/ir/drum.py             ★1 NEW
+CompositionSpec      → src/yao/schema/composition.py
+ProvenanceLog        → src/yao/reflect/provenance.py
+GeneratorBase        → src/yao/generators/base.py
+Finding              → src/yao/verify/critique/base.py ★4 NEW
+RecoverableDecision  → src/yao/verify/recoverable.py   ★8 NEW
 MultiDimensionalTrajectory → src/yao/ir/trajectory.py
-CompositionSpec (v2)   → src/yao/schema/composition.py
-ProvenanceLog          → src/yao/reflect/provenance.py
-PlanGeneratorBase      → src/yao/generators/plan/base.py         ★v2.0
-NoteRealizerBase       → src/yao/generators/note/base.py         ★v2.0
-Finding                → src/yao/verify/critique/types.py        ★v2.0
-MetricGoal             → src/yao/verify/metric_goal.py           ★v2.0
-RecoverableDecision    → src/yao/verify/recoverable.py           ★v2.0
+GenerationParams     → src/yao/ir/trajectory.py        ★3 NEW
 ```
 
 ---
 
 ## Your Role
 
-You are a **co-developer of YaO**, not YaO itself. You build the infrastructure that Subagents will use. Your code enables reproducible, auditable, iterable music creation through *plans*, not just notes.
+You are a **co-developer of YaO**, not YaO itself. You build infrastructure that Subagents will use. Your code enables reproducible, auditable, iterable music creation.
 
-Three sentences that should govern your work:
+In v1.1, your concrete mission is:
 
-1. **You write the planner that the Composer Subagent will run** — not the music itself.
-2. **You write the critic rules that the Adversarial Critic will evaluate** — not the critique prose.
-3. **You write the realizer that turns plans into notes** — not by inventing notes from prose, but by faithfully realizing a structured plan.
+> **Implement one of the 9 progressive improvements (★1–★9) per PR, without breaking anything else.**
 
-If you find yourself writing notes directly from a YAML spec without a plan in between, stop. That path is no longer valid in v2.0.
+You are not redesigning the architecture. You are extending it carefully, one well-tested layer at a time.
 
 ---
 
-## 7 Non-Negotiable Rules (v2.0)
+## 6 Non-Negotiable Rules (v1.1)
 
-The 5 rules from v1.0 are intact. Two new rules (#6, #7) reflect the CPIR architecture.
+Five rules carried from v1.0, plus one new rule that captures the spirit of v1.1.
 
-1. **Never break layer boundaries** — see `.claude/guides/architecture.md`. Layer 3a (CPIR) is enforced like any other layer.
-2. **Every plan generator returns `(<PlanComponent>, ProvenanceLog)`. Every note realizer returns `(ScoreIR, ProvenanceLog)`.** No exceptions.
-3. **No silent fallbacks** — use `RecoverableDecision` to log every compromise. Tests assert no clamp/coerce happens without a `RecoverableDecision` record.
-4. **No hardcoded musical values** — use `src/yao/constants/`.
-5. **No public function without type hints and docstring.**
-6. **★ NEW: Plans before notes.** When a feature involves "more than placing a note," it belongs in Layer 3a (CPIR). Do not put structural decisions in Note Realizers.
-7. **★ NEW: Trajectory is a control signal, not a decoration.** When trajectory values change, *every* relevant generator must respond. Velocity-only changes are a regression.
+1. **Never break layer boundaries** — see `.claude/guides/architecture.md`
+2. **Every generation function returns `(ScoreIR, ProvenanceLog)`** — including new generators (drum_patterner, counter_melody)
+3. **No silent fallbacks** — constraint violations must be explicit errors *or* logged as `RecoverableDecision` (★8)
+4. **No hardcoded musical values** — use `src/yao/constants/`
+5. **No public function without type hints and docstring**
+6. **★ NEW — Do not break what works** — every change must preserve existing behavior unless explicitly approved. Existing specs must still produce reasonable output. Existing tests must still pass. Existing golden MIDI must still match (or have a documented reason for change).
 
 ---
 
 ## MUSTs
 
-### Always-on (carried from v1.0)
-
+### Always-on
 - Read existing code before writing new code
 - Write tests before or alongside implementation
 - Keep YAML schemas and Pydantic models in sync
 - Use `yao.ir.timing` for all tick/beat/second conversions
 - Use `yao.ir.notation` for all note name/MIDI conversions
-- Derive velocity from dynamics curves (and trajectory tension — see Rule #7)
+- Derive velocity from dynamics curves and trajectory tension (never hardcode)
+- Register generators via `@register_generator("name")`
 
-### v2.0-specific (NEW)
-
-- ★ **Update the [Capability Matrix](./PROJECT.md#5-capability-matrix透明性の核-v20)** in the same PR as any feature change
-- ★ Run `make matrix-check` before opening a PR — it fails if Matrix and code disagree
-- ★ Register plan generators via `@register_plan_generator("name")` (NOT the legacy `@register_generator`)
-- ★ Register note realizers via `@register_note_realizer("name")`
-- ★ When generating any plan or note, **call `provenance.record(...)`** with a structured rationale. The codebase asserts coverage: untraced generation fails CI.
-- ★ When a generator must compromise, **emit a `RecoverableDecision`** before continuing
-- ★ Critique rules must inherit `CritiqueRule` and emit structured `Finding` objects — never free text
-- ★ When you change something that affects rendered audio, **attach an audio sample to the PR** (Sound-First culture)
+### v1.1-specific
+- ★ **Update [FEATURE_STATUS.md](./FEATURE_STATUS.md)** in the same PR as any feature change
+- ★ **Run `make feature-status`** before opening a PR — it warns if FEATURE_STATUS.md and code disagree
+- ★ **One PR = one improvement (★N)** — do not bundle ★1 and ★3 in the same PR
+- ★ **Backward compatibility check** — the existing `specs/templates/*.yaml` must still load and produce MIDI without modification
+- ★ **Golden MIDI verification** — after ★9 lands, run `make test-golden` before any PR touching generators or rendering
+- ★ **When adding a new module, follow the directory layout in PROJECT.md §5**, not your own structure
+- ★ When generating any compromise (e.g., out-of-range note), log a `RecoverableDecision` (★8 onward)
 
 ---
 
 ## MUST NOTs
 
 ### Carried from v1.0
-
-- Import `pretty_midi`/`music21`/`librosa` outside designated layers
+- Import `pretty_midi` / `music21` / `librosa` outside designated layers
 - Create functions with vague names (`make_it_sound_good`)
 - Skip provenance recording for any generation step
 - Use bare `ValueError` (use `YaOError` subclasses)
-- Silently clamp notes to range (raise `RangeViolationError` *or* emit a `RecoverableDecision`)
+- Silently clamp notes to range (raise `RangeViolationError`)
 - Leave `TODO`/`FIXME` uncommitted
 
-### New in v2.0
-
-- ★ **Do not write structural decisions in Note Realizers.** "Which chord should the chorus end on?" is a HarmonyPlanner question, not a stochastic generator question.
-- ★ **Do not put musical knowledge in Conductor.** Conductor orchestrates; it does not compose. Mood-keyword tables, instrument selection rules, etc., belong in `src/yao/sketch/` and Plan Generators.
-- ★ **Do not bypass CPIR.** A "spec → notes" path that skips CPIR is forbidden, even if "it would be simpler for this case."
-- ★ **Do not hardcode artist names.** The schema enforces this; do not work around it.
-- ★ **Do not advance the Capability Matrix optimistically.** Implementation drives status, not aspiration.
-- ★ **Do not add free-text critique.** All critique flows through `Finding` objects.
-- ★ **Do not silence trajectory.** Ignoring a trajectory dimension that should affect your generator violates Rule #7.
+### v1.1-specific
+- ★ **Do not redesign architecture** — if a task requires "let's change the layer structure", escalate. The 7-layer model is unchanged in v1.1.
+- ★ **Do not bundle multiple improvements in one PR** — each ★N is independent
+- ★ **Do not advance FEATURE_STATUS.md optimistically** — implementation drives status, not aspiration
+- ★ **Do not skip the audio sample for sound-affecting changes** — ★1, ★2, ★3 PRs require before/after audio
+- ★ **Do not introduce a new layer** — extend existing layers (Layer 3 gets DrumPattern, Layer 6 gets critique/, etc.)
+- ★ **Do not reference v2.0 design** — YaO v2.0 (8-layer, MPIR) was not adopted. Forget about MPIR; we extend Layer 3 instead.
 
 ---
 
-## 5 Design Principles (carried from v1.0)
+## 6 Design Principles
 
 1. **Agent = environment, not composer** — we accelerate human creativity
 2. **Explain everything** — every note has a provenance record
 3. **Constraints liberate** — specs and rules are scaffolds, not cages
-4. **Time-axis first** — design trajectory curves before notes
+4. **Time-axis first** — design trajectory curves before notes (★3 makes this real across 5 dimensions)
 5. **Human ear is truth** — automated scores inform, humans decide
+6. **★ Incrementality — do not break what works** — small, verifiable improvements over grand redesigns
 
-### + 1 Meta-Principle (new in v2.0)
-
-6. **Vertical Alignment** — input expressiveness, processing depth, and evaluation resolution must advance together. **Never deepen one layer alone.**
-
-When proposing a change, ask: *Does this widen one layer without matching the others?* If yes, either expand scope or reduce scope.
+When in doubt, ask: *Does this preserve existing behavior while adding new capability?* If yes, proceed. If no, escalate.
 
 ---
 
-## Capability Matrix (Single Source of Truth)
+## FEATURE_STATUS.md Anchor
 
-The full matrix lives in **[PROJECT.md §5](./PROJECT.md#5-capability-matrix透明性の核-v20)**. Before any non-trivial work, read it.
+The full matrix lives in **[FEATURE_STATUS.md](./FEATURE_STATUS.md)** (also summarized in [PROJECT.md §4](./PROJECT.md)). Before any non-trivial work, read it.
 
-When the Matrix says:
+When the matrix says:
 
 | Status | What you can assume |
 |---|---|
-| ✅ Implemented | Working with tests; safe to depend on |
-| 🟢 Working | Core works; check edge cases |
+| ✅ Stable | Working with tests; safe to depend on |
+| 🟢 Working but limited | Core works; check edge cases noted in the matrix |
 | 🟡 Partial | Some paths work; **read the impl before depending** |
 | ⚪ Designed, not started | Don't import; don't pretend it exists |
 | 🔴 Identified gap | Treat as a target, not a tool |
 
-**Hard rule**: If you write code that depends on a `⚪` or `🔴` feature, the PR is rejected.
+**Hard rule**: If you write code that depends on a `⚪` or `🔴` feature, the PR is rejected. Wait for that improvement's PR to land first.
 
 ---
 
-## Library Restrictions (carried, with additions)
+## The 9 Improvements: Your Worklist
 
-| Library | Allowed in | Purpose |
-|---|---|---|
-| `pretty_midi` | `ir/`, `render/` | MIDI creation/editing |
-| `music21` | `ir/`, `verify/`, `arrange/` | Theory analysis, MusicXML |
-| `librosa` | `verify/`, `perception/` | Audio feature analysis (Layer 4) |
-| `pyloudnorm` | `verify/`, `perception/` | LUFS measurement |
-| `pedalboard` ★v2.0 | `render/production/` | Audio plugin processing |
-| `pydantic` | `schema/` | YAML validation |
-| `structlog` | anywhere | Structured logging |
-| `click` | `cli/` | CLI framework |
-| `numpy/scipy` | anywhere | Numerical computation |
+This section is the heart of v1.1. Each improvement is a single PR. Pick one and complete it before moving on.
 
-**Never**:
-- music21 for MIDI generation (use pretty_midi)
-- librosa for MIDI ops
-- pretty_midi for theory analysis
-- ★ pedalboard outside `render/production/`
+### ★1 DrumPattern IR + drum_patterner generator
+**Goal**: Enable pop, EDM, rock, hip-hop, lo-fi, game BGM by introducing dedicated drum representation.
+**New files**: `src/yao/ir/drum.py`, `src/yao/generators/drum_patterner.py`, `drum_patterns/*.yaml` (8+).
+**Modified**: `src/yao/schema/composition.py` (add `DrumsSpec`).
+**Cost**: Medium (~2 weeks).
+**Validation**: existing specs still produce MIDI without drums; new specs with `drums:` section produce a `drums.mid` stem.
 
----
+### ★2 Counter-melody / Inner-voice generator
+**Goal**: Move from 3-voice (melody + bass + chord) to 6-voice with counter-melody and inner voices.
+**New files**: `src/yao/generators/counter_melody.py`.
+**Modified**: `src/yao/schema/composition.py` (add `counter_melody` role to `InstrumentSpec.role`).
+**Cost**: Medium (~1.5 weeks).
+**Validation**: Species counterpoint principles enforced (consonance on strong beats, no parallel fifths/octaves with main melody, contrary motion preferred). Range stays within target instrument.
 
-## Current Phase
+### ★3 Trajectory multi-dimensional coupling
+**Goal**: Make tension/density/predictability/brightness/register_height **all** affect generation, not just velocity.
+**New files**: none (extend `src/yao/ir/trajectory.py`).
+**Modified**: `src/yao/ir/trajectory.py` (add `derive_generation_params()`), `src/yao/generators/rule_based.py` and `stochastic.py` (call it per bar).
+**Cost**: Medium (~1.5 weeks).
+**Validation**: `tests/scenarios/test_trajectory_compliance.py` confirms high-tension produces wider pitch range, more leaps, and more chord extensions — not just louder velocity.
 
-YaO has completed **Phase 1** (parameter-driven symbolic composition). v2.0 work is organized into **Phases α through ε**.
+### ★4 Adversarial Critic mechanized rules (15+)
+**Goal**: Move `/critique` from free-text LLM interpretation to deterministic, structured Findings.
+**New files**: `src/yao/verify/critique/` package with `base.py`, `registry.py`, and rule files per role (structural / melodic / harmonic / rhythmic / arrangement / emotional).
+**Modified**: `.claude/commands/critique.md` (use the structured output instead of free interpretation).
+**Cost**: Large (~3–4 weeks; ~half a day per rule × 15). Parallelizable across rules.
+**Validation**: every rule has 1+ positive test (rule fires) and 1+ negative test (rule silent). Re-running `/critique` on the same iteration produces identical findings.
 
-### Phase α (Days 1–30): Foundation of Alignment
+### ★5 FEATURE_STATUS.md + feature_status_check
+**Goal**: Eliminate documentation drift by having a single authoritative status table.
+**New files**: `FEATURE_STATUS.md`, `tools/feature_status_check.py`.
+**Modified**: `README.md` and `CLAUDE.md` lose their numeric capability claims (e.g., "226 tests"), replaced by links to FEATURE_STATUS.md.
+**Cost**: Small (~2–3 days).
+**Validation**: `make feature-status` runs in CI and reports any drift.
 
-Objective: build scaffolding so the three vertical-alignment layers can advance in lockstep.
+### ★6 yao preview / yao watch (instant audition)
+**Goal**: Reduce iteration time from tens of seconds to real-time. Enable "edit YAML → hear change" workflow.
+**New files**: `src/cli/preview.py`, `src/cli/watch.py`.
+**New deps**: `sounddevice`, `watchdog`.
+**Cost**: Small–medium (~1 week).
+**Validation**: `yao preview specs/templates/minimal.yaml` plays audio without writing any file. `yao watch <spec>` re-plays automatically when the spec is saved.
 
-**Phase α deliverables** (completed):
-- ✅ Capability Matrix in PROJECT.md §5
-- ✅ `composition.yaml v2` schema (Pydantic, 11 sections)
-- ✅ `intent.md` and `trajectory.yaml` as first-class artifacts
-- ✅ CPIR: `FormPlan` + `HarmonyPlan` + `MotifPlan` + `PhrasePlan` + `DrumPattern` + `ArrangementPlan`
-- ✅ `GlobalContext` — key/tempo/time_signature/instruments carried through plan
-- ✅ `MetricGoal` type system
-- ✅ `RecoverableDecision` mechanism
-- ✅ Golden MIDI test infrastructure (6 fixtures)
-- ✅ `make matrix-check`
-- ✅ Adversarial Critic: 12 rules across 5 roles (structure, harmony, melody, rhythm, emotional)
-- ✅ Conductor ↔ Critic integration (findings route to feedback adaptations)
-- ✅ SpecCompiler in `src/yao/sketch/compiler.py` (mood→key, pace→tempo, NL→spec)
-- ✅ Multi-dimensional trajectory response (tension→pitch/leaps, density→rhythm, register_height→octave)
+### ★7 Genre Skills mass production (8+)
+**Goal**: Move from 1 genre Skill (cinematic) to 8+, enabling broad style coverage.
+**New files**: `.claude/skills/genres/{lofi_hiphop,j_pop,neoclassical,ambient,jazz_ballad,game_8bit_chiptune,acoustic_folk,...}.md` plus auto-generated YAML companions in `src/yao/skills/genres/`.
+**Cost**: Medium (half a day each × 7 = 3–4 days). **Python-free contribution path** for musicians.
+**Validation**: Each Skill follows the standard schema. Front-matter YAML is auto-extracted to `src/yao/skills/genres/<name>.yaml`. Generators can reference these for default tempo/keys/progressions.
 
-### What EXISTS now
+### ★8 RecoverableDecision logging
+**Goal**: Eliminate silent fallbacks by logging every compromise as a structured `RecoverableDecision`.
+**New files**: `src/yao/verify/recoverable.py`, `src/yao/verify/recoverable_codes.py`, `tools/check_silent_fallback.py`, `docs/migration/silent-fallback-inventory.md`.
+**Modified**: `src/yao/reflect/provenance.py` (add `record_recoverable()`), existing fallback sites in `stochastic.py` etc.
+**Cost**: Medium (~1.5 weeks).
+**Validation**: `tools/check_silent_fallback.py` detects untracked silent compromises in CI. Existing `provenance.json` files gain a `recoverable_decisions` array.
 
-- Spec loading + validation (YAML → Pydantic, v1 + v2 schema) ✅
-- ScoreIR (Note, Part, Section, Motif, Voicing, Harmony) ✅
-- CPIR (MusicalPlan: FormPlan, HarmonyPlan, MotifPlan, PhrasePlan, DrumPattern, ArrangementPlan, GlobalContext) ✅
-- Plan generators: FormPlanner + HarmonyPlanner (rule-based) ✅
-- Note realizers: rule_based + stochastic (registered via `@register_note_realizer`) ✅
-- Rule-based note generator (deterministic) ✅
-- Stochastic note generator (seed + temperature + trajectory-responsive) ✅
-- Generator registries: legacy `@register_generator` + v2 `@register_plan_generator` / `@register_note_realizer` ✅
-- Constraint system (must/must_not/prefer/avoid with scoped rules) ✅
-- MIDI rendering + stems ✅
-- MIDI reader (load existing MIDI back to ScoreIR) ✅
-- Music linting, analysis, evaluation (MetricGoal-based) ✅
-- Adversarial Critic: 12 structured rules, CritiqueRegistry, Finding types ✅
-- Conductor feedback loop (evaluator + Critic findings → spec adaptations) ✅
-- SpecCompiler (NL → CompositionSpec, extracted from Conductor) ✅
-- Evaluation report persistence (evaluation.json) ✅
-- Score diff with modified note tracking ✅
-- Provenance logging (append-only, queryable) ✅
-- Section-level regeneration ✅
-- CLI (compose, conduct, render, validate, evaluate, diff, explain, new-project, regenerate-section) ✅
-- Architecture lint tool (Layer 3a/3b aware) ✅
-- 7 Claude Code commands, 7 Subagent definitions ✅
-- 4 Skills populated (cinematic, voice-leading, piano, tension-resolution) ✅
-- 546 tests (unit, integration, scenarios, golden, music constraints) ✅
+### ★9 Golden MIDI tests
+**Goal**: Detect unintended musical regression in any future generator change.
+**New files**: `tests/golden/{inputs,expected}/`, `tests/golden/test_golden.py`, `tests/golden/tools/regenerate_goldens.py`.
+**Modified**: `Makefile` (add `test-golden`), CI workflow (run `test-golden`).
+**Cost**: Small (~1 week).
+**Validation**: 6+ golden MIDI files committed. Bit-exact comparison. `regenerate_goldens.py --reason "..." --confirm` is the only way to update them.
 
-### What does NOT exist yet (Phase β onward)
-
-- Plan-level generators for motif/drum/arrangement (IR types exist, generators do not)
-- Multi-candidate Conductor
-- Markov / constraint_solver realizers
-- Counter-melody generator
-- 18 additional Adversarial Critic rules (12 implemented, 30+ target)
-- 12 genre Skills (only cinematic populated)
-- Perception layer (any stage)
-- Arrangement engine
-- Production manifest + mix chain
-- MusicXML / LilyPond / Strudel writers
-- Sketch dialogue state machine (SpecCompiler is step 1)
-- Subagent eval harness
-- DAW MCP integration
-- Live mode
-
-**If a task asks you to use a Phase β/γ/δ feature, escalate.**
-
----
-
-## Two Critical Architecture Rules (v2.0)
-
-### Rule A: The Plan-First Boundary
+### Recommended order
 
 ```
-✅ Correct flow:
-  CompositionSpec  →  PlanGenerator  →  CompositionPlan  →  NoteRealizer  →  ScoreIR
-
-❌ Forbidden:
-  CompositionSpec  →  NoteRealizer  →  ScoreIR
+Week 1:    ★5 FEATURE_STATUS.md (2-3 days) + ★9 Golden MIDI infrastructure
+Week 2:    ★6 yao preview / watch
+Week 3-4:  ★3 Trajectory multi-dim
+Week 5-6:  ★1 DrumPattern IR
+Week 7-8:  ★2 Counter-melody
+Week 9-12: ★4 Critic rules (parallel)
+Week 9-12: ★7 Genre Skills (parallel, contributors welcome)
+Week 13-14: ★8 RecoverableDecision
 ```
 
-The forbidden path is how Phase 1 worked. v2.0 disallows it. Any PR that adds a path from spec to ScoreIR without going through CPIR is rejected.
-
-The legacy generators (`rule_based`, `stochastic`) are being **repositioned** as Note Realizers. During the migration window (Phase α–β), they may still accept specs directly *if* they internally construct a minimal CPIR and pass through it. After Phase β, the spec→ScoreIR shortcut is removed.
-
-### Rule B: The Critic Gate
-
-Between CPIR completion (Step 5) and Note Realization (Step 6), the **Adversarial Critic Gate** runs. Even if you are testing locally, do not bypass it without flagging this in the PR description. The Critic Gate is what makes "fundamentally weak plan, beautifully realized" impossible — short-circuiting it defeats the v2.0 architecture.
+★5 first because it scaffolds discipline. ★9 second because it's the safety net for everything else. ★6 third because it improves your own development feedback loop. Then the music-quality improvements stack up.
 
 ---
 
-## Generator Registration (v2.0)
+## Two Critical Discipline Rules for v1.1
 
-The legacy `@register_generator("name")` decorator is **split into two**:
+### Rule A: One PR = One Improvement
 
-```python
-# src/yao/generators/plan/form_planner.py
-from yao.generators.plan.base import PlanGeneratorBase, register_plan_generator
+A PR titled "feat: implement ★1 DrumPattern IR" must touch only files relevant to ★1. If you find yourself wanting to "also fix this little thing in stochastic.py while I'm here", **stop**. Open a separate PR.
 
-@register_plan_generator("rule_based_form")
-class RuleBasedFormPlanner(PlanGeneratorBase):
-    def plan(
-        self,
-        spec: CompositionSpec,
-        trajectory: MultiDimensionalTrajectory,
-        provenance: ProvenanceLog,
-    ) -> FormPlan:
-        ...
+This keeps:
+- Reviews focused
+- Rollbacks possible (revert one PR = lose one improvement, not eight)
+- Golden MIDI diffs interpretable (a change in drum output is from ★1; a change in melodic contour is from ★3)
 
-# src/yao/generators/note/stochastic.py
-from yao.generators.note.base import NoteRealizerBase, register_note_realizer
+### Rule B: Backward Compatibility Is Sacred
 
-@register_note_realizer("stochastic")
-class StochasticNoteRealizer(NoteRealizerBase):
-    def realize(
-        self,
-        plan: CompositionPlan,
-        seed: int,
-        temperature: float,
-        provenance: ProvenanceLog,
-    ) -> ScoreIR:
-        ...
-```
-
-Generator selection in spec:
-
-```yaml
-generation:
-  plan_strategy: "rule_based"          # picks plan generators
-  realize_strategy: "stochastic"       # picks note realizer
-  seed: 42
-  temperature: 0.5
-```
-
----
-
-## Trajectory Compliance (Rule #7 deep-dive)
-
-When trajectory's `tension`, `density`, or `predictability` changes between bars, your generator's output **must change in a measurable way**:
-
-| Generator | Must respond to ↑ tension by … |
-|---|---|
-| HarmonyPlanner | Adding secondary dominants, borrowed chords, suspensions |
-| MotifPlanner | Higher register, more leaps, fewer rests |
-| DrumPatterner | More subdivision, more syncopation, ghost notes |
-| Arranger | More active layers, wider register spread |
-| NoteRealizer | Higher velocity, sharper articulation |
-
-**Test harness**: `tests/scenarios/test_trajectory_compliance.py` parameterizes over each generator with high-tension and low-tension trajectories and asserts measurable difference. Adding a new generator without a trajectory compliance test fails CI.
-
----
-
-## Critique Rule Authoring (NEW in v2.0)
-
-If your task is "make the critic detect X", here is the pattern:
-
-```python
-# src/yao/verify/critique/harmonic.py
-from yao.verify.critique.base import CritiqueRule, Finding, Role, Severity
-
-class ClicheChordProgressionDetector(CritiqueRule):
-    rule_id = "harmonic.cliche_progression"
-    role = Role.HARMONY
-
-    def detect(
-        self,
-        plan: CompositionPlan,
-        spec: CompositionSpec,
-    ) -> list[Finding]:
-        # n-gram based detection of common cliches
-        # I-V-vi-IV, vi-IV-I-V, etc.
-        ...
-        return [
-            Finding(
-                rule_id=self.rule_id,
-                severity=Severity.MAJOR,
-                role=self.role,
-                issue="chorus uses I-V-vi-IV without variation",
-                evidence={"progression_entropy": 0.31, "target": 0.55},
-                location=SongLocation(section="chorus", bars=(33, 40)),
-                recommendation={
-                    "harmony": "introduce V/V before final IV",
-                    "structure": "consider modal interchange (bVII)",
-                },
-            )
-        ]
-
-# Register
-CRITIQUE_RULES.register(ClicheChordProgressionDetector())
-```
-
-Required: every new rule has at least 2 unit tests (one positive, one negative) and is added to the registry.
-
----
-
-## RecoverableDecision (NEW in v2.0)
-
-The way to write a "fallback" without breaking Rule #3:
-
-```python
-from yao.verify.recoverable import RecoverableDecision
-
-# A walking bass note falls below the instrument range
-if proposed_note < instrument.range_min:
-    decision = RecoverableDecision(
-        code="BASS_NOTE_OUT_OF_RANGE",
-        severity="warning",
-        original_value=proposed_note,
-        recovered_value=instrument.range_min,
-        reason="Walking bass passing tone below upright bass range",
-        musical_impact="Bass line jumps up an octave at this point",
-        suggested_fix=[
-            "narrow the walking-bass interval pool",
-            "use synth_bass with wider range",
-            "raise the chord root by an octave",
-        ],
-    )
-    provenance.record_recoverable(decision)
-    proposed_note = decision.recovered_value
-```
-
-This is not a fallback — it is a logged, traceable, fixable decision. Future iterations can see and act on it.
-
----
-
-## Automated Failure Prevention (v2.0 expanded)
-
-These common failure patterns are caught by tooling — not memorization:
-
-| Pattern | What catches it | Command |
-|---|---|---|
-| Tick calculation error | Unit tests in `test_ir.py` | `make test-unit` |
-| Range violation silence | `RangeViolationError` / RecoverableDecision check | `make test` |
-| Velocity hardcode | Linter pattern check | `make lint` |
-| Missing provenance | `GeneratorBase` type contract + coverage assertion | `mypy` + `make test` |
-| Layer boundary breach | AST-based import checker (now incl. Layer 3a) | `make arch-lint` |
-| Schema/model mismatch | Integration test loads all templates | `make test` |
-| Parallel fifths | Constraint checker + voicing module | `make test` |
-| ★ Spec → ScoreIR shortcut | Architecture lint | `make arch-lint` |
-| ★ Capability Matrix drift | matrix-check tool diffs registered features | `make matrix-check` |
-| ★ Trajectory ignored | Compliance scenario tests | `make test-scenario` |
-| ★ Free-text critique | Type contract on `Finding` | `mypy` |
-| ★ Plan vs note confusion | Layer-specific lint rules | `make arch-lint` |
-| ★ Missing audio sample on render PRs | PR template check | CI |
-| ★ Missing golden update on render-affecting changes | Golden test | `make test-golden` |
-
-If you bypass any of these without explicit approval, the PR will be reverted.
-
----
-
-## Performance Expectations (v2.0)
-
-The pipeline grew. Budget grows accordingly, but with limits:
-
-| Operation | Target | Notes |
-|---|---|---|
-| Load YAML spec (v2) | <150ms | Pydantic validation |
-| Build CPIR (8-bar piece) | <500ms | All 5 plan steps |
-| Realize 8-bar piece from CPIR | <500ms | Note realizer |
-| End-to-end 64-bar generation | <8s | Spec → CPIR → ScoreIR → MIDI |
-| Multi-candidate (5×) 64-bar | <30s | Run 5 in parallel where possible |
-| Critic Gate evaluation | <2s | All 30+ rules over CPIR |
-| Audio render (64 bars) | <10s | FluidSynth |
-| Mix chain processing | <5s | pedalboard |
-| Run all tests | <12s | ~400 tests projected post-Phase β |
-| Architecture lint | <2s | AST parsing + matrix check |
-| Capability matrix check | <1s | Registry diff |
-
-Do not introduce changes that exceed these budgets without discussion.
-
----
-
-## Workflow
-
-### When you start a session
-
-1. Read this file
-2. Skim PROJECT.md §5 (Capability Matrix) for current reality
-3. Identify the layer you are touching (use the questions in `.claude/guides/architecture.md`)
-4. Read the existing tests for that layer
-
-### Before opening a PR
+Every PR must satisfy:
 
 ```bash
-# 1. Local validation
-make all-checks                # lint + arch-lint + matrix-check + test
+# Existing test suite passes unchanged
+make test
 
-# 2. If you touched generators or rendering
-make test-golden               # compare against committed MIDI
-
-# 3. If you added a Subagent or Skill
-make test-subagent             # LLM-as-judge eval
-
-# 4. If your change is audible
-# Render a sample, attach to PR description
+# All shipped templates still produce MIDI without modification
 yao compose specs/templates/minimal.yaml
-yao render outputs/projects/.../full.mid
+yao compose specs/templates/bgm-90sec.yaml
+yao compose specs/templates/cinematic-3min.yaml
+
+# Existing example projects still produce MIDI
+for proj in specs/projects/*/; do
+    yao compose "$proj/composition.yaml"
+done
+
+# After ★9 lands: golden MIDI bit-exact
+make test-golden
 ```
 
-### PR description template (enforced by CI)
-
-```markdown
-## What
-<one line>
-
-## Why
-<reason / linked issue>
-
-## How
-<key implementation choices>
-
-## Vertical Alignment
-- Input: <changed/unchanged>
-- Processing: <changed/unchanged>
-- Evaluation: <changed/unchanged>
-(If only one is changed, justify why the others don't need changes.)
-
-## Capability Matrix
-- Updated entries: <list>
-
-## Audio impact
-<sample link, or "no audio impact">
-
-## Tests
-- Added: <list>
-- Golden updated: yes/no (if yes, why)
-```
+If a PR cannot satisfy this, it requires explicit approval and a documented migration path for users.
 
 ---
 
-## Common Tasks Cookbook
+## Anti-Patterns (carried + new for v1.1)
 
-### "Add a new genre Skill"
-
-1. Create `.claude/skills/genres/<name>.md` with the genre template (front-matter for YAML extraction)
-2. Run the front-matter extractor: `python tools/skill_yaml_sync.py`
-3. Add at least one drum pattern in `drum_patterns/<name>.yaml` if it requires a distinct groove
-4. Add a unit test: spec specifying this genre produces a CPIR with the genre's required features
-5. Update Capability Matrix: Skills row
-
-### "Add a new critique rule"
-
-1. Inherit `CritiqueRule` in `src/yao/verify/critique/<role>.py`
-2. Implement `detect(plan, spec) -> list[Finding]`
-3. Register in `src/yao/verify/critique/registry.py`
-4. Write 2+ tests (positive case detects, negative case is silent)
-5. If the rule is severity=critical, add a Conductor adapter so it triggers regeneration
-6. Update Capability Matrix: Critique row
-
-### "Add a new note realizer"
-
-1. Inherit `NoteRealizerBase` in `src/yao/generators/note/<name>.py`
-2. Decorate with `@register_note_realizer("<name>")`
-3. Realize from `CompositionPlan`, not from `CompositionSpec` (Rule #6)
-4. Emit `RecoverableDecision` for any compromise (Rule #3)
-5. Add trajectory compliance test (Rule #7)
-6. Add golden MIDI fixture
-7. Update Capability Matrix: Generation row
-
-### "Add a new Plan generator step"
-
-This is rare and architectural. Escalate first.
-
-### "Edit composition.yaml schema"
-
-1. Make additive changes only when possible
-2. Update Pydantic model in `src/yao/schema/composition.py`
-3. Update at least one template in `specs/templates/`
-4. Update PROJECT.md §10.1 example
-5. Add migration logic if non-additive (rare, escalate first)
-6. Update Capability Matrix: Spec row
-
----
-
-## Anti-Patterns (concrete examples)
-
-### ❌ Anti-pattern 1: Spec → ScoreIR shortcut
-
-```python
-# DON'T
-def generate(spec: CompositionSpec) -> ScoreIR:
-    notes = []
-    for section in spec.form.sections:
-        notes.extend(stochastic_notes(section, spec))
-    return ScoreIR(notes=notes)
-```
-
-```python
-# DO
-def generate(spec: CompositionSpec) -> tuple[ScoreIR, ProvenanceLog]:
-    plan, prov = build_composition_plan(spec, trajectory)  # CPIR first
-    score, prov = realize_notes(plan, prov)                # Then notes
-    return score, prov
-```
-
-### ❌ Anti-pattern 2: Velocity hardcode
-
+### ❌ Anti-pattern 1: Velocity hardcode (carried)
 ```python
 # DON'T
 note = Note(pitch=60, velocity=100, ...)
-```
 
-```python
 # DO
 velocity = velocity_from(
     dynamics=section.dynamics,
@@ -665,106 +331,233 @@ velocity = velocity_from(
 note = Note(pitch=60, velocity=velocity, ...)
 ```
 
-### ❌ Anti-pattern 3: Silent fallback
-
+### ❌ Anti-pattern 2: Silent fallback (carried, formalized in ★8)
 ```python
 # DON'T
 if note.pitch < instrument.range_min:
     note = note.replace(pitch=instrument.range_min)  # silent clamp
-```
 
-```python
-# DO
+# DO (after ★8)
 if note.pitch < instrument.range_min:
     decision = RecoverableDecision(
         code="NOTE_OUT_OF_RANGE",
         severity="warning",
         original_value=note.pitch,
         recovered_value=instrument.range_min,
-        reason="...",
-        musical_impact="...",
-        suggested_fix=[...],
+        reason="Walking bass passing tone below upright bass range",
+        musical_impact="Bass line jumps up at this point",
+        suggested_fix=["narrow walking bass intervals", "use synth_bass"],
     )
     provenance.record_recoverable(decision)
     note = note.replace(pitch=decision.recovered_value)
 ```
 
-### ❌ Anti-pattern 4: Free-text critique
-
-```python
-# DON'T
-def critique(score: ScoreIR) -> str:
-    return llm.complete(f"What's wrong with this music?\n{score}")
+### ❌ Anti-pattern 3: Bundling improvements (NEW)
 ```
-
-```python
-# DO
-def critique(plan: CompositionPlan, spec: CompositionSpec) -> list[Finding]:
-    findings = []
-    for rule in CRITIQUE_RULES.all():
-        findings.extend(rule.detect(plan, spec))
-    return findings
+PR title: "feat: implement drum patterns and counter-melody"
 ```
+This is **two improvements in one PR**. Reject. Split into two PRs.
 
-### ❌ Anti-pattern 5: Trajectory ignored
+### ❌ Anti-pattern 4: Skipping FEATURE_STATUS.md update (NEW)
+You added a fully-tested DrumPattern IR with 8 genres of patterns, but FEATURE_STATUS.md still says `🔴 Not implemented`. The PR is incomplete. Update the matrix in the same PR.
 
+### ❌ Anti-pattern 5: Trajectory ignored (NEW, formalized in ★3)
 ```python
-# DON'T
-def realize_chorus(plan: CompositionPlan) -> list[Note]:
-    return [Note(...) for ... ]  # nothing changes between bars
-```
-
-```python
-# DO
-def realize_chorus(plan: CompositionPlan) -> list[Note]:
+# DON'T (v1.0 stochastic generator behavior)
+def realize_chorus(spec, trajectory):
     notes = []
     for beat in chorus_beats:
-        tension = plan.trajectory.tension_at(beat)
-        density = plan.trajectory.density_at(beat)
-        velocity = scale_by_tension(tension)
-        rhythmic_subdivision = density_to_subdivision(density)
-        notes.extend(make_notes(velocity, rhythmic_subdivision, ...))
+        velocity = base_velocity + trajectory.tension_at(beat) * 20  # only velocity changes
+        notes.append(make_note(velocity, ...))
+    return notes
+
+# DO (after ★3)
+def realize_chorus(spec, trajectory):
+    notes = []
+    for bar in chorus_bars:
+        params = derive_generation_params(trajectory, bar)
+        # Now ALL of these change: velocity, density, leap_prob, register_spread, chord_extension_prob
+        notes.extend(make_notes(params))
     return notes
 ```
 
-### ❌ Anti-pattern 6: Capability Matrix drift
-
-```markdown
-# DON'T (in PROJECT.md §5)
-| Feature X | ✅ Implemented |  <-- but no code, just a stub
+### ❌ Anti-pattern 6: Architecture redesign in disguise (NEW)
+```python
+# DON'T — this is sneaking in a new layer
+class MusicalPlan:  # this is the rejected v2.0 MPIR
+    form: SongFormPlan
+    harmony: HarmonyPlan
+    ...
 ```
+v1.1 does not introduce new layers. If you find yourself designing a new IR that sits between Layer 1 (spec) and Layer 3 (ScoreIR), stop and escalate.
 
-```markdown
+### ❌ Anti-pattern 7: Free-text critique after ★4 lands (NEW)
+```python
+# DON'T (after ★4)
+def critique(score: ScoreIR) -> str:
+    return llm.complete(f"What's wrong with this music?\n{score}")
+
 # DO
-| Feature X | 🟡 Partial — only handles Y case, see issue #42 |
+def critique(score: ScoreIR, spec: CompositionSpec) -> list[Finding]:
+    findings = []
+    for rule in CRITIQUE_REGISTRY.all_rules():
+        findings.extend(rule.detect(score, spec))
+    return findings
 ```
 
-### ❌ Anti-pattern 7: Conductor doing music theory
+---
 
-```python
-# DON'T (in src/yao/conductor/conductor.py)
-MOOD_TO_KEY = {"happy": "C major", "sad": "C minor", "dark": "Em"}
+## Automated Failure Prevention (v1.1 expanded)
 
-class Conductor:
-    def parse_mood(self, text):
-        for mood, key in MOOD_TO_KEY.items():
-            if mood in text.lower():
-                return key
+| Pattern | What catches it | Command |
+|---|---|---|
+| Tick calculation error | Unit tests | `make test-unit` |
+| Range violation silence | `RangeViolationError` + `RecoverableDecision` checker (★8) | `make test` |
+| Velocity hardcode | Linter pattern check | `make lint` |
+| Missing provenance | `GeneratorBase` enforces return type | `mypy` + `make test` |
+| Layer boundary breach | AST-based import checker | `make arch-lint` |
+| Schema/model mismatch | Integration test loads all templates | `make test` |
+| Parallel fifths | Constraint checker + voicing module | `make test` |
+| ★ NEW: FEATURE_STATUS.md drift | `feature_status_check.py` (★5) | `make feature-status` |
+| ★ NEW: Trajectory ignored | `test_trajectory_compliance.py` (★3) | `make test` |
+| ★ NEW: Silent fallback | `check_silent_fallback.py` (★8) | `make lint` |
+| ★ NEW: Free-text critique | Type contract on `Finding` (★4) | `mypy` |
+| ★ NEW: Generation regression | Golden MIDI bit-exact (★9) | `make test-golden` |
+| ★ NEW: Backward incompatibility | All shipped templates still compose | (manual + CI) |
+
+---
+
+## Performance Expectations
+
+The 9 improvements add capabilities but should not significantly slow generation:
+
+| Operation | Target | Notes |
+|---|---|---|
+| Load YAML spec | <100ms | Pydantic validation |
+| Generate 8-bar piece (no drums) | <1s | Both generators |
+| Generate 8-bar piece with drums (★1) | <1.5s | DrumPatterner adds ~30% |
+| Generate 8-bar piece with counter-melody (★2) | <1.3s | Counter-melody adds ~20% |
+| Generate 64-bar piece | <5s | Stochastic may vary |
+| Run all critique rules (★4) | <2s | All 15+ rules over a 64-bar score |
+| Audio render (FluidSynth) | <10s | 64 bars |
+| `yao preview` time-to-first-sound (★6) | <2s | Memory-only, no FluidSynth file write |
+| Run all tests | <12s | ~280 tests projected (+50 from v1.0) |
+| Golden MIDI test (★9) | <3s | Bit-exact MIDI comparison |
+| Architecture lint | <1s | AST parsing |
+
+Do not introduce changes that exceed these budgets without discussion.
+
+---
+
+## Current Phase
+
+**Phase 1.1** — Progressive enhancement of v1.0's working baseline.
+
+### What EXISTS (carried from v1.0)
+- Spec loading + validation (YAML → Pydantic)
+- ScoreIR (Note, Part, Section, Motif, Voicing, Harmony)
+- Rule-based generator (deterministic)
+- Stochastic generator (seed + temperature)
+- Generator registry
+- Constraint system (must/must_not/prefer/avoid with scoped rules)
+- MIDI rendering + per-instrument stems
+- Audio rendering via FluidSynth
+- MIDI reader (load existing MIDI back to ScoreIR)
+- Music linting, analysis, evaluation, score diff
+- Provenance logging (append-only, queryable)
+- Conductor feedback loop (generate → evaluate → adapt → regenerate)
+- Section-level regeneration
+- CLI: compose, conduct, render, validate, evaluate, diff, explain, new-project, regenerate-section
+- Architecture lint
+- 7 Claude Code commands, 7 Subagent definitions
+- 4 Skills populated (cinematic, voice-leading, piano, tension-resolution)
+- ~226 tests
+
+### What is BEING BUILT in v1.1 (the 9 improvements)
+- ⏳ ★5 FEATURE_STATUS.md
+- ⏳ ★9 Golden MIDI tests
+- ⏳ ★6 `yao preview` / `yao watch`
+- ⏳ ★3 Trajectory multi-dim coupling
+- ⏳ ★1 DrumPattern IR + drum_patterner
+- ⏳ ★2 Counter-melody generator
+- ⏳ ★4 Adversarial Critic rules (15+)
+- ⏳ ★7 Genre Skills (8+)
+- ⏳ ★8 RecoverableDecision
+
+### What does NOT EXIST yet (Phase 2 onward)
+- Arrangement engine (Phase 2 marquee feature)
+- Perception layer (reference matching, psychology) — Phase 3
+- Production manifest + mix chain — Phase 4
+- DAW integration (MCP) — Phase 4
+- MusicXML / LilyPond / Strudel writers — Phase 4
+- Live improvisation mode — Phase 5
+- Reflection layer (style profiles) — Phase 5
+
+**If a task asks you to implement a Phase 2+ feature, escalate.**
+
+---
+
+## Workflow
+
+### When you start a session
+
+1. Read this file (CLAUDE.md)
+2. Read [FEATURE_STATUS.md](./FEATURE_STATUS.md) for current reality
+3. Identify which improvement (★N) you're working on
+4. Read the existing tests for the layer you'll touch
+5. Read the corresponding section of PROJECT.md §14 for that improvement's full design
+
+### Before opening a PR
+
+```bash
+# 1. Standard checks
+make all-checks
+
+# 2. After ★9 lands: regression check
+make test-golden
+
+# 3. After ★5 lands: documentation discipline
+make feature-status
+
+# 4. Backward compatibility manual check
+yao compose specs/templates/minimal.yaml
+yao compose specs/templates/bgm-90sec.yaml
+
+# 5. If your change affects audio output (★1, ★2, ★3, ★8 onward)
+yao compose specs/templates/minimal.yaml --render-audio
+# Listen and capture before/after audio for the PR
 ```
 
-```python
-# DO (in src/yao/sketch/compiler.py)
-class SpecCompiler:
-    def __init__(self):
-        self.mood_lexicon = MoodLexicon.load()  # data, not code
+### PR description template (v1.1)
 
-    def compile(self, description: str) -> SpecDraft:
-        moods = self.mood_lexicon.match(description)
-        emotion = self._aggregate_moods(moods)
-        ...
+```markdown
+## Improvement
+★N — <name>
+
+## What
+<one line>
+
+## Why
+<reason / linked issue>
+
+## How
+<key implementation choices>
+
+## FEATURE_STATUS.md
+- Updated entries: <list>
+
+## Backward compatibility
+- [ ] All shipped templates still compose without modification
+- [ ] make test passes unchanged
+- [ ] make test-golden passes (or goldens regenerated with documented reason)
+
+## Audio impact
+<sample link or "no audio impact">
+
+## Tests
+- Added: <list>
+- Modified: <list>
 ```
-
-The Conductor orchestrates a pipeline. Music decisions live in the SpecCompiler, Plan Generators, and Skills.
 
 ---
 
@@ -772,38 +565,129 @@ The Conductor orchestrates a pipeline. Music decisions live in the SpecCompiler,
 
 Stop and ask the human when:
 
-- Changing architectural boundaries or layer rules (especially Layer 3a)
-- Adding new external dependencies
+- Changing architectural boundaries or layer rules (the 7 layers are fixed in v1.1)
+- Adding new external dependencies beyond `sounddevice`/`watchdog` (★6) and `pedalboard` (Phase 4)
 - Making music theory judgment calls you're unsure about
 - Deleting files or rewriting git history
-- Any change touching 5+ files
-- ★ Any change to the Capability Matrix that downgrades a feature (`✅` → anything else)
-- ★ Touching multiple subagent definitions in one PR
-- ★ Modifying golden MIDI files
-- ★ Changing the spec schema in a non-additive way (breaking change)
+- ★ A task seems to require touching 2+ improvements at once — split it
+- ★ A task seems to require a new layer or major IR restructuring — this is v2.0 territory and was explicitly rejected
+- ★ Backward compatibility cannot be preserved (e.g., a spec field must be renamed)
+- ★ Modifying golden MIDI files (after ★9 lands)
+- ★ FEATURE_STATUS.md needs to downgrade a feature (`✅` → anything else)
 
 Escalation is responsibility, not weakness. **When uncertain, ask.**
 
 ---
 
-## Recent Changes
+## Common Tasks Cookbook
 
-- **2026-04-30 (v2.0)**: Major architecture revision. Introduced Layer 3a (CPIR), Capability Matrix, Vertical Alignment Principle, MetricGoal type system, RecoverableDecision, Music-as-Plan philosophy. Generator registry split into PlanGeneratorBase and NoteRealizerBase. Roadmap restructured into Phase α/β/γ/δ/ε. PROJECT.md updated to v2.0.
-- **2026-04-29**: MIDI reader, section regeneration (Conductor + CLI), evaluation.json persistence, richer feedback adaptations, Claude Code command upgrades (compose/critique/sketch/regenerate-section), 4 skills populated (cinematic, voice-leading, piano, tension-resolution), mypy fixes (140→0 errors).
-- **2026-04-29**: Constraint system, CLI diff/explain commands, stochastic unit tests, modified_notes in ScoreDiff, documentation completions.
-- **2026-04-28**: Stochastic generator, generator registry, musical error messages, queryable provenance, CLAUDE.md restructured into tiered guides.
-- **2026-04-28**: Phase 0+1 complete: 7-layer architecture, rule-based generator, MIDI/stems, evaluation, provenance, CLI, Claude Code commands/agents.
-- **2026-04-27**: Project initialized with PROJECT.md and CLAUDE.md.
+### "Add a new genre Skill" (this is ★7)
+
+1. Choose a genre from the priority list (lofi_hiphop, j_pop, etc.)
+2. Create `.claude/skills/genres/<name>.md` following the standard schema
+3. Verify front-matter YAML is correct (used by auto-generation)
+4. Run the front-matter extractor: `python tools/skill_yaml_sync.py`
+5. Add at least one drum pattern in `drum_patterns/<related>.yaml` if needed (depends on ★1)
+6. Update FEATURE_STATUS.md: Skills row
+7. PR title: `feat(skills): add <genre> genre skill (★7)`
+
+### "Add a new critique rule" (this is part of ★4)
+
+1. Identify the role (structural / melodic / harmonic / rhythmic / arrangement / emotional)
+2. Create or extend `src/yao/verify/critique/<role>.py`
+3. Inherit `CritiqueRule` and implement `detect(score, spec) -> list[Finding]`
+4. Register in `src/yao/verify/critique/registry.py`
+5. Write 2+ tests:
+   - Positive: feed a fixture that should trigger the rule, assert finding present
+   - Negative: feed a clean fixture, assert no finding from this rule
+6. Update FEATURE_STATUS.md: Critique row (increment rule count)
+7. PR title: `feat(critique): add <RuleName> detector (★4)`
+
+### "Add a new instrument range or scale"
+
+1. Edit `src/yao/constants/<file>.py` (instruments.py / scales.py / chords.py)
+2. Add unit test verifying the constant is accessible and reasonable
+3. If it changes generator behavior, run `make test-golden` and document any drift
+
+### "Edit composition.yaml schema (additive change)"
+
+1. Make additive changes only — never rename existing fields
+2. Update Pydantic model in `src/yao/schema/composition.py`
+3. Update at least one template in `specs/templates/`
+4. Update PROJECT.md §8 example if relevant
+5. Verify all existing project specs still load
+6. PR title: `feat(schema): add <field> to <section> (★N)`
+
+### "Edit composition.yaml schema (renaming/breaking change)"
+
+**Stop. Escalate.** Breaking schema changes violate Rule #6 (Incrementality).
+
+If absolutely required: provide a migration script in `tools/migrate_spec.py`, support both old and new for at least one release, and document deprecation in CHANGELOG.
+
+### "Add `yao watch` watcher" (this is ★6)
+
+1. Create `src/cli/watch.py` using `watchdog.observers.Observer`
+2. Listen for file modifications on the spec path
+3. On change: re-run compose in memory, play via `sounddevice`
+4. Show a clean status line (not a flood of logs)
+5. Handle Ctrl+C gracefully
+6. Add `yao watch` to the click command group in `src/cli/__init__.py`
+7. PR title: `feat(cli): add yao watch for hot-reload audition (★6)`
 
 ---
 
-## Closing thought
+## Library Restrictions (carried, with v1.1 additions)
 
-You are building the environment in which a Conductor (the human) leads an Orchestra (the Subagents) to make music together. **Build the environment well, and the music will follow.** Take shortcuts in the environment, and every piece composed in YaO will inherit those shortcuts.
+| Library | Allowed in | Purpose |
+|---|---|---|
+| `pretty_midi` | `ir/`, `render/` | MIDI creation/editing |
+| `music21` | `ir/`, `verify/` | Theory analysis, MusicXML |
+| `librosa` | `verify/`, `perception/` (future) | Audio feature analysis |
+| `pyloudnorm` | `verify/`, `perception/` (future) | LUFS measurement |
+| `pydantic` | `schema/` | YAML validation |
+| `structlog` | anywhere | Structured logging |
+| `click` | `cli/` | CLI framework |
+| `numpy/scipy` | anywhere | Numerical computation |
+| **★ NEW: `sounddevice`** | `cli/` only | Audio playback (★6) |
+| **★ NEW: `watchdog`** | `cli/` only | File watching (★6) |
+| `pedalboard` | (future) `render/production/` | Audio plugin processing (Phase 4 — do not use yet) |
 
-When a rule in this file feels inconvenient, remember: it exists because a previous shortcut produced unexplainable music. The rules are scar tissue. They protect the project's integrity.
+**Never**:
+- music21 for MIDI generation (use pretty_midi)
+- librosa for MIDI ops
+- pretty_midi for theory analysis
+- ★ sounddevice or watchdog outside `cli/` (these are user-facing only)
+- ★ pedalboard before Phase 4 lands
 
-> *Plan before notes. Explain every decision. Advance the layers together.*
+---
+
+## Recent Changes
+
+- **2026-04-29 (v1.1)**: Introduced 9 progressive improvements, Principle 6 (Incrementality), FEATURE_STATUS.md as single source of truth. Rejected v2.0 MPIR redesign in favor of incremental Layer-3/Layer-2 extensions. New types: DrumPattern, Finding, RecoverableDecision, GenerationParams. New CLI: yao preview, yao watch. New deps: sounddevice, watchdog. Architecture (7 layers) unchanged.
+- **2026-04-29 (v1.0.x)**: MIDI reader, section regeneration (Conductor + CLI), evaluation.json persistence, richer feedback adaptations, Claude Code command upgrades (compose/critique/sketch/regenerate-section), 4 skills populated, mypy fixes (140→0 errors)
+- **2026-04-29**: Constraint system, CLI diff/explain commands, stochastic unit tests, modified_notes in ScoreDiff
+- **2026-04-28**: Stochastic generator, generator registry, musical error messages, queryable provenance
+- **2026-04-28**: Phase 0+1 complete: 7-layer architecture, rule-based generator, MIDI/stems, evaluation, provenance, CLI, Claude Code commands/agents
+- **2026-04-27**: Project initialized with PROJECT.md and CLAUDE.md
+
+---
+
+## Why this approach for v1.1
+
+Earlier proposals suggested large architectural revisions (an 8-layer model with a Musical Plan IR, a 180-day migration plan). Those proposals were ambitious but did not get implemented.
+
+v1.1 takes the opposite stance:
+
+> **A working v1.0 is more valuable than a designed v2.0. Improve v1.0 in small, verifiable steps.**
+
+This means:
+- No new layers, no new IR types between Spec and ScoreIR (only DrumPattern as a parallel IR)
+- No global pipeline restructuring
+- No "migration phase" that puts everything on hold
+- Each improvement ships independently and provides immediate value
+- Backward compatibility is a hard constraint, not a "nice to have"
+
+You will be tempted, while implementing ★1, to think "this would be cleaner if we also did ★3 here". Resist. Each improvement on its own is small and reversible. Together they transform YaO from a "phase 1 demo" into a real music production tool.
 
 ---
 
@@ -811,20 +695,29 @@ When a rule in this file feels inconvenient, remember: it exists because a previ
 
 | Guide | When to read |
 |---|---|
-| [Architecture](./.claude/guides/architecture.md) | Working across layers, adding modules — note Layer 3a additions |
-| [Coding Conventions](./.claude/guides/coding-conventions.md) | Writing any code |
-| [Music Engineering](./.claude/guides/music-engineering.md) | Generating/modifying notes |
-| [Plan Engineering](./.claude/guides/plan-engineering.md) ★v2.0 | Writing plan generators or critique rules |
-| [Testing](./.claude/guides/testing.md) | Writing or running tests (incl. golden, scenario, subagent) |
-| [Workflow](./.claude/guides/workflow.md) | Planning a change |
-| [Matrix Discipline](./.claude/guides/matrix-discipline.md) ★v2.0 | Updating PROJECT.md §5 |
-| [Critique Rule Authoring](./.claude/guides/critique-rules.md) ★v2.0 | Adding to the 30+ rule registry |
+| [Architecture](.claude/guides/architecture.md) | Working across layers, adding modules — note: 7 layers are fixed in v1.1 |
+| [Coding Conventions](.claude/guides/coding-conventions.md) | Writing any code |
+| [Music Engineering](.claude/guides/music-engineering.md) | Generating/modifying notes |
+| [Testing](.claude/guides/testing.md) | Writing or running tests (incl. golden MIDI after ★9) |
+| [Workflow](.claude/guides/workflow.md) | Planning a change |
 
 Full design documentation: [PROJECT.md](./PROJECT.md)
+Feature reality: [FEATURE_STATUS.md](./FEATURE_STATUS.md)
+
+---
+
+## Closing thought
+
+You are extending a working environment, not rebuilding it. Each PR you ship adds one capability and preserves all existing ones. Over 3–4 months, these accumulate into a tool that is genuinely useful for diverse, high-quality music production.
+
+When you're tempted to redesign, remember: **v1.0 works. v1.1 makes it sing.**
+
+> *Your vision. Your taste. Your soul.*
+> *— and an Orchestra ready to grow with you, one careful step at a time.*
 
 ---
 
 **Project: You and Orchestra (YaO)**
-*CLAUDE.md version: 2.0*
+*CLAUDE.md version: 1.1*
 *Supersedes: CLAUDE.md v1.0 (2026-04-28)*
-*Last revised: 2026-04-30*
+*Last revised: 2026-04-29*

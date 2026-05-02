@@ -171,11 +171,13 @@ CompositionSpec  -->  GeneratorBase.generate()  -->  (ScoreIR, ProvenanceLog)
 - `generators/registry.py` -- `@register_generator()`, `get_generator()`, `available_generators()`
 - `generators/rule_based.py` -- Deterministic scale-based generation
 - `generators/stochastic.py` -- Seeded randomness with StochasticConfig (15 tunable params), 4 contour algorithms (arch/ascending/descending/wave), 5 chord voicing types, section-aware progressions, walking bass, 12 rhythm patterns
+- `generators/drum_patterner.py` -- 8 genre-specific drum patterns with swing, ghost notes, trajectory density
+- `generators/counter_melody.py` -- Species counterpoint with contrary motion, density control
 - `generators/legacy_adapter.py` -- Backward compatibility adapter for v1 generators
 - `generators/plan/base.py` -- `PlanGeneratorBase` ABC (v2.0)
 - `generators/plan/form_planner.py` -- Generates `SongFormPlan` from `CompositionSpec`
 - `generators/plan/harmony_planner.py` -- Generates `HarmonyPlan` from spec + form
-- `generators/plan/orchestrator.py` -- Generates arrangement/drums (Phase beta)
+- `generators/plan/orchestrator.py` -- Runs form -> harmony planners, builds MusicalPlan
 - `generators/note/base.py` -- `NoteRealizerBase` ABC (v2.0)
 - `generators/note/rule_based.py` -- Rule-based note realizer (v2.0)
 - `generators/note/stochastic.py` -- Stochastic note realizer (v2.0)
@@ -201,13 +203,17 @@ CompositionSpec  -->  GeneratorBase.generate()  -->  (ScoreIR, ProvenanceLog)
   - `structural.py` -- 3 rules: climax absence, section monotony, form imbalance
   - `melodic.py` -- 3 rules: cliche motif, contour monotony, phrase closure weakness
   - `harmonic.py` -- 3 rules: cliche progression, voice crossing, cadence weakness
-  - `rhythmic.py` -- 1 rule: rhythmic monotony
+  - `rhythmic.py` -- 2 rules: rhythmic monotony, groove inconsistency
+  - `arrangement.py` -- 2 rules: frequency collision, texture collapse
   - `emotional.py` -- 2 rules: intent divergence, trajectory violation
 
 ### Conductor
-- `conductor/conductor.py` -- `Conductor` with `compose_from_description()`, `compose_from_spec()`, `regenerate_section()`, mood-to-key mapping (22 moods), instrument keyword mapping (11 groups)
-- `conductor/feedback.py` -- `suggest_adaptations()`, `apply_adaptations()`, maps 8 failing metrics to spec changes
-- `conductor/result.py` -- `ConductorResult` with score, spec, paths, analysis, evaluation, iteration history
+- `conductor/conductor.py` -- `Conductor` with `compose_from_description()`, `compose_from_spec()`, `regenerate_section()`, mood-to-key mapping, instrument keyword mapping, critique integration
+- `conductor/feedback.py` -- `suggest_adaptations()`, `apply_adaptations()`, maps failing metrics and critique findings to spec changes
+- `conductor/result.py` -- `ConductorResult` with score, spec, paths, analysis, evaluation, iteration history, critic_findings
+
+### Sketch
+- `sketch/compiler.py` -- `SpecCompiler` extracted from Conductor: mood → key, pace → tempo, explicit key regex, instrument keywords
 
 ### CLI
-- `cli/main.py` -- Click commands: conduct, compose, regenerate-section, render, validate, evaluate, diff, explain, new-project
+- `cli/main.py` -- Click commands: conduct, compose, regenerate-section, render, validate, evaluate, diff, explain, new-project, preview, watch (11 commands)

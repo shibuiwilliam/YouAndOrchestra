@@ -17,6 +17,8 @@ dependencies = [
     "scipy>=1.11",
     "soundfile>=0.12",
     "click>=8.1",
+    "sounddevice>=0.4.6",
+    "watchdog>=3.0.0",
 ]
 
 [project.optional-dependencies]
@@ -67,6 +69,10 @@ module = [
     "numpy.*",
     "yaml",
     "yaml.*",
+    "sounddevice",
+    "sounddevice.*",
+    "watchdog",
+    "watchdog.*",
 ]
 ignore_missing_imports = true
 

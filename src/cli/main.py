@@ -108,12 +108,28 @@ def compose(
         generator = get_generator(strategy)
         score, provenance = generator.generate(spec, traj)
 
-        # 4. Write MIDI
+        # 4. Generate drum hits if spec has drums
+        drum_hit_list = None
+        if spec.drums is not None:
+            from yao.generators.drum_patterner import generate_drum_hits
+            from yao.ir.trajectory import MultiDimensionalTrajectory
+
+            traj_ir = MultiDimensionalTrajectory.from_spec(traj) if traj else MultiDimensionalTrajectory.default()
+            drum_hit_list, drum_prov = generate_drum_hits(
+                spec,
+                trajectory=traj_ir,
+                seed=spec.generation.seed or 42,
+            )
+            for record in drum_prov.records:
+                provenance.add(record)
+            click.echo(f"Drums: {len(drum_hit_list)} hits ({spec.drums.pattern_family})")
+
+        # 5. Write MIDI
         midi_path = output_dir / "full.mid"
-        write_midi(score, midi_path)
+        write_midi(score, midi_path, drum_hits=drum_hit_list)
         click.echo(f"MIDI written: {midi_path}")
 
-        # 5. Write stems
+        # 6. Write stems
         if stems:
             stem_paths = write_stems(score, output_dir)
             click.echo(f"Stems written: {len(stem_paths)} instruments")
@@ -496,6 +512,164 @@ def regenerate_section(project_name: str, section_name: str, seed: int | None, i
 
     except YaOError as e:
         raise click.ClickException(str(e)) from e
+
+
+@cli.command()
+@click.argument("spec_path", type=click.Path(exists=True, path_type=Path))
+@click.option("--seed", default=42, help="Generation seed.")
+@click.option(
+    "--soundfont",
+    type=click.Path(exists=True, path_type=Path),
+    default=None,
+    help="SoundFont path (auto-detect if not given).",
+)
+def preview(spec_path: Path, seed: int, soundfont: Path | None) -> None:
+    """Generate and play immediately. No file output.
+
+    \b
+    Useful for rapid iteration: edit YAML, preview, adjust.
+    Example:
+      yao preview specs/templates/minimal.yaml
+      yao preview specs/projects/my-song/composition.yaml --seed 99
+    """
+    try:
+        import sounddevice as sd
+    except ImportError as exc:
+        raise click.ClickException("sounddevice not installed. Install with: pip install sounddevice") from exc
+
+    from yao.render.midi_writer import score_ir_to_midi
+
+    try:
+        spec = load_composition_spec(spec_path)
+    except SpecValidationError as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo(f"Generating: {spec.title} (seed={seed})...")
+
+    try:
+        gen_config = spec.generation.model_copy(update={"seed": seed})
+        gen_spec = spec.model_copy(update={"generation": gen_config})
+        generator = get_generator(gen_spec.generation.strategy)
+        score, _prov = generator.generate(gen_spec)
+    except YaOError as e:
+        raise click.ClickException(str(e)) from e
+
+    sf_path = soundfont or _find_soundfont()
+    if sf_path is None:
+        raise click.ClickException("No SoundFont found. Place a .sf2 in soundfonts/ or use --soundfont")
+
+    click.echo("Synthesizing audio...")
+    midi = score_ir_to_midi(score)
+    audio = midi.fluidsynth(sf2_path=str(sf_path))
+    sample_rate = 44100
+    duration_sec = len(audio) / sample_rate
+
+    click.echo(f"Playing {duration_sec:.1f}s... (Ctrl+C to stop)")
+    try:
+        sd.play(audio, samplerate=sample_rate)
+        sd.wait()
+        click.echo("Done.")
+    except KeyboardInterrupt:
+        sd.stop()
+        click.echo("\nStopped.")
+
+
+@cli.command()
+@click.argument("spec_path", type=click.Path(exists=True, path_type=Path))
+@click.option("--seed", default=42, help="Generation seed.")
+@click.option(
+    "--soundfont",
+    type=click.Path(exists=True, path_type=Path),
+    default=None,
+    help="SoundFont path (auto-detect if not given).",
+)
+def watch(spec_path: Path, seed: int, soundfont: Path | None) -> None:
+    """Watch a spec file and auto-play on save.
+
+    \b
+    Edit and save the spec to immediately hear the regenerated music.
+    Example:
+      yao watch specs/templates/minimal.yaml
+    """
+    import time
+
+    try:
+        import sounddevice as sd
+        from watchdog.events import FileSystemEventHandler
+        from watchdog.observers import Observer
+    except ImportError as exc:
+        raise click.ClickException(
+            f"Missing dependency: {exc.name}. Install with: pip install sounddevice watchdog"
+        ) from exc
+
+    from yao.render.midi_writer import score_ir_to_midi
+
+    sf_path = soundfont or _find_soundfont()
+    if sf_path is None:
+        raise click.ClickException("No SoundFont found. Place a .sf2 in soundfonts/ or use --soundfont")
+
+    resolved = spec_path.resolve()
+
+    def _regenerate_and_play() -> None:
+        try:
+            click.echo(f"\nSpec changed, regenerating (seed={seed})...")
+            spec = load_composition_spec(resolved)
+            gen_config = spec.generation.model_copy(update={"seed": seed})
+            gen_spec = spec.model_copy(update={"generation": gen_config})
+            generator = get_generator(gen_spec.generation.strategy)
+            score, _ = generator.generate(gen_spec)
+
+            midi = score_ir_to_midi(score)
+            audio = midi.fluidsynth(sf2_path=str(sf_path))
+
+            sd.stop()
+            duration_sec = len(audio) / 44100
+            click.echo(f"Playing {duration_sec:.1f}s... (edit and save to hear new version)")
+            sd.play(audio, samplerate=44100)
+        except Exception as e:  # noqa: BLE001
+            click.echo(f"Error: {e}", err=True)
+
+    class _SpecChangeHandler(FileSystemEventHandler):
+        def __init__(self) -> None:
+            self.last_modified = 0.0
+
+        def on_modified(self, event) -> None:  # type: ignore[override]
+            if event.is_directory:
+                return
+            if Path(event.src_path).resolve() != resolved:
+                return
+            now = time.time()
+            if now - self.last_modified < 0.5:
+                return
+            self.last_modified = now
+            _regenerate_and_play()
+
+    handler = _SpecChangeHandler()
+    observer = Observer()
+    observer.schedule(handler, str(resolved.parent), recursive=False)
+    observer.start()
+
+    click.echo(f"Watching {resolved.name}  (Ctrl+C to exit)")
+    _regenerate_and_play()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        click.echo("\nStopping watch.")
+        sd.stop()
+        observer.stop()
+    observer.join()
+
+
+def _find_soundfont() -> Path | None:
+    """Search for a SoundFont in soundfonts/ directory."""
+    sf_dir = Path("soundfonts")
+    if not sf_dir.exists():
+        return None
+    for sf in sorted(sf_dir.glob("*.sf2")):
+        return sf
+    return None
 
 
 if __name__ == "__main__":

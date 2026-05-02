@@ -73,6 +73,85 @@ class TrajectoryCurve:
         return 0.5
 
 
+@dataclass(frozen=True)
+class GenerationParams:
+    """Per-bar generation parameters derived from trajectory.
+
+    Used by generators to dynamically adjust output across the timeline.
+    Each field is derived from one or more trajectory dimensions.
+    """
+
+    velocity_modifier: int
+    """Added to base velocity. Range ±20. From tension."""
+
+    leap_probability: float
+    """Probability of a melodic leap vs stepwise motion [0,1]. From tension."""
+
+    note_density_factor: float
+    """Multiplier on base note count [0.5, 2.0]. From density."""
+
+    rhythmic_subdivision: int
+    """Rhythmic grid: 4=quarter, 8=eighth, 16=sixteenth. From density."""
+
+    register_offset: int
+    """Semitone offset for melody register [-12, +12]. From register_height."""
+
+    chord_extension_prob: float
+    """Probability of adding 7th/9th to chords [0,1]. From tension."""
+
+    motif_variation_rate: float
+    """How much motifs vary on repetition [0,1]. From predictability (inverted)."""
+
+
+_DEFAULT_PARAMS = GenerationParams(
+    velocity_modifier=0,
+    leap_probability=0.15,
+    note_density_factor=1.0,
+    rhythmic_subdivision=8,
+    register_offset=0,
+    chord_extension_prob=0.1,
+    motif_variation_rate=0.3,
+)
+
+
+def derive_generation_params(
+    trajectory: MultiDimensionalTrajectory,
+    bar: int,
+) -> GenerationParams:
+    """Compute generation parameters for a specific bar from trajectory.
+
+    Maps each trajectory dimension to relevant generation parameters.
+    All mappings have musical rationale:
+
+    - tension → velocity, leap probability, chord extensions
+    - density → note count, rhythmic subdivision
+    - register_height → octave/register offset
+    - predictability → motif variation (inverted: low predict = more variation)
+    - brightness → (reserved for future instrument/voicing selection)
+
+    Args:
+        trajectory: The multi-dimensional trajectory.
+        bar: Bar number.
+
+    Returns:
+        GenerationParams for this bar.
+    """
+    tension = trajectory.value_at("tension", float(bar))
+    density = trajectory.value_at("density", float(bar))
+    predict = trajectory.value_at("predictability", float(bar))
+    register = trajectory.value_at("register_height", float(bar))
+
+    return GenerationParams(
+        velocity_modifier=int((tension - 0.5) * 40),
+        leap_probability=min(0.15 + tension * 0.4, 0.9),
+        note_density_factor=0.5 + density * 1.5,
+        rhythmic_subdivision=16 if density > 0.65 else 8,  # noqa: PLR2004
+        register_offset=round((register - 0.5) * 24),
+        chord_extension_prob=tension * 0.6,
+        motif_variation_rate=1.0 - predict,
+    )
+
+
 def _default_curve() -> TrajectoryCurve:
     """Create a flat 0.5 curve (neutral default)."""
     return TrajectoryCurve(curve_type="linear", target=0.5)

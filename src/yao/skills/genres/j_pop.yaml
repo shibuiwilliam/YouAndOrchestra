@@ -1,0 +1,23 @@
+genre: j_pop
+tempo_range:
+- 110
+- 135
+typical_keys:
+- C
+- G
+- F
+- D
+modal_options:
+- major
+- minor
+default_swing: 0.0
+typical_drum_pattern: pop_8beat
+preferred_instruments:
+- piano
+- acoustic_guitar_steel
+- electric_bass_finger
+avoided_instruments:
+- tuba
+- harpsichord
+- timpani
+- baritone_sax

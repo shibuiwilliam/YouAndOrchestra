@@ -24,7 +24,9 @@ from yao.conductor.feedback import (
 )
 from yao.conductor.result import ConductorResult
 from yao.generators.legacy_adapter import generate_via_v2_pipeline
-from yao.ir.score_ir import ScoreIR, Section
+from yao.ir.drum import DrumHit
+from yao.ir.score_ir import Part, ScoreIR, Section
+from yao.ir.trajectory import MultiDimensionalTrajectory
 from yao.reflect.provenance import ProvenanceLog
 from yao.render.iteration import next_iteration_dir
 from yao.render.midi_writer import write_midi
@@ -165,8 +167,72 @@ class Conductor:
                     rationale=(f"Adversarial Critic found {len(critic_findings)} issue(s) in iteration {iteration}."),
                 )
 
+            # Generate counter-melodies for instruments with counter_melody role
+            counter_specs = [i for i in current_spec.instruments if i.role == "counter_melody"]
+            if counter_specs:
+                from yao.generators.counter_melody import generate_counter_melody
+
+                for ci in counter_specs:
+                    # Find the main melody instrument this counters
+                    main_name = ci.counter_to or "piano"
+                    main_notes = score.part_for_instrument(main_name)
+                    if not main_notes:
+                        continue
+
+                    main_part = Part(instrument=main_name, notes=tuple(main_notes))
+                    counter_part, counter_prov = generate_counter_melody(
+                        main_part=main_part,
+                        target_instrument=ci.name,
+                        key=current_spec.key,
+                        tempo_bpm=current_spec.tempo_bpm,
+                        time_signature=current_spec.time_signature,
+                        density_factor=ci.density_factor,
+                        seed=(current_spec.generation.seed or 42) + 1,
+                    )
+                    for record in counter_prov.records:
+                        combined_provenance.add(record)
+
+                    # Inject counter-melody into score
+                    if counter_part.notes:
+                        merged_sections = []
+                        for section in score.sections:
+                            merged_parts = list(section.parts) + [counter_part]
+                            merged_sections.append(
+                                Section(
+                                    name=section.name,
+                                    start_bar=section.start_bar,
+                                    end_bar=section.end_bar,
+                                    parts=tuple(merged_parts),
+                                )
+                            )
+                        score = ScoreIR(
+                            title=score.title,
+                            tempo_bpm=score.tempo_bpm,
+                            time_signature=score.time_signature,
+                            key=score.key,
+                            sections=tuple(merged_sections),
+                        )
+
+            # Generate drum hits if spec has drums
+            drum_hits: list[DrumHit] = []
+            if current_spec.drums is not None:
+                from yao.generators.drum_patterner import generate_drum_hits
+
+                traj_ir = (
+                    MultiDimensionalTrajectory.from_spec(trajectory)
+                    if trajectory
+                    else MultiDimensionalTrajectory.default()
+                )
+                drum_hits, drum_prov = generate_drum_hits(
+                    current_spec,
+                    trajectory=traj_ir,
+                    seed=current_spec.generation.seed or 42,
+                )
+                for record in drum_prov.records:
+                    combined_provenance.add(record)
+
             # Write outputs
-            midi_path = write_midi(score, output_dir / "full.mid")
+            midi_path = write_midi(score, output_dir / "full.mid", drum_hits=drum_hits)
             stems = write_stems(score, output_dir)
 
             # Evaluate

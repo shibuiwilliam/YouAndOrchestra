@@ -631,7 +631,17 @@ class StochasticGenerator(GeneratorBase):
 
             velocity = self._compute_velocity(section_spec, start_bar, trajectory)
             vel_variation = rng.randint(-5, 5)
-            final_vel = max(1, min(127, velocity + vel_variation))
+            raw_vel = velocity + vel_variation
+            final_vel = max(1, min(127, raw_vel))
+            if final_vel != raw_vel:
+                self._record_recovery(
+                    "VELOCITY_CLAMPED",
+                    "info",
+                    raw_vel,
+                    final_vel,
+                    f"Motif velocity {raw_vel} clamped to MIDI range",
+                    "Negligible — within normal humanization range",
+                )
 
             result.append(
                 Note(

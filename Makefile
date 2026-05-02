@@ -1,5 +1,5 @@
 .PHONY: install setup-hooks test test-unit test-integration test-music test-golden test-subagent \
-       lint format arch-lint matrix-check validate-spec new-project compose render \
+       lint format arch-lint matrix-check feature-status validate-spec new-project compose render \
        setup-soundfonts all-checks
 
 install:
@@ -39,14 +39,19 @@ format:
 arch-lint:
 	python tools/architecture_lint.py
 
-matrix-check:
-	python tools/capability_matrix_check.py
+matrix-check: feature-status
+
+feature-status:
+	python tools/feature_status_check.py
 
 validate-spec:
 	@test -n "$(SPEC)" || (echo "Usage: make validate-spec SPEC=specs/templates/v2/bgm-90sec-pop.yaml" && exit 1)
 	python -c "from yao.schema.loader import load_composition_spec_auto; s = load_composition_spec_auto(__import__('pathlib').Path('$(SPEC)')); print(f'OK: {type(s).__name__} loaded — {s.identity.title if hasattr(s, \"identity\") else s.title}')"
 
-all-checks: lint arch-lint matrix-check test test-golden
+sync-skills:
+	python tools/skill_yaml_sync.py
+
+all-checks: lint arch-lint matrix-check feature-status test test-golden
 
 new-project:
 	@test -n "$(NAME)" || (echo "Usage: make new-project NAME=my-song" && exit 1)

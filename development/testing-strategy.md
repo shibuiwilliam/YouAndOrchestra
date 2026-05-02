@@ -10,7 +10,7 @@
 | Scenarios | `tests/scenarios/` | Prove musical value (not just mechanics) | ~16 |
 | Golden | `tests/golden/` | Fixed output regression | 6 |
 | Subagent Evals | `tests/subagent_evals/` | LLM-as-judge prompt regression | ~18 |
-| **Total** | | | **~580** |
+| **Total** | | | **~643** |
 
 ### Unit Test Coverage
 
@@ -49,7 +49,7 @@
 ## Running Tests
 
 ```bash
-make test              # All ~580 tests
+make test              # All ~643 tests
 make test-unit         # Unit tests only
 make test-integration  # Integration tests
 make test-music        # Music constraint tests

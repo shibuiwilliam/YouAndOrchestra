@@ -362,6 +362,119 @@ class TestRhythmicMonotonyDetector:
         assert len(findings) == 0
 
 
+class TestSyncopationLackDetector:
+    """Test SyncopationLackDetector."""
+
+    def test_positive_energetic_but_low_density(self) -> None:
+        plan = _make_plan(
+            sections=[
+                SectionPlan("intro", 0, 4, "intro", 0.3, 0.3),
+                SectionPlan("verse", 4, 8, "verse", 0.3, 0.8),  # high tension, low density
+                SectionPlan("chorus", 12, 8, "chorus", 0.3, 0.7),  # high tension, low density
+            ]
+        )
+        from yao.verify.critique.rhythmic import SyncopationLackDetector
+
+        findings = SyncopationLackDetector().detect(plan, _make_spec())
+        assert len(findings) == 1
+
+    def test_negative_energetic_with_high_density(self) -> None:
+        plan = _make_plan(
+            sections=[
+                SectionPlan("verse", 0, 8, "verse", 0.8, 0.8),  # high tension, high density
+                SectionPlan("chorus", 8, 8, "chorus", 0.9, 0.9),
+            ]
+        )
+        from yao.verify.critique.rhythmic import SyncopationLackDetector
+
+        findings = SyncopationLackDetector().detect(plan, _make_spec())
+        assert len(findings) == 0
+
+
+# ============ Arrangement Rules ============
+
+
+class TestFrequencyCollisionDetector:
+    """Test FrequencyCollisionDetector."""
+
+    def test_positive_same_range_instruments(self) -> None:
+        """Two instruments with identical range should trigger collision."""
+        spec = _make_spec(
+            **{
+                "arrangement": {
+                    "instruments": {
+                        "piano": {"role": "melody"},
+                        "electric_piano": {"role": "harmony"},
+                    }
+                },
+            }
+        )
+        plan = _make_plan()
+        from yao.verify.critique.arrangement import FrequencyCollisionDetector
+
+        findings = FrequencyCollisionDetector().detect(plan, spec)
+        assert len(findings) >= 1
+
+    def test_negative_different_range_instruments(self) -> None:
+        """Instruments with very different ranges should not trigger."""
+        spec = _make_spec(
+            **{
+                "arrangement": {
+                    "instruments": {
+                        "piccolo": {"role": "melody"},
+                        "tuba": {"role": "bass"},
+                    }
+                },
+            }
+        )
+        plan = _make_plan()
+        from yao.verify.critique.arrangement import FrequencyCollisionDetector
+
+        findings = FrequencyCollisionDetector().detect(plan, spec)
+        assert len(findings) == 0
+
+
+class TestTextureCollapseDetector:
+    """Test TextureCollapseDetector."""
+
+    def test_positive_all_same_role(self) -> None:
+        """All instruments with same role should trigger."""
+        spec = _make_spec(
+            **{
+                "arrangement": {
+                    "instruments": {
+                        "piano": {"role": "melody"},
+                        "violin": {"role": "melody"},
+                        "flute": {"role": "melody"},
+                    }
+                },
+            }
+        )
+        plan = _make_plan()
+        from yao.verify.critique.arrangement import TextureCollapseDetector
+
+        findings = TextureCollapseDetector().detect(plan, spec)
+        assert len(findings) == 1
+
+    def test_negative_varied_roles(self) -> None:
+        """Instruments with different roles should not trigger."""
+        spec = _make_spec(
+            **{
+                "arrangement": {
+                    "instruments": {
+                        "piano": {"role": "melody"},
+                        "cello": {"role": "bass"},
+                    }
+                },
+            }
+        )
+        plan = _make_plan()
+        from yao.verify.critique.arrangement import TextureCollapseDetector
+
+        findings = TextureCollapseDetector().detect(plan, spec)
+        assert len(findings) == 0
+
+
 # ============ Emotional Rules ============
 
 
@@ -432,7 +545,7 @@ class TestCritiqueRegistry:
     def test_all_rules_registered(self) -> None:
         from yao.verify.critique import CRITIQUE_RULES
 
-        assert len(CRITIQUE_RULES) >= 12  # noqa: PLR2004
+        assert len(CRITIQUE_RULES) >= 15  # noqa: PLR2004
 
     def test_run_all_produces_findings(self) -> None:
         """Run all rules on a deliberately problematic plan."""

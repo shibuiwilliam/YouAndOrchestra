@@ -1,0 +1,23 @@
+genre: lofi_hiphop
+tempo_range:
+- 70
+- 95
+typical_keys:
+- Am
+- Em
+- Dm
+modal_options:
+- minor
+- dorian
+default_swing: 0.6
+typical_drum_pattern: lofi_laidback
+preferred_instruments:
+- piano
+- electric_piano
+- electric_bass_finger
+avoided_instruments:
+- synth_lead_square
+- synth_lead_saw
+- trumpet
+- piccolo
+- tuba

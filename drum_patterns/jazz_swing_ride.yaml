@@ -1,0 +1,26 @@
+# Jazz swing ride pattern
+# Ride on every beat + swing 8ths, kick light on 1 and 3, hi-hat pedal on 2 and 4, no snare
+id: jazz_swing_ride
+genre: jazz
+time_signature: "4/4"
+bars_per_pattern: 1
+swing: 0.67
+humanize_ms: 8
+
+hits:
+  # Beat 1
+  - { time_beats: 0.0, kit_piece: kick, velocity: 60, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: ride, velocity: 90, duration_beats: 0.25 }
+  - { time_beats: 0.5, kit_piece: ride, velocity: 65, duration_beats: 0.25 }
+  # Beat 2
+  - { time_beats: 1.0, kit_piece: ride, velocity: 85, duration_beats: 0.25 }
+  - { time_beats: 1.0, kit_piece: pedal_hat, velocity: 70, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: ride, velocity: 65, duration_beats: 0.25 }
+  # Beat 3
+  - { time_beats: 2.0, kit_piece: kick, velocity: 55, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: ride, velocity: 90, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: ride, velocity: 65, duration_beats: 0.25 }
+  # Beat 4
+  - { time_beats: 3.0, kit_piece: ride, velocity: 85, duration_beats: 0.25 }
+  - { time_beats: 3.0, kit_piece: pedal_hat, velocity: 70, duration_beats: 0.25 }
+  - { time_beats: 3.5, kit_piece: ride, velocity: 65, duration_beats: 0.25 }

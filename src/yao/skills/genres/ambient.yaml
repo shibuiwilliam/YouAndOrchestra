@@ -1,0 +1,29 @@
+genre: ambient
+tempo_range:
+- 60
+- 90
+typical_keys:
+- C
+- G
+- D
+- Am
+modal_options:
+- lydian
+- dorian
+- mixolydian
+- major
+default_swing: 0.0
+typical_drum_pattern: null
+preferred_instruments:
+- synth_pad_warm
+- piano
+- strings_ensemble
+avoided_instruments:
+- timpani
+- piccolo
+- xylophone
+- trumpet
+- trombone
+- tuba
+- electric_guitar_clean
+- electric_bass_pick

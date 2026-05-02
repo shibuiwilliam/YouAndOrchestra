@@ -1,0 +1,25 @@
+title: "Lo-fi Cafe"
+key: "A minor"
+tempo_bpm: 82
+time_signature: "4/4"
+
+instruments:
+  - { name: piano, role: melody }
+  - { name: electric_bass_finger, role: bass }
+
+drums:
+  pattern_family: "lofi_laidback"
+  swing: 0.6
+  humanize_ms: 8
+  ghost_notes_density: 0.4
+
+sections:
+  - { name: intro, bars: 4, dynamics: pp }
+  - { name: verse, bars: 8, dynamics: mp }
+  - { name: chorus, bars: 8, dynamics: mf }
+  - { name: outro, bars: 4, dynamics: pp }
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.5

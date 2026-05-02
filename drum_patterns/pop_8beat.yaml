@@ -1,0 +1,22 @@
+# Standard pop 8-beat pattern
+# Kick on 1 and 3, snare on 2 and 4, closed hats on every 8th
+id: pop_8beat
+genre: pop
+time_signature: "4/4"
+bars_per_pattern: 1
+swing: 0.0
+humanize_ms: 5
+
+hits:
+  - { time_beats: 0.0, kit_piece: kick, velocity: 100, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: closed_hat, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 0.5, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 1.0, kit_piece: snare, velocity: 105, duration_beats: 0.25 }
+  - { time_beats: 1.0, kit_piece: closed_hat, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: kick, velocity: 95, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: closed_hat, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 3.0, kit_piece: snare, velocity: 105, duration_beats: 0.25 }
+  - { time_beats: 3.0, kit_piece: closed_hat, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 3.5, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }

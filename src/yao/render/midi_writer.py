@@ -17,6 +17,7 @@ from yao.errors import RenderError
 from yao.ir.timing import beats_to_seconds
 
 if TYPE_CHECKING:
+    from yao.ir.drum import DrumHit
     from yao.ir.score_ir import ScoreIR
 
 
@@ -80,10 +81,49 @@ def score_ir_to_midi(
     return midi
 
 
+def add_drum_hits_to_midi(
+    midi: pretty_midi.PrettyMIDI,
+    drum_hits: list[DrumHit],
+    tempo_bpm: float,
+) -> None:
+    """Add drum hits to an existing PrettyMIDI object.
+
+    Creates a dedicated drum instrument (is_drum=True, GM Channel 10)
+    and appends all hits.
+
+    Args:
+        midi: The PrettyMIDI object to modify.
+        drum_hits: List of DrumHit objects.
+        tempo_bpm: Tempo for beat-to-time conversion.
+    """
+    if not drum_hits:
+        return
+
+    drum_inst = pretty_midi.Instrument(program=0, is_drum=True, name="drums")
+
+    for hit in drum_hits:
+        start = beats_to_seconds(hit.time_beats, tempo_bpm) + hit.microtiming_ms / 1000.0
+        end = beats_to_seconds(hit.time_beats + hit.duration_beats, tempo_bpm)
+        start = max(0.0, start)  # microtiming can push slightly negative
+
+        drum_inst.notes.append(
+            pretty_midi.Note(
+                velocity=hit.velocity,
+                pitch=hit.to_midi_pitch(),
+                start=start,
+                end=end,
+            )
+        )
+
+    drum_inst.notes.sort(key=lambda n: n.start)
+    midi.instruments.append(drum_inst)
+
+
 def write_midi(
     score: ScoreIR,
     output_path: Path,
     ppq: int = DEFAULT_PPQ,
+    drum_hits: list[DrumHit] | None = None,
 ) -> Path:
     """Convert a ScoreIR and write it to a MIDI file.
 
@@ -91,6 +131,7 @@ def write_midi(
         score: The ScoreIR to write.
         output_path: Path for the output .mid file.
         ppq: Pulses per quarter note.
+        drum_hits: Optional drum hits to include as a drum track.
 
     Returns:
         The path to the written MIDI file.
@@ -99,6 +140,9 @@ def write_midi(
         RenderError: If writing fails.
     """
     midi = score_ir_to_midi(score, ppq)
+
+    if drum_hits:
+        add_drum_hits_to_midi(midi, drum_hits, score.tempo_bpm)
 
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)

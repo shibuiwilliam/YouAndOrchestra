@@ -58,7 +58,7 @@ You can also compose from natural language:
 /critique rainy-afternoon
 ```
 
-The adversarial critic finds every weakness — it never praises. YaO includes 12 structured critique rules across 5 categories (structural, melodic, harmonic, rhythmic, emotional). Each rule emits `Finding` objects with severity (critical/major/minor/suggestion), evidence, bar-level location, and concrete recommendations. Writes `critique.md` to the iteration directory.
+The adversarial critic finds every weakness — it never praises. YaO includes 15 structured critique rules across 6 categories (structural, melodic, harmonic, rhythmic, arrangement, emotional). Each rule emits `Finding` objects with severity (critical/major/minor/suggestion), evidence, bar-level location, and concrete recommendations. Writes `critique.md` to the iteration directory.
 
 ### `/regenerate-section` — Fix one section
 

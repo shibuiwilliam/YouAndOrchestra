@@ -1,0 +1,23 @@
+genre: cinematic
+tempo_range:
+- 60
+- 160
+typical_keys:
+- Dm
+- Cm
+- Bb
+- F
+modal_options:
+- minor
+- major
+default_swing: 0.0
+typical_drum_pattern: null
+preferred_instruments:
+- strings_ensemble
+- french_horn
+- piano
+- cello
+- timpani
+avoided_instruments:
+- synth_lead_saw
+- electric_guitar_clean

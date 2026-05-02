@@ -1,0 +1,28 @@
+genre: acoustic_folk
+tempo_range:
+- 90
+- 130
+typical_keys:
+- G
+- C
+- D
+- Em
+modal_options:
+- major
+- minor
+- mixolydian
+- dorian
+default_swing: 0.0
+typical_drum_pattern: ballad_brushed
+preferred_instruments:
+- acoustic_guitar_nylon
+- acoustic_guitar_steel
+- piano
+- flute
+avoided_instruments:
+- synth_lead_square
+- synth_lead_saw
+- synth_pad_warm
+- synth_bass
+- electric_bass_pick
+- electric_guitar_clean

@@ -1,0 +1,27 @@
+# Lo-fi hip-hop laidback pattern
+# Kick on 1 and the "and" of 2, snare on 3, ghost snares, low-velocity closed hat 8ths
+id: lofi_laidback
+genre: lofi
+time_signature: "4/4"
+bars_per_pattern: 1
+swing: 0.6
+humanize_ms: 12
+
+hits:
+  # Beat 1
+  - { time_beats: 0.0, kit_piece: kick, velocity: 90, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 0.5, kit_piece: closed_hat, velocity: 55, duration_beats: 0.25 }
+  # Beat 2
+  - { time_beats: 1.0, kit_piece: closed_hat, velocity: 60, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: kick, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: closed_hat, velocity: 55, duration_beats: 0.25 }
+  # Beat 3
+  - { time_beats: 2.0, kit_piece: snare, velocity: 95, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: closed_hat, velocity: 55, duration_beats: 0.25 }
+  - { time_beats: 2.75, kit_piece: snare, velocity: 40, duration_beats: 0.25 }
+  # Beat 4
+  - { time_beats: 3.0, kit_piece: closed_hat, velocity: 60, duration_beats: 0.25 }
+  - { time_beats: 3.25, kit_piece: snare, velocity: 35, duration_beats: 0.25 }
+  - { time_beats: 3.5, kit_piece: closed_hat, velocity: 70, duration_beats: 0.25 }

@@ -1,0 +1,358 @@
+# Feature Status verification mapping.
+#
+# Each key matches a Feature cell in FEATURE_STATUS.md.
+# For ✅ entries: `src` paths are checked for existence.
+# For ✅ entries with `tests`: test paths are checked for existence.
+# Keys must match the Feature column exactly.
+
+# === Spec / Input ===
+"YAML spec parsing (Pydantic v1)":
+  src:
+    - src/yao/schema/composition.py
+  tests:
+    - tests/unit/test_schema.py
+
+"YAML spec parsing (Pydantic v2)":
+  src:
+    - src/yao/schema/composition_v2.py
+  tests:
+    - tests/unit/schema/test_composition_v2.py
+
+"constraints with scoping":
+  src:
+    - src/yao/schema/constraints.py
+  tests:
+    - tests/unit/test_constraints.py
+
+# === Generation ===
+"rule_based generator":
+  src:
+    - src/yao/generators/rule_based.py
+  tests:
+    - tests/unit/test_generator.py
+
+"stochastic generator":
+  src:
+    - src/yao/generators/stochastic.py
+  tests:
+    - tests/unit/test_stochastic.py
+
+"Generator registry":
+  src:
+    - src/yao/generators/registry.py
+  tests:
+    - tests/unit/test_generator.py
+
+# === IR ===
+"ScoreIR (Note, Part, Section)":
+  src:
+    - src/yao/ir/score_ir.py
+    - src/yao/ir/note.py
+  tests:
+    - tests/unit/test_ir.py
+
+"Motif IR":
+  src:
+    - src/yao/ir/motif.py
+  tests:
+    - tests/unit/test_motif.py
+
+"Harmony IR":
+  src:
+    - src/yao/ir/harmony.py
+  tests:
+    - tests/unit/test_harmony.py
+
+"Voicing IR":
+  src:
+    - src/yao/ir/voicing.py
+  tests:
+    - tests/unit/test_voicing.py
+
+"Trajectory IR (5-dim)":
+  src:
+    - src/yao/ir/trajectory.py
+  tests:
+    - tests/unit/test_trajectory_ir.py
+
+# === Rendering ===
+"MIDI writer + per-instrument stems":
+  src:
+    - src/yao/render/midi_writer.py
+    - src/yao/render/stem_writer.py
+  tests:
+    - tests/unit/test_render.py
+
+"Audio renderer (FluidSynth)":
+  src:
+    - src/yao/render/audio_renderer.py
+  tests:
+    - tests/unit/test_render.py
+
+"MIDI reader":
+  src:
+    - src/yao/render/midi_reader.py
+  tests:
+    - tests/unit/test_midi_reader.py
+
+"Iteration management":
+  src:
+    - src/yao/render/iteration.py
+  tests:
+    - tests/unit/test_iteration.py
+
+# === Critique / Verification ===
+"Music lint":
+  src:
+    - src/yao/verify/music_lint.py
+  tests:
+    - tests/unit/test_verify.py
+
+"Score analyzer":
+  src:
+    - src/yao/verify/analyzer.py
+  tests:
+    - tests/unit/test_verify.py
+
+"Evaluator (10 metrics, 3 dims)":
+  src:
+    - src/yao/verify/evaluator.py
+  tests:
+    - tests/unit/test_evaluator.py
+
+"MetricGoal type system":
+  src:
+    - src/yao/verify/metric_goal.py
+  tests:
+    - tests/unit/verify/test_metric_goal.py
+
+"Score diff":
+  src:
+    - src/yao/verify/diff.py
+  tests:
+    - tests/unit/test_diff.py
+
+"Constraint checker":
+  src:
+    - src/yao/verify/constraint_checker.py
+  tests:
+    - tests/unit/test_constraints.py
+
+"Critique rules (structured)":
+  src:
+    - src/yao/verify/critique/structural.py
+    - src/yao/verify/critique/harmonic.py
+    - src/yao/verify/critique/melodic.py
+    - src/yao/verify/critique/rhythmic.py
+    - src/yao/verify/critique/arrangement.py
+    - src/yao/verify/critique/emotional.py
+  tests:
+    - tests/unit/verify/test_critique_rules.py
+
+"Critique registry + Finding types":
+  src:
+    - src/yao/verify/critique/registry.py
+    - src/yao/verify/critique/types.py
+    - src/yao/verify/critique/base.py
+  tests:
+    - tests/unit/verify/test_critique.py
+
+"RecoverableDecision logging":
+  src:
+    - src/yao/reflect/recoverable.py
+    - src/yao/reflect/recoverable_codes.py
+  tests:
+    - tests/unit/verify/test_recoverable.py
+
+# === Conductor ===
+"Generate-evaluate-adapt loop":
+  src:
+    - src/yao/conductor/conductor.py
+    - src/yao/conductor/feedback.py
+  tests:
+    - tests/unit/test_conductor.py
+
+"Section-level regeneration":
+  src:
+    - src/yao/conductor/conductor.py
+  tests:
+    - tests/unit/test_conductor.py
+
+"SpecCompiler (NL → spec)":
+  src:
+    - src/yao/sketch/compiler.py
+  tests:
+    - tests/unit/sketch/test_compiler.py
+
+# === CLI ===
+"yao preview":
+  src:
+    - src/cli/main.py
+  tests:
+    - tests/unit/cli/test_preview.py
+
+"yao watch":
+  src:
+    - src/cli/main.py
+  tests:
+    - tests/unit/cli/test_watch.py
+
+"yao compose":
+  src:
+    - src/cli/main.py
+
+"yao conduct":
+  src:
+    - src/cli/main.py
+  tests:
+    - tests/unit/test_conductor.py
+
+# === Skills ===
+"Genre Skills (8)":
+  src:
+    - .claude/skills/genres/cinematic.md
+    - .claude/skills/genres/lofi_hiphop.md
+    - .claude/skills/genres/j_pop.md
+  tests:
+    - tests/unit/skills/test_genre_skills.py
+
+# === Subagents ===
+"7 Subagent definitions":
+  src:
+    - .claude/agents/composer.md
+    - .claude/agents/adversarial-critic.md
+    - .claude/agents/producer.md
+
+"7 slash commands":
+  src:
+    - .claude/commands/compose.md
+    - .claude/commands/sketch.md
+    - .claude/commands/critique.md
+
+# === Tests / QA ===
+"Unit tests":
+  src:
+    - tests/unit/
+
+"Integration tests":
+  src:
+    - tests/integration/
+
+"Golden MIDI tests":
+  src:
+    - tests/golden/test_golden.py
+    - tests/golden/comparison.py
+
+"Architecture lint":
+  src:
+    - tools/architecture_lint.py
+
+"Feature status check":
+  src:
+    - tools/feature_status_check.py
+
+# === Infrastructure ===
+"Provenance logging":
+  src:
+    - src/yao/reflect/provenance.py
+
+"Constants (38 instruments, 14 scales, 14 chords)":
+  src:
+    - src/yao/constants/instruments.py
+    - src/yao/constants/music.py
+
+# === Additional CLI commands (single-file CLI) ===
+"yao render":
+  src:
+    - src/cli/main.py
+
+"yao validate":
+  src:
+    - src/cli/main.py
+
+"yao evaluate":
+  src:
+    - src/cli/main.py
+
+"yao diff":
+  src:
+    - src/cli/main.py
+
+"yao explain":
+  src:
+    - src/cli/main.py
+
+"yao new-project":
+  src:
+    - src/cli/main.py
+
+"yao regenerate-section":
+  src:
+    - src/cli/main.py
+
+# === Additional mapped entries ===
+"DrumPattern IR":
+  src:
+    - src/yao/ir/drum.py
+  tests:
+    - tests/unit/ir/test_drum.py
+
+"drum_patterner":
+  src:
+    - src/yao/generators/drum_patterner.py
+  tests:
+    - tests/unit/generators/test_drum_patterner.py
+
+"counter_melody":
+  src:
+    - src/yao/generators/counter_melody.py
+  tests:
+    - tests/unit/generators/test_counter_melody.py
+
+"Timing IR":
+  src:
+    - src/yao/ir/timing.py
+
+"Notation IR":
+  src:
+    - src/yao/ir/notation.py
+
+"Scenario tests":
+  src:
+    - tests/scenarios/
+
+"Music constraint tests":
+  src:
+    - tests/music_constraints/
+
+"Pre-commit hooks":
+  src:
+    - .pre-commit-config.yaml
+
+"CI (GitHub Actions)":
+  src:
+    - .github/workflows/ci.yml
+
+"Critic integration in loop":
+  src:
+    - src/yao/conductor/conductor.py
+  tests:
+    - tests/unit/test_conductor.py
+
+"Feedback adaptations (evaluator)":
+  src:
+    - src/yao/conductor/feedback.py
+  tests:
+    - tests/unit/test_feedback.py
+
+"Feedback adaptations (critic findings)":
+  src:
+    - src/yao/conductor/feedback.py
+  tests:
+    - tests/unit/test_feedback.py
+
+"ConductorResult with critic_findings":
+  src:
+    - src/yao/conductor/result.py
+  tests:
+    - tests/unit/test_conductor.py

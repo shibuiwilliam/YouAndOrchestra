@@ -1,0 +1,32 @@
+# Trap half-time feel pattern
+# Kick on 1, snare on 3, rapid 16th-note closed hats, open hat at end
+id: trap_half_time
+genre: trap
+time_signature: "4/4"
+bars_per_pattern: 1
+swing: 0.0
+humanize_ms: 3
+
+hits:
+  # Beat 1
+  - { time_beats: 0.0, kit_piece: kick, velocity: 115, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: closed_hat, velocity: 80, duration_beats: 0.125 }
+  - { time_beats: 0.25, kit_piece: closed_hat, velocity: 60, duration_beats: 0.125 }
+  - { time_beats: 0.5, kit_piece: closed_hat, velocity: 75, duration_beats: 0.125 }
+  - { time_beats: 0.75, kit_piece: closed_hat, velocity: 60, duration_beats: 0.125 }
+  # Beat 2
+  - { time_beats: 1.0, kit_piece: closed_hat, velocity: 80, duration_beats: 0.125 }
+  - { time_beats: 1.25, kit_piece: closed_hat, velocity: 60, duration_beats: 0.125 }
+  - { time_beats: 1.5, kit_piece: closed_hat, velocity: 75, duration_beats: 0.125 }
+  - { time_beats: 1.75, kit_piece: closed_hat, velocity: 60, duration_beats: 0.125 }
+  # Beat 3
+  - { time_beats: 2.0, kit_piece: snare, velocity: 110, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: closed_hat, velocity: 80, duration_beats: 0.125 }
+  - { time_beats: 2.25, kit_piece: closed_hat, velocity: 60, duration_beats: 0.125 }
+  - { time_beats: 2.5, kit_piece: closed_hat, velocity: 75, duration_beats: 0.125 }
+  - { time_beats: 2.75, kit_piece: closed_hat, velocity: 60, duration_beats: 0.125 }
+  # Beat 4
+  - { time_beats: 3.0, kit_piece: closed_hat, velocity: 80, duration_beats: 0.125 }
+  - { time_beats: 3.25, kit_piece: closed_hat, velocity: 60, duration_beats: 0.125 }
+  - { time_beats: 3.5, kit_piece: closed_hat, velocity: 75, duration_beats: 0.125 }
+  - { time_beats: 3.75, kit_piece: open_hat, velocity: 90, duration_beats: 0.25 }

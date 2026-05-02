@@ -1,0 +1,28 @@
+genre: game_8bit_chiptune
+tempo_range:
+- 120
+- 170
+typical_keys:
+- C
+- G
+- Am
+- Em
+modal_options:
+- major
+- minor
+- mixolydian
+default_swing: 0.0
+typical_drum_pattern: game_drive_16bit
+preferred_instruments:
+- synth_lead_square
+- synth_lead_saw
+- synth_bass
+avoided_instruments:
+- strings_ensemble
+- french_horn
+- oboe
+- cello
+- viola
+- contrabass
+- synth_pad_warm
+- acoustic_guitar_nylon

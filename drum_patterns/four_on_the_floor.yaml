@@ -1,0 +1,32 @@
+# EDM/dance four-on-the-floor pattern
+# Kick on every beat, open hat on off-beats, clap on 2 and 4, closed hat 8ths
+id: four_on_the_floor
+genre: edm
+time_signature: "4/4"
+bars_per_pattern: 1
+swing: 0.0
+humanize_ms: 2
+
+hits:
+  # Beat 1
+  - { time_beats: 0.0, kit_piece: kick, velocity: 110, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: closed_hat, velocity: 75, duration_beats: 0.25 }
+  - { time_beats: 0.5, kit_piece: open_hat, velocity: 85, duration_beats: 0.25 }
+  - { time_beats: 0.5, kit_piece: closed_hat, velocity: 60, duration_beats: 0.25 }
+  # Beat 2
+  - { time_beats: 1.0, kit_piece: kick, velocity: 110, duration_beats: 0.25 }
+  - { time_beats: 1.0, kit_piece: clap, velocity: 100, duration_beats: 0.25 }
+  - { time_beats: 1.0, kit_piece: closed_hat, velocity: 75, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: open_hat, velocity: 85, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: closed_hat, velocity: 60, duration_beats: 0.25 }
+  # Beat 3
+  - { time_beats: 2.0, kit_piece: kick, velocity: 110, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: closed_hat, velocity: 75, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: open_hat, velocity: 85, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: closed_hat, velocity: 60, duration_beats: 0.25 }
+  # Beat 4
+  - { time_beats: 3.0, kit_piece: kick, velocity: 110, duration_beats: 0.25 }
+  - { time_beats: 3.0, kit_piece: clap, velocity: 100, duration_beats: 0.25 }
+  - { time_beats: 3.0, kit_piece: closed_hat, velocity: 75, duration_beats: 0.25 }
+  - { time_beats: 3.5, kit_piece: open_hat, velocity: 85, duration_beats: 0.25 }
+  - { time_beats: 3.5, kit_piece: closed_hat, velocity: 60, duration_beats: 0.25 }

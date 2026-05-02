@@ -1,0 +1,26 @@
+genre: jazz_ballad
+tempo_range:
+- 60
+- 80
+typical_keys:
+- Dm
+- Cm
+- F
+- Bb
+modal_options:
+- minor
+- dorian
+- mixolydian
+default_swing: 0.67
+typical_drum_pattern: jazz_swing_ride
+preferred_instruments:
+- piano
+- acoustic_bass
+- trumpet
+avoided_instruments:
+- synth_lead_square
+- synth_lead_saw
+- synth_bass
+- electric_guitar_clean
+- electric_bass_pick
+- xylophone

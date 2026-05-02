@@ -16,6 +16,7 @@ from yao.ir.notation import parse_key, scale_notes
 from yao.ir.note import Note
 from yao.ir.score_ir import Part, ScoreIR, Section
 from yao.ir.timing import bars_to_beats
+from yao.ir.trajectory import MultiDimensionalTrajectory, derive_generation_params
 from yao.reflect.provenance import ProvenanceLog
 from yao.reflect.recoverable import RecoverableDecision
 from yao.schema.composition import CompositionSpec, SectionSpec
@@ -260,20 +261,43 @@ class RuleBasedGenerator(GeneratorBase):
         section_spec: SectionSpec,
         trajectory: TrajectorySpec | None,
     ) -> list[Note]:
-        """Generate a scale-based melody using stepwise motion."""
+        """Generate a scale-based melody using stepwise motion.
+
+        Trajectory response (P3):
+        - tension → velocity + leap probability
+        - density → rhythm subdivision (more/fewer notes per bar)
+        - register_height → octave offset
+        """
+        traj = self._resolve_trajectory(trajectory)
         octave = self._melody_octave(instrument)
-        notes_in_scale = scale_notes(root_note, scale_type, octave)
+        beats_per_bar = bars_to_beats(1, time_signature)
 
         notes: list[Note] = []
         scale_idx = 0
-        beats_per_bar = bars_to_beats(1, time_signature)
 
         for bar in range(bars):
-            bar_start = bars_to_beats(start_bar + bar, time_signature)
-            rhythm = _MELODY_RHYTHMS[bar % len(_MELODY_RHYTHMS)]
+            absolute_bar = start_bar + bar
+            params = derive_generation_params(traj, absolute_bar)
+
+            # Register height shifts the octave
+            effective_octave = octave + (params.register_offset // 12)
+            notes_in_scale = scale_notes(root_note, scale_type, effective_octave)
+
+            bar_start = bars_to_beats(absolute_bar, time_signature)
+
+            # Density-aware rhythm: high density → more subdivided
+            rhythm_idx = bar % len(_MELODY_RHYTHMS)
+            if params.note_density_factor > 1.3:  # noqa: PLR2004
+                # Pick a busier pattern (more notes)
+                rhythm_idx = min(3, rhythm_idx + 1)
+            elif params.note_density_factor < 0.7:  # noqa: PLR2004
+                # Pick a sparser pattern
+                rhythm_idx = max(0, rhythm_idx - 1)
+            rhythm = _MELODY_RHYTHMS[rhythm_idx % len(_MELODY_RHYTHMS)]
+
             velocity = self._compute_velocity(
                 section_spec=section_spec,
-                bar=start_bar + bar,
+                bar=absolute_bar,
                 trajectory=trajectory,
             )
 
@@ -281,18 +305,26 @@ class RuleBasedGenerator(GeneratorBase):
             for dur in rhythm:
                 if beat_offset + dur > beats_per_bar + 0.001:
                     break
-                pitch = notes_in_scale[scale_idx % len(notes_in_scale)]
+
+                # Leap probability from trajectory: deterministic selection
+                step = 1
+                if params.leap_probability > 0.4 and bar % 2 == 0:  # noqa: PLR2004
+                    step = 2  # skip a scale degree (leap)
+                if params.leap_probability > 0.6 and bar % 3 == 0:  # noqa: PLR2004
+                    step = 3  # larger leap
+
+                scale_idx = (scale_idx + step) % len(notes_in_scale)
+                pitch = notes_in_scale[scale_idx]
+
                 note = Note(
                     pitch=pitch,
                     start_beat=bar_start + beat_offset,
-                    duration_beats=dur * 0.9,  # slight gap for articulation
+                    duration_beats=dur * 0.9,
                     velocity=velocity,
                     instrument=instrument,
                 )
                 self._validate_and_clamp_note(note, instrument)
                 notes.append(note)
-                # Stepwise motion: move up/down the scale
-                scale_idx = (scale_idx + 1) % len(notes_in_scale)
                 beat_offset += dur
 
         return notes
@@ -396,6 +428,13 @@ class RuleBasedGenerator(GeneratorBase):
                     )
 
         return notes
+
+    @staticmethod
+    def _resolve_trajectory(trajectory: TrajectorySpec | None) -> MultiDimensionalTrajectory:
+        """Convert a v1 TrajectorySpec to MultiDimensionalTrajectory for param derivation."""
+        if trajectory is None:
+            return MultiDimensionalTrajectory.default()
+        return MultiDimensionalTrajectory.from_spec(trajectory)
 
     def _compute_velocity(
         self,

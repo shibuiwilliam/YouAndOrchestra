@@ -1,0 +1,16 @@
+# Ballad brushed pattern
+# Low density, soft dynamics. Kick on 1, rim on 3, closed hat on 1 and 3
+id: ballad_brushed
+genre: ballad
+time_signature: "4/4"
+bars_per_pattern: 1
+swing: 0.0
+humanize_ms: 10
+
+hits:
+  # Beat 1
+  - { time_beats: 0.0, kit_piece: kick, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }
+  # Beat 3
+  - { time_beats: 2.0, kit_piece: rim, velocity: 60, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }

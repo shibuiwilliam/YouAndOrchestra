@@ -20,7 +20,9 @@ class InstrumentSpec(BaseModel):
     """Specification for a single instrument in the composition."""
 
     name: str
-    role: Literal["melody", "harmony", "bass", "rhythm", "pad"]
+    role: Literal["melody", "harmony", "bass", "rhythm", "pad", "counter_melody"]
+    counter_to: str | None = None
+    density_factor: float = 0.5
 
     @field_validator("name")
     @classmethod
@@ -89,6 +91,40 @@ class GenerationConfig(BaseModel):
         return v
 
 
+class DrumsSpec(BaseModel):
+    """Drum pattern specification (optional).
+
+    When present, the drum_patterner generator produces drum hits
+    alongside the pitched instruments. Backward compatible — existing
+    specs without this field continue to work without drums.
+    """
+
+    pattern_family: str
+    swing: float = 0.0
+    humanize_ms: float = 0.0
+    ghost_notes_density: float = 0.0
+    fills_at: list[str] = []  # noqa: RUF012
+
+    @field_validator("swing")
+    @classmethod
+    def swing_in_range(cls, v: float) -> float:
+        """Swing must be in [0.0, 1.0]."""
+        if not 0.0 <= v <= 1.0:
+            raise SpecValidationError(f"swing must be 0.0–1.0, got {v}", field="drums.swing")
+        return v
+
+    @field_validator("ghost_notes_density")
+    @classmethod
+    def ghost_density_in_range(cls, v: float) -> float:
+        """Ghost notes density must be in [0.0, 1.0]."""
+        if not 0.0 <= v <= 1.0:
+            raise SpecValidationError(
+                f"ghost_notes_density must be 0.0–1.0, got {v}",
+                field="drums.ghost_notes_density",
+            )
+        return v
+
+
 class CompositionSpec(BaseModel):
     """Top-level specification for a composition.
 
@@ -104,6 +140,7 @@ class CompositionSpec(BaseModel):
     total_bars: int = 0
     instruments: list[InstrumentSpec]
     sections: list[SectionSpec]
+    drums: DrumsSpec | None = None
     generation: GenerationConfig = GenerationConfig()
 
     @field_validator("title")

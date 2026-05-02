@@ -172,6 +172,92 @@ class TestDensityRespondsToTrajectory:
         assert _note_count(score_dense) > _note_count(score_sparse), "High density trajectory should produce more notes"
 
 
+class TestRuleBasedPitchRespondsToTension:
+    """P3: rule_based generator should respond to tension via leaps."""
+
+    def test_rule_based_more_leaps_at_high_tension(self) -> None:
+        spec = CompositionSpec(
+            title="RB Leap Test",
+            key="C major",
+            tempo_bpm=120.0,
+            instruments=[InstrumentSpec(name="piano", role="melody")],
+            sections=[SectionSpec(name="main", bars=8, dynamics="mf")],
+            generation=GenerationConfig(strategy="rule_based"),
+        )
+        gen = get_generator("rule_based")
+        score_low, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.1))
+        score_high, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.9))
+        assert _count_leaps(score_high) > _count_leaps(score_low), (
+            "High tension should produce more leaps in rule_based"
+        )
+
+
+class TestRuleBasedDensityResponse:
+    """P3: rule_based generator should respond to density."""
+
+    def test_rule_based_different_note_count_at_different_density(self) -> None:
+        spec = CompositionSpec(
+            title="RB Density Test",
+            key="C major",
+            tempo_bpm=120.0,
+            instruments=[InstrumentSpec(name="piano", role="melody")],
+            sections=[SectionSpec(name="main", bars=8, dynamics="mf")],
+            generation=GenerationConfig(strategy="rule_based"),
+        )
+        gen = get_generator("rule_based")
+        score_sparse, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.5, density=0.1))
+        score_dense, _ = gen.generate(spec, trajectory=_uniform_trajectory(0.5, density=0.9))
+
+        # At high density, rule_based should pick busier rhythm patterns
+        sparse_count = _note_count(score_sparse)
+        dense_count = _note_count(score_dense)
+        assert dense_count != sparse_count, (
+            f"Different density should produce different note counts (got {sparse_count} both)"
+        )
+
+
+class TestGenerationParamsDerivation:
+    """Test derive_generation_params produces expected ranges."""
+
+    def test_high_tension_params(self) -> None:
+        from yao.ir.trajectory import MultiDimensionalTrajectory, derive_generation_params
+
+        traj = MultiDimensionalTrajectory.uniform(0.9)
+        params = derive_generation_params(traj, 0)
+
+        assert params.velocity_modifier > 10  # noqa: PLR2004
+        assert params.leap_probability > 0.4  # noqa: PLR2004
+        assert params.chord_extension_prob > 0.4  # noqa: PLR2004
+
+    def test_low_tension_params(self) -> None:
+        from yao.ir.trajectory import MultiDimensionalTrajectory, derive_generation_params
+
+        traj = MultiDimensionalTrajectory.uniform(0.1)
+        params = derive_generation_params(traj, 0)
+
+        assert params.velocity_modifier < -10  # noqa: PLR2004
+        assert params.leap_probability < 0.3  # noqa: PLR2004
+
+    def test_high_density_params(self) -> None:
+        from yao.ir.trajectory import (
+            MultiDimensionalTrajectory,
+            TrajectoryCurve,
+            derive_generation_params,
+        )
+
+        traj = MultiDimensionalTrajectory(
+            tension=TrajectoryCurve(curve_type="linear", target=0.5),
+            density=TrajectoryCurve(curve_type="linear", target=0.9),
+            predictability=TrajectoryCurve(curve_type="linear", target=0.5),
+            brightness=TrajectoryCurve(curve_type="linear", target=0.5),
+            register_height=TrajectoryCurve(curve_type="linear", target=0.5),
+        )
+        params = derive_generation_params(traj, 0)
+
+        assert params.note_density_factor > 1.5  # noqa: PLR2004
+        assert params.rhythmic_subdivision == 16  # noqa: PLR2004
+
+
 class TestNoDifferenceBetweenIgnoredDimensions:
     """Verify that dimensions currently ignored produce identical output.
 
