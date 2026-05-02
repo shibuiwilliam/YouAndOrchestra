@@ -1,0 +1,57 @@
+genre: funk
+tempo_range:
+- 90
+- 130
+typical_keys:
+- E
+- A
+- D
+- G
+- Bb
+modal_options:
+- mixolydian
+- dorian
+- minor_pentatonic
+default_swing: 0.15
+typical_drum_pattern: funk_16th
+preferred_instruments:
+- electric_bass
+- electric_guitar_clean
+- drums
+- clavinet
+- trumpet
+avoided_instruments:
+- strings_ensemble
+- acoustic_guitar
+- harpsichord
+typical_chord_progressions:
+- - I7
+  - I7
+  - I7
+  - I7
+- - i7
+  - IV7
+  - i7
+  - IV7
+- - I9
+  - IV9
+  - I9
+  - IV9
+- - i7
+  - bVII7
+  - i7
+  - bVII7
+characteristic_rhythms:
+- sixteenth_note_groove
+- syncopated_bass
+- ghost_notes
+common_cliches_to_avoid:
+- losing the pocket by overplaying
+- ignoring ghost notes on drums
+- too many chord changes (funk sits on grooves)
+representative_techniques:
+- slap_bass
+- ghost_notes
+- sixteenth_note_hi_hat
+- rhythmic_muting
+- one_chord_vamp

@@ -54,7 +54,7 @@ def main() -> int:
     count = 0
     warnings = 0
 
-    for md_path in sorted(SKILLS_DIR.glob("*.md")):
+    for md_path in sorted(SKILLS_DIR.rglob("*.md")):
         fm = extract_frontmatter(md_path)
         if fm is None:
             print(f"  WARNING: No front-matter in {md_path.name}, skipping")

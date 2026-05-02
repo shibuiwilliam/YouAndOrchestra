@@ -1,0 +1,56 @@
+genre: jazz_swing
+tempo_range:
+- 120
+- 220
+typical_keys:
+- Bb
+- F
+- Eb
+- Ab
+- C
+modal_options:
+- major
+- dorian
+- mixolydian
+default_swing: 0.6
+typical_drum_pattern: jazz_swing
+preferred_instruments:
+- piano
+- acoustic_bass
+- drums
+- alto_saxophone
+- trumpet
+avoided_instruments:
+- electric_guitar_distortion
+- synth_lead_saw
+- timpani
+typical_chord_progressions:
+- - ii7
+  - V7
+  - Imaj7
+- - Imaj7
+  - vi7
+  - ii7
+  - V7
+- - I7
+  - IV7
+  - I7
+  - V7
+- - iii7
+  - vi7
+  - ii7
+  - V7
+characteristic_rhythms:
+- swing_eighth
+- walking_bass
+- ride_cymbal_pattern
+common_cliches_to_avoid:
+- straight eighths where swing is expected
+- simple triads instead of 7th/9th voicings
+- static bass notes instead of walking lines
+representative_techniques:
+- swing_feel
+- walking_bass
+- chord_extensions_7th_9th_13th
+- ii_V_I_resolution
+- comping_patterns

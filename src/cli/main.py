@@ -13,6 +13,7 @@ import click
 import structlog
 
 # Import generators to trigger @register_generator decorators
+import yao.generators.markov as _mk  # noqa: F401
 import yao.generators.rule_based as _rb  # noqa: F401
 import yao.generators.stochastic as _st  # noqa: F401
 from yao.errors import RenderError, SpecValidationError, YaOError

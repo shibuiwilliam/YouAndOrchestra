@@ -81,6 +81,14 @@ def _midi_to_name(midi: int) -> str:
     return f"{names[pitch_class]}{octave}"
 
 
+class ExpressionValidationError(ConstraintViolationError):
+    """Raised when a performance expression value is out of valid range.
+
+    Examples: CC value outside [0, 127], pitch bend outside [-8192, +8191],
+    accent_strength outside [0.0, 1.0].
+    """
+
+
 class LayerViolationError(YaOError):
     """Raised when an architectural layer boundary is violated."""
 

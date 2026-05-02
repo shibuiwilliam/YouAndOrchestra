@@ -1,0 +1,55 @@
+genre: rock_classic
+tempo_range:
+- 100
+- 150
+typical_keys:
+- E
+- A
+- D
+- G
+- C
+modal_options:
+- major
+- mixolydian
+- minor_pentatonic
+default_swing: 0.0
+typical_drum_pattern: rock_standard
+preferred_instruments:
+- electric_guitar_distortion
+- electric_bass
+- drums
+- piano
+avoided_instruments:
+- strings_ensemble
+- harpsichord
+- sitar
+typical_chord_progressions:
+- - I
+  - IV
+  - V
+  - I
+- - I
+  - V
+  - vi
+  - IV
+- - I
+  - bVII
+  - IV
+  - I
+- - vi
+  - IV
+  - I
+  - V
+characteristic_rhythms:
+- straight_eighth
+- driving_quarter
+- power_chord_riff
+common_cliches_to_avoid:
+- overuse of I-V-vi-IV without variation
+- generic power chord patterns without melodic interest
+- excessive guitar solo length without thematic development
+representative_techniques:
+- power_chords
+- palm_muting
+- blues_bend
+- call_and_response

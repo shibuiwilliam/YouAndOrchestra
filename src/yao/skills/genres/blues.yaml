@@ -1,0 +1,57 @@
+genre: blues
+tempo_range:
+- 60
+- 140
+typical_keys:
+- E
+- A
+- G
+- C
+- D
+modal_options:
+- blues
+- mixolydian
+- minor_pentatonic
+default_swing: 0.4
+typical_drum_pattern: shuffle
+preferred_instruments:
+- electric_guitar_clean
+- piano
+- acoustic_bass
+- drums
+- harmonica
+avoided_instruments:
+- strings_ensemble
+- synth_pad
+- french_horn
+typical_chord_progressions:
+- - I7
+  - IV7
+  - I7
+  - V7
+- - I7
+  - I7
+  - IV7
+  - I7
+  - V7
+  - IV7
+  - I7
+  - V7
+- - i7
+  - iv7
+  - i7
+  - V7
+characteristic_rhythms:
+- shuffle
+- slow_blues_triplet
+- boogie_woogie
+common_cliches_to_avoid:
+- exact 12-bar repetition without variation
+- ignoring the shuffle feel
+- overuse of blue note bends without melodic purpose
+representative_techniques:
+- blue_notes_b3_b5_b7
+- call_and_response
+- shuffle_rhythm
+- turnaround_licks
+- bent_notes

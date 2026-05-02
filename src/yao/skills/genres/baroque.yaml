@@ -1,0 +1,64 @@
+genre: baroque
+tempo_range:
+- 50
+- 140
+typical_keys:
+- D
+- G
+- C
+- F
+- A
+- Bb
+modal_options:
+- major
+- minor
+default_swing: 0.0
+typical_drum_pattern: null
+preferred_instruments:
+- harpsichord
+- violin
+- cello
+- flute
+- oboe
+- contrabass
+avoided_instruments:
+- electric_guitar_distortion
+- synth_lead_saw
+- drums
+typical_chord_progressions:
+- - I
+  - V
+  - I
+  - IV
+  - V
+  - I
+- - i
+  - iv
+  - V
+  - i
+- - I
+  - vi
+  - IV
+  - V
+  - I
+- - i
+  - VII
+  - III
+  - iv
+  - V
+  - i
+characteristic_rhythms:
+- continuous_motion
+- terraced_dynamics
+- dance_forms
+common_cliches_to_avoid:
+- crescendo/decrescendo (use terraced dynamics instead)
+- romantic rubato (baroque tempo is steady)
+- thick orchestral textures (baroque is transparent)
+representative_techniques:
+- counterpoint
+- basso_continuo
+- terraced_dynamics
+- ornaments_trill_mordent
+- sequence_patterns
+- circle_of_fifths

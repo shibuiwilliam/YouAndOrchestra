@@ -1,0 +1,57 @@
+genre: edm_house
+tempo_range:
+- 120
+- 130
+typical_keys:
+- Am
+- Cm
+- Fm
+- C
+- F
+modal_options:
+- minor
+- major
+- dorian
+default_swing: 0.0
+typical_drum_pattern: four_on_floor
+preferred_instruments:
+- synth_pad
+- synth_lead_saw
+- electric_bass
+- drums
+- piano
+avoided_instruments:
+- acoustic_guitar
+- violin
+- french_horn
+typical_chord_progressions:
+- - vi
+  - IV
+  - I
+  - V
+- - i
+  - VI
+  - III
+  - VII
+- - i
+  - iv
+  - VI
+  - V
+- - I
+  - V
+  - vi
+  - IV
+characteristic_rhythms:
+- four_on_floor
+- offbeat_hi_hat
+- sidechain_pump
+common_cliches_to_avoid:
+- generic supersaw buildup without harmonic development
+- drop that is identical to the buildup chord progression
+- overcompressed master with no dynamic range
+representative_techniques:
+- four_on_floor_kick
+- sidechain_compression
+- riser_builds
+- filter_sweeps
+- drop_impact

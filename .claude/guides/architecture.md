@@ -33,9 +33,9 @@ Run `make arch-lint` to check. If it fails, restructure your code — do NOT byp
 | Library | Allowed In | Purpose |
 |---------|-----------|---------|
 | `pretty_midi` | ir/, render/ | MIDI creation and editing |
-| `music21` | ir/, verify/ | Music theory analysis, MusicXML |
-| `librosa` | verify/ only | Audio feature analysis |
-| `pyloudnorm` | verify/ only | LUFS loudness measurement |
+| `music21` | ir/, verify/, render/ | Music theory analysis, MusicXML export |
+| `librosa` | verify/, perception/ | Audio feature analysis |
+| `pyloudnorm` | verify/, perception/ | LUFS loudness measurement |
 | `pydantic` | schema/ | YAML spec validation |
 | `structlog` | anywhere | Structured logging |
 | `click` | cli/ only | CLI framework |

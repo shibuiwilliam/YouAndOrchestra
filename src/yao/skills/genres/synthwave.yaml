@@ -1,0 +1,57 @@
+genre: synthwave
+tempo_range:
+- 80
+- 120
+typical_keys:
+- Am
+- Em
+- Dm
+- Cm
+- Fm
+modal_options:
+- minor
+- dorian
+- phrygian
+default_swing: 0.0
+typical_drum_pattern: electronic_80s
+preferred_instruments:
+- synth_pad
+- synth_lead_saw
+- electric_bass
+- drums
+- piano
+avoided_instruments:
+- acoustic_guitar
+- strings_ensemble
+- french_horn
+typical_chord_progressions:
+- - i
+  - VI
+  - III
+  - VII
+- - i
+  - iv
+  - VI
+  - VII
+- - i
+  - v
+  - VI
+  - IV
+- - i
+  - III
+  - VII
+  - VI
+characteristic_rhythms:
+- driving_eighth
+- gated_reverb_snare
+- arpeggiated_synth
+common_cliches_to_avoid:
+- pure 1980s pastiche without modern production sensibility
+- overuse of gated reverb on every element
+- arpeggiator patterns that never evolve
+representative_techniques:
+- analog_synth_arpeggios
+- gated_reverb_drums
+- chorus_detuned_leads
+- slow_pad_swells
+- retro_bass_sequences

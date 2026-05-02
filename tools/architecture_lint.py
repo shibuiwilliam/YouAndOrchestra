@@ -31,10 +31,11 @@ from pathlib import Path
 LAYER_MAP: dict[str, int] = {
     "constants": 0,  # available to all layers
     "schema": 1,
-    "ir": 1,         # IR data types (Score IR + Plan IR) shared across all layers
-    "reflect": 1,    # provenance types are cross-cutting
+    "ir": 1,  # IR data types (Score IR + Plan IR) shared across all layers
+    "reflect": 1,  # provenance types are cross-cutting
     "generators": 2,
     "perception": 4,
+    "mix": 5,
     "render": 5,
     "verify": 6,
     "conductor": 7,  # orchestrator: can import all layers (like cli)
@@ -43,8 +44,10 @@ LAYER_MAP: dict[str, int] = {
 # These libraries can only be imported in specific modules
 RESTRICTED_LIBRARIES: dict[str, set[str]] = {
     "pretty_midi": {"ir", "render"},
-    "music21": {"ir", "verify"},
-    "librosa": {"verify"},
+    "music21": {"ir", "verify", "render"},
+    "librosa": {"verify", "perception"},
+    "pyloudnorm": {"verify", "perception", "mix"},
+    "pedalboard": {"mix"},
 }
 
 SRC_DIR = Path("src/yao")
@@ -71,9 +74,8 @@ def extract_imports(tree: ast.AST) -> list[tuple[str, int]]:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 imports.append((alias.name, node.lineno))
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                imports.append((node.module, node.lineno))
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.append((node.module, node.lineno))
     return imports
 
 
@@ -125,20 +127,18 @@ def check_file(filepath: Path) -> list[str]:
         # - TYPE_CHECKING guards (type annotations only)
         # - Function-level imports (plan→v1 conversion during Phase alpha)
         # - Legacy adapter file
-        if _is_note_realizer(filepath) and not _is_legacy_adapter(filepath):
-            if import_name in (
-                "yao.schema.composition",
-                "yao.schema.composition_v2",
-            ):
-                if (
-                    not _is_guarded_import(source, lineno)
-                    and not _is_function_scope_import(source, lineno)
-                ):
-                    violations.append(
-                        f"{filepath}:{lineno}: Rule A violation — "
-                        f"Note realizer imports {import_name} at module level. "
-                        f"Use MusicalPlan as the sole spec information source."
-                    )
+        if (
+            _is_note_realizer(filepath)
+            and not _is_legacy_adapter(filepath)
+            and import_name in ("yao.schema.composition", "yao.schema.composition_v2")
+            and not _is_guarded_import(source, lineno)
+            and not _is_function_scope_import(source, lineno)
+        ):
+            violations.append(
+                f"{filepath}:{lineno}: Rule A violation — "
+                f"Note realizer imports {import_name} at module level. "
+                f"Use MusicalPlan as the sole spec information source."
+            )
 
     return violations
 

@@ -1,0 +1,63 @@
+genre: romantic
+tempo_range:
+- 40
+- 160
+typical_keys:
+- Db
+- Ab
+- E
+- B
+- F
+- Cm
+- Fm
+modal_options:
+- major
+- minor
+- harmonic_minor
+default_swing: 0.0
+typical_drum_pattern: null
+preferred_instruments:
+- piano
+- violin
+- cello
+- french_horn
+- flute
+- strings_ensemble
+- contrabass
+avoided_instruments:
+- electric_guitar_distortion
+- synth_lead_saw
+- drums
+- harpsichord
+typical_chord_progressions:
+- - I
+  - vi
+  - ii
+  - V
+- - i
+  - VI
+  - iv
+  - V
+- - I
+  - V/vi
+  - vi
+  - IV
+- - i
+  - bVI
+  - bIII
+  - V
+characteristic_rhythms:
+- rubato
+- expressive_tempo
+- sweeping_arpeggios
+common_cliches_to_avoid:
+- excessive rubato that destroys pulse
+- overly thick orchestration with no clarity
+- unresolved dissonance without dramatic purpose
+representative_techniques:
+- rubato
+- chromatic_harmony
+- leitmotif
+- dynamic_range_ppp_to_fff
+- enharmonic_modulation
+- pedal_point

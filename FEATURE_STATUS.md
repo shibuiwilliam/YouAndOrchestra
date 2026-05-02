@@ -37,7 +37,7 @@
 | Generator registry | ✅ | tests/unit/test_generator.py | @register_generator decorator |
 | drum_patterner | ✅ | tests/unit/generators/test_drum_patterner.py | 8 genre patterns in drum_patterns/; swing, ghost notes, trajectory density |
 | counter_melody | ✅ | tests/unit/generators/test_counter_melody.py | Species counterpoint; contrary motion preferred; density_factor control |
-| markov generator | ⚪ | — | Designed, not started |
+| markov generator | ✅ | tests/unit/test_markov.py | n-gram bigram transitions on scale degrees; diatonic + pentatonic models; temperature scaling; trajectory coupling (tension/density/register_height); lazy-loaded YAML models |
 | constraint solver generator | ⚪ | — | Designed, not started |
 
 ## IR (Intermediate Representation)
@@ -52,6 +52,7 @@
 | Notation IR | ✅ | tests/unit/test_ir.py | note_name_to_midi, midi_to_note_name |
 | Trajectory IR (5-dim) | ✅ | tests/unit/test_trajectory_ir.py | MultiDimensionalTrajectory with TrajectoryCurve; bezier/stepped/linear |
 | DrumPattern IR | ✅ | tests/unit/ir/test_drum.py | DrumHit, DrumPattern, KitPiece, GM_DRUM_MAP; 15 kit pieces mapped |
+| Performance Expression IR (Layer 4.5) | ✅ | tests/unit/ir/test_expression.py | NoteExpression, PerformanceLayer, RubatoCurve, BreathMark, PedalCurve; frozen overlay on ScoreIR; CC 0-127, pitch bend ±8192 validation |
 
 ## Rendering
 
@@ -61,8 +62,8 @@
 | Audio renderer (FluidSynth) | ✅ | tests/unit/test_render.py | Optional dependency; requires SoundFont |
 | MIDI reader | ✅ | tests/unit/test_midi_reader.py | MIDI → ScoreIR round-trip |
 | Iteration management | ✅ | tests/unit/test_iteration.py | v001/v002/... auto-versioning |
-| MusicXML writer | ⚪ | — | Designed, not started |
-| LilyPond / PDF writer | ⚪ | — | Designed, not started |
+| MusicXML writer | ✅ | tests/unit/render/test_musicxml_writer.py | ScoreIR → music21 → .musicxml; instruments, key, time sig, tempo, dynamics; PerformanceLayer accent/tenuto markings |
+| LilyPond / PDF writer | ✅ | tests/unit/render/test_lilypond_writer.py | ScoreIR → .ly text; MIDI→LilyPond pitch/duration conversion; lilypond binary subprocess for PDF; warn-and-skip if not installed |
 
 ## Critique / Verification
 
@@ -110,7 +111,7 @@
 
 | Feature | Status | Tests | Notes |
 |---|---|---|---|
-| Genre Skills (8) | ✅ | tests/unit/skills/test_genre_skills.py | cinematic, lofi_hiphop, j_pop, neoclassical, ambient, jazz_ballad, game_8bit_chiptune, acoustic_folk |
+| Genre Skills (16) | ✅ | tests/unit/skills/test_genre_skills.py | Original 8 + rock_classic, jazz_swing, blues, funk, edm_house, synthwave, baroque, romantic; subdirectory organization (western_popular/, electronic/, classical/) |
 | voice-leading theory Skill | 🟢 | — | .claude/skills/theory/voice-leading.md |
 | piano instrument Skill | 🟢 | — | .claude/skills/instruments/piano.md |
 | tension-resolution psychology Skill | 🟢 | — | .claude/skills/psychology/tension-resolution.md |
@@ -152,9 +153,9 @@
 | Trajectory multi-dim coupling | ✅ | ★3 complete; both generators respond via GenerationParams |
 | yao preview / yao watch | ✅ | ★6 complete |
 | 7 additional genre Skills | ✅ | ★7 complete |
-| Perception layer | ⚪ | Phase 3 |
+| Audio Perception Stage 1 | ✅ | PerceptualReport (frozen); LUFS (pyloudnorm.Meter), spectral (centroid/rolloff/flatness), onset density, tempo stability, 7-band energy, masking risk; section boundaries support |
 | Arrangement engine | ⚪ | Phase 2 |
-| Mix chain (EQ, comp, reverb) | ⚪ | |
+| Production Manifest + Mix Chain | ✅ | ProductionManifest schema (per-track EQ/comp/reverb/gain/pan + master LUFS/limiter); MixChainProcessor; pedalboard-based EQ/Compressor/Reverb/Limiter; pyloudnorm LUFS normalization; true-peak -1.0 dBFS cap |
 | MusicXML / LilyPond output | ⚪ | |
 | DAW MCP integration | ⚪ | |
 | Live improvisation mode | ⚪ | |

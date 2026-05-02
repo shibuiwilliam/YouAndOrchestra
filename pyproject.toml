@@ -17,6 +17,7 @@ dependencies = [
     "scipy>=1.11",
     "soundfile>=0.12",
     "click>=8.1",
+    "pedalboard>=0.9",
     "sounddevice>=0.4.6",
     "watchdog>=3.0.0",
 ]
@@ -73,6 +74,8 @@ module = [
     "sounddevice.*",
     "watchdog",
     "watchdog.*",
+    "pedalboard",
+    "pedalboard.*",
 ]
 ignore_missing_imports = true
 
