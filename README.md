@@ -15,8 +15,8 @@ Describe what you want in plain English, and YaO generates a full MIDI score wit
 ### Install
 
 ```bash
-git clone <repo-url>
-cd yao
+git clone https://github.com/shibuiwilliam/YouAndOrchestra
+cd YouAndOrchestra
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 make setup-hooks  # Install pre-commit hooks
