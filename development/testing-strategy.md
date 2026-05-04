@@ -18,7 +18,7 @@
 
 ```bash
 make all-checks        # Full pipeline: lint + arch-lint + tests + golden + honesty
-make test              # All ~1,748 tests
+make test              # All ~2,157 tests
 make lint              # ruff + mypy strict
 make arch-lint         # Layer boundary enforcement
 make test-acoustic     # Audio regression (weekly CI)

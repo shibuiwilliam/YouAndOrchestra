@@ -1,0 +1,19 @@
+# Orchestral percussion pattern
+# Sparse, cinematic feel. Timpani on downbeats, crash on climax entries.
+# Low density — orchestral percussion punctuates rather than drives.
+id: orchestral
+genre: cinematic
+time_signature: "4/4"
+bars_per_pattern: 2
+swing: 0.0
+humanize_ms: 15
+
+hits:
+  # Bar 1 - Beat 1: timpani hit
+  - { time_beats: 0.0, kit_piece: kick, velocity: 75, duration_beats: 0.5 }
+  # Bar 1 - Beat 3: soft timpani
+  - { time_beats: 2.0, kit_piece: kick, velocity: 55, duration_beats: 0.5 }
+  # Bar 2 - Beat 1: timpani
+  - { time_beats: 4.0, kit_piece: kick, velocity: 70, duration_beats: 0.5 }
+  # Bar 2 - Beat 4: light rim (suspended cymbal roll feel)
+  - { time_beats: 7.0, kit_piece: rim, velocity: 45, duration_beats: 0.25 }

@@ -77,3 +77,31 @@ Show provenance decisions for a composition.
 ### `yao new-project <name>`
 
 Create a new project skeleton under `specs/projects/` with a `composition.yaml` template and `intent.md` placeholder.
+
+### `yao preview <spec.yaml>`
+
+In-memory generation + FluidSynth synthesis + sounddevice playback. No file output -- instant audition.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--soundfont` | auto-detect | Path to SoundFont |
+
+### `yao watch <spec.yaml>`
+
+File-watch mode: auto-regenerate and auto-play when spec files change. 500ms debounce.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--soundfont` | auto-detect | Path to SoundFont |
+
+### `yao rate <project>`
+
+Interactive 5-dimension rating (memorability, emotional fit, technical quality, genre fitness, overall) plus free text. Saves a JSON rating file.
+
+### `yao reflect ingest [ratings_dir]`
+
+Aggregates rating JSON files into a `UserStyleProfile` with preferred ranges and confidence per dimension.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--profile-path` | `user_style_profile.json` | Path to save/load profile |

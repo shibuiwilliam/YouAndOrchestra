@@ -77,5 +77,14 @@ INSTRUMENT_RANGES: dict[str, InstrumentRange] = {
     "marimba": InstrumentRange("marimba", 45, 96, 12, "percussion"),
     "xylophone": InstrumentRange("xylophone", 65, 108, 13, "percussion"),
     "glockenspiel": InstrumentRange("glockenspiel", 72, 108, 9, "percussion"),
+    # Non-Western / custom instruments
+    "shakuhachi": InstrumentRange("shakuhachi", 55, 84, 77, "woodwind"),
+    "koto": InstrumentRange("koto", 40, 84, 107, "strings"),
+    "shamisen": InstrumentRange("shamisen", 50, 79, 106, "strings"),
+    "taiko": InstrumentRange("taiko", 36, 60, 116, "percussion"),
+    "sitar": InstrumentRange("sitar", 48, 84, 104, "strings"),
+    "tabla": InstrumentRange("tabla", 36, 72, 115, "percussion"),
+    "oud": InstrumentRange("oud", 43, 79, 25, "strings"),
+    "ney": InstrumentRange("ney", 55, 86, 72, "woodwind"),
 }
 """All known instrument ranges. Key is the canonical instrument name."""

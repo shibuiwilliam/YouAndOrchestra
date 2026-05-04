@@ -25,9 +25,9 @@ Technical documentation for contributors and AI agents developing YaO.
 ## Current State
 
 - **Phase:** v2.0 — Phase γ complete + Phase δ complete
-- **Tests:** 1,748 passing (unit, integration, scenario, constraint, golden, subjective, acoustic regression)
-- **Source files:** 198 Python modules in `src/yao/`
-- **Test files:** 207 test files
+- **Tests:** 2,157 passing (unit, integration, scenario, constraint, golden, subjective, acoustic regression)
+- **Source files:** 213 Python modules in `src/yao/`
+- **Test files:** 181 test files
 - **Note Realizers:** 4 registered — 2 V2 (rule_based_v2, stochastic_v2 with 100% plan consumption) + 2 legacy deprecated
 - **Critique rules:** 35 structured rules across 8+ categories (structural, melodic, harmonic, rhythmic, arrangement, emotional, genre fitness, memorability, surprise, hook, groove, acoustic, conversation)
 - **Aesthetic metrics:** 4 (surprise, memorability, contrast, pacing) in a dedicated dimension

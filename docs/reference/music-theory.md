@@ -4,7 +4,9 @@ Music theory constants used by YaO's generation and verification layers.
 
 ## Scales
 
-YaO supports 14 scale types, defined in `src/yao/constants/music.py`:
+YaO supports 28 scale types. The 14 standard scales are defined in `src/yao/constants/music.py`, and 14 extended/microtonal scales (EDO, Japanese, maqam, raga, gamelan, just intonation) are defined in `src/yao/constants/scales.py` as cents-based `ScaleDefinition` objects.
+
+### Standard Scales (14)
 
 | Scale | Intervals | Example (C root) |
 |-------|-----------|-------------------|
@@ -22,6 +24,21 @@ YaO supports 14 scale types, defined in `src/yao/constants/music.py`:
 | blues | 0,3,5,6,7,10 | C Eb F F# G Bb |
 | whole_tone | 0,2,4,6,8,10 | C D E F# G# A# |
 | chromatic | 0,1,2,3,4,5,6,7,8,9,10,11 | All 12 notes |
+
+### Extended / Microtonal Scales (14)
+
+Defined in `src/yao/constants/scales.py` as `ScaleDefinition` with cents-based tuning:
+
+| Category | Scales |
+|----------|--------|
+| EDO (equal division) | 19-EDO, 24-EDO (quarter-tone), 31-EDO, and more |
+| Japanese | in, ritsu, hirajoshi, yo, miyako-bushi, minyo |
+| Maqam | rast, bayati, hijaz, nahawand, kurd |
+| Raga | yaman, bhairav, darbari, todi, bhairavi |
+| Gamelan | slendro, pelog |
+| Just Intonation | 5-limit JI |
+
+All extended scales include `cultural_context` metadata.
 
 ## Chord Types
 

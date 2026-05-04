@@ -15,6 +15,7 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING
 
+from yao.constants.genre_profile import GenreProfile, get_genre_profile
 from yao.generators.note.base import NoteRealizerBase, register_note_realizer
 from yao.generators.note.rule_based_v2 import (
     _apply_motif_transform,
@@ -85,6 +86,12 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         ctx = plan.global_context
         key_root, scale_type = _parse_key(ctx.key)
 
+        # Load genre profile for genre-specific biases
+        genre_name = ""
+        if hasattr(ctx, "genre") and ctx.genre:
+            genre_name = ctx.genre.lower()
+        genre_profile = get_genre_profile(genre_name) if genre_name else None
+
         provenance.record(
             layer="generator",
             operation="note_realization_v2",
@@ -94,6 +101,7 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 "temperature": temperature,
                 "key": ctx.key,
                 "tempo": ctx.tempo_bpm,
+                "genre_profile": genre_name if genre_profile else None,
                 "consumed_fields": list(self.consumed_plan_fields),
             },
             source="StochasticNoteRealizerV2.realize",
@@ -137,6 +145,7 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 rng=rng,
                 temperature=temperature,
                 provenance=provenance,
+                genre_profile=genre_profile,
             )
             sections.append(
                 Section(
@@ -166,6 +175,7 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         rng: random.Random,
         temperature: float,
         provenance: ProvenanceLog,
+        genre_profile: GenreProfile | None = None,
     ) -> list[Note]:
         """Realize a section with stochastic variation."""
         notes: list[Note] = []
@@ -253,10 +263,17 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 duration = min(duration * 1.5, beats_per_bar)
                 velocity = min(velocity + 10, 127)
 
+            # Genre-biased swing: offset off-beat notes by swing ratio
+            swing_offset = 0.0
+            if genre_profile and genre_profile.swing_ratio > 0.51:
+                beat_fraction = beat % 1.0
+                if 0.4 < beat_fraction < 0.6:
+                    swing_offset = (genre_profile.swing_ratio - 0.5) * 0.5
+
             notes.append(
                 Note(
                     pitch=pitch,
-                    start_beat=beat,
+                    start_beat=max(0.0, beat + swing_offset),
                     duration_beats=duration,
                     velocity=velocity,
                     instrument=melody_instrument,

@@ -4,6 +4,8 @@ These rules detect problems that are invisible to symbolic evaluation:
 - Symbolic-acoustic divergence (high symbolic score, low acoustic quality)
 - LUFS target violations (loudness not matching production spec)
 - Spectral imbalance (frequency distribution skew)
+- Brightness-intent mismatch (spec mood vs measured spectral centroid)
+- Energy-trajectory violation (tension curve vs measured LUFS curve)
 
 Each rule takes a PerceptualReport and optionally an EvaluationReport
 for cross-modal comparison.
@@ -338,3 +340,249 @@ class SpectralImbalanceDetector:
             )
 
         return findings
+
+
+# ---------------------------------------------------------------------------
+# BrightnessIntentMismatchDetector
+# ---------------------------------------------------------------------------
+
+# Mood keywords → expected spectral centroid direction
+_DARK_MOODS = frozenset(
+    {
+        "dark",
+        "warm",
+        "melancholic",
+        "somber",
+        "mysterious",
+        "lonely",
+        "tender",
+        "serene",
+        "peaceful",
+        "nostalgic",
+    }
+)
+_BRIGHT_MOODS = frozenset(
+    {
+        "bright",
+        "energetic",
+        "aggressive",
+        "triumphant",
+        "joyful",
+        "playful",
+        "intense",
+        "dramatic",
+    }
+)
+
+_BRIGHTNESS_DARK_THRESHOLD = 0.55  # above this centroid → "bright"
+_BRIGHTNESS_BRIGHT_THRESHOLD = 0.35  # below this centroid → "dark"
+
+
+class BrightnessIntentMismatchDetector:
+    """Detect mismatch between spec mood and measured spectral brightness.
+
+    Fires when the composition's intent implies a dark/warm timbre but
+    the rendered audio has a high spectral centroid, or vice versa.
+
+    IMPROVEMENT.md Proposal 1.2: "spec.mood='warm' but spectral_centroid
+    > 0.7 (too bright)."
+    """
+
+    rule_id = "acoustic.brightness_intent_mismatch"
+    role = Role.ACOUSTIC
+
+    def detect(
+        self,
+        report: PerceptualReport,
+        mood_keywords: list[str],
+    ) -> list[Finding]:
+        """Detect brightness-mood mismatches.
+
+        Args:
+            report: The acoustic perception report.
+            mood_keywords: Mood keywords from the spec intent (lowercased).
+
+        Returns:
+            List of Finding objects. Empty if no mismatch detected.
+        """
+        findings: list[Finding] = []
+        centroid = report.spectral_centroid_mean
+
+        lower_keywords = {k.lower() for k in mood_keywords}
+
+        expects_dark = bool(lower_keywords & _DARK_MOODS)
+        expects_bright = bool(lower_keywords & _BRIGHT_MOODS)
+
+        if expects_dark and centroid > _BRIGHTNESS_DARK_THRESHOLD:
+            findings.append(
+                Finding(
+                    rule_id=self.rule_id,
+                    severity=Severity.MAJOR,
+                    role=self.role,
+                    issue=(
+                        f"Spec mood implies dark/warm timbre "
+                        f"(keywords: {lower_keywords & _DARK_MOODS}) but measured "
+                        f"spectral centroid is {centroid:.2f} "
+                        f"(threshold: {_BRIGHTNESS_DARK_THRESHOLD:.2f}). "
+                        f"Audio sounds brighter than intended."
+                    ),
+                    evidence={
+                        "mood_keywords": sorted(lower_keywords & _DARK_MOODS),
+                        "spectral_centroid": centroid,
+                        "threshold": _BRIGHTNESS_DARK_THRESHOLD,
+                        "direction": "too_bright",
+                    },
+                    recommendation={
+                        "mix_engineer": (
+                            "Apply low-pass filter or reduce high-frequency content. "
+                            "Consider warmer instrument patches or lower register voicings."
+                        ),
+                    },
+                )
+            )
+
+        if expects_bright and centroid < _BRIGHTNESS_BRIGHT_THRESHOLD:
+            findings.append(
+                Finding(
+                    rule_id=self.rule_id,
+                    severity=Severity.MAJOR,
+                    role=self.role,
+                    issue=(
+                        f"Spec mood implies bright/energetic timbre "
+                        f"(keywords: {lower_keywords & _BRIGHT_MOODS}) but measured "
+                        f"spectral centroid is {centroid:.2f} "
+                        f"(threshold: {_BRIGHTNESS_BRIGHT_THRESHOLD:.2f}). "
+                        f"Audio sounds darker than intended."
+                    ),
+                    evidence={
+                        "mood_keywords": sorted(lower_keywords & _BRIGHT_MOODS),
+                        "spectral_centroid": centroid,
+                        "threshold": _BRIGHTNESS_BRIGHT_THRESHOLD,
+                        "direction": "too_dark",
+                    },
+                    recommendation={
+                        "mix_engineer": (
+                            "Boost high-frequency presence or use brighter instrument patches. "
+                            "Consider higher register voicings or added percussion."
+                        ),
+                    },
+                )
+            )
+
+        return findings
+
+
+# ---------------------------------------------------------------------------
+# EnergyTrajectoryViolationDetector
+# ---------------------------------------------------------------------------
+
+_ENERGY_CORRELATION_THRESHOLD = -0.2  # correlation below this = violation
+
+
+class EnergyTrajectoryViolationDetector:
+    """Detect divergence between tension trajectory and measured energy curve.
+
+    The tension trajectory (from trajectory.yaml) prescribes how energy
+    should evolve over time. If the rendered audio's LUFS short-term curve
+    does not correlate with the tension curve, this rule fires.
+
+    IMPROVEMENT.md Proposal 1.2: "trajectory.tension high in bars 24–32
+    but rms_energy is flat."
+    """
+
+    rule_id = "acoustic.energy_trajectory_violation"
+    role = Role.ACOUSTIC
+
+    def detect(
+        self,
+        report: PerceptualReport,
+        tension_values: list[float],
+    ) -> list[Finding]:
+        """Detect energy-trajectory divergence.
+
+        Args:
+            report: The acoustic perception report.
+            tension_values: Tension values sampled at regular intervals [0, 1].
+                Should align with LUFS short-term windows.
+
+        Returns:
+            List of Finding objects. Empty if no violation detected.
+        """
+        findings: list[Finding] = []
+
+        if not report.lufs_short_term or not tension_values:
+            return findings
+
+        # Extract LUFS values from (time_sec, lufs) pairs
+        lufs_curve = [lufs for _, lufs in report.lufs_short_term if lufs > -70.0]
+        if not lufs_curve:
+            return findings
+
+        # Align lengths by resampling to the shorter
+        min_len = min(len(lufs_curve), len(tension_values))
+        if min_len < 3:  # noqa: PLR2004
+            return findings  # too short for meaningful correlation
+
+        # Simple resampling: pick evenly-spaced indices
+        lufs_sampled = [lufs_curve[i * len(lufs_curve) // min_len] for i in range(min_len)]
+        tension_sampled = [tension_values[i * len(tension_values) // min_len] for i in range(min_len)]
+
+        correlation = self._pearson_correlation(tension_sampled, lufs_sampled)
+
+        if correlation < _ENERGY_CORRELATION_THRESHOLD:
+            findings.append(
+                Finding(
+                    rule_id=self.rule_id,
+                    severity=Severity.MAJOR,
+                    role=self.role,
+                    issue=(
+                        f"Tension trajectory and measured energy (LUFS) are poorly "
+                        f"correlated (r={correlation:.2f}, threshold: "
+                        f"{_ENERGY_CORRELATION_THRESHOLD}). "
+                        f"The audio does not follow the intended dynamic arc."
+                    ),
+                    evidence={
+                        "correlation": correlation,
+                        "threshold": _ENERGY_CORRELATION_THRESHOLD,
+                        "lufs_range": (min(lufs_sampled), max(lufs_sampled)),
+                        "tension_range": (min(tension_sampled), max(tension_sampled)),
+                        "n_samples": min_len,
+                    },
+                    recommendation={
+                        "conductor": (
+                            "Adjust velocity/dynamics curves to follow the tension "
+                            "trajectory more closely. The note density or register "
+                            "changes may not be translating into audible energy changes."
+                        ),
+                    },
+                )
+            )
+
+        return findings
+
+    @staticmethod
+    def _pearson_correlation(x: list[float], y: list[float]) -> float:
+        """Compute Pearson correlation between two lists.
+
+        Args:
+            x: First series.
+            y: Second series (same length).
+
+        Returns:
+            Correlation in [-1, 1]. Returns 0.0 if either series is constant.
+        """
+        n = len(x)
+        if n == 0:
+            return 0.0
+
+        mean_x = sum(x) / n
+        mean_y = sum(y) / n
+
+        cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y, strict=True))
+        var_x = sum((xi - mean_x) ** 2 for xi in x)
+        var_y = sum((yi - mean_y) ** 2 for yi in y)
+
+        denom = (var_x * var_y) ** 0.5
+        if denom < 1e-12:
+            return 0.0
+        return float(cov / denom)

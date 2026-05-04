@@ -1,0 +1,84 @@
+# Genre Profile: Lo-fi Hip Hop
+# References:
+#   - Lo-fi aesthetic: detuned samples, vinyl crackle, jazz harmony (Bruner, 2021)
+#   - Neo-soul/jazz chord voicings: maj7, min9, dom9 (Levine, 1995)
+#   - Boom-bap swing: triplet subdivision at reduced velocity (Schloss, 2014)
+
+name: lofi_hiphop
+
+# Harmony — jazz-influenced with extended chords
+chord_palette:
+  - Imaj7
+  - ii7
+  - iii7
+  - IVmaj7
+  - V7
+  - vi7
+  - iv7
+  - bVImaj7
+  - bVII7
+  - IVm7
+
+# Based on common lofi chord voicings (7ths, 9ths) — often ii-V-I or iv-bVII-I
+progression_n_grams:
+  "ii7,V7": 0.18
+  "V7,Imaj7": 0.15
+  "Imaj7,vi7": 0.12
+  "vi7,ii7": 0.13
+  "IVmaj7,iii7": 0.10
+  "iii7,vi7": 0.09
+  "iv7,bVII7": 0.08
+  "bVII7,Imaj7": 0.08
+  "Imaj7,IVmaj7": 0.07
+
+# Nearly all chords are 7ths or extended — defining lofi characteristic
+seventh_chord_probability: 0.85
+secondary_dominant_probability: 0.10
+modal_interchange_probability: 0.25
+
+# Melody
+melodic_contour_weights:
+  ascending: 0.15
+  descending: 0.25
+  arch: 0.25
+  valley: 0.20
+  flat: 0.15
+
+# Stepwise motion dominates; occasional gentle leaps (Bruner, 2021)
+leap_probability: 0.15
+blue_note_probability: 0.12
+
+# Rhythm
+# Boom-bap swing feel, not full jazz swing (Schloss, 2014)
+swing_ratio: 0.58
+syncopation_density: 0.40
+
+rhythm_template_weights:
+  eighth_notes: 0.30
+  sixteenth_notes: 0.25
+  quarter_notes: 0.20
+  dotted_eighth: 0.15
+  triplet_eighth: 0.10
+
+# Orchestration — lo-fi staples
+preferred_instruments:
+  - electric_piano
+  - acoustic_guitar
+  - bass
+  - drum_kit
+  - vibraphone
+  - saxophone
+  - flute
+  - pad_synth
+
+voicing_density_target: 4
+bass_motion_style: syncopated
+
+# Dynamics — deliberately narrow, low-energy (the "chill" factor)
+typical_dynamics_range: [pp, mp]
+
+# Timbre — dark, warm, rolled-off highs (vinyl/tape saturation aesthetic)
+target_spectral_centroid: 0.25
+
+# Tempo — characteristically slow (Bruner, 2021)
+tempo_range: [60, 90]

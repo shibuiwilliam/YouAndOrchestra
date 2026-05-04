@@ -19,6 +19,7 @@ import math
 import random
 from dataclasses import dataclass
 
+from yao.constants.genre_profile import GenreProfile, genre_chord_sequence, get_genre_profile
 from yao.constants.instruments import INSTRUMENT_RANGES
 from yao.constants.music import CHORD_INTERVALS, DYNAMICS_TO_VELOCITY
 from yao.generators.base import GeneratorBase
@@ -179,6 +180,9 @@ class StochasticGenerator(GeneratorBase):
             rationale=f"Stochastic generation with seed={seed}, temperature={temperature}.",
         )
 
+        # Load genre profile for genre-specific biases
+        genre_profile = get_genre_profile(spec.genre) if spec.genre else None
+
         root_note, scale_type = parse_key(spec.key)
         sections = self._generate_sections(
             spec=spec,
@@ -189,6 +193,7 @@ class StochasticGenerator(GeneratorBase):
             rng=rng,
             seed=seed,
             temperature=temperature,
+            genre_profile=genre_profile,
         )
 
         score = ScoreIR(
@@ -224,6 +229,7 @@ class StochasticGenerator(GeneratorBase):
         rng: random.Random,
         seed: int,
         temperature: float,
+        genre_profile: GenreProfile | None = None,
     ) -> list[Section]:
         """Generate all sections with controlled randomness."""
         sections: list[Section] = []
@@ -234,7 +240,12 @@ class StochasticGenerator(GeneratorBase):
             section_end = current_bar + section_spec.bars
 
             # Choose chord pattern for this section type (master RNG for section-level)
-            chord_pattern = self._choose_chord_pattern(section_spec.name, rng, temperature)
+            chord_pattern = self._choose_chord_pattern(
+                section_spec.name,
+                rng,
+                temperature,
+                genre_profile=genre_profile,
+            )
 
             parts: list[Part] = []
             # Track melody instruments for motif-based differentiation
@@ -278,6 +289,14 @@ class StochasticGenerator(GeneratorBase):
                     if melody_index == 0:
                         primary_melody_notes = notes
 
+                # Apply genre-specific biases
+                if genre_profile:
+                    # Swing on non-drum instruments
+                    if genre_profile.swing_ratio > 0.51 and instr_spec.role != "rhythm":
+                        notes = self._apply_genre_swing(notes, genre_profile.swing_ratio)
+                    # Velocity scaling based on genre dynamics range
+                    notes = self._apply_genre_velocity(notes, genre_profile)
+
                 parts.append(Part(instrument=instr_spec.name, notes=tuple(notes)))
 
             provenance.record(
@@ -308,8 +327,35 @@ class StochasticGenerator(GeneratorBase):
 
         return sections
 
-    def _choose_chord_pattern(self, section_name: str, rng: random.Random, temperature: float) -> list[int]:
-        """Choose a chord degree pattern appropriate for the section type."""
+    def _choose_chord_pattern(
+        self,
+        section_name: str,
+        rng: random.Random,
+        temperature: float,
+        *,
+        genre_profile: GenreProfile | None = None,
+    ) -> list[int]:
+        """Choose a chord degree pattern appropriate for the section type.
+
+        When a genre profile with chord_palette and progression_n_grams is
+        available, generates a Markov-chain chord sequence biased by the
+        genre's harmonic preferences. Falls back to the hardcoded section
+        patterns when no genre profile is provided.
+
+        Args:
+            section_name: Section type (verse, chorus, bridge, etc.).
+            rng: Random instance for reproducibility.
+            temperature: Generation temperature (lower = more conservative).
+            genre_profile: Optional genre profile for genre-biased chords.
+
+        Returns:
+            List of scale degree integers (0-6).
+        """
+        if genre_profile and genre_profile.chord_palette:
+            # Use genre-biased Markov chain chord selection
+            pattern_length = 4
+            return genre_chord_sequence(genre_profile, section_name, pattern_length, rng)
+
         patterns = _CHORD_PATTERNS.get(section_name, _CHORD_PATTERNS["default"])
         if temperature < 0.2:  # noqa: PLR2004
             return patterns[0]
@@ -1197,6 +1243,75 @@ class StochasticGenerator(GeneratorBase):
         combined = f"{master_seed}:{instrument}:{section}"
         derived_seed = int(hashlib.sha256(combined.encode()).hexdigest()[:8], 16)
         return random.Random(derived_seed)
+
+    def _apply_genre_velocity(self, notes: list[Note], profile: GenreProfile) -> list[Note]:
+        """Scale velocity based on genre dynamics range.
+
+        Genres with quiet dynamics (e.g., ambient: ppp-p) will have
+        lower velocities; loud genres (e.g., cinematic: pp-fff) will be louder.
+
+        Args:
+            notes: Notes to adjust.
+            profile: Genre profile with typical_dynamics_range.
+
+        Returns:
+            New list of notes with adjusted velocities.
+        """
+        dynamics_map = {"ppp": 20, "pp": 33, "p": 49, "mp": 64, "mf": 80, "f": 96, "ff": 112, "fff": 126}
+        low_dyn = dynamics_map.get(profile.typical_dynamics_range[0], 64)
+        high_dyn = dynamics_map.get(profile.typical_dynamics_range[1], 96)
+        center = (low_dyn + high_dyn) / 2.0
+        scale = (high_dyn - low_dyn) / 80.0  # normalize against default range of 80
+
+        adjusted: list[Note] = []
+        for note in notes:
+            # Scale velocity toward genre center
+            new_vel = int(center + (note.velocity - 80) * scale)
+            new_vel = max(1, min(127, new_vel))
+            adjusted.append(
+                Note(
+                    pitch=note.pitch,
+                    start_beat=note.start_beat,
+                    duration_beats=note.duration_beats,
+                    velocity=new_vel,
+                    instrument=note.instrument,
+                )
+            )
+        return adjusted
+
+    def _apply_genre_swing(self, notes: list[Note], swing_ratio: float) -> list[Note]:
+        """Apply swing timing to notes based on genre profile.
+
+        Off-beat notes (those starting on the "and" of beats) are shifted
+        forward by an amount proportional to the swing ratio.
+
+        Args:
+            notes: The notes to swing.
+            swing_ratio: Swing amount (0.5=straight, 0.67=full triplet swing).
+
+        Returns:
+            New list of notes with adjusted start_beat values.
+        """
+        if swing_ratio <= 0.51:
+            return notes
+
+        swing_offset = (swing_ratio - 0.5) * 0.5
+        swung: list[Note] = []
+        for note in notes:
+            beat_frac = note.start_beat % 1.0
+            if 0.4 < beat_frac < 0.6:
+                swung.append(
+                    Note(
+                        pitch=note.pitch,
+                        start_beat=note.start_beat + swing_offset,
+                        duration_beats=note.duration_beats,
+                        velocity=note.velocity,
+                        instrument=note.instrument,
+                    )
+                )
+            else:
+                swung.append(note)
+        return swung
 
     def _target_octave(self, instrument: str, role: str) -> int:
         """Choose octave based on instrument range and role."""

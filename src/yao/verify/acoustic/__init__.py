@@ -7,12 +7,16 @@ Belongs to Layer 6 (Verification).
 """
 
 from yao.verify.acoustic.divergence_rules import (
+    BrightnessIntentMismatchDetector,
+    EnergyTrajectoryViolationDetector,
     LufsTargetViolationDetector,
     SpectralImbalanceDetector,
     SymbolicAcousticDivergenceDetector,
 )
 
 __all__ = [
+    "BrightnessIntentMismatchDetector",
+    "EnergyTrajectoryViolationDetector",
     "LufsTargetViolationDetector",
     "SpectralImbalanceDetector",
     "SymbolicAcousticDivergenceDetector",

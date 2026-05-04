@@ -11,6 +11,7 @@ from __future__ import annotations
 # Ensure plan generators are registered
 import yao.generators.plan.form_planner as _fp  # noqa: F401
 import yao.generators.plan.harmony_planner as _hp  # noqa: F401
+import yao.generators.plan.motivic_planner as _mp  # noqa: F401
 from yao.errors import SpecValidationError
 from yao.generators.plan.base import PLAN_GENERATORS
 from yao.ir.plan.musical_plan import GlobalContext, MusicalPlan
@@ -45,6 +46,9 @@ class PlanOrchestrator:
         self._form_planner = PLAN_GENERATORS[form_key]()
         self._harmony_planner = PLAN_GENERATORS[harmony_key]()
 
+        motif_key = f"{plan_strategy}_motif"
+        self._motif_planner = PLAN_GENERATORS[motif_key]() if motif_key in PLAN_GENERATORS else None
+
     def build_plan(
         self,
         spec: CompositionSpecV2,
@@ -66,6 +70,12 @@ class PlanOrchestrator:
         form_result = self._form_planner.generate(spec, trajectory, provenance)
         harmony_result = self._harmony_planner.generate(spec, trajectory, provenance)
 
+        # Generate motivic development plan
+        motif_plan = None
+        if self._motif_planner is not None:
+            motif_result = self._motif_planner.generate(spec, trajectory, provenance)
+            motif_plan = motif_result.get("motif")
+
         # Extract global context from the spec
         instruments = tuple((name, inst.role) for name, inst in spec.arrangement.instruments.items())
         global_ctx = GlobalContext(
@@ -83,7 +93,7 @@ class PlanOrchestrator:
             intent=intent,
             provenance=provenance,
             global_context=global_ctx,
-            motif=None,
+            motif=motif_plan,
             phrase=None,
             arrangement=None,
             drums=None,

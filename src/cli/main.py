@@ -9,6 +9,7 @@ from __future__ import annotations
 import shutil
 from datetime import UTC
 from pathlib import Path
+from typing import Any
 
 import click
 import structlog
@@ -26,11 +27,64 @@ from yao.render.audio_renderer import render_midi_to_wav
 from yao.render.iteration import next_iteration_dir
 from yao.render.midi_writer import write_midi
 from yao.render.stem_writer import write_stems
-from yao.schema.loader import load_composition_spec, load_project_specs, load_trajectory_spec
+from yao.schema.composition import CompositionSpec
+from yao.schema.composition_v2 import CompositionSpecV2
+from yao.schema.loader import load_composition_spec_auto, load_project_specs, load_trajectory_spec
 from yao.verify.analyzer import analyze_score
 from yao.verify.evaluator import evaluate_score
 
 logger = structlog.get_logger()
+
+
+def _load_spec(path: Path) -> CompositionSpec:
+    """Load a composition spec (v1 or v2), returning v1.
+
+    If the file is a v2 spec, it is converted to v1 via ``to_v1()``.
+
+    Args:
+        path: Path to composition.yaml.
+
+    Returns:
+        CompositionSpec (v1).
+
+    Raises:
+        SpecValidationError: If loading or validation fails.
+    """
+    spec = load_composition_spec_auto(path)
+    if isinstance(spec, CompositionSpecV2):
+        return spec.to_v1()
+    assert isinstance(spec, CompositionSpec)
+    return spec
+
+
+def _ensure_v1(spec: CompositionSpec | CompositionSpecV2) -> CompositionSpec:
+    """Convert a v2 spec to v1 if needed.
+
+    Args:
+        spec: A v1 or v2 composition spec.
+
+    Returns:
+        CompositionSpec (v1).
+    """
+    if isinstance(spec, CompositionSpecV2):
+        return spec.to_v1()
+    return spec
+
+
+def _warn_spec_applicability(spec: CompositionSpec) -> None:
+    """Emit warnings for spec fields that are ignored or partial.
+
+    Args:
+        spec: A v1 composition spec.
+    """
+    from yao.schema.applicability import FieldStatus, lint_spec_applicability
+
+    warnings = lint_spec_applicability(spec)
+    ignored = [w for w in warnings if w.status == FieldStatus.IGNORED]
+    if ignored:
+        click.echo(click.style("Spec warnings:", fg="yellow"))
+        for w in ignored:
+            click.echo(click.style(f"  {w.field}: {w.description}", fg="yellow"))
 
 
 @click.group()
@@ -81,6 +135,19 @@ def cli() -> None:
     default=True,
     help="Write per-instrument stem MIDI files (default: yes).",
 )
+@click.option(
+    "--strategy",
+    "-s",
+    type=str,
+    default=None,
+    help="Override generation strategy (e.g. rule_based, stochastic).",
+)
+@click.option(
+    "--seed",
+    type=int,
+    default=None,
+    help="Override generation seed (for reproducibility).",
+)
 def compose(
     spec_path: Path,
     output_dir: Path | None,
@@ -89,12 +156,26 @@ def compose(
     render_audio: bool,
     soundfont: Path | None,
     stems: bool,
+    strategy: str | None,
+    seed: int | None,
 ) -> None:
     """Generate a composition from a YAML spec."""
     try:
         # 1. Load spec
         click.echo(f"Loading spec: {spec_path}")
-        spec = load_composition_spec(spec_path)
+        spec = _load_spec(spec_path)
+
+        # Apply CLI overrides
+        gen_updates: dict[str, Any] = {}
+        if strategy is not None:
+            gen_updates["strategy"] = strategy
+        if seed is not None:
+            gen_updates["seed"] = seed
+        if gen_updates:
+            spec = spec.model_copy(update={"generation": spec.generation.model_copy(update=gen_updates)})
+
+        # Warn about ignored spec fields
+        _warn_spec_applicability(spec)
 
         traj = None
         if trajectory is not None:
@@ -248,10 +329,14 @@ def new_project(name: str) -> None:
 
 @cli.command()
 @click.argument("spec_path", type=click.Path(exists=True, path_type=Path))
-def validate(spec_path: Path) -> None:
-    """Validate a composition spec YAML file."""
+@click.option("--applicability/--no-applicability", default=True, help="Show field applicability report.")
+def validate(spec_path: Path, applicability: bool) -> None:
+    """Validate a composition spec YAML file and show field applicability."""
+    from yao.schema.applicability import format_applicability_report
+
     try:
-        spec = load_composition_spec(spec_path)
+        raw_spec = load_composition_spec_auto(spec_path)
+        spec = _ensure_v1(raw_spec)
         click.echo(f"Valid: {spec.title}")
         click.echo(f"  Key: {spec.key}")
         click.echo(f"  Tempo: {spec.tempo_bpm} BPM")
@@ -259,6 +344,13 @@ def validate(spec_path: Path) -> None:
         click.echo(f"  Bars: {spec.computed_total_bars()}")
         click.echo(f"  Instruments: {', '.join(i.name for i in spec.instruments)}")
         click.echo(f"  Sections: {', '.join(s.name for s in spec.sections)}")
+
+        if applicability:
+            click.echo("")
+            click.echo("=== Field Applicability ===")
+            report = format_applicability_report(raw_spec)
+            click.echo(report)
+
     except SpecValidationError as e:
         raise click.ClickException(f"Validation failed: {e}") from e
 
@@ -271,7 +363,8 @@ def evaluate(project_name: str) -> None:
     project_dir = Path(f"specs/projects/{safe_name}")
 
     try:
-        spec, traj = load_project_specs(project_dir)
+        raw_spec, traj = load_project_specs(project_dir)
+        spec = _ensure_v1(raw_spec)
     except SpecValidationError as e:
         raise click.ClickException(str(e)) from e
 
@@ -298,6 +391,84 @@ def evaluate(project_name: str) -> None:
     click.echo(eval_report.summary())
 
 
+@cli.command()
+@click.argument("project_name")
+def critique(project_name: str) -> None:
+    """Run adversarial critique on the latest iteration of a project.
+
+    Generates structured findings across all registered critique rules
+    and writes critique.md to the iteration directory.
+    """
+    from yao.generators.legacy_adapter import generate_via_v2_pipeline
+    from yao.render.iteration import current_iteration
+    from yao.schema.loader import load_project_specs
+    from yao.verify.critique import CRITIQUE_RULES
+    from yao.verify.critique.types import Severity
+
+    safe_name = project_name.lower().replace(" ", "-")
+    project_dir = Path(f"specs/projects/{safe_name}")
+
+    try:
+        raw_spec, traj = load_project_specs(project_dir)
+        spec = _ensure_v1(raw_spec)
+    except SpecValidationError as e:
+        raise click.ClickException(str(e)) from e
+
+    # Generate plan via v2 pipeline for critique
+    _score, plan, _provenance = generate_via_v2_pipeline(spec, traj)
+
+    # Convert spec to v2 for critique rules
+    from yao.generators.legacy_adapter import _v1_to_v2
+
+    spec_v2 = _v1_to_v2(spec)
+
+    findings = CRITIQUE_RULES.run_all(plan, spec_v2)
+
+    # Write critique.md
+    output_dir = Path(f"outputs/projects/{safe_name}")
+    latest = current_iteration(output_dir)
+    if latest is not None:
+        critique_path = latest / "critique.md"
+    else:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        critique_path = output_dir / "critique.md"
+
+    lines = ["# Adversarial Critique\n"]
+    if not findings:
+        lines.append("No issues detected. All critique rules passed.\n")
+    else:
+        severity_order = [Severity.CRITICAL, Severity.MAJOR, Severity.MINOR, Severity.SUGGESTION]
+        for severity in severity_order:
+            severity_findings = [f for f in findings if f.severity == severity]
+            if severity_findings:
+                lines.append(f"\n## {severity.value.upper()} ({len(severity_findings)})\n")
+                for f in severity_findings:
+                    lines.append(f"### {f.rule_id}\n")
+                    lines.append(f"**Issue:** {f.issue}\n")
+                    if f.location:
+                        loc_parts = []
+                        if f.location.section:
+                            loc_parts.append(f"section={f.location.section}")
+                        if f.location.bars:
+                            loc_parts.append(f"bars={f.location.bars[0]}-{f.location.bars[1]}")
+                        if f.location.instrument:
+                            loc_parts.append(f"instrument={f.location.instrument}")
+                        lines.append(f"**Location:** {', '.join(loc_parts)}\n")
+                    if f.evidence:
+                        lines.append(f"**Evidence:** {f.evidence}\n")
+                    if f.recommendation:
+                        lines.append(f"**Recommendation:** {f.recommendation}\n")
+                    lines.append("")
+
+    critique_path.write_text("\n".join(lines))
+    click.echo(f"Critique written to: {critique_path}")
+    click.echo(f"Total findings: {len(findings)}")
+    for severity in [Severity.CRITICAL, Severity.MAJOR, Severity.MINOR, Severity.SUGGESTION]:
+        count = sum(1 for f in findings if f.severity == severity)
+        if count:
+            click.echo(f"  {severity.value}: {count}")
+
+
 @cli.command("diff")
 @click.argument("spec_path", type=click.Path(exists=True, path_type=Path))
 @click.option("--seed-a", type=int, default=1, help="Seed for first generation.")
@@ -312,7 +483,7 @@ def diff_cmd(spec_path: Path, seed_a: int, seed_b: int) -> None:
     from yao.verify.diff import diff_scores, format_diff
 
     try:
-        spec = load_composition_spec(spec_path)
+        spec = _load_spec(spec_path)
 
         # Generate two versions with different seeds
         gen_a = GenerationConfig(strategy="stochastic", seed=seed_a, temperature=spec.generation.temperature)
@@ -339,7 +510,7 @@ def diff_cmd(spec_path: Path, seed_a: int, seed_b: int) -> None:
 def explain(spec_path: Path, query: str | None) -> None:
     """Explain the provenance of a composition's generation decisions."""
     try:
-        spec = load_composition_spec(spec_path)
+        spec = _load_spec(spec_path)
         generator = get_generator(spec.generation.strategy)
         _, provenance = generator.generate(spec)
 
@@ -408,7 +579,8 @@ def conduct(
     try:
         if spec is not None:
             # Spec mode: load existing spec and iterate
-            loaded_spec = load_composition_spec(spec)
+            loaded_spec = _load_spec(spec)
+            _warn_spec_applicability(loaded_spec)
             trajectory_path = spec.parent / "trajectory.yaml"
             traj = None
             if trajectory_path.exists():
@@ -477,7 +649,8 @@ def regenerate_section(project_name: str, section_name: str, seed: int | None, i
     project_dir = Path(f"specs/projects/{safe_name}")
 
     try:
-        spec, traj = load_project_specs(project_dir)
+        raw_spec, traj = load_project_specs(project_dir)
+        spec = _ensure_v1(raw_spec)
     except SpecValidationError as e:
         raise click.ClickException(str(e)) from e
 
@@ -528,24 +701,33 @@ def regenerate_section(project_name: str, section_name: str, seed: int | None, i
     default=None,
     help="SoundFont path (auto-detect if not given).",
 )
-def preview(spec_path: Path, seed: int, soundfont: Path | None) -> None:
-    """Generate and play immediately. No file output.
+@click.option(
+    "--save",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Save MIDI and WAV to this directory (in addition to playing).",
+)
+def preview(spec_path: Path, seed: int, soundfont: Path | None, save: Path | None) -> None:
+    """Generate and play immediately. No file output by default.
 
     \b
     Useful for rapid iteration: edit YAML, preview, adjust.
+    Use --save to also write MIDI + WAV artifacts.
     Example:
       yao preview specs/templates/minimal.yaml
       yao preview specs/projects/my-song/composition.yaml --seed 99
+      yao preview specs/templates/minimal.yaml --save /tmp/preview-out
     """
     try:
         import sounddevice as sd
     except ImportError as exc:
         raise click.ClickException("sounddevice not installed. Install with: pip install sounddevice") from exc
 
-    from yao.render.midi_writer import score_ir_to_midi
+    from yao.render.midi_writer import score_ir_to_midi, write_midi
+    from yao.render.playback import normalize_loudness
 
     try:
-        spec = load_composition_spec(spec_path)
+        spec = _load_spec(spec_path)
     except SpecValidationError as e:
         raise click.ClickException(str(e)) from e
 
@@ -555,7 +737,7 @@ def preview(spec_path: Path, seed: int, soundfont: Path | None) -> None:
         gen_config = spec.generation.model_copy(update={"seed": seed})
         gen_spec = spec.model_copy(update={"generation": gen_config})
         generator = get_generator(gen_spec.generation.strategy)
-        score, _prov = generator.generate(gen_spec)
+        score, prov = generator.generate(gen_spec)
     except YaOError as e:
         raise click.ClickException(str(e)) from e
 
@@ -567,7 +749,25 @@ def preview(spec_path: Path, seed: int, soundfont: Path | None) -> None:
     midi = score_ir_to_midi(score)
     audio = midi.fluidsynth(sf2_path=str(sf_path))
     sample_rate = 44100
+
+    # Normalize loudness for consistent preview volume
+    audio = normalize_loudness(audio, target_lufs=-16.0)
     duration_sec = len(audio) / sample_rate
+
+    # Optionally save artifacts
+    if save is not None:
+        save.mkdir(parents=True, exist_ok=True)
+        midi_path = save / "full.mid"
+        write_midi(score, midi_path)
+        click.echo(f"MIDI saved: {midi_path}")
+
+        import soundfile as sf
+
+        wav_path = save / "audio.wav"
+        sf.write(str(wav_path), audio, sample_rate)
+        click.echo(f"WAV saved: {wav_path}")
+
+        prov.save(save / "provenance.json")
 
     click.echo(f"Playing {duration_sec:.1f}s... (Ctrl+C to stop)")
     try:
@@ -608,6 +808,7 @@ def watch(spec_path: Path, seed: int, soundfont: Path | None) -> None:
         ) from exc
 
     from yao.render.midi_writer import score_ir_to_midi
+    from yao.render.playback import normalize_loudness
 
     sf_path = soundfont or _find_soundfont()
     if sf_path is None:
@@ -618,18 +819,25 @@ def watch(spec_path: Path, seed: int, soundfont: Path | None) -> None:
     def _regenerate_and_play() -> None:
         try:
             click.echo(f"\nSpec changed, regenerating (seed={seed})...")
-            spec = load_composition_spec(resolved)
+            spec = _load_spec(resolved)
             gen_config = spec.generation.model_copy(update={"seed": seed})
             gen_spec = spec.model_copy(update={"generation": gen_config})
             generator = get_generator(gen_spec.generation.strategy)
             score, _ = generator.generate(gen_spec)
 
+            # Evaluate and show score
+            eval_report = evaluate_score(score, gen_spec)
+            passed = sum(1 for s in eval_report.scores if s.passed)
+            total = len(eval_report.scores)
+            click.echo(f"  Quality: {eval_report.quality_score:.1f}/10 ({passed}/{total} metrics pass)")
+
             midi = score_ir_to_midi(score)
             audio = midi.fluidsynth(sf2_path=str(sf_path))
+            audio = normalize_loudness(audio, target_lufs=-16.0)
 
             sd.stop()
             duration_sec = len(audio) / 44100
-            click.echo(f"Playing {duration_sec:.1f}s... (edit and save to hear new version)")
+            click.echo(f"  Playing {duration_sec:.1f}s... (edit and save to hear new version)")
             sd.play(audio, samplerate=44100)
         except Exception as e:  # noqa: BLE001
             click.echo(f"Error: {e}", err=True)
@@ -638,7 +846,7 @@ def watch(spec_path: Path, seed: int, soundfont: Path | None) -> None:
         def __init__(self) -> None:
             self.last_modified = 0.0
 
-        def on_modified(self, event) -> None:  # type: ignore[override]
+        def on_modified(self, event: Any) -> None:
             if event.is_directory:
                 return
             if Path(event.src_path).resolve() != resolved:
@@ -665,6 +873,120 @@ def watch(spec_path: Path, seed: int, soundfont: Path | None) -> None:
         sd.stop()
         observer.stop()
     observer.join()
+
+
+# ── yao arrange ───────────────────────────────────────────────────────────
+
+
+@cli.command()
+@click.argument("spec_path", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Output directory. Default: auto-versioned arrangements directory.",
+)
+def arrange(spec_path: Path, output_dir: Path | None) -> None:
+    """Transform an existing piece using arrangement operations.
+
+    \b
+    Loads an arrangement.yaml spec that defines the source MIDI,
+    what to preserve, and what operations to apply.
+    Example:
+      yao arrange specs/projects/my-song/arrangement.yaml
+    """
+    from yao.arrange.base import get_arrangement
+    from yao.arrange.operations import (  # noqa: F401 — trigger registration
+        RegrooveOperation,
+        ReharmonizeOperation,
+        ReorchestrateOperation,
+        RetempoOperation,
+        TransposeOperation,
+    )
+    from yao.reflect.provenance import ProvenanceLog
+    from yao.render.midi_reader import load_midi_to_score_ir
+    from yao.schema.arrangement import ArrangementSpec
+    from yao.verify.diff import diff_scores, format_diff
+
+    try:
+        arr_spec = ArrangementSpec.from_yaml(spec_path)
+    except (SpecValidationError, YaOError) as e:
+        raise click.ClickException(f"Arrangement spec error: {e}") from e
+
+    # Load source MIDI
+    source_path = Path(arr_spec.input.file)
+    if not source_path.exists():
+        raise click.ClickException(f"Source MIDI not found: {source_path}")
+
+    click.echo(f"Loading source: {source_path}")
+    source_score = load_midi_to_score_ir(source_path)
+
+    # Determine output directory
+    if output_dir is None:
+        project_dir = spec_path.parent
+        arr_dir = project_dir / "arrangements"
+        arr_dir.mkdir(parents=True, exist_ok=True)
+        existing = sorted(arr_dir.glob("a*"))
+        num = len(existing) + 1
+        output_dir = arr_dir / f"a{num:03d}"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    provenance = ProvenanceLog()
+    result = source_score
+    operations_applied: list[str] = []
+
+    # Apply transform operations from spec
+    transform = arr_spec.transform
+    if transform.bpm is not None and transform.bpm != source_score.tempo_bpm:
+        op = get_arrangement("retempo")
+        result = op.apply(result, {"target_bpm": transform.bpm}, provenance)
+        operations_applied.append(f"retempo → {transform.bpm} BPM")
+
+    if transform.reharmonization_level > 0:
+        op = get_arrangement("reharmonize")
+        result = op.apply(
+            result,
+            {"level": transform.reharmonization_level, "style": "chromatic_substitution"},
+            provenance,
+        )
+        operations_applied.append(f"reharmonize (level={transform.reharmonization_level})")
+
+    if transform.target_genre != "general":
+        op = get_arrangement("regroove")
+        result = op.apply(
+            result,
+            {"target_genre": transform.target_genre, "swing": transform.swing},
+            provenance,
+        )
+        operations_applied.append(f"regroove → {transform.target_genre}")
+
+    if not operations_applied:
+        click.echo("No transformations specified.")
+        return
+
+    # Write output
+    midi_path = output_dir / "full.mid"
+    write_midi(result, midi_path)
+
+    # Generate diff
+    diff_result = diff_scores(source_score, result)
+    diff_path = output_dir / "arrangement_diff.md"
+    diff_path.write_text(format_diff(diff_result))
+
+    # Save provenance
+    provenance.save(output_dir / "provenance.json")
+
+    # Print summary
+    click.echo("\n=== Arrangement Result ===")
+    click.echo(f"Source:      {source_path}")
+    click.echo(f"Operations:  {len(operations_applied)} applied")
+    for op_desc in operations_applied:
+        click.echo(f"  - {op_desc}")
+    click.echo(f"Output:      {output_dir}")
+    click.echo(f"MIDI:        {midi_path}")
+    click.echo(f"Diff:        {diff_path}")
+    click.echo(f"Provenance:  {len(provenance)} records")
 
 
 # ── yao rate ────────────────────────────────────────────────────────────
@@ -832,6 +1154,80 @@ def reflect_ingest(ratings_dir: str, profile_path: str) -> None:
         pref = profile.get_preference(dim)
         if pref:
             click.echo(f"  {dim}: range={pref.preferred_range}, confidence={pref.confidence}, n={pref.source_count}")
+
+
+# ── yao feedback ────────────────────────────────────────────────────────
+
+
+@cli.group("feedback")
+def feedback_group() -> None:
+    """Feedback commands — apply human feedback to compositions."""
+
+
+@feedback_group.command("apply")
+@click.argument("project_name")
+@click.option(
+    "--feedback",
+    "-f",
+    "feedback_path",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Path to feedback.yaml file.",
+)
+@click.option("--max-iterations", "-n", type=int, default=3, help="Max conductor iterations.")
+def feedback_apply(project_name: str, feedback_path: Path, max_iterations: int) -> None:
+    """Apply human feedback to regenerate a composition.
+
+    \b
+    Reads feedback.yaml, converts tags to adaptations, and regenerates
+    the piece with the Conductor feedback loop.
+    Example:
+      yao feedback apply my-song -f outputs/.../v002/feedback.yaml
+    """
+    from yao.conductor.conductor import Conductor
+    from yao.conductor.feedback import apply_adaptations
+    from yao.conductor.human_feedback import convert_feedback_to_adaptations, summarize_adaptations
+    from yao.schema.feedback import FeedbackSpec
+
+    safe_name = project_name.lower().replace(" ", "-")
+    project_dir = Path(f"specs/projects/{safe_name}")
+
+    try:
+        raw_spec, traj = load_project_specs(project_dir)
+        spec = _ensure_v1(raw_spec)
+    except SpecValidationError as e:
+        raise click.ClickException(str(e)) from e
+
+    # Parse feedback
+    try:
+        feedback = FeedbackSpec.from_yaml(feedback_path)
+    except SpecValidationError as e:
+        raise click.ClickException(f"Feedback error: {e}") from e
+
+    click.echo(f"Loaded {len(feedback.human_feedback)} feedback entries from {feedback_path}")
+
+    # Convert to adaptations
+    adaptations = convert_feedback_to_adaptations(feedback, spec)
+    click.echo(f"\n=== Feedback Adaptations ({len(adaptations)}) ===")
+    click.echo(summarize_adaptations(adaptations))
+
+    # Apply adaptations to spec
+    adapted_spec = apply_adaptations(spec, adaptations)
+
+    # Regenerate with adapted spec
+    click.echo(f"\nRegenerating with {len(adaptations)} adaptations...")
+    conductor = Conductor()
+    try:
+        result = conductor.compose_from_spec(
+            spec=adapted_spec,
+            trajectory=traj,
+            project_name=safe_name,
+            max_iterations=max_iterations,
+        )
+        click.echo("")
+        click.echo(result.summary())
+    except YaOError as e:
+        raise click.ClickException(str(e)) from e
 
 
 def _find_soundfont() -> Path | None:

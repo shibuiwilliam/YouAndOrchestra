@@ -29,7 +29,7 @@ Claude Code will:
 
 Claude Code will guide you through choices:
 - Key and tempo suggestions with musical reasoning
-- Instrument selection from 38 available instruments
+- Instrument selection from 46 available instruments (including 8 non-Western)
 - Section structure (intro/verse/chorus/outro)
 - Dynamic arc and trajectory curves
 - Writes the YAML spec (v1 or v2 format) and validates it for you
@@ -58,7 +58,7 @@ You can also compose from natural language:
 /critique rainy-afternoon
 ```
 
-The adversarial critic finds every weakness — it never praises. YaO includes 20 structured critique rules across 8 categories (structural, melodic, harmonic, rhythmic, arrangement, emotional, genre fitness, memorability). Each rule emits `Finding` objects with severity (critical/major/minor/suggestion), evidence, bar-level location, and concrete recommendations. Writes `critique.md` to the iteration directory.
+The adversarial critic finds every weakness — it never praises. YaO includes 35 structured critique rules across 12 categories (structural, melodic, harmonic, rhythmic, arrangement, emotional, genre fitness, memorability, surprise, hook, groove, acoustic, conversation). Each rule emits `Finding` objects with severity (critical/major/minor/suggestion), evidence, bar-level location, and concrete recommendations. Writes `critique.md` to the iteration directory.
 
 ### `/regenerate-section` — Fix one section
 
@@ -90,7 +90,7 @@ Renders the latest iteration to WAV using FluidSynth.
 /arrange rainy-afternoon --style jazz
 ```
 
-Applies transformations like reharmonization, regrooving, or reorchestration. *(Arrangement engine is planned for a future phase.)*
+Applies transformations like reharmonization, regrooving, or reorchestration using the arrangement engine with style vector transfer and preservation contracts.
 
 ---
 
@@ -195,14 +195,15 @@ Behind the scenes, Claude Code can invoke specialized subagents:
 
 ## Domain Skills
 
-YaO includes 4 domain knowledge skills that Claude Code can draw on:
+YaO includes 28 domain knowledge skills that Claude Code can draw on:
 
-| Skill | Domain |
+| Category | Skills |
 |---|---|
-| `genres/cinematic` | Cinematic composition techniques and conventions |
-| `instruments/piano` | Piano-specific writing techniques |
-| `theory/voice-leading` | Voice leading rules and best practices |
-| `psychology/tension-resolution` | Emotional arc and tension/resolution patterns |
+| Genres (22) | cinematic, jazz, rock, pop, electronic, ambient, classical, lofi, funk, blues, reggae, latin, country, metal, r_and_b, hip_hop, edm, world, chiptune, j_pop, bossa_nova, trap |
+| Cultures (3) | Japanese, Middle Eastern, Indian Classical |
+| Theory (1) | Voice leading |
+| Instruments (1) | Piano |
+| Psychology (1) | Tension-resolution |
 
 ---
 
@@ -217,7 +218,8 @@ outputs/projects/<name>/iterations/v001/
 |   +-- piano.mid
 |   +-- acoustic_bass.mid
 +-- analysis.json      # Note counts, pitch range, lint results
-+-- evaluation.json    # Quality scores across structure/melody/harmony
++-- evaluation.json    # Quality scores (6 dimensions: structure, melody, harmony, aesthetic, arrangement, acoustics)
++-- perceptual.json    # Acoustic analysis (LUFS, spectral features, onset density)
 +-- provenance.json    # Why every decision was made
 +-- critique.md        # Adversarial critique (if /critique was run)
 +-- audio.wav          # Rendered audio (if --render-audio or /render was used)

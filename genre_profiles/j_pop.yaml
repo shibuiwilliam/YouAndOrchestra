@@ -1,0 +1,85 @@
+# Genre Profile: J-Pop
+# References:
+#   - J-Pop harmonic patterns: IV-V-iii-vi "royal road" progression (de Clercq, 2019)
+#   - Japanese pop melodic tendencies: pentatonic inflections in diatonic context (Koizumi, 1958)
+#   - Bright major tonality with minor borrowings (Ogawa, 2004)
+
+name: j_pop
+
+# Harmony — major-leaning with strategic minor borrowings
+chord_palette:
+  - I
+  - ii
+  - iii
+  - IV
+  - V
+  - vi
+  - IV/V
+  - bVII
+  - IVmaj7
+  - V7
+
+# "Royal road" progression (IV-V-iii-vi) is iconic in J-Pop (de Clercq, 2019)
+progression_n_grams:
+  "IV,V": 0.18
+  "V,iii": 0.12
+  "iii,vi": 0.14
+  "vi,IV": 0.13
+  "I,V": 0.10
+  "V,vi": 0.09
+  "IV,I": 0.08
+  "I,IV": 0.07
+  "vi,V": 0.05
+  "ii,V": 0.04
+
+seventh_chord_probability: 0.35
+secondary_dominant_probability: 0.20
+modal_interchange_probability: 0.15
+
+# Melody — wide range, catchy hooks, varied contour
+melodic_contour_weights:
+  ascending: 0.25
+  descending: 0.20
+  arch: 0.30
+  valley: 0.15
+  flat: 0.10
+
+# Moderate leaps for hook emphasis; mostly stepwise in verses
+leap_probability: 0.28
+# Pentatonic inflections, not blues-based (Koizumi, 1958)
+blue_note_probability: 0.03
+
+# Rhythm
+# Slight swing feel in many J-Pop tracks, but mostly straight
+swing_ratio: 0.52
+syncopation_density: 0.30
+
+rhythm_template_weights:
+  eighth_notes: 0.30
+  sixteenth_notes: 0.25
+  quarter_notes: 0.20
+  dotted_eighth: 0.15
+  triplet_eighth: 0.10
+
+# Orchestration — typical J-Pop band + synth layers
+preferred_instruments:
+  - piano
+  - electric_guitar
+  - acoustic_guitar
+  - bass
+  - drum_kit
+  - strings
+  - synth_pad
+  - voice
+
+voicing_density_target: 4
+bass_motion_style: root_fifth
+
+# Dynamics — moderate range, louder in choruses
+typical_dynamics_range: [mp, f]
+
+# Timbre — bright, polished production (Ogawa, 2004)
+target_spectral_centroid: 0.65
+
+# Tempo — moderate to upbeat
+tempo_range: [100, 180]

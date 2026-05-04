@@ -300,6 +300,63 @@ def evaluate_structure(
     return results
 
 
+def _compute_motif_recall(score: ScoreIR, window_size: int = 4) -> float | None:
+    """Compute motif recall strength by measuring self-similarity.
+
+    Slides a window of ``window_size`` notes across melody instruments,
+    extracts interval patterns, and measures how often short patterns recur.
+    A high score means strong thematic recall; too high means monotony.
+
+    IMPROVEMENT.md Proposal 3.4 target band: 0.4–0.7.
+
+    Args:
+        score: The ScoreIR to analyze.
+        window_size: Number of notes in the similarity window.
+
+    Returns:
+        Recall score in [0.0, 1.0], or None if insufficient data.
+    """
+    # Gather melody notes sorted by time
+    all_notes = score.all_notes()
+    if len(all_notes) < window_size * 2:
+        return None
+
+    # Extract interval sequences per instrument
+    instruments = {n.instrument for n in all_notes}
+    all_patterns: list[tuple[int, ...]] = []
+
+    for instr in instruments:
+        instr_notes = sorted(
+            (n for n in all_notes if n.instrument == instr),
+            key=lambda n: n.start_beat,
+        )
+        if len(instr_notes) < window_size:
+            continue
+
+        # Extract interval patterns (direction-normalized: up/down/same)
+        intervals = []
+        for i in range(len(instr_notes) - 1):
+            diff = instr_notes[i + 1].pitch - instr_notes[i].pitch
+            # Normalize to interval class (mod 12, signed direction)
+            intervals.append(diff % 12 if diff >= 0 else -((-diff) % 12))
+
+        # Slide window to extract patterns
+        for i in range(len(intervals) - window_size + 1):
+            pattern = tuple(intervals[i : i + window_size])
+            all_patterns.append(pattern)
+
+    if len(all_patterns) < 2:  # noqa: PLR2004
+        return None
+
+    # Count how many patterns appear more than once
+    from collections import Counter
+
+    pattern_counts = Counter(all_patterns)
+    recurring = sum(1 for p in all_patterns if pattern_counts[p] > 1)
+
+    return recurring / len(all_patterns)
+
+
 def evaluate_melody(score: ScoreIR) -> list[EvaluationScore]:
     """Evaluate melodic quality.
 
@@ -382,6 +439,19 @@ def evaluate_melody(score: ScoreIR) -> list[EvaluationScore]:
                 "contour_variety",
                 contour_score,
                 MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.1, max_value=0.7),
+            )
+        )
+
+    # Motif recall strength: measures self-similarity across the piece
+    # (IMPROVEMENT.md Proposal 3.4)
+    motif_recall = _compute_motif_recall(score)
+    if motif_recall is not None:
+        results.append(
+            _score_via_goal(
+                "melody",
+                "motif_recall_strength",
+                motif_recall,
+                MetricGoal(type=MetricGoalType.TARGET_BAND, target=0.55, tolerance=0.15),
             )
         )
 

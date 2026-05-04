@@ -1,0 +1,88 @@
+# Genre Profile: Cinematic / Epic Orchestral
+# References:
+#   - Hans Zimmer's harmonic language: modal mixture, pedal points (Lehman, 2018)
+#   - Film scoring dynamics: extreme range from ppp to fff (Davis, 1999)
+#   - Common epic trailer progressions: i-VI-III-VII (Byun & Jeon, 2019)
+
+name: cinematic
+
+# Harmony
+chord_palette:
+  - I
+  - ii
+  - IV
+  - V
+  - vi
+  - bVI
+  - bVII
+  - bIII
+  - i
+  - iv
+
+# Based on common film score progressions (i-bVI-bIII-bVII, deceptive cadences)
+progression_n_grams:
+  "I,V": 0.15
+  "V,vi": 0.12
+  "vi,IV": 0.14
+  "IV,I": 0.10
+  "i,bVI": 0.13
+  "bVI,bIII": 0.11
+  "bIII,bVII": 0.10
+  "bVII,i": 0.08
+  "IV,V": 0.07
+
+seventh_chord_probability: 0.25
+secondary_dominant_probability: 0.15
+# Modal interchange is central to cinematic harmony (Lehman, 2018)
+modal_interchange_probability: 0.45
+
+# Melody
+melodic_contour_weights:
+  ascending: 0.25
+  descending: 0.15
+  arch: 0.35
+  valley: 0.15
+  flat: 0.10
+
+# Wide melodic leaps for dramatic effect (Kalinak, 2010)
+leap_probability: 0.35
+blue_note_probability: 0.02
+
+# Rhythm
+# Cinematic scores are predominantly straight (Davis, 1999)
+swing_ratio: 0.5
+syncopation_density: 0.15
+
+rhythm_template_weights:
+  whole_notes: 0.25
+  half_notes: 0.30
+  quarter_notes: 0.25
+  eighth_notes: 0.15
+  dotted_half: 0.05
+
+# Orchestration
+preferred_instruments:
+  - violin
+  - viola
+  - cello
+  - contrabass
+  - french_horn
+  - trumpet
+  - trombone
+  - timpani
+  - piano
+  - harp
+  - flute
+  - oboe
+
+voicing_density_target: 6
+bass_motion_style: pedal
+
+# Dynamics — extreme range is a hallmark of cinematic scoring
+typical_dynamics_range: [pp, fff]
+
+# Timbre — moderately dark, with brass brightness in climaxes
+target_spectral_centroid: 0.45
+
+# Tempo — varies widely; moderate for emotional, fast for action
+tempo_range: [60, 160]

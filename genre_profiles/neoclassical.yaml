@@ -1,0 +1,85 @@
+# Genre Profile: Neoclassical
+# References:
+#   - Common-practice harmony: functional progressions, voice-leading (Aldwell & Schachter, 2010)
+#   - Classical phrase structure: 4-bar + 8-bar periods (Caplin, 1998)
+#   - Modern neoclassical: Einaudi, Tiersen — diatonic with pedal tones (Hewett, 2013)
+
+name: neoclassical
+
+# Harmony — diatonic, functional, occasionally modal
+chord_palette:
+  - I
+  - ii
+  - iii
+  - IV
+  - V
+  - vi
+  - V7
+  - viio
+  - IV6
+  - I64
+
+# Standard common-practice progressions (Aldwell & Schachter, 2010)
+progression_n_grams:
+  "I,IV": 0.14
+  "IV,V": 0.16
+  "V,I": 0.18
+  "I,vi": 0.10
+  "vi,IV": 0.09
+  "ii,V": 0.12
+  "V7,I": 0.08
+  "I,V": 0.07
+  "iii,vi": 0.03
+  "viio,I": 0.03
+
+seventh_chord_probability: 0.20
+# Secondary dominants used sparingly in neoclassical (Aldwell & Schachter, 2010)
+secondary_dominant_probability: 0.12
+modal_interchange_probability: 0.08
+
+# Melody
+melodic_contour_weights:
+  ascending: 0.22
+  descending: 0.22
+  arch: 0.30
+  valley: 0.16
+  flat: 0.10
+
+# Classical melodic writing favors stepwise motion (Huron, 2006)
+leap_probability: 0.20
+blue_note_probability: 0.0
+
+# Rhythm
+# Strictly straight in classical tradition
+swing_ratio: 0.5
+syncopation_density: 0.10
+
+rhythm_template_weights:
+  eighth_notes: 0.30
+  sixteenth_notes: 0.20
+  quarter_notes: 0.25
+  half_notes: 0.15
+  whole_notes: 0.10
+
+# Orchestration — acoustic classical instruments
+preferred_instruments:
+  - piano
+  - violin
+  - viola
+  - cello
+  - flute
+  - clarinet
+  - oboe
+  - harp
+
+voicing_density_target: 4
+bass_motion_style: root_fifth
+
+# Dynamics — moderate classical range (Caplin, 1998)
+typical_dynamics_range: [p, f]
+
+# Timbre — balanced, neither bright nor dark
+target_spectral_centroid: 0.45
+
+# Tempo — moderate, expressive rubato implied
+tempo_range: [60, 132]

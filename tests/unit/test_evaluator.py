@@ -70,6 +70,23 @@ class TestEvaluateMelody:
         results = evaluate_melody(empty)
         assert len(results) == 0
 
+    def test_motif_recall_strength_present(self, sample_score_ir: ScoreIR) -> None:
+        """MotifRecallStrength metric is computed for scored with enough notes."""
+        results = evaluate_melody(sample_score_ir)
+        recall_results = [r for r in results if r.metric == "motif_recall_strength"]
+        if sample_score_ir.all_notes() and len(sample_score_ir.all_notes()) >= 8:  # noqa: PLR2004
+            assert len(recall_results) == 1
+            assert 0.0 <= recall_results[0].score <= 1.0
+
+    def test_motif_recall_target_band(self, sample_score_ir: ScoreIR) -> None:
+        """MotifRecallStrength uses TARGET_BAND goal type."""
+        results = evaluate_melody(sample_score_ir)
+        recall_results = [r for r in results if r.metric == "motif_recall_strength"]
+        for r in recall_results:
+            # TARGET_BAND maps to target=0.55, tolerance=0.15 → band [0.4, 0.7]
+            assert r.target == 0.55  # noqa: PLR2004
+            assert r.tolerance == 0.15  # noqa: PLR2004
+
 
 class TestEvaluateHarmony:
     def test_pitch_class_variety(self, sample_score_ir: ScoreIR) -> None:

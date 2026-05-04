@@ -13,9 +13,9 @@ CompositionSpec → PlanGenerator → MusicalPlan → NoteRealizer → ScoreIR
 
 Every step returns a `ProvenanceLog` recording every decision.
 
-## Legacy Generators (v1, active during Phase alpha)
+## Legacy Generators (v1, deprecated)
 
-During Phase alpha, the v1 generators still work and are the primary path for composition. They take a spec directly and produce notes.
+The v1 generators still work but are deprecated in favor of v2 plan+realize architecture. They take a spec directly and produce notes.
 
 ```python
 class GeneratorBase(ABC):
@@ -29,7 +29,7 @@ class GeneratorBase(ABC):
 
 Register with `@register_generator("name")`. Select at runtime with `get_generator("name")`.
 
-Currently registered: `rule_based`, `stochastic`.
+Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `process_music`, `constraint_solver`.
 
 ## Creating a Plan Generator (v2.0)
 

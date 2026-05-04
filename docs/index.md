@@ -14,7 +14,7 @@ YaO turns music composition into a structured, reproducible process. Describe wh
 - **V2 Pipeline** — 9-step plan-first generation (Form → Harmony → Motif → Drums → Arrangement → Conversation → Realization → Performance → Listening)
 - **4 Note Realizers** — rule_based_v2 and stochastic_v2 consume 100% of the MusicalPlan directly
 - **8 melodic strategies** — contour, motif development, linear voice, arpeggiated, scalar runs, call-response, pedal tone, hocketing
-- **38 instruments** across 9 families with register-aware orchestration
+- **46 instruments** across 9 families with register-aware orchestration (including 8 non-Western)
 - **Trajectory curves** — Shape tension, density, predictability, brightness, register height
 - **6-dimension evaluation** — Structure, melody, harmony, aesthetic, arrangement, acoustics
 - **Acoustic evaluation** — LUFS, spectral features, 7 use-case evaluators, symbolic-acoustic divergence detection
@@ -30,7 +30,7 @@ YaO turns music composition into a structured, reproducible process. Describe wh
 - **Provenance tracking** — Every note has a recorded rationale
 - **7 subagents** — Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Critic, Producer
 - **LLM backend** — AnthropicAPIBackend with structured output (tool use), or PythonOnly for CI
-- **~1,748 tests** — Unit, integration, scenario, constraint, golden, acoustic regression, properties
+- **~2,157 tests** — Unit, integration, scenario, constraint, golden, acoustic regression, properties
 - **5 honesty tools** — CI verification that features actually work (not just exist)
 
 ## Architecture (v2.0)
@@ -105,7 +105,7 @@ outputs/projects/<name>/iterations/v001/
 ### Reference
 - [Glossary](glossary.md) — YaO terminology
 - [Provenance Schema](provenance-schema.md) — Decision log format
-- [Instruments](reference/instruments.md) — 38 instruments with MIDI ranges
+- [Instruments](reference/instruments.md) — 46 instruments with MIDI ranges
 - [Music Theory](reference/music-theory.md) — Scales, chords, dynamics
 
 ### Audits & Design

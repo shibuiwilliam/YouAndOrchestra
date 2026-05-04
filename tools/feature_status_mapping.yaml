@@ -256,7 +256,7 @@
   src:
     - src/yao/reflect/provenance.py
 
-"Constants (38 instruments, 14 scales, 14 chords)":
+"Constants (46 instruments, 28 scales, 14 chords)":
   src:
     - src/yao/constants/instruments.py
     - src/yao/constants/music.py

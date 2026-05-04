@@ -40,7 +40,7 @@ These statuses indicate known limitations. The Notes column must describe what w
 
 ### 6. No hardcoded counts in other documents
 
-README.md, CLAUDE.md, and other documents must not include absolute counts (e.g., "226 tests", "38 instruments") that can drift. Instead, link to the Capability Matrix.
+README.md, CLAUDE.md, and other documents must not include absolute counts (e.g., "226 tests", "46 instruments") that can drift. Instead, link to the Capability Matrix.
 
 ---
 

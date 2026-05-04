@@ -7,7 +7,7 @@ git clone <repo-url>
 cd yao
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-make all-checks   # Should see ~1,748 tests passing + 6 golden
+make all-checks   # Should see ~2,157+ tests passing + 6 golden
 ```
 
 ## Common Contributions
@@ -106,7 +106,7 @@ claude
 ## Before Submitting
 
 ```bash
-make all-checks        # Must pass (1,748+ tests + 6 golden)
+make all-checks        # Must pass (2,157+ tests + 6 golden)
 ```
 
 ## Code Standards

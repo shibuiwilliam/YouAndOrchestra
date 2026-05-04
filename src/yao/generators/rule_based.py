@@ -8,6 +8,7 @@ a given spec, which enables golden tests.
 
 from __future__ import annotations
 
+from yao.constants.genre_profile import GenreProfile, get_genre_profile, roman_to_degree
 from yao.constants.instruments import INSTRUMENT_RANGES
 from yao.constants.music import CHORD_INTERVALS, DYNAMICS_TO_VELOCITY
 from yao.generators.base import GeneratorBase
@@ -125,6 +126,28 @@ class RuleBasedGenerator(GeneratorBase):
 
         return score, prov
 
+    @staticmethod
+    def _genre_chord_pattern(genre_profile: GenreProfile | None, scale_type: str) -> list[int]:
+        """Derive a deterministic chord pattern from genre profile.
+
+        When a genre profile is available, takes the first 4 chords from its
+        palette (converted to scale degrees). Falls back to the default
+        I-IV-V-I pattern.
+
+        Args:
+            genre_profile: Optional genre profile.
+            scale_type: Scale type (e.g., "major", "minor").
+
+        Returns:
+            List of scale degree integers.
+        """
+        if genre_profile and genre_profile.chord_palette:
+            # Take up to 4 chords from the palette for a deterministic pattern
+            palette_degrees = [roman_to_degree(r) for r in genre_profile.chord_palette[:4]]
+            if len(palette_degrees) >= 2:  # noqa: PLR2004
+                return palette_degrees
+        return _MINOR_CHORD_PATTERN if "minor" in scale_type else _MAJOR_CHORD_PATTERN
+
     def _generate_sections(
         self,
         *,
@@ -137,6 +160,10 @@ class RuleBasedGenerator(GeneratorBase):
         """Generate all sections with their parts."""
         sections: list[Section] = []
         current_bar = 0
+
+        # Load genre profile for chord palette (deterministic: first N chords)
+        genre_profile = get_genre_profile(spec.genre) if spec.genre else None
+        chord_pattern = self._genre_chord_pattern(genre_profile, scale_type)
 
         for section_spec in spec.sections:
             section_start = current_bar
@@ -156,6 +183,7 @@ class RuleBasedGenerator(GeneratorBase):
                     section_spec=section_spec,
                     trajectory=trajectory,
                     provenance=provenance,
+                    chord_pattern=chord_pattern,
                 )
                 parts.append(Part(instrument=instr_spec.name, notes=tuple(notes)))
 
@@ -185,6 +213,7 @@ class RuleBasedGenerator(GeneratorBase):
         section_spec: SectionSpec,
         trajectory: TrajectorySpec | None,
         provenance: ProvenanceLog,
+        chord_pattern: list[int],
     ) -> list[Note]:
         """Generate notes for a single instrument part in a section."""
         if role == "melody":
@@ -208,6 +237,7 @@ class RuleBasedGenerator(GeneratorBase):
                 time_signature=time_signature,
                 section_spec=section_spec,
                 trajectory=trajectory,
+                chord_pattern=chord_pattern,
             )
         elif role == "harmony":
             notes = self._generate_chords(
@@ -219,6 +249,7 @@ class RuleBasedGenerator(GeneratorBase):
                 time_signature=time_signature,
                 section_spec=section_spec,
                 trajectory=trajectory,
+                chord_pattern=chord_pattern,
             )
         else:
             # For pad/rhythm roles, generate sustained chords as placeholder
@@ -231,6 +262,7 @@ class RuleBasedGenerator(GeneratorBase):
                 time_signature=time_signature,
                 section_spec=section_spec,
                 trajectory=trajectory,
+                chord_pattern=chord_pattern,
             )
 
         provenance.record(
@@ -340,13 +372,13 @@ class RuleBasedGenerator(GeneratorBase):
         time_signature: str,
         section_spec: SectionSpec,
         trajectory: TrajectorySpec | None,
+        chord_pattern: list[int],
     ) -> list[Note]:
         """Generate a root-note bass line following the chord pattern."""
         octave = self._bass_octave(instrument)
         root_scale = scale_notes(root_note, scale_type, octave)
 
         notes: list[Note] = []
-        chord_pattern = _MAJOR_CHORD_PATTERN if "major" in scale_type else _MINOR_CHORD_PATTERN
         beats_per_bar = bars_to_beats(1, time_signature)
 
         for bar in range(bars):
@@ -383,13 +415,12 @@ class RuleBasedGenerator(GeneratorBase):
         time_signature: str,
         section_spec: SectionSpec,
         trajectory: TrajectorySpec | None,
+        chord_pattern: list[int],
     ) -> list[Note]:
-        """Generate block chords following a I-IV-V-I pattern."""
+        """Generate block chords following the chord pattern."""
         octave = self._chord_octave(instrument)
         root_scale = scale_notes(root_note, scale_type, octave)
         is_minor = "minor" in scale_type
-
-        chord_pattern = _MINOR_CHORD_PATTERN if is_minor else _MAJOR_CHORD_PATTERN
         chord_type = "min" if is_minor else "maj"
         chord_intervals = CHORD_INTERVALS[chord_type]
         beats_per_bar = bars_to_beats(1, time_signature)

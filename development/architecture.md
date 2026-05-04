@@ -45,7 +45,7 @@ YaO is a layered music production pipeline with 8 layers (0 through 7) plus inte
 |   conversation, tension_arcs, arrangement                    |
 +--------------------------------------------------------------+
 | Layer 0: Constants (constants/)                              |
-|   38 instruments, 28 scales, 20 forms, 14 chords, MIDI maps |
+|   46 instruments, 28 scales, 20 forms, 14 chords, MIDI maps |
 +--------------------------------------------------------------+
 ```
 

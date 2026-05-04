@@ -1,0 +1,81 @@
+# Genre Profile: 8-bit Chiptune (Game Music)
+# References:
+#   - NES sound capabilities: 2 pulse + 1 triangle + 1 noise (Collins, 2008)
+#   - Chiptune harmony: simple triads, arpeggiated due to channel limits (Driscoll & Diaz, 2009)
+#   - Fast arpeggios simulate chords on single channels (Collins, 2008)
+#   - Game music tempo: typically fast to match gameplay energy (Kamp et al., 2016)
+
+name: game_8bit_chiptune
+
+# Harmony — simple, energetic, major-biased
+chord_palette:
+  - I
+  - IV
+  - V
+  - vi
+  - ii
+  - bVII
+  - bVI
+  - III
+
+# Power-chord rock progressions adapted to 8-bit (Collins, 2008)
+progression_n_grams:
+  "I,IV": 0.18
+  "IV,V": 0.16
+  "V,I": 0.20
+  "I,V": 0.12
+  "vi,IV": 0.10
+  "IV,I": 0.08
+  "I,bVII": 0.06
+  "bVII,bVI": 0.05
+  "bVI,V": 0.05
+
+# Hardware limitations favored simple triads (Collins, 2008)
+seventh_chord_probability: 0.05
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.15
+
+# Melody
+melodic_contour_weights:
+  ascending: 0.30
+  descending: 0.20
+  arch: 0.25
+  valley: 0.15
+  flat: 0.10
+
+# Chiptune melodies are angular and energetic with frequent leaps
+leap_probability: 0.40
+blue_note_probability: 0.02
+
+# Rhythm
+# Strictly straight quantization (hardware-locked timing)
+swing_ratio: 0.5
+syncopation_density: 0.25
+
+rhythm_template_weights:
+  sixteenth_notes: 0.35
+  eighth_notes: 0.30
+  quarter_notes: 0.20
+  dotted_eighth: 0.10
+  triplet_eighth: 0.05
+
+# Orchestration — NES-era channel types (Collins, 2008)
+preferred_instruments:
+  - pulse_wave
+  - triangle_wave
+  - noise
+  - square_wave
+  - sawtooth_wave
+
+voicing_density_target: 3
+# Arpeggiated bass simulates chords on limited channels (Driscoll & Diaz, 2009)
+bass_motion_style: arpeggiated
+
+# Dynamics — narrow range (hardware had no velocity sensitivity)
+typical_dynamics_range: [mf, f]
+
+# Timbre — very bright, high harmonics from square/pulse waves
+target_spectral_centroid: 0.85
+
+# Tempo — fast, matching high-energy gameplay (Kamp et al., 2016)
+tempo_range: [120, 200]

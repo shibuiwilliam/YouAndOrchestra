@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import wave
+from dataclasses import dataclass
 from pathlib import Path
 
 import structlog
@@ -18,11 +20,28 @@ from yao.errors import RenderError
 logger = structlog.get_logger()
 
 
+@dataclass(frozen=True)
+class AudioRenderResult:
+    """Result of an audio render operation.
+
+    Attributes:
+        output_path: Path to the rendered WAV file.
+        sample_rate: Sample rate in Hz (e.g. 44100).
+        duration_seconds: Duration of the rendered audio.
+        channels: Number of audio channels (1=mono, 2=stereo).
+    """
+
+    output_path: Path
+    sample_rate: int
+    duration_seconds: float
+    channels: int
+
+
 def render_midi_to_wav(
     midi_path: Path,
     output_path: Path,
     soundfont_path: Path | None = None,
-) -> Path:
+) -> AudioRenderResult:
     """Render a MIDI file to WAV audio using fluidsynth.
 
     Args:
@@ -32,7 +51,7 @@ def render_midi_to_wav(
             the soundfonts/ directory.
 
     Returns:
-        Path to the written WAV file.
+        AudioRenderResult with file metadata.
 
     Raises:
         RenderError: If fluidsynth is not available or rendering fails.
@@ -95,7 +114,24 @@ def render_midi_to_wav(
     if not output_path.exists():
         raise RenderError(f"fluidsynth completed but output not found: {output_path}")
 
-    return output_path
+    # Read WAV metadata for the result
+    sample_rate = 44100
+    duration_seconds = 0.0
+    channels = 2
+    try:
+        with wave.open(str(output_path), "rb") as wf:
+            sample_rate = wf.getframerate()
+            channels = wf.getnchannels()
+            duration_seconds = wf.getnframes() / sample_rate
+    except wave.Error:
+        logger.warning("wav_metadata_read_failed", path=str(output_path))
+
+    return AudioRenderResult(
+        output_path=output_path,
+        sample_rate=sample_rate,
+        duration_seconds=duration_seconds,
+        channels=channels,
+    )
 
 
 def _find_default_soundfont() -> Path | None:

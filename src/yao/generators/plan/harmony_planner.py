@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from yao.constants.genre_profile import GenreProfile, get_genre_profile
 from yao.generators.plan.base import PlanGeneratorBase, register_plan_generator
 from yao.ir.plan.harmony import (
     CadenceRole,
@@ -162,17 +163,28 @@ class RuleBasedHarmonyPlanner(PlanGeneratorBase):
         """
         palette = list(spec.harmony.chord_palette)
         skill_source: str | None = None
+        genre_profile: GenreProfile | None = None
+
+        # Load genre profile for genre-specific chord preferences
+        genre = spec.global_.genre.lower() if hasattr(spec.global_, "genre") else ""
+        if genre:
+            genre_profile = get_genre_profile(genre)
 
         # v3.0 Wave 2.1: Enrich palette from SkillRegistry if available
         if not palette or palette == ["I", "IV", "V", "vi"]:
-            from yao.skills.loader import get_skill_registry
+            # First try GenreProfile (structured data, preferred source)
+            if genre_profile and genre_profile.chord_palette:
+                palette = list(genre_profile.chord_palette)
+                skill_source = f"genre_profile:{genre}"
+            else:
+                # Fall back to SkillRegistry markdown
+                from yao.skills.loader import get_skill_registry
 
-            genre = spec.global_.genre.lower() if hasattr(spec.global_, "genre") else ""
-            registry = get_skill_registry()
-            skill_palette = registry.chord_palette_for(genre)
-            if skill_palette:
-                palette = skill_palette
-                skill_source = genre
+                registry = get_skill_registry()
+                skill_palette = registry.chord_palette_for(genre)
+                if skill_palette:
+                    palette = skill_palette
+                    skill_source = genre
 
         if not palette:
             palette = list(_DEFAULT_PROGRESSION)

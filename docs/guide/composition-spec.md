@@ -25,9 +25,10 @@ sections:                       # At least one required
     key: "G major"              # Optional: override per section
 
 generation:                     # Optional
-  strategy: "rule_based"        # rule_based, stochastic
-  seed: 42                      # Integer, for stochastic reproducibility
-  temperature: 0.5              # 0.0–1.0, stochastic variation control
+  strategy: "rule_based"        # rule_based, stochastic, rule_based_v2, stochastic_v2,
+                                # markov, twelve_tone, process_music, constraint_solver
+  seed: 42                      # Integer, for reproducibility
+  temperature: 0.5              # 0.0–1.0, variation control
 ```
 
 ## v2 Format (Detailed)

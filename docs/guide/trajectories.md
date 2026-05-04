@@ -9,6 +9,8 @@ Trajectories define how musical parameters change over time, independent of the 
 | `tension` | Velocity/dynamics | Higher tension → louder, more intense |
 | `density` | Note count per bar | Higher density → more notes |
 | `predictability` | Pattern regularity | Higher → more repetitive patterns |
+| `brightness` | Timbral quality | Higher → brighter tone selection |
+| `register_height` | Octave placement | Higher → notes in higher octaves |
 
 ## Interpolation Types
 

@@ -1,0 +1,86 @@
+# Genre Profile: Acoustic Folk
+# References:
+#   - Folk harmony: I-IV-V-vi predominance, open voicings (Neal, 2012)
+#   - Fingerpicking patterns: Travis picking, alternating bass (Traum, 1974)
+#   - Straight-eighth feel, no swing in Anglo-American folk (Middleton, 1990)
+#   - Simple diatonic harmony; modal inflections in Celtic/Appalachian styles
+
+name: acoustic_folk
+
+# Harmony — diatonic, simple, singable
+chord_palette:
+  - I
+  - IV
+  - V
+  - vi
+  - ii
+  - iii
+  - V7
+  - Isus4
+  - IVadd9
+
+# Folk relies on a handful of common progressions (Neal, 2012)
+progression_n_grams:
+  "I,IV": 0.18
+  "IV,V": 0.14
+  "V,I": 0.18
+  "I,V": 0.12
+  "vi,IV": 0.10
+  "IV,I": 0.10
+  "I,vi": 0.08
+  "ii,V": 0.06
+  "V7,I": 0.04
+
+# Mostly triads; occasional V7 for cadence
+seventh_chord_probability: 0.10
+secondary_dominant_probability: 0.05
+# Minimal chromatic borrowing in traditional folk
+modal_interchange_probability: 0.05
+
+# Melody
+melodic_contour_weights:
+  ascending: 0.22
+  descending: 0.22
+  arch: 0.30
+  valley: 0.16
+  flat: 0.10
+
+# Vocal-range melodies favor stepwise motion with occasional expressive leaps
+leap_probability: 0.22
+blue_note_probability: 0.05
+
+# Rhythm
+# Straight eighths; no swing in traditional folk (Middleton, 1990)
+swing_ratio: 0.5
+syncopation_density: 0.15
+
+rhythm_template_weights:
+  eighth_notes: 0.30
+  quarter_notes: 0.30
+  sixteenth_notes: 0.10
+  half_notes: 0.15
+  dotted_quarter: 0.15
+
+# Orchestration — acoustic instruments only
+preferred_instruments:
+  - acoustic_guitar
+  - voice
+  - harmonica
+  - banjo
+  - mandolin
+  - fiddle
+  - contrabass
+  - cajon
+
+voicing_density_target: 3
+# Alternating bass / root-fifth patterns from Travis picking (Traum, 1974)
+bass_motion_style: root_fifth
+
+# Dynamics — intimate, moderate range
+typical_dynamics_range: [p, mf]
+
+# Timbre — warm but present; acoustic string brightness
+target_spectral_centroid: 0.45
+
+# Tempo — moderate, singable pace
+tempo_range: [80, 140]

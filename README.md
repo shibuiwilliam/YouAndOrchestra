@@ -52,6 +52,7 @@ claude
 |---|---|
 | `/sketch` | 6-turn interactive dialogue → complete spec |
 | `/compose <project>` | Run Conductor loop (generate → evaluate → adapt) |
+| `/conduct <description>` | Natural-language composition with feedback loop |
 | `/critique <project>` | Adversarial critique with structured findings |
 | `/regenerate-section <project> <section>` | Re-generate one section |
 | `/render <project>` | MIDI → WAV audio |
@@ -89,7 +90,7 @@ Layer 3.5: Musical Plan IR           (ir/plan/ — form, harmony, motif, phrase,
 Layer 3: Score IR                    (ir/ — note, part, section, voicing, timing, hook, dynamics_shape, groove, conversation)
 Layer 2: Generation Strategy         (generators/ — plan generators, note realizers, reactive fills, frequency clearance)
 Layer 1: Specification               (schema/, sketch/ — YAML specs, NL compiler, conversation, hooks, groove)
-Layer 0: Constants                   (constants/ — 38 instruments, 28 scales, 20 forms, 14 chords)
+Layer 0: Constants                   (constants/ — 46 instruments, 28 scales, 20 forms, 14 chords)
 ```
 
 ### The V2 Pipeline (9 Steps)
@@ -161,7 +162,7 @@ Spec + Trajectory
 | Temporal | Onset density per section, tempo stability |
 | Use-case | YouTube BGM, Game BGM, Advertisement, Study Focus, Meditation, Workout, Cinematic |
 
-### Adversarial Critique (35 rules across 8 roles)
+### Adversarial Critique (35 rules across 12 categories)
 
 | Category | Rules |
 |---|---|
@@ -274,7 +275,7 @@ Five dimensions: tension, density, predictability, brightness, register height.
 
 ## Music Theory
 
-- **38 instruments** across 9 families
+- **46 instruments** across 9 families (including 8 non-Western: shakuhachi, koto, shamisen, taiko, sitar, tabla, oud, ney)
 - **28 scales** including 17 microtonal tuning systems (EDO, raga, maqam, gamelan, JI)
 - **14 chord types** with functional harmony (Roman numerals)
 - **20 song forms** (AABA, verse-chorus-bridge, rondo, blues 12-bar, J-Pop, game BGM, ambient, etc.)
@@ -291,7 +292,7 @@ Five dimensions: tension, density, predictability, brightness, register height.
 ## CI & Quality
 
 ```bash
-make all-checks    # Full quality pipeline (1748 tests + 6 golden)
+make all-checks    # Full quality pipeline (2157 tests + 6 golden)
 make test          # All tests
 make lint          # ruff + mypy strict
 make arch-lint     # Layer boundary enforcement
@@ -323,8 +324,8 @@ Place a `.sf2` file in `soundfonts/`, then use `/render`.
 ## Project Structure
 
 ```
-src/yao/           198 Python modules
-  constants/       Instruments, scales, forms, MIDI, theory
+src/yao/           213 Python modules
+  constants/       46 instruments, 28 scales, 20 forms, MIDI, theory
   schema/          Pydantic specs (v1 + v2), constraints, hooks, groove, conversation
   sketch/          NL → spec compiler (EN + JP), dialogue state
   ir/              Score IR + Plan IR (MPIR) + Hook, Groove, Conversation, TensionArc
@@ -346,7 +347,7 @@ src/yao/           198 Python modules
   skills/          Genre skill loader + registry
   runtime/         Project runtime (undo/redo, caching, lockfile)
   annotate/        Browser-based time-range annotation UI
-tests/             207 test files, 1748 test functions
+tests/             181 test files, 2157 test functions
 tools/             CI tooling (honesty checks, architecture lint, sync)
 .claude/           Agent prompts, slash commands, genre skills (22 genres)
 docs/              Design docs, audits, guides

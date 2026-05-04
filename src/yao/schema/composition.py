@@ -142,6 +142,7 @@ class CompositionSpec(BaseModel):
     sections: list[SectionSpec]
     drums: DrumsSpec | None = None
     generation: GenerationConfig = GenerationConfig()
+    use_style_profile: bool = True
 
     @field_validator("title")
     @classmethod

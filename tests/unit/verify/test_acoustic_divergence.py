@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from yao.perception.audio_features import BandName, PerceptualReport
 from yao.verify.acoustic.divergence_rules import (
+    BrightnessIntentMismatchDetector,
+    EnergyTrajectoryViolationDetector,
     LufsTargetViolationDetector,
     SpectralImbalanceDetector,
     SymbolicAcousticDivergenceDetector,
@@ -262,3 +264,157 @@ class TestSpectralImbalance:
         findings = detector.detect(report)
         for finding in findings:
             assert finding.role == Role.ACOUSTIC
+
+
+# ---------------------------------------------------------------------------
+# BrightnessIntentMismatchDetector
+# ---------------------------------------------------------------------------
+
+
+class TestBrightnessIntentMismatch:
+    def test_no_finding_when_dark_mood_dark_audio(self) -> None:
+        """No mismatch when mood is dark and audio is dark."""
+        report = _make_report(spectral_centroid=0.30)
+        detector = BrightnessIntentMismatchDetector()
+        findings = detector.detect(report, mood_keywords=["melancholic", "dark"])
+        assert len(findings) == 0
+
+    def test_finding_when_dark_mood_bright_audio(self) -> None:
+        """Finding when mood is dark but audio is bright."""
+        report = _make_report(spectral_centroid=0.70)
+        detector = BrightnessIntentMismatchDetector()
+        findings = detector.detect(report, mood_keywords=["warm", "tender"])
+        assert len(findings) == 1
+        assert findings[0].evidence["direction"] == "too_bright"
+
+    def test_finding_when_bright_mood_dark_audio(self) -> None:
+        """Finding when mood is bright but audio is dark."""
+        report = _make_report(spectral_centroid=0.20)
+        detector = BrightnessIntentMismatchDetector()
+        findings = detector.detect(report, mood_keywords=["energetic", "triumphant"])
+        assert len(findings) == 1
+        assert findings[0].evidence["direction"] == "too_dark"
+
+    def test_no_finding_when_bright_mood_bright_audio(self) -> None:
+        """No mismatch when mood is bright and audio is bright."""
+        report = _make_report(spectral_centroid=0.60)
+        detector = BrightnessIntentMismatchDetector()
+        findings = detector.detect(report, mood_keywords=["joyful", "playful"])
+        assert len(findings) == 0
+
+    def test_no_finding_when_no_mood_keywords(self) -> None:
+        """No finding when no mood keywords match."""
+        report = _make_report(spectral_centroid=0.80)
+        detector = BrightnessIntentMismatchDetector()
+        findings = detector.detect(report, mood_keywords=["unusual", "abstract"])
+        assert len(findings) == 0
+
+    def test_finding_has_acoustic_role(self) -> None:
+        """All findings have Role.ACOUSTIC."""
+        report = _make_report(spectral_centroid=0.70)
+        detector = BrightnessIntentMismatchDetector()
+        findings = detector.detect(report, mood_keywords=["dark"])
+        assert all(f.role == Role.ACOUSTIC for f in findings)
+
+
+# ---------------------------------------------------------------------------
+# EnergyTrajectoryViolationDetector
+# ---------------------------------------------------------------------------
+
+
+class TestEnergyTrajectoryViolation:
+    def test_no_finding_when_correlated(self) -> None:
+        """No violation when LUFS follows tension curve."""
+        # Rising tension → rising LUFS
+        report = _make_report()
+        report = PerceptualReport(
+            lufs_integrated=-16.0,
+            lufs_short_term=((0.0, -20.0), (3.0, -18.0), (6.0, -16.0), (9.0, -14.0)),
+            peak_dbfs=-3.0,
+            dynamic_range_db=6.0,
+            spectral_centroid_mean=2000.0,
+            spectral_centroid_per_section={"full": 2000.0},
+            spectral_rolloff=8000.0,
+            spectral_flatness=0.1,
+            onset_density_per_section={"full": 3.0},
+            tempo_stability_ms_drift=10.0,
+            frequency_band_energy={
+                BandName.SUB_BASS: 0.05,
+                BandName.BASS: 0.15,
+                BandName.LOW_MID: 0.20,
+                BandName.MID: 0.25,
+                BandName.HIGH_MID: 0.15,
+                BandName.PRESENCE: 0.10,
+                BandName.BRILLIANCE: 0.10,
+            },
+            masking_risk_score=0.1,
+        )
+        tension = [0.2, 0.4, 0.6, 0.8]
+        detector = EnergyTrajectoryViolationDetector()
+        findings = detector.detect(report, tension_values=tension)
+        assert len(findings) == 0
+
+    def test_finding_when_inversely_correlated(self) -> None:
+        """Violation when LUFS goes down as tension goes up."""
+        report = PerceptualReport(
+            lufs_integrated=-16.0,
+            lufs_short_term=((0.0, -12.0), (3.0, -14.0), (6.0, -18.0), (9.0, -22.0)),
+            peak_dbfs=-3.0,
+            dynamic_range_db=10.0,
+            spectral_centroid_mean=2000.0,
+            spectral_centroid_per_section={"full": 2000.0},
+            spectral_rolloff=8000.0,
+            spectral_flatness=0.1,
+            onset_density_per_section={"full": 3.0},
+            tempo_stability_ms_drift=10.0,
+            frequency_band_energy={
+                BandName.SUB_BASS: 0.05,
+                BandName.BASS: 0.15,
+                BandName.LOW_MID: 0.20,
+                BandName.MID: 0.25,
+                BandName.HIGH_MID: 0.15,
+                BandName.PRESENCE: 0.10,
+                BandName.BRILLIANCE: 0.10,
+            },
+            masking_risk_score=0.1,
+        )
+        tension = [0.2, 0.4, 0.6, 0.8]  # rising
+        detector = EnergyTrajectoryViolationDetector()
+        findings = detector.detect(report, tension_values=tension)
+        assert len(findings) == 1
+        assert findings[0].evidence["correlation"] < -0.2
+
+    def test_no_finding_when_empty_data(self) -> None:
+        """No finding when LUFS or tension is empty."""
+        report = _make_report()
+        detector = EnergyTrajectoryViolationDetector()
+        findings = detector.detect(report, tension_values=[])
+        assert len(findings) == 0
+
+    def test_finding_has_acoustic_role(self) -> None:
+        """All findings have Role.ACOUSTIC."""
+        report = PerceptualReport(
+            lufs_integrated=-16.0,
+            lufs_short_term=((0.0, -12.0), (3.0, -14.0), (6.0, -18.0), (9.0, -22.0)),
+            peak_dbfs=-3.0,
+            dynamic_range_db=10.0,
+            spectral_centroid_mean=2000.0,
+            spectral_centroid_per_section={"full": 2000.0},
+            spectral_rolloff=8000.0,
+            spectral_flatness=0.1,
+            onset_density_per_section={"full": 3.0},
+            tempo_stability_ms_drift=10.0,
+            frequency_band_energy={
+                BandName.SUB_BASS: 0.05,
+                BandName.BASS: 0.15,
+                BandName.LOW_MID: 0.20,
+                BandName.MID: 0.25,
+                BandName.HIGH_MID: 0.15,
+                BandName.PRESENCE: 0.10,
+                BandName.BRILLIANCE: 0.10,
+            },
+            masking_risk_score=0.1,
+        )
+        detector = EnergyTrajectoryViolationDetector()
+        findings = detector.detect(report, tension_values=[0.2, 0.4, 0.6, 0.8])
+        assert all(f.role == Role.ACOUSTIC for f in findings)

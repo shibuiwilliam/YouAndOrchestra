@@ -74,7 +74,9 @@ class CompositionSpecV2(BaseModel):
 ### `GenerationConfig` (`yao.schema.composition`)
 ```python
 class GenerationConfig(BaseModel):
-    strategy: str = "rule_based"    # or "stochastic"
+    strategy: str = "rule_based"    # rule_based, stochastic, markov, twelve_tone,
+                                    # process_music, constraint_solver,
+                                    # rule_based_v2, stochastic_v2
     seed: int | None = None         # for reproducibility
     temperature: float = 0.5        # 0.0=conservative, 1.0=adventurous
 ```
@@ -91,7 +93,7 @@ class ProvenanceLog:
     def save(self, path: Path) -> None
 ```
 
-## Composition Plan IR Types (CPIR) (v2.0)
+## Musical Plan IR Types (MPIR)
 
 ### `MusicalPlan` (`yao.ir.plan.musical_plan`)
 ```python
@@ -243,7 +245,7 @@ Replaces silent fallbacks. Every compromise is logged, traceable, and fixable in
 
 ## Generator API
 
-### Legacy (v1, still active in Phase alpha)
+### Legacy (v1, deprecated)
 
 ```python
 class GeneratorBase(ABC):
@@ -257,7 +259,7 @@ class GeneratorBase(ABC):
 
 Register with `@register_generator("name")`. Select at runtime with `get_generator("name")`.
 
-Currently registered: `rule_based`, `stochastic`.
+Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `process_music`, `constraint_solver`.
 
 ### v2.0: Plan Generators
 
@@ -351,7 +353,7 @@ lint_score(score: ScoreIR) -> list[LintResult]
 # Analysis
 analyze_score(score: ScoreIR) -> AnalysisReport
 
-# Evaluation (5 dimensions: structure, melody, harmony, arrangement, acoustics)
+# Evaluation (6 dimensions: structure, melody, harmony, aesthetic, arrangement, acoustics)
 evaluate_score(score, spec, trajectory=None) -> EvaluationReport
 
 # Diffing
@@ -407,6 +409,10 @@ current_iteration(project_output_dir) -> Path | None
 | `yao diff <spec> --seed-a N --seed-b M` | Compare two stochastic generations |
 | `yao explain <spec> [--query op]` | Explain provenance decisions |
 | `yao new-project <name>` | Create project skeleton |
+| `yao preview <spec>` | In-memory generate + synthesize + play (no file output) |
+| `yao watch <spec>` | Auto-regenerate on file change (500ms debounce) |
+| `yao rate <project>` | Interactive 5-dimension rating |
+| `yao reflect ingest [dir]` | Aggregate ratings into UserStyleProfile |
 
 ## Error Hierarchy
 

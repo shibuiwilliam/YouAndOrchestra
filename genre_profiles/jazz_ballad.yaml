@@ -1,0 +1,92 @@
+# Genre Profile: Jazz Ballad
+# References:
+#   - Jazz harmony: ii-V-I, tritone substitutions, extensions (Levine, 1995)
+#   - Jazz swing ratio: ~0.67 triplet feel (Pressing, 2002)
+#   - Blue notes: b3, b5, b7 over major tonality (Jaffe, 2011)
+#   - Walking bass: chromatic approach tones (Friedland, 1993)
+
+name: jazz_ballad
+
+# Harmony — rich extended chords, chromatic movement
+chord_palette:
+  - Imaj7
+  - ii7
+  - V7
+  - iii7
+  - vi7
+  - IVmaj7
+  - bII7
+  - viio7
+  - subV7
+  - iv7
+  - bVImaj7
+  - II7
+
+# ii-V-I is the foundation; tritone subs and secondary dominants (Levine, 1995)
+progression_n_grams:
+  "ii7,V7": 0.20
+  "V7,Imaj7": 0.18
+  "Imaj7,vi7": 0.10
+  "vi7,ii7": 0.12
+  "IVmaj7,iii7": 0.07
+  "iii7,vi7": 0.08
+  "II7,V7": 0.08
+  "bII7,Imaj7": 0.06
+  "Imaj7,IVmaj7": 0.06
+  "iv7,bVImaj7": 0.05
+
+# Nearly every chord is a 7th or higher extension
+seventh_chord_probability: 0.90
+# Frequent secondary dominants (II7, VI7, III7 targeting diatonic chords)
+secondary_dominant_probability: 0.35
+modal_interchange_probability: 0.20
+
+# Melody
+melodic_contour_weights:
+  ascending: 0.20
+  descending: 0.25
+  arch: 0.30
+  valley: 0.15
+  flat: 0.10
+
+# Jazz melodies feature both stepwise bebop lines and expressive leaps
+leap_probability: 0.30
+# Blue notes are integral to jazz melodic vocabulary (Jaffe, 2011)
+blue_note_probability: 0.25
+
+# Rhythm
+# Jazz swing ratio: ~0.67 triplet feel (Pressing, 2002)
+swing_ratio: 0.67
+syncopation_density: 0.55
+
+rhythm_template_weights:
+  eighth_notes: 0.30
+  quarter_notes: 0.20
+  triplet_eighth: 0.20
+  sixteenth_notes: 0.10
+  dotted_quarter: 0.10
+  half_notes: 0.10
+
+# Orchestration — jazz combo
+preferred_instruments:
+  - piano
+  - contrabass
+  - drum_kit
+  - saxophone
+  - trumpet
+  - trombone
+  - guitar
+  - vibraphone
+
+voicing_density_target: 5
+# Walking bass is the hallmark of jazz rhythm section (Friedland, 1993)
+bass_motion_style: walking
+
+# Dynamics — expressive range, soft default for ballad
+typical_dynamics_range: [pp, mf]
+
+# Timbre — warm, moderate darkness (acoustic jazz warmth)
+target_spectral_centroid: 0.38
+
+# Tempo — slow ballad tempo
+tempo_range: [50, 80]

@@ -1,0 +1,87 @@
+# Genre Profile: Ambient
+# References:
+#   - Brian Eno's ambient manifesto: "as ignorable as it is interesting" (Eno, 1978)
+#   - Ambient harmony: suspended chords, drones, slow root motion (Toop, 1995)
+#   - Spectral composition: focus on timbre over melody (Murail, 2005)
+
+name: ambient
+
+# Harmony — sparse, suspended, non-functional
+chord_palette:
+  - I
+  - Isus2
+  - Isus4
+  - IV
+  - IVsus2
+  - v
+  - bVII
+  - vi
+  - bVI
+  - bIII
+
+# Slow harmonic rhythm; root motion by 4ths/5ths and semitones (Toop, 1995)
+progression_n_grams:
+  "I,IV": 0.18
+  "IV,I": 0.15
+  "I,bVII": 0.12
+  "bVII,IV": 0.10
+  "I,vi": 0.10
+  "vi,IV": 0.08
+  "Isus2,IV": 0.10
+  "bVI,bIII": 0.07
+  "bIII,bVII": 0.05
+  "v,I": 0.05
+
+# Extended chords used for color, but triads and sus chords dominate
+seventh_chord_probability: 0.30
+secondary_dominant_probability: 0.02
+# Modal interchange common in ambient for color shifts
+modal_interchange_probability: 0.35
+
+# Melody — minimal, sustained, mostly flat or slowly arching
+melodic_contour_weights:
+  ascending: 0.10
+  descending: 0.10
+  arch: 0.25
+  valley: 0.15
+  flat: 0.40
+
+# Very few leaps; stepwise or static (Eno, 1978)
+leap_probability: 0.08
+blue_note_probability: 0.0
+
+# Rhythm
+# No swing; rhythm is de-emphasized or absent
+swing_ratio: 0.5
+syncopation_density: 0.05
+
+rhythm_template_weights:
+  whole_notes: 0.40
+  half_notes: 0.30
+  dotted_half: 0.15
+  quarter_notes: 0.10
+  eighth_notes: 0.05
+
+# Orchestration — pads, reverb-heavy textures
+preferred_instruments:
+  - pad_synth
+  - strings
+  - piano
+  - harp
+  - flute
+  - choir
+  - electric_piano
+  - celesta
+
+voicing_density_target: 3
+# Pedal bass is fundamental to ambient drone aesthetics (Toop, 1995)
+bass_motion_style: pedal
+
+# Dynamics — very quiet, minimal variation
+typical_dynamics_range: [ppp, p]
+
+# Timbre — dark, warm, low spectral centroid (rolled-off highs)
+target_spectral_centroid: 0.20
+
+# Tempo — very slow or beatless; when metered, extremely slow
+tempo_range: [40, 80]

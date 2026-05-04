@@ -1,6 +1,6 @@
 # Supported Instruments
 
-YaO supports 38 instruments across 9 families. Each has a defined MIDI range and General MIDI program number, centralized in `src/yao/constants/instruments.py`.
+YaO supports 46 instruments across 9 families. Each has a defined MIDI range and General MIDI program number, centralized in `src/yao/constants/instruments.py`. Eight non-Western instruments have extended profiles in `src/yao/constants/custom_instruments.py` with cultural origin, idiomatic techniques, and typical scales.
 
 ## Keyboard
 
@@ -84,3 +84,18 @@ YaO supports 38 instruments across 9 families. Each has a defined MIDI range and
 | marimba | A2–C7 | 45–96 | 12 |
 | xylophone | F4–C8 | 65–108 | 13 |
 | glockenspiel | C5–C8 | 72–108 | 9 |
+
+## Non-Western / Custom
+
+These instruments also have extended profiles (`CustomInstrument`) with cultural origin, idiomatic techniques, typical velocity ranges, and typical scales.
+
+| Instrument | Range | MIDI Low–High | GM Program | Cultural Origin |
+|------------|-------|---------------|------------|-----------------|
+| shakuhachi | G3–C6 | 55–84 | 77 | Japanese |
+| koto | E2–C6 | 40–84 | 107 | Japanese |
+| shamisen | D3–G5 | 50–79 | 106 | Japanese |
+| taiko | C2–C4 | 36–60 | 116 | Japanese |
+| sitar | C3–C6 | 48–84 | 104 | Indian |
+| tabla | C2–C5 | 36–72 | 115 | Indian |
+| oud | G2–G5 | 43–79 | 25 | Middle Eastern |
+| ney | G3–D6 | 55–86 | 72 | Middle Eastern |

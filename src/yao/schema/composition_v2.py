@@ -13,10 +13,13 @@ Belongs to Layer 1 (Specification).
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Literal
 
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
+
+if TYPE_CHECKING:
+    from yao.schema.composition import CompositionSpec
 
 from yao.constants.music import DYNAMICS_TO_VELOCITY, SCALE_INTERVALS
 from yao.errors import SpecValidationError
@@ -760,7 +763,7 @@ class CompositionSpecV2(BaseModel):
         with open(path, "w") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
-    def to_v1(self) -> Any:
+    def to_v1(self) -> CompositionSpec:
         """Convert to a v1-compatible CompositionSpec for use with legacy generators.
 
         Returns:
@@ -782,6 +785,17 @@ class CompositionSpecV2(BaseModel):
             )
             for s in self.form.sections
         ]
+        from yao.schema.composition import DrumsSpec as DrumsSpecV1
+
+        drums_v1: DrumsSpecV1 | None = None
+        if self.drums is not None:
+            drums_v1 = DrumsSpecV1(
+                pattern_family=self.drums.pattern_family,
+                swing=self.drums.swing,
+                ghost_notes_density=self.drums.ghost_notes_density,
+                fills_at=list(self.drums.fills_at),
+            )
+
         return CompositionSpec(
             title=self.identity.title,
             genre=self.global_.genre,
@@ -790,6 +804,7 @@ class CompositionSpecV2(BaseModel):
             time_signature=self.global_.time_signature,
             instruments=instruments,
             sections=sections,
+            drums=drums_v1,
             generation=GenerationConfig(
                 strategy=self.generation.strategy,
                 seed=self.generation.seed,

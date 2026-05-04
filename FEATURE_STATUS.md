@@ -24,10 +24,10 @@
 | Natural language → spec (`yao conduct`) | 🟢 | tests/unit/test_conductor.py | English keyword dict; explicit key regex ("in D minor"); no Japanese |
 | trajectory.yaml multi-dim coupling | ✅ | tests/scenarios/test_trajectory_compliance.py | All 5 dims defined; GenerationParams derived per bar; both generators respond to tension (velocity+leaps), density (rhythm), register_height (octave) |
 | constraints with scoping | ✅ | tests/unit/test_constraints.py | must / must_not / prefer / avoid with global, section, instrument, bars scopes |
-| intent.md | 🟡 | tests/unit/schema/test_intent.py | IntentSpec exists; not linked to auto-evaluation |
+| intent.md | ✅ | tests/unit/schema/test_intent.py | IntentSpec parsed; mood divergence checked by ListeningSimulator; IntentDivergenceDetector critique rule fires on plan/output mismatch |
 | references.yaml | ✅ | tests/unit/perception/test_reference_matcher.py, test_style_vector.py | PrimaryReference + NegativeReference with rights_status validation; ALLOWED_FEATURES/FORBIDDEN_FEATURES allowlist/blocklist; StyleVector (6 abstract features, no melody/chords); ReferenceMatcher with sha256 cache; defense-in-depth at schema + runtime |
 | negative-space.yaml | 🟡 | — | Schema exists; reflection mechanism incomplete |
-| production.yaml | 🟡 | — | Schema exists; mix chain not implemented |
+| production.yaml | ✅ | tests/unit/render/test_mix_chain.py | ProductionSpec + ProductionManifest schemas; render/mix_chain.py MVP (RMS loudness, reverb, stereo width); mix/mix_chain.py full chain (per-track EQ/comp/reverb/gain/pan, master LUFS) |
 
 ## Generation
 
@@ -76,7 +76,7 @@
 |---|---|---|---|
 | Music lint | ✅ | tests/unit/test_verify.py | Parallel fifths, voice leading |
 | Score analyzer | ✅ | tests/unit/test_verify.py | Structure, melody, harmony analysis |
-| Evaluator (10 metrics, 3 dims) | ✅ | tests/unit/test_evaluator.py | MetricGoal-based; structure / melody / harmony |
+| Evaluator (11 metrics, 3 dims) | ✅ | tests/unit/test_evaluator.py | MetricGoal-based; structure / melody / harmony; includes motif_recall_strength (TARGET_BAND 0.4-0.7) |
 | MetricGoal type system | ✅ | tests/unit/verify/test_metric_goal.py | 7 goal types (AT_LEAST, BETWEEN, etc.) |
 | Score diff | ✅ | tests/unit/test_diff.py | Modified notes tracking |
 | Constraint checker | ✅ | tests/unit/test_constraints.py | Range / voice constraints |
@@ -134,7 +134,7 @@
 |---|---|---|---|
 | 7 Subagent definitions (.md) | ✅ | — | .claude/agents/ (composer, critic, harmony-theorist, mix-engineer, orchestrator, producer, rhythm-architect) |
 | 7 Subagent Python implementations | ✅ | tests/unit/subagents/ (34 tests) | All 7 roles registered; Composer generates non-empty MotifPlan (Markov bigram + intent) with >= 3 placements per motif; PhrasePlan covers all sections; v3.0 Wave 1.1 complete |
-| 7 slash commands | ✅ | — | .claude/commands/ (compose, critique, sketch, regenerate-section, explain, render, arrange) |
+| 10 slash commands | ✅ | — | .claude/commands/ (compose, conduct, critique, sketch, regenerate-section, explain, render, arrange, pin, feedback) |
 
 ## Tests / QA
 
@@ -157,7 +157,7 @@
 | Pre-commit hooks | ✅ | — | trailing-whitespace, ruff, ruff-format, mypy, arch-lint |
 | CI (GitHub Actions) | ✅ | — | lint + type + arch-lint + tests + golden |
 | Provenance logging | ✅ | — | Append-only, queryable, JSON persistence |
-| Constants (38 instruments, 14 scales, 14 chords) | ✅ | — | src/yao/constants/ |
+| Constants (46 instruments, 28 scales, 14 chords) | ✅ | — | src/yao/constants/ |
 
 ## Not Yet Implemented
 
@@ -173,7 +173,7 @@
 | Arrangement Engine MVP | ✅ | tests/unit/arrange/ (20 tests) | SourcePlanExtractor (MIDI→MusicalPlan, confidence scores); StyleVectorOps (transfer + PreservationContract); DiffWriter (markdown); 4 critique rules; ArrangementSpec with rights_status |
 | Production Manifest + Mix Chain | ✅ | ProductionManifest schema (per-track EQ/comp/reverb/gain/pan + master LUFS/limiter); MixChainProcessor; pedalboard-based EQ/Compressor/Reverb/Limiter; pyloudnorm LUFS normalization; true-peak -1.0 dBFS cap |
 | Microtonal scale support | ✅ | tests/unit/ir/test_tuning.py, tests/unit/constants/test_scales.py (27 tests), tests/unit/constants/test_extended_scales.py (19 tests) | ScaleDefinition (cents-based); Tuning class; 28 scales (9 EDO + 6 Japanese + 5 maqam + 5 raga + 2 gamelan + 1 JI); cultural_context required for non-Western; Phase γ.7 extended |
-| Custom instrument profiles (8) | ✅ | tests/unit/constants/test_custom_instruments.py (12 tests) | shakuhachi, koto, shamisen, taiko, sitar, tabla, oud, ney; CustomInstrument frozen dataclass; GM approx + custom_sf2_path; cultural_origin + idiomatic_techniques; Phase γ.7 |
+| Custom instrument profiles (8) | ✅ | tests/unit/constants/test_custom_instruments.py (11 tests) | shakuhachi, koto, shamisen, taiko, sitar, tabla, oud, ney; CustomInstrument frozen dataclass; inline data (no external YAML); also registered in INSTRUMENT_RANGES (46 total); GM approx + custom_sf2_path; cultural_origin + idiomatic_techniques; Phase γ.7 |
 | Culture Skills (3) | ✅ | — | .claude/skills/cultures/japanese.md, middle_eastern.md, indian_classical.md; academic source citations; jo-ha-kyū, maqam system, raga system documented; Phase γ.7 |
 | Multilingual SpecCompiler (ja) | ✅ | tests/unit/sketch/test_multilingual.py (17 tests) | Japanese emotion vocabulary (50+ words); instrument/tempo/duration/genre keywords; language auto-detection; English backward compatible; provenance recorded; Phase γ.7 |
 | Extended Time Signatures | ✅ | tests/unit/schema/test_time_signature.py, tests/unit/ir/test_timing_extended.py (32 tests) | TimeSignatureSpec with beat_groupings; compound auto-detection (6/8, 9/8, 12/8); PolymeterTrack with sync_at; parse/is_compound/beat_grouping/beats_to_bars utilities; backward compatible |
@@ -182,7 +182,7 @@
 | DAW project writer (Reaper RPP) | ✅ | tests/unit/render/test_reaper_writer.py (3 tests) | ScoreIR → .rpp text; per-instrument tracks; MIDI stem references |
 | DAW MCP integration | 🟡 | tests/unit/render/test_daw_mcp.py (4 tests) | limitation: stub implementation, always returns disconnected/False/None; interface defined but no real MCP connection; Wave 3+ target |
 | Strudel emitter | ✅ | tests/unit/render/test_strudel_emitter.py (4 tests) | ScoreIR → Strudel live-coding notation (.js); browser-side instant audition |
-| Reflection Layer (Style Profile) | ✅ | tests/unit/reflect/test_style_profile.py (5 tests), tests/unit/cli/test_rate.py (4 tests) | `yao rate` interactive CLI for 5-dimension rating; `yao reflect ingest` aggregates ratings into UserStyleProfile; preferences stored as (range, confidence, source_count); v3.0 Wave 3.5 complete |
+| Reflection Layer (Style Profile) | ✅ | tests/unit/reflect/test_style_profile.py (11 tests), tests/unit/cli/test_rate.py (4 tests) | `yao rate` interactive CLI; `yao reflect ingest` aggregates ratings; UserStyleProfile with update_from(feedback, score), bias(spec), save/load; preferences for density/dynamics/overall |
 | Critique rules (25 total) | ✅ | tests/unit/verify/test_critique_rules.py, tests/unit/verify/test_surprise_rules.py, tests/unit/verify/test_groove_rules.py | 22 prior + 3 groove (groove_inconsistency, microtiming_flatness, ensemble_groove_conflict); Phase γ.4 |
 | GrooveProfile IR (Layer 3.5) | ✅ | tests/unit/ir/test_groove.py (22 tests) | Frozen dataclass; 16th-position microtiming + velocity pattern; [-50,50]ms bounds; ghost_probability, swing_ratio, jitter_sigma; apply_to_all_instruments; Phase γ.4 |
 | Groove Library (12 profiles) | ✅ | tests/unit/ir/test_groove.py (8 tests) | lofi_hiphop, jazz_swing, pop_straight, bossa_nova, funk_16th, cinematic_legato, edm_4onfloor, rock_backbeat, reggae_one_drop, j_pop_tight, ambient_fluid, trap_double_time; grooves/*.yaml; Phase γ.4 |
@@ -195,7 +195,7 @@
 | Annotation UI | ✅ | tests/unit/annotate/ (12 tests) | FastAPI local server; Annotation + AnnotationFile Pydantic models; browser UI with audio player + time-range tagging; explicit save only; optional dep `pip install yao[annotate]` |
 | Backend-Agnostic Agent Protocol | 🟡 | tests/unit/agents/ (29 tests) | limitation: ClaudeCodeBackend (is_stub=True) still falls back to PythonOnly; AnthropicAPIBackend is real (is_stub=False, requires ANTHROPIC_API_KEY, tool_use structured output, provenance with backend/model/prompt_hash/token_usage); Protocol and PythonOnlyBackend work; ClaudeCode is Wave 3+ target |
 | Listening Simulator (Step 7.5) | ✅ | tests/unit/perception/test_listening_simulator.py (10 tests) | ListeningSimulator orchestrates post-render perception; persists perceptual.json; mood divergence detection via intent keywords; section boundary support |
-| Acoustic Divergence Rules | ✅ | tests/unit/verify/test_acoustic_divergence.py (17 tests) | 3 rules: symbolic_acoustic_divergence (critical when symbolic↑/acoustic↓), lufs_target_violation (per-use-case defaults), spectral_imbalance (dominant band + mud detection); Role.ACOUSTIC added to critique taxonomy (7 roles total) |
+| Acoustic Divergence Rules | ✅ | tests/unit/verify/test_acoustic_divergence.py (27 tests) | 5 rules: symbolic_acoustic_divergence, lufs_target_violation, spectral_imbalance, brightness_intent_mismatch (mood↔centroid), energy_trajectory_violation (tension↔LUFS correlation); Role.ACOUSTIC (7 roles total) |
 | Audio Regression Tests | ✅ | tests/audio_regression/test_baseline.py (8 tests) | Synthetic baselines (sine, noise, two-section); deterministic extraction verification; `make test-acoustic` target; `audio_regression` pytest marker for weekly CI |
 | Hook IR | ✅ | tests/unit/ir/test_hook.py (14 tests) | Hook frozen dataclass with DeploymentStrategy (rare/frequent/withhold_then_release/ascending_repetition); HookPlan; BarPosition; references MotifSeed by id; serialization round-trip |
 | Phrase-Level Dynamics (DynamicsShape) | ✅ | tests/unit/ir/test_dynamics_shape.py (13 tests) | DynamicsShapeType (crescendo/decrescendo/arch/hairpin/steady); velocity_multiplier(position) curve; BarAccent; arch peak at specified position verified; intensity=0 means flat |
