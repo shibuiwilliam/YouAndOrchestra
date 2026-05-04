@@ -27,6 +27,8 @@ class ProvenanceRecord:
         parameters: Input parameters that influenced the decision.
         source: What triggered this operation.
         rationale: Why this particular decision was made.
+        record_id: Unique identifier for causal graph edges.
+        caused_by: IDs of records that influenced this decision.
     """
 
     timestamp: str
@@ -35,6 +37,8 @@ class ProvenanceRecord:
     parameters: dict[str, Any]
     source: str
     rationale: str
+    record_id: str = ""
+    caused_by: tuple[str, ...] = ()
 
     @classmethod
     def create(
@@ -45,6 +49,7 @@ class ProvenanceRecord:
         parameters: dict[str, Any],
         source: str,
         rationale: str,
+        caused_by: tuple[str, ...] = (),
     ) -> ProvenanceRecord:
         """Create a new provenance record with the current timestamp.
 
@@ -54,17 +59,27 @@ class ProvenanceRecord:
             parameters: Dictionary of input parameters.
             source: What triggered this operation.
             rationale: Why this decision was made.
+            caused_by: IDs of records that influenced this decision.
 
         Returns:
-            A new ProvenanceRecord with current UTC timestamp.
+            A new ProvenanceRecord with current UTC timestamp and auto-generated ID.
         """
+        import hashlib
+
+        ts = datetime.now(tz=UTC).isoformat()
+        # Generate deterministic ID from content
+        content = f"{ts}:{layer}:{operation}:{source}"
+        record_id = hashlib.sha256(content.encode()).hexdigest()[:12]
+
         return cls(
-            timestamp=datetime.now(tz=UTC).isoformat(),
+            timestamp=ts,
             layer=layer,
             operation=operation,
             parameters=parameters,
             source=source,
             rationale=rationale,
+            record_id=record_id,
+            caused_by=caused_by,
         )
 
 
@@ -95,7 +110,8 @@ class ProvenanceLog:
         parameters: dict[str, Any],
         source: str,
         rationale: str,
-    ) -> None:
+        caused_by: tuple[str, ...] = (),
+    ) -> ProvenanceRecord:
         """Create and append a provenance record in one step.
 
         Args:
@@ -104,16 +120,21 @@ class ProvenanceLog:
             parameters: Input parameters.
             source: What triggered this operation.
             rationale: Why this decision was made.
+            caused_by: IDs of records that influenced this decision.
+
+        Returns:
+            The newly created record (for chaining causal references).
         """
-        self.add(
-            ProvenanceRecord.create(
-                layer=layer,
-                operation=operation,
-                parameters=parameters,
-                source=source,
-                rationale=rationale,
-            )
+        rec = ProvenanceRecord.create(
+            layer=layer,
+            operation=operation,
+            parameters=parameters,
+            source=source,
+            rationale=rationale,
+            caused_by=caused_by,
         )
+        self.add(rec)
+        return rec
 
     @property
     def records(self) -> list[ProvenanceRecord]:
@@ -199,11 +220,74 @@ class ProvenanceLog:
         """Return True if any recoverable decision has severity 'error'."""
         return any(d.is_blocking for d in self._recoverables)
 
+    def get_by_id(self, record_id: str) -> ProvenanceRecord | None:
+        """Find a record by its unique ID.
+
+        Args:
+            record_id: The record_id to look up.
+
+        Returns:
+            The matching record, or None.
+        """
+        for r in self._records:
+            if r.record_id == record_id:
+                return r
+        return None
+
+    def get_causes(self, record: ProvenanceRecord) -> list[ProvenanceRecord]:
+        """Return all records that causally influenced a given record.
+
+        Args:
+            record: The record whose causes to find.
+
+        Returns:
+            List of causing records (may be empty).
+        """
+        return [r for r in self._records if r.record_id in record.caused_by]
+
+    def get_effects(self, record: ProvenanceRecord) -> list[ProvenanceRecord]:
+        """Return all records that were caused by a given record.
+
+        Args:
+            record: The record whose effects to find.
+
+        Returns:
+            List of effect records.
+        """
+        return [r for r in self._records if record.record_id in r.caused_by]
+
+    def trace_ancestry(self, record: ProvenanceRecord) -> list[ProvenanceRecord]:
+        """Trace the full causal ancestry of a record (BFS).
+
+        Returns all records that directly or indirectly caused this record,
+        in breadth-first order.
+
+        Args:
+            record: The record to trace.
+
+        Returns:
+            Ancestry chain, nearest causes first.
+        """
+        visited: set[str] = set()
+        queue: list[ProvenanceRecord] = list(self.get_causes(record))
+        result: list[ProvenanceRecord] = []
+
+        while queue:
+            current = queue.pop(0)
+            if current.record_id in visited:
+                continue
+            visited.add(current.record_id)
+            result.append(current)
+            queue.extend(self.get_causes(current))
+
+        return result
+
     def explain_chain(self) -> str:
         """Generate a human-readable explanation of the full decision chain.
 
         Returns:
-            Multi-line narrative of all decisions and their rationales.
+            Multi-line narrative of all decisions and their rationales,
+            including causal edges.
         """
         if not self._records:
             return "No decisions recorded."
@@ -215,6 +299,9 @@ class ProvenanceLog:
             if r.parameters:
                 params = ", ".join(f"{k}={v}" for k, v in r.parameters.items())
                 lines.append(f"   With: {params}")
+            if r.caused_by:
+                causes = ", ".join(r.caused_by)
+                lines.append(f"   Caused by: {causes}")
         return "\n".join(lines)
 
     def to_json(self) -> str:

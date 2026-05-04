@@ -1,0 +1,17 @@
+# Waltz 3/4 pattern
+# Classic oom-pah-pah: kick on 1, closed hat on 2 and 3
+# Source: Traditional Western waltz rhythm
+id: waltz_3_4
+genre: waltz
+time_signature: "3/4"
+bars_per_pattern: 1
+swing: 0.0
+humanize_ms: 5
+
+hits:
+  # Beat 1 (strong)
+  - { time_beats: 0.0, kit_piece: kick, velocity: 95, duration_beats: 0.25 }
+  # Beat 2 (weak)
+  - { time_beats: 1.0, kit_piece: closed_hat, velocity: 70, duration_beats: 0.25 }
+  # Beat 3 (weak)
+  - { time_beats: 2.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }

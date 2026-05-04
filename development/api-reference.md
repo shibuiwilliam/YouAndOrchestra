@@ -12,6 +12,11 @@ class Note:
     velocity: Velocity       # 1-127
     instrument: str          # canonical instrument name
 
+    # v2.0 optional fields
+    articulation: Articulation | None = None
+    tuning_offset_cents: float = 0.0
+    microtiming_offset_ms: float = 0.0
+
     def end_beat(self) -> Beat
     def validate_range(self, instrument_range=None) -> None
 ```
@@ -88,6 +93,9 @@ class ProvenanceLog:
     def record_recoverable(decision: RecoverableDecision) -> None
     def query_by_operation(self, operation: str) -> list[ProvenanceRecord]
     def query_by_layer(self, layer: str) -> list[ProvenanceRecord]
+    def get_causes(self, record_id: str) -> list[ProvenanceRecord]
+    def get_effects(self, record_id: str) -> list[ProvenanceRecord]
+    def trace_ancestry(self, record_id: str) -> list[ProvenanceRecord]
     def explain_chain(self) -> str
     def to_json(self) -> str
     def save(self, path: Path) -> None
@@ -120,7 +128,6 @@ class MusicalPlan:
 ```python
 @dataclass(frozen=True)
 class SongFormPlan(PlanNode):
-    # Structural decisions: section order, bar counts, dynamics arcs
     sections: tuple[FormSection, ...]
 ```
 
@@ -128,7 +135,6 @@ class SongFormPlan(PlanNode):
 ```python
 @dataclass(frozen=True)
 class HarmonyPlan(PlanNode):
-    # Chord events: what chord plays at each beat, progressions per section
     events: tuple[ChordEvent, ...]
 ```
 
@@ -193,6 +199,50 @@ class MultiDimensionalTrajectory:
     def density_at(self, beat: Beat) -> float
 ```
 
+### `MeterSpec` (`yao.ir.meter`)
+```python
+@dataclass(frozen=True)
+class MeterSpec:
+    numerator: int
+    denominator: int
+    grouping: tuple[int, ...]
+    is_compound: bool
+    pulse_unit: str
+    metric_accents: tuple[float, ...]
+
+# Key functions:
+parse_meter_string(s: str) -> MeterSpec       # "7/8 (2,2,3)" -> MeterSpec
+group_durations_beats(meter: MeterSpec) -> tuple[float, ...]
+```
+
+### `GrooveProfile` (`yao.ir.groove`)
+```python
+@dataclass(frozen=True)
+class GrooveProfile:
+    name: str
+    microtiming_offsets_ms: tuple[float, ...]   # 16th-position offsets [-50, 50]
+    velocity_pattern: tuple[float, ...]          # 16th-position velocity multipliers
+    swing_ratio: float
+    ghost_probability: float
+    jitter_sigma_ms: float
+
+# Key function:
+apply_groove(score_ir: ScoreIR, groove: GrooveProfile, seed: int) -> tuple[ScoreIR, ProvenanceLog]
+```
+
+### `NoteExpression` (`yao.ir.expression`)
+```python
+@dataclass(frozen=True)
+class NoteExpression:
+    legato_overlap: float = 0.0
+    accent_strength: float = 0.0
+    glissando_to: MidiNote | None = None
+    pitch_bend_curve: tuple[tuple[float, float], ...] = ()
+    cc_curves: dict[int, tuple[tuple[float, float], ...]] = field(default_factory=dict)
+    micro_timing_ms: float = 0.0
+    micro_dynamics: float = 0.0
+```
+
 ### Timing (`yao.ir.timing`)
 ```python
 beats_to_ticks(beats: Beat, ppq=DEFAULT_PPQ) -> Tick
@@ -210,25 +260,19 @@ parse_key(key: str) -> tuple[str, str]       # "C major" -> ("C", "major")
 scale_notes(root: str, scale_type: str, octave: int = 4) -> list[MidiNote]
 ```
 
-## Verification Types (v2.0)
+## Verification Types
 
 ### `MetricGoal` (`yao.verify.metric_goal`)
 ```python
 class MetricGoal:
     name: str
-    mode: str              # "binary", "target", "tolerance", "comparison"
+    mode: str              # AT_LEAST, BETWEEN, EXACTLY, TARGET, etc. (7 modes)
     target: float
     tolerance: float
     rationale: str
 ```
 
-Defines how each evaluation metric is scored. Modes:
-- **binary** — pass/fail (e.g., section count matches)
-- **target** — score must exceed a threshold
-- **tolerance** — score must be within range of target
-- **comparison** — score is compared to a reference
-
-### `RecoverableDecision` (`yao.verify.recoverable` / `yao.reflect.recoverable`)
+### `RecoverableDecision` (`yao.reflect.recoverable`)
 ```python
 @dataclass
 class RecoverableDecision:
@@ -241,7 +285,20 @@ class RecoverableDecision:
     suggested_fix: list[str]
 ```
 
-Replaces silent fallbacks. Every compromise is logged, traceable, and fixable in future iterations.
+Replaces silent fallbacks. Every compromise is logged, traceable, and fixable in future iterations. 9 registered codes cover all known fallback points.
+
+### `Finding` (`yao.verify.critique.types`)
+```python
+@dataclass(frozen=True)
+class Finding:
+    rule_id: str
+    severity: str              # critical, major, minor, suggestion
+    role: Role                 # STRUCTURE, HARMONY, MELODY, etc.
+    issue: str
+    evidence: dict
+    location: str | None
+    recommendation: str
+```
 
 ## Generator API
 
@@ -293,6 +350,8 @@ class NoteRealizerBase(ABC):
 ```
 
 Register with `@register_note_realizer("name")`.
+
+Implemented: rule_based_v2, stochastic_v2.
 
 ## Conductor API
 
@@ -362,6 +421,10 @@ format_diff(diff: ScoreDiff) -> str
 
 # Constraints
 check_constraints(score, constraints: ConstraintsSpec) -> list[LintResult]
+
+# Critique (35 rules)
+from yao.verify.critique import CRITIQUE_RULES
+findings = CRITIQUE_RULES.run_all(plan, spec)
 ```
 
 ### `EvaluationReport`
@@ -388,6 +451,12 @@ load_midi_to_score_ir(midi_path, spec=None, title=None) -> ScoreIR
 
 # Audio
 render_midi_to_wav(midi_path, output_path, soundfont_path=None) -> Path
+
+# MusicXML
+write_musicxml(score, output_path) -> Path
+
+# LilyPond
+write_lilypond(score, output_path) -> Path
 
 # Iteration management
 next_iteration_dir(project_output_dir) -> Path
@@ -419,10 +488,18 @@ current_iteration(project_output_dir) -> Path | None
 ```
 YaOError (base)
 +-- SpecValidationError (field: str | None)
++-- ExpressionValidationError
 +-- ConstraintViolationError
 |   +-- RangeViolationError (instrument, note, valid_low, valid_high)
 +-- LayerViolationError
 +-- RenderError
 +-- VerificationError
 +-- ProvenanceError
++-- MissingRightsStatusError
++-- ForbiddenExtractionError
++-- NeuralBackendUnavailableError
++-- BackendNotConfiguredError
++-- AgentBackendError
++-- AgentOutputParseError
++-- IncompleteGenreProfileError
 ```

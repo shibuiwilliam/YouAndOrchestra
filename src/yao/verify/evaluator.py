@@ -20,6 +20,7 @@ from typing import Literal
 from yao.errors import VerificationError
 from yao.ir.score_ir import ScoreIR
 from yao.schema.composition import CompositionSpec
+from yao.schema.genre_profile import UnifiedGenreProfile
 from yao.schema.trajectory import TrajectorySpec
 from yao.verify.metric_goal import MetricGoal, MetricGoalType, evaluate_metric
 
@@ -70,10 +71,13 @@ class EvaluationReport:
     Attributes:
         title: Composition title being evaluated.
         scores: List of individual metric scores.
+        dimension_weights: Optional override of dimension weights.
+            When None, uses the default _DIMENSION_WEIGHTS.
     """
 
     title: str
     scores: list[EvaluationScore] = field(default_factory=list)
+    dimension_weights: dict[str, float] | None = None
 
     @property
     def passed(self) -> bool:
@@ -106,9 +110,11 @@ class EvaluationReport:
             dim_averages[s.dimension] = dim_averages.get(s.dimension, 0.0) + s.score
             dim_counts[s.dimension] = dim_counts.get(s.dimension, 0) + 1
 
+        weights = self.dimension_weights if self.dimension_weights is not None else _DIMENSION_WEIGHTS
+
         weighted_sum = 0.0
         total_weight = 0.0
-        for dim, weight in _DIMENSION_WEIGHTS.items():
+        for dim, weight in weights.items():
             if dim in dim_averages:
                 avg = dim_averages[dim] / dim_counts[dim]
                 weighted_sum += avg * weight
@@ -558,6 +564,7 @@ def evaluate_score(
     score: ScoreIR,
     spec: CompositionSpec,
     trajectory: TrajectorySpec | None = None,
+    genre_profile: UnifiedGenreProfile | None = None,
 ) -> EvaluationReport:
     """Run all evaluators on a ScoreIR.
 
@@ -565,11 +572,27 @@ def evaluate_score(
         score: The ScoreIR to evaluate.
         spec: The composition specification.
         trajectory: Optional trajectory specification.
+        genre_profile: Optional genre profile for dynamic weight override.
+            When provided, evaluation.weights from the profile are used
+            instead of the default _DIMENSION_WEIGHTS.
 
     Returns:
         Complete EvaluationReport.
     """
-    report = EvaluationReport(title=score.title)
+    # Resolve dimension weights from genre profile
+    weights: dict[str, float] | None = None
+    if genre_profile is not None and genre_profile.evaluation.weights:
+        weights = dict(_DIMENSION_WEIGHTS)  # copy defaults
+        weights.update(genre_profile.evaluation.weights)
+        # percussion_centric: reduce melody/harmony, boost rhythm
+        if genre_profile.evaluation.percussion_centric:
+            weights["melody"] = 0.05
+            weights["harmony"] = 0.05
+            weights["structure"] = 0.30
+            weights["arrangement"] = 0.30
+            weights["acoustics"] = 0.30
+
+    report = EvaluationReport(title=score.title, dimension_weights=weights)
     report.scores.extend(evaluate_structure(score, spec, trajectory))
     report.scores.extend(evaluate_melody(score))
     report.scores.extend(evaluate_harmony(score))

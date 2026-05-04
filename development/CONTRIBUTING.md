@@ -1,14 +1,16 @@
-# Contributing to YaO — 5-Minute Guide
+# Contributing to YaO -- 5-Minute Guide
 
 ## Setup
 
 ```bash
-git clone <repo-url>
-cd yao
+git clone https://github.com/shibuiwilliam/YouAndOrchestra
+cd YouAndOrchestra
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 make all-checks   # Should see ~2,157+ tests passing + 6 golden
 ```
+
+Requires **Python 3.11+**.
 
 ## Common Contributions
 
@@ -65,6 +67,14 @@ class MyRuleDetector(CritiqueRule):
 ```
 Then register in `src/yao/verify/critique/__init__.py`.
 
+### Add a genre skill
+
+1. Create `.claude/skills/genres/<name>.md` with rich front-matter
+2. Run `make sync-skills` to generate YAML
+3. Validate via `yao validate-genre <name>`
+4. Add tests in `tests/genre_coverage/`
+5. Run `make calibrate-genres` to verify output quality
+
 ### Add a test
 
 ```python
@@ -80,11 +90,13 @@ def test_my_feature() -> None:
 
 ```bash
 make all-checks        # Full pipeline (lint + arch-lint + tests + golden + honesty)
-make test              # All tests
+make test              # All tests (~2,157)
 make lint              # ruff + mypy strict
 make arch-lint         # Layer boundary enforcement
 make test-golden       # Golden MIDI regression
 make test-acoustic     # Audio feature regression (weekly CI)
+make test-genre-coverage  # Per-genre validation (22 genres)
+make calibrate-genres  # Genre profile parameter sweep
 pytest tests/unit/test_foo.py::test_bar -v   # One test
 ```
 
@@ -101,21 +113,23 @@ claude
 > /compose my-piece
 > /critique my-piece
 > /pin my-piece --location "section:chorus,bar:3" --note "too busy"
+> /render my-piece
 ```
 
 ## Before Submitting
 
 ```bash
-make all-checks        # Must pass (2,157+ tests + 6 golden)
+make all-checks        # Must pass (2,157+ tests + 6 golden + 5 honesty tools)
 ```
 
 ## Code Standards
 
 - Python 3.11+, `from __future__ import annotations`
-- mypy strict — all public functions have type hints and docstrings
-- ruff for formatting (line length: 99)
-- Custom exceptions only — use `YaOError` subclasses, never bare `ValueError`
-- Every generation function returns `(IR, ProvenanceLog)` — no third option
+- mypy strict -- all public functions have type hints and docstrings
+- ruff for formatting (line length: 120)
+- Custom exceptions only -- use `YaOError` subclasses, never bare `ValueError`
+- Every generation function returns `(IR, ProvenanceLog)` -- no third option
 - Frozen dataclasses for all IR types
-- Layer boundaries enforced by `make arch-lint` — lower layers never import upper
+- Layer boundaries enforced by `make arch-lint` -- lower layers never import upper
+- No hardcoded musical values -- use `src/yao/constants/` or genre-aware lookups
 - See [CLAUDE.md](../CLAUDE.md) for full development rules

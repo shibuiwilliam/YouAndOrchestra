@@ -1,0 +1,25 @@
+# New Orleans second line groove: syncopated snare, brass band feel
+# Source: Sublette 2008, "The World That Made New Orleans"
+name: new_orleans_second_line
+microtiming:
+  0: 0.0
+  2: 8.0
+  4: -5.0
+  6: 10.0
+  8: 0.0
+  10: 6.0
+  12: -4.0
+  14: 8.0
+velocity_pattern:
+  0: 1.0
+  2: 0.9
+  4: 1.1
+  6: 0.85
+  8: 1.05
+  10: 0.9
+  12: 1.1
+  14: 0.85
+ghost_probability: 0.35
+swing_ratio: 0.6
+timing_jitter_sigma: 7.0
+apply_to_all_instruments: true

@@ -23,6 +23,9 @@ class Note:
         duration_beats: Duration in beats.
         velocity: MIDI velocity (0–127).
         instrument: Canonical instrument name (must match constants).
+        articulation: Optional articulation name (e.g. "staccato", "legato", "tenuto").
+        tuning_offset_cents: Microtonal deviation from 12TET in cents.
+        microtiming_offset_ms: Groove-derived timing shift in milliseconds.
     """
 
     pitch: MidiNote
@@ -30,6 +33,10 @@ class Note:
     duration_beats: Beat
     velocity: Velocity
     instrument: str
+    # v2.0 optional performance fields
+    articulation: str | None = None
+    tuning_offset_cents: float = 0.0
+    microtiming_offset_ms: float = 0.0
 
     def end_beat(self) -> Beat:
         """Return the beat position where this note ends."""

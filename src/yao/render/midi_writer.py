@@ -49,6 +49,7 @@ def score_ir_to_midi(
 
     # Collect all notes per instrument across sections
     instrument_notes: dict[str, list[pretty_midi.Note]] = {}
+    _pitch_bend_events: dict[str, list[tuple[float, int]]] = {}
 
     for section in score.sections:
         for part in section.parts:
@@ -60,7 +61,15 @@ def score_ir_to_midi(
                 end_time = beats_to_seconds(note.end_beat(), score.tempo_bpm)
                 velocity = note.velocity
 
-                # Apply PerformanceLayer overlays if available
+                # Apply inline Note performance fields (v2.0)
+                if note.microtiming_offset_ms != 0.0:
+                    start_time = max(0.0, start_time + note.microtiming_offset_ms / 1000.0)
+                if note.articulation == "staccato":
+                    end_time = start_time + (end_time - start_time) * 0.5
+                elif note.articulation == "legato":
+                    end_time = start_time + (end_time - start_time) * 1.1
+
+                # Apply PerformanceLayer overlays if available (overrides inline)
                 if performance_layer is not None:
                     note_id = (part.instrument, note.start_beat, note.pitch)
                     expr = performance_layer.note_expressions.get(note_id)
@@ -83,6 +92,17 @@ def score_ir_to_midi(
                 )
                 instrument_notes[part.instrument].append(midi_note)
 
+                # Tuning offset: emit pitch bend for microtonal deviations
+                if note.tuning_offset_cents != 0.0:
+                    bend_range_cents = 200.0  # standard ±2 semitones
+                    bend_value = int(8192 + (note.tuning_offset_cents / bend_range_cents) * 8192)
+                    bend_value = max(0, min(16383, bend_value))
+                    if part.instrument not in _pitch_bend_events:
+                        _pitch_bend_events[part.instrument] = []
+                    _pitch_bend_events[part.instrument].append((start_time, bend_value))
+                    # Reset pitch bend after note ends
+                    _pitch_bend_events[part.instrument].append((end_time, 8192))
+
     # Create MIDI instruments and add notes
     for instr_name, notes in instrument_notes.items():
         program = _resolve_program(instr_name)
@@ -94,6 +114,10 @@ def score_ir_to_midi(
             name=instr_name,
         )
         midi_instrument.notes = sorted(notes, key=lambda n: n.start)
+        # Apply pitch bend events for microtonal tuning
+        if instr_name in _pitch_bend_events:
+            for bend_time, bend_value in sorted(_pitch_bend_events[instr_name]):
+                midi_instrument.pitch_bends.append(pretty_midi.PitchBend(pitch=bend_value - 8192, time=bend_time))
         midi.instruments.append(midi_instrument)
 
     return midi

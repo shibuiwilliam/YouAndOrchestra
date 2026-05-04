@@ -1,0 +1,24 @@
+# Bartok-style 7/8 pattern (3+2+2 grouping)
+# Different accent pattern from Bulgarian 2+2+3
+# Source: Bartok, "Mikrokosmos" volume 6, Bulgarian rhythms
+id: bartok_7_8
+genre: contemporary_classical
+time_signature: "7/8"
+bars_per_pattern: 1
+swing: 0.0
+humanize_ms: 4
+
+hits:
+  # Group 1 (3 eighth notes): beat 1 (strong, longest group first)
+  - { time_beats: 0.0, kit_piece: kick, velocity: 100, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: ride, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 0.5, kit_piece: ride, velocity: 50, duration_beats: 0.25 }
+  - { time_beats: 1.0, kit_piece: ride, velocity: 55, duration_beats: 0.25 }
+  # Group 2 (2 eighth notes): medium accent
+  - { time_beats: 1.5, kit_piece: snare, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: ride, velocity: 70, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: ride, velocity: 50, duration_beats: 0.25 }
+  # Group 3 (2 eighth notes): weaker accent
+  - { time_beats: 2.5, kit_piece: kick, velocity: 75, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: ride, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 3.0, kit_piece: ride, velocity: 50, duration_beats: 0.25 }

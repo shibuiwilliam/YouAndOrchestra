@@ -1,0 +1,21 @@
+# Blues shuffle groove: triplet swing, heavy backbeat emphasis
+# Source: Pressing 2002, "Black Atlantic rhythm"
+name: shuffle_blues
+microtiming:
+  0: 0.0
+  2: 5.0
+  4: 12.0
+  6: 8.0
+  8: 0.0
+  10: 5.0
+  12: 12.0
+  14: 8.0
+velocity_pattern:
+  0: 1.0
+  4: 1.15
+  8: 1.0
+  12: 1.15
+ghost_probability: 0.2
+swing_ratio: 0.67
+timing_jitter_sigma: 5.0
+apply_to_all_instruments: true

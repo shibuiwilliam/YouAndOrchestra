@@ -1,0 +1,8 @@
+# Fragment: Jazz trio instrumentation
+instruments:
+  - name: piano
+    role: melody
+  - name: contrabass
+    role: bass
+  - name: vibraphone
+    role: harmony

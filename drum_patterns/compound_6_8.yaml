@@ -1,0 +1,23 @@
+# Compound 6/8 pattern
+# Two groups of 3 eighth notes: strong-weak-weak | medium-weak-weak
+# Source: Standard compound duple meter
+id: compound_6_8
+genre: compound
+time_signature: "6/8"
+bars_per_pattern: 1
+swing: 0.0
+humanize_ms: 5
+
+hits:
+  # Group 1: beat 1 (strong)
+  - { time_beats: 0.0, kit_piece: kick, velocity: 100, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: ride, velocity: 75, duration_beats: 0.25 }
+  # Group 1: eighth note subdivisions
+  - { time_beats: 0.5, kit_piece: ride, velocity: 50, duration_beats: 0.25 }
+  - { time_beats: 1.0, kit_piece: ride, velocity: 55, duration_beats: 0.25 }
+  # Group 2: beat 4 (secondary accent)
+  - { time_beats: 1.5, kit_piece: snare, velocity: 85, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: ride, velocity: 70, duration_beats: 0.25 }
+  # Group 2: eighth note subdivisions
+  - { time_beats: 2.0, kit_piece: ride, velocity: 50, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: ride, velocity: 55, duration_beats: 0.25 }

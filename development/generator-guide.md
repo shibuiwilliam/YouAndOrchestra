@@ -4,11 +4,11 @@
 
 YaO uses a two-stage generation architecture (v2.0):
 
-1. **Plan Generators** take a `CompositionSpec` and produce a `MusicalPlan` (CPIR) — structural and harmonic decisions *before* any notes are placed.
-2. **Note Realizers** take a `MusicalPlan` and produce a `ScoreIR` — concrete notes faithfully realizing the plan.
+1. **Plan Generators** take a `CompositionSpec` and produce a `MusicalPlan` (MPIR) -- structural and harmonic decisions *before* any notes are placed.
+2. **Note Realizers** take a `MusicalPlan` and produce a `ScoreIR` -- concrete notes faithfully realizing the plan.
 
 ```
-CompositionSpec → PlanGenerator → MusicalPlan → NoteRealizer → ScoreIR
+CompositionSpec -> PlanGenerator -> MusicalPlan -> NoteRealizer -> ScoreIR
 ```
 
 Every step returns a `ProvenanceLog` recording every decision.
@@ -33,7 +33,7 @@ Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `proc
 
 ## Creating a Plan Generator (v2.0)
 
-Plan generators decide *what* to play — form, harmony, motifs — without placing any concrete notes.
+Plan generators decide *what* to play -- form, harmony, motifs -- without placing any concrete notes.
 
 ### Step 1: Create the module
 
@@ -90,7 +90,7 @@ from yao.generators.note.base import NoteRealizerBase, register_note_realizer
 from yao.ir.plan.musical_plan import MusicalPlan
 from yao.ir.score_ir import ScoreIR
 from yao.reflect.provenance import ProvenanceLog
-from yao.verify.recoverable import RecoverableDecision
+from yao.reflect.recoverable import RecoverableDecision
 
 
 @register_note_realizer("my_realizer")
@@ -159,13 +159,14 @@ def test_trajectory_compliance():
 
 1. **Plan generators return plan objects + provenance. Note realizers return `ScoreIR` + provenance.** No exceptions.
 2. **Record every decision** in provenance with a meaningful rationale.
-3. **Never hardcode velocity** — derive from `DYNAMICS_TO_VELOCITY` + trajectory tension.
-4. **Never silently clamp ranges** — raise `RangeViolationError` or emit a `RecoverableDecision`.
+3. **Never hardcode velocity** -- derive from `DYNAMICS_TO_VELOCITY` + trajectory tension.
+4. **Never silently clamp ranges** -- raise `RangeViolationError` or emit a `RecoverableDecision`.
 5. **Use `yao.ir.timing`** for all beat/tick/second conversions.
 6. **Use `yao.ir.notation`** for all note name/MIDI conversions.
-7. **Respect `GenerationConfig`** — use `spec.generation.seed` and `spec.generation.temperature`.
-8. **Plans before notes** (v2.0) — structural decisions belong in plan generators, not note realizers.
-9. **Trajectory is a control signal** (v2.0) — when trajectory values change, your generator output must change measurably.
+7. **Respect `GenerationConfig`** -- use `spec.generation.seed` and `spec.generation.temperature`.
+8. **Plans before notes** (v2.0) -- structural decisions belong in plan generators, not note realizers.
+9. **Trajectory is a control signal** (v2.0) -- when trajectory values change, your generator output must change measurably.
+10. **Consult GenreProfile** (v2.0) -- defaults for tempo, contour, harmonic extensions come from the active genre profile, not from code constants.
 
 ## Existing Generators
 
@@ -174,49 +175,51 @@ def test_trajectory_compliance():
 - Root-note bass following I-IV-V-I
 - Block chord harmonization with triads
 - 4 rhythm patterns cycling per bar
-- No randomness — same spec always produces same output
+- No randomness -- same spec always produces same output
 - Good for baselines and golden tests
 
 ### Legacy `stochastic` (seeded randomness)
-- **Melodic contour shaping** — arch, ascending, descending, wave patterns with position-aware biases
-- **Interval variety** — steps, leaps of 3rds/4ths/5ths (temperature-dependent)
-- **Section-aware chord progressions** — different patterns for intro, verse, chorus, bridge, outro
-- **Diatonic 7th chords** — maj7, min7, dom7 (probability increases with temperature)
-- **12 melody rhythm patterns** — syncopation, dotted rhythms, pickup eighths, mixed patterns
-- **6 bass rhythm patterns** — whole notes, walking quarters, root-fifth patterns
-- **6 rhythm-part patterns** — straight eighths, syncopated, offbeat emphasis
+- **Melodic contour shaping** -- arch, ascending, descending, wave patterns with position-aware biases
+- **Interval variety** -- steps, leaps of 3rds/4ths/5ths (temperature-dependent)
+- **Section-aware chord progressions** -- different patterns for intro, verse, chorus, bridge, outro
+- **Diatonic 7th chords** -- maj7, min7, dom7 (probability increases with temperature)
+- **12 melody rhythm patterns** -- syncopation, dotted rhythms, pickup eighths, mixed patterns
+- **6 bass rhythm patterns** -- whole notes, walking quarters, root-fifth patterns
+- **6 rhythm-part patterns** -- straight eighths, syncopated, offbeat emphasis
 - **Walking bass** with passing tones and approach notes
-- **Velocity humanization** — dynamics-derived with trajectory tension modifier
+- **Velocity humanization** -- dynamics-derived with trajectory tension modifier
 - **Rest insertion** for negative space
-- **Per-instrument deterministic RNG** — master_seed:instrument:section for reproducibility
+- **Per-instrument deterministic RNG** -- master_seed:instrument:section for reproducibility
 - **Temperature semantics**: 0.0 = conservative (mostly steps, basic chords), 1.0 = adventurous (leaps, 7th chords, complex rhythms)
 
 ### v2.0 Plan Generators
-- **FormPlanner** — Generates `SongFormPlan` from spec sections (consumes Form Library)
-- **HarmonyPlanner** — Generates `HarmonyPlan` with chord events per section (genre-aware)
-- **Composer (Subagent)** — Generates `MotifPlan` + `PhrasePlan` + `HookPlan`
-- **DrumPatterner** — Generates `DrumPattern` + `GrooveProfile`
-- **Orchestrator** — Generates `ArrangementPlan` with register separation
-- **ConversationDirector** — Generates `ConversationPlan` (Step 5.5)
+- **FormPlanner** -- Generates `SongFormPlan` from spec sections (consumes 20-form library)
+- **HarmonyPlanner** -- Generates `HarmonyPlan` with chord events per section (genre-aware, uses genre skill chord palettes)
+- **Composer (Subagent)** -- Generates `MotifPlan` + `PhrasePlan` + `HookPlan` (Markov bigram + intent-driven, guaranteed motif recurrence >= 3)
+- **DrumPatterner** -- Generates `DrumPattern` + `GrooveProfile` (15 patterns across time signatures)
+- **Orchestrator** -- Generates `ArrangementPlan` with register separation
+- **ConversationDirector** -- Generates `ConversationPlan` (Step 5.5, inter-instrument dialogue)
 
 ### v2.0 Note Realizers
-- **rule_based_v2** — Deterministic, 100% plan consumption, chord-aware voicing
-- **stochastic_v2** — Seeded randomness, 100% plan consumption, temperature control
+- **rule_based_v2** -- Deterministic, 100% plan consumption, chord-aware voicing
+- **stochastic_v2** -- Seeded randomness, 100% plan consumption, temperature control
 
 ### Additional Generators
-- **Markov** — Probabilistic transitions from YAML models (bigram, diatonic + pentatonic)
-- **Twelve-tone** — Serial composition with P/I/R/RI row transformations
-- **Process music** — Minimalist phasing/additive/subtractive processes
-- **Constraint solver** — Backtracking CSP with key+range+stepwise constraints
-- **Neural bridge** — Stable Audio texture generation (optional dep)
+- **Markov** -- Probabilistic transitions from YAML models (bigram, diatonic + pentatonic)
+- **Twelve-tone** -- Serial composition with P/I/R/RI row transformations
+- **Process music** -- Minimalist phasing/additive/subtractive processes
+- **Constraint solver** -- Backtracking CSP with key+range+stepwise constraints (5s timeout)
+- **Neural bridge** -- Stable Audio texture generation (optional dep `pip install yao[neural]`)
 
 ### Post-Realization Processing
-- **GrooveApplicator** — Ensemble-wide microtiming + velocity from GrooveProfile
-- **Reactive fills** — Short fills at melodic phrase endings
-- **Frequency clearance** — Octave displacement for spectral collision reduction
-- **Performance pipeline** — Articulation, dynamics curves, microtiming, CC curves
+- **GrooveApplicator** -- Ensemble-wide microtiming + velocity from GrooveProfile (20 profiles available)
+- **Reactive fills** -- Short fills at melodic phrase endings (2-4 notes, >= 60% fill rate)
+- **Frequency clearance** -- Octave displacement for spectral collision reduction (primary voice unchanged)
+- **Performance pipeline** -- Articulation, dynamics curves, microtiming, CC curves (4 subtypes)
 
 ### Melodic Strategies (8)
 Available in the stochastic generator via `MelodicGenerationStrategy`:
 - contour_based, motif_development, linear_voice, arpeggiated
 - scalar_runs, call_response, pedal_tone, hocketing
+
+Each strategy produces distinct melodic character, verified by tests.

@@ -28,6 +28,7 @@ from yao.verify.critique.melodic import (  # noqa: F401
     MotifRecurrenceDetector,
     PhraseClosureWeaknessDetector,
 )
+from yao.verify.critique.metric_drift import MetricDriftDetector  # noqa: F401
 from yao.verify.critique.registry import CRITIQUE_RULES as CRITIQUE_RULES
 from yao.verify.critique.rhythmic import (  # noqa: F401
     RhythmicMonotonyDetector,
@@ -129,3 +130,7 @@ CRITIQUE_RULES.register(ConversationSilenceDetector())
 CRITIQUE_RULES.register(PrimaryVoiceAmbiguityDetector())
 CRITIQUE_RULES.register(FillAbsenceDetector())
 CRITIQUE_RULES.register(FrequencyCollisionUnresolvedDetector())
+
+
+# Metric rules (v2.0)
+CRITIQUE_RULES.register(MetricDriftDetector())

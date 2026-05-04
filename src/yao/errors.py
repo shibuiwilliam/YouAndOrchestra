@@ -157,3 +157,22 @@ class AgentOutputParseError(AgentBackendError):
     def __init__(self, message: str, *, raw_content: str | None = None) -> None:
         self.raw_content = raw_content
         super().__init__(message)
+
+
+class IncompleteGenreProfileError(YaOError):
+    """Raised when a GenreProfile is missing required sections.
+
+    Attributes:
+        genre_id: The genre that failed validation.
+        missing_sections: List of section paths that need data.
+    """
+
+    def __init__(
+        self,
+        genre_id: str,
+        missing_sections: list[str],
+    ) -> None:
+        self.genre_id = genre_id
+        self.missing_sections = missing_sections
+        sections_str = ", ".join(missing_sections)
+        super().__init__(f"Genre profile '{genre_id}' is incomplete. Missing: {sections_str}")

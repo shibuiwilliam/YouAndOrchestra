@@ -2,7 +2,7 @@
 
 ## Overview
 
-YaO uses YAML-based specifications to define compositions. All specs are Pydantic-validated, git-diffable, and fully documented. YaO supports two spec formats: **v1** (simple, flat) and **v2** (detailed, 11-section).
+YaO uses YAML-based specifications to define compositions. All specs are Pydantic-validated, git-diffable, and fully documented. YaO supports three spec formats: **v1** (simple, flat), **v2** (detailed, 11-section), and **v3** (composable with extends/overrides/fragments).
 
 ## v1 Spec Format
 
@@ -39,7 +39,7 @@ sections:
     dynamics: "mp"
 
 generation:
-  strategy: stochastic  # rule_based, stochastic
+  strategy: stochastic  # rule_based, stochastic, markov, twelve_tone, etc.
   seed: 42              # reproducibility (stochastic only)
   temperature: 0.5      # 0.0=conservative, 1.0=adventurous
 ```
@@ -135,6 +135,49 @@ constraints:
 | `production` | LUFS target, stereo width, effects |
 | `constraints` | Musical rules (must/must_not/prefer/avoid) |
 
+## v3 Spec Format (Composability)
+
+The v3 format adds `extends` and `overrides` for spec composition and reuse:
+
+```yaml
+extends: "specs/fragments/lofi_base.yaml"
+
+overrides:
+  globals:
+    key: "F minor"
+    bpm: 72
+  emotion:
+    nostalgia: 0.8
+
+identity:
+  title: "Nostalgic Lofi"
+  purpose: "Late-night study session"
+```
+
+### Fragments
+
+Reusable spec pieces live in `specs/fragments/`:
+
+```yaml
+# specs/fragments/jazz_trio.yaml
+globals:
+  genre: "jazz"
+arrangement:
+  instruments:
+    - name: piano
+      role: melody
+    - name: acoustic_bass
+      role: bass
+    - name: drums
+      role: rhythm
+```
+
+Features:
+- Deep merge of nested fields
+- Circular reference detection
+- Multiple fragment composition
+- Override-only patches
+
 ## Additional Spec Files (when relevant)
 
 | File | Schema | Used When |
@@ -169,9 +212,11 @@ trajectories:
     variance: 0.15
 ```
 
+Five trajectory dimensions: tension, density, predictability, brightness, register_height.
+
 ### `intent.md` (recommended)
 
-Natural language description of the composition's intent. 1-3 sentences. This is the human's voice — never auto-generated.
+Natural language description of the composition's intent. 1-3 sentences. This is the human's voice -- never auto-generated.
 
 ```markdown
 # My Piece
@@ -189,10 +234,11 @@ Located in `specs/templates/`:
 
 | Template | Description |
 |----------|-------------|
-| `minimal.yaml` | 8 bars, solo piano, C major, 120 BPM — simplest possible spec |
+| `minimal.yaml` | 8 bars, solo piano, C major, 120 BPM -- simplest possible spec |
 | `bgm-90sec.yaml` | 90-second BGM, piano + acoustic bass, 4 sections, dynamic arc |
 | `cinematic-3min.yaml` | 3-minute cinematic in D minor, 4 instruments, 6 sections |
 | `trajectory-example.yaml` | Trajectory curves demonstration (bezier, stepped, linear) |
+| `lofi-cafe.yaml` | Lo-fi cafe BGM |
 
 ### v2 Templates
 
@@ -204,13 +250,13 @@ Located in `specs/templates/`:
 
 ## Example Projects
 
-YaO ships with example projects in `specs/projects/`, covering styles from classical piano trio to hard rock game BGM. Each includes `composition.yaml` and `intent.md`.
+YaO ships with 35+ example projects in `specs/projects/`, covering styles from classical piano trio to hard rock game BGM, anime J-pop to Indian classical. Each includes `composition.yaml` and `intent.md`.
 
 ## Project Structure
 
 ```
 specs/projects/my-song/
-  +-- composition.yaml    # Required (v1 or v2)
+  +-- composition.yaml    # Required (v1, v2, or v3)
   +-- intent.md           # Recommended
   +-- trajectory.yaml     # Optional
   +-- tension_arcs.yaml   # Optional
@@ -237,10 +283,10 @@ outputs/projects/my-song/
 ## Validation
 
 All specs are validated via Pydantic at load time:
-- `CompositionSpec.from_yaml(path)` — validates all fields, key, tempo range (20-300 BPM), dynamics
-- `TrajectorySpec.from_yaml(path)` — validates waypoint values in [0, 1]
+- `CompositionSpec.from_yaml(path)` -- validates all fields, key, tempo range (20-300 BPM), dynamics
+- `TrajectorySpec.from_yaml(path)` -- validates waypoint values in [0, 1]
 - Validation failures raise `SpecValidationError` with field name and actionable message
-- v1/v2 format is auto-detected by `load_composition_spec_auto()`
+- v1/v2/v3 format is auto-detected by `load_composition_spec_auto()`
 
 CLI validation: `yao validate specs/projects/my-song/composition.yaml`
 
@@ -248,7 +294,7 @@ Loading helpers:
 ```python
 from yao.schema.loader import (
     load_composition_spec,       # v1 only
-    load_composition_spec_auto,  # auto-detect v1/v2
+    load_composition_spec_auto,  # auto-detect v1/v2/v3
     load_trajectory_spec,
     load_project_specs,
 )

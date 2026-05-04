@@ -1,0 +1,21 @@
+# Viennese waltz groove: beat 2 slightly early, beat 3 slightly late
+# Source: Bengtsson & Gabrielsson 1983, "Analysis of Viennese waltz timing"
+name: waltz_viennese
+microtiming:
+  0: 0.0
+  2: -2.0
+  4: -8.0
+  6: -5.0
+  8: 6.0
+  10: 4.0
+  12: 3.0
+  14: 2.0
+velocity_pattern:
+  0: 1.2
+  4: 0.9
+  8: 0.85
+  12: 0.8
+ghost_probability: 0.05
+swing_ratio: 0.5
+timing_jitter_sigma: 3.0
+apply_to_all_instruments: true

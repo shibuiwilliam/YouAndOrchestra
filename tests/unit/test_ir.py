@@ -42,6 +42,77 @@ class TestNote:
         note = Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="unknown_synth")
         note.validate_range()  # Should not raise for unknown instruments
 
+    def test_note_default_performance_fields(self) -> None:
+        note = Note(pitch=60, start_beat=0.0, duration_beats=1.0, velocity=80, instrument="piano")
+        assert note.articulation is None
+        assert note.tuning_offset_cents == 0.0
+        assert note.microtiming_offset_ms == 0.0
+
+    def test_note_with_articulation(self) -> None:
+        note = Note(
+            pitch=60,
+            start_beat=0.0,
+            duration_beats=1.0,
+            velocity=80,
+            instrument="piano",
+            articulation="staccato",
+        )
+        assert note.articulation == "staccato"
+
+    def test_note_with_tuning_offset(self) -> None:
+        note = Note(
+            pitch=60,
+            start_beat=0.0,
+            duration_beats=1.0,
+            velocity=80,
+            instrument="piano",
+            tuning_offset_cents=-50.0,
+        )
+        assert note.tuning_offset_cents == -50.0
+
+    def test_note_with_microtiming(self) -> None:
+        note = Note(
+            pitch=60,
+            start_beat=0.0,
+            duration_beats=1.0,
+            velocity=80,
+            instrument="piano",
+            microtiming_offset_ms=15.0,
+        )
+        assert note.microtiming_offset_ms == 15.0
+
+    def test_note_performance_fields_frozen(self) -> None:
+        note = Note(
+            pitch=60,
+            start_beat=0.0,
+            duration_beats=1.0,
+            velocity=80,
+            instrument="piano",
+            articulation="legato",
+            tuning_offset_cents=10.0,
+            microtiming_offset_ms=-5.0,
+        )
+        with pytest.raises(AttributeError):
+            note.articulation = "staccato"  # type: ignore[misc]
+        with pytest.raises(AttributeError):
+            note.tuning_offset_cents = 0.0  # type: ignore[misc]
+
+    def test_note_all_fields(self) -> None:
+        note = Note(
+            pitch=64,
+            start_beat=4.0,
+            duration_beats=2.0,
+            velocity=100,
+            instrument="violin",
+            articulation="tenuto",
+            tuning_offset_cents=25.0,
+            microtiming_offset_ms=-8.0,
+        )
+        assert note.end_beat() == 6.0
+        assert note.articulation == "tenuto"
+        assert note.tuning_offset_cents == 25.0
+        assert note.microtiming_offset_ms == -8.0
+
 
 class TestTiming:
     def test_beats_to_ticks_default_ppq(self) -> None:

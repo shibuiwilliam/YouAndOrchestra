@@ -9,10 +9,10 @@ YaO is a layered music production pipeline with 8 layers (0 through 7) plus inte
 ```
 +--------------------------------------------------------------+
 | Conductor (conductor/)                                       |
-|   Feedback loop: generate → evaluate → adapt → regenerate    |
+|   Feedback loop: generate -> evaluate -> adapt -> regenerate |
 +--------------------------------------------------------------+
 | Layer 7: Reflection & Learning (reflect/, agents/)           |
-|   Style profiles, subjective ratings, agent backends         |
+|   Provenance (causal graph), style profiles, agent backends  |
 +--------------------------------------------------------------+
 | Layer 6: Verification & Critique (verify/)                   |
 |   Evaluation (6 dims), aesthetic metrics, 35 critique rules, |
@@ -34,15 +34,16 @@ YaO is a layered music production pipeline with 8 layers (0 through 7) plus inte
 +--------------------------------------------------------------+
 | Layer 3: Score IR (ir/)                                      |
 |   Note, Part, Section, ScoreIR, harmony, motif, voicing,     |
-|   hook, dynamics_shape, groove, conversation, tension_arc     |
+|   hook, dynamics_shape, groove, conversation, tension_arc,   |
+|   meter, tuning, expression                                  |
 +--------------------------------------------------------------+
 | Layer 2: Generation (generators/)                            |
 |   Plan generators, V2 note realizers, melodic strategies,    |
 |   reactive fills, frequency clearance, groove applicator     |
 +--------------------------------------------------------------+
 | Layer 1: Specification (schema/, sketch/)                    |
-|   Specs (v1+v2), NL compiler (EN+JP), hooks, groove,         |
-|   conversation, tension_arcs, arrangement                    |
+|   Specs (v1+v2+v3), NL compiler (EN+JP), hooks, groove,     |
+|   conversation, tension_arcs, genre profiles, arrangement    |
 +--------------------------------------------------------------+
 | Layer 0: Constants (constants/)                              |
 |   46 instruments, 28 scales, 20 forms, 14 chords, MIDI maps |
@@ -68,49 +69,49 @@ YaO is a layered music production pipeline with 8 layers (0 through 7) plus inte
 | conductor | all layers |
 | cli | everything in yao |
 
-## V2 Pipeline (Current Default — 9 Steps)
+## V2 Pipeline (Current Default -- 9 Steps)
 
 ```
 User Input (NL or YAML)
-    │
-    ▼
-SpecCompiler (3-stage: LLM → Keyword → Default; EN + JP)
-    │
-    ▼
+    |
+    v
+SpecCompiler (3-stage: LLM -> Keyword -> Default; EN + JP)
+    |
+    v
 PlanOrchestrator (9 steps)
-    │
-    ├── Step 1:   FormPlanner       → SongFormPlan + TensionArcs
-    ├── Step 2:   HarmonyPlanner    → HarmonyPlan
-    ├── Step 3:   Composer          → MotifPlan + PhrasePlan + HookPlan
-    ├── Step 4:   DrumPatterner     → DrumPattern + GrooveProfile
-    ├── Step 5:   Orchestrator      → ArrangementPlan
-    └── Step 5.5: ConversationDir.  → ConversationPlan
-    │
-    ▼
-═══ MusicalPlan Complete ═══
-    │
-    ▼
+    |
+    +-- Step 1:   FormPlanner       -> SongFormPlan + TensionArcs
+    +-- Step 2:   HarmonyPlanner    -> HarmonyPlan
+    +-- Step 3:   Composer          -> MotifPlan + PhrasePlan + HookPlan
+    +-- Step 4:   DrumPatterner     -> DrumPattern + GrooveProfile
+    +-- Step 5:   Orchestrator      -> ArrangementPlan
+    +-- Step 5.5: ConversationDir.  -> ConversationPlan
+    |
+    v
+=== MusicalPlan Complete ===
+    |
+    v
 Critic Gate (MPIR-level: 35 rules + ensemble constraints)
-    │
-    ▼
-NoteRealizer V2 (100% plan consumption — no legacy adapter)
-    │
-    ▼
+    |
+    v
+NoteRealizer V2 (100% plan consumption -- no legacy adapter)
+    |
+    v
 GrooveApplicator (ensemble-wide microtiming + velocity)
-    │
-    ▼
+    |
+    v
 Performance Pipeline (articulation, dynamics, microtiming, CC)
-    │
-    ▼
+    |
+    v
 Renderer (MIDI / WAV / MusicXML / LilyPond / Reaper / Strudel)
-    │
-    ▼
+    |
+    v
 Listening Simulator (Step 7.5: PerceptualReport extraction)
-    │
-    ▼
+    |
+    v
 Evaluator (6 dimensions: structure, melody, harmony, aesthetic, arrangement, acoustics)
-    │
-    ▼
+    |
+    v
 Conductor Feedback Loop (up to 3 iterations + audio loop)
 ```
 
@@ -118,22 +119,26 @@ Conductor Feedback Loop (up to 3 iterations + audio loop)
 
 | Type | Location | Purpose |
 |---|---|---|
-| `Note` | ir/note.py | Atomic musical unit (pitch, beat, duration, velocity) |
-| `ScoreIR` | ir/score_ir.py | Complete composition (sections → parts → notes) |
-| `MusicalPlan` | ir/plan/musical_plan.py | Pre-realization plan (the "why") |
+| `Note` | ir/note.py | Atomic musical unit (pitch, beat, duration, velocity + optional articulation, tuning offset, microtiming) |
+| `ScoreIR` | ir/score_ir.py | Complete composition (sections -> parts -> notes) |
+| `MusicalPlan` | ir/plan/musical_plan.py | Pre-realization plan (the "why" behind every note) |
+| `CompositionSpecV2` | schema/composition_v2.py | 11-section spec (identity, globals, emotion, form, melody, harmony, rhythm, drums, arrangement, production, constraints) |
 | `ConversationPlan` | ir/conversation.py | Inter-instrument dialogue plan |
 | `GrooveProfile` | ir/groove.py | Ensemble-wide microtiming + velocity pattern |
 | `Hook` | ir/hook.py | Memorable fragment with deployment strategy |
 | `DynamicsShape` | ir/dynamics_shape.py | Phrase-level velocity curve |
 | `TensionArc` | ir/tension_arc.py | Short-range tension-resolution structure |
+| `MeterSpec` | ir/meter.py | Time signature + beat groupings + metric accents |
+| `NoteExpression` | ir/expression.py | Performance layer (legato, accent, glissando, pedal) |
 | `SurpriseAnalysis` | perception/surprise.py | Per-note surprise scores |
 | `PerceptualReport` | perception/audio_features.py | Acoustic analysis (LUFS, spectral, temporal) |
 | `StyleVector` | perception/style_vector.py | 6-field copyright-safe style fingerprint |
 | `Finding` | verify/critique/types.py | Structured critique output |
 | `Pin` | feedback/pin.py | Localized user feedback |
 | `SongForm` | constants/forms.py | Song form template (sections + bar counts) |
-| `ProvenanceLog` | reflect/provenance.py | Append-only decision record |
+| `ProvenanceLog` | reflect/provenance.py | Append-only causal decision graph |
 | `AgentOutput` | subagents/base.py | Universal subagent output |
+| `GenreProfile` | schema/genre_profile.py | Genre-specific defaults (tempo, harmony, instruments, etc.) |
 
 ## Library Confinement
 
@@ -147,15 +152,17 @@ Conductor Feedback Loop (up to 3 iterations + audio loop)
 | `anthropic` | agents/anthropic_api_backend.py | everywhere else |
 | `sounddevice` | improvise/, cli (preview/watch) | all other layers |
 | `torch` | generators/neural/ | all other layers |
+| `mido` | improvise/ | all other layers |
+| `fastapi` | annotate/, audition/ | all other layers |
 
 ## Honesty Enforcement
 
 5 CI tools verify implementation integrity:
 
-| Tool | Checks |
-|---|---|
-| `honesty-check` | No ✅ features that are actually stubs |
-| `backend-honesty` | Stub backends declare `is_stub=True` |
-| `plan-consumption` | V2 realizers consume 80%+ of plan fields |
-| `skill-grounding` | Genre skills referenced from src/ |
-| `critic-coverage` | All severity levels have effective rules |
+| Tool | Command | Checks |
+|---|---|---|
+| Honesty check | `make honesty-check` | No features marked stable that are actually stubs |
+| Backend honesty | `make backend-honesty` | Stub backends declare `is_stub=True` |
+| Plan consumption | `make plan-consumption` | V2 realizers consume 80%+ of plan fields |
+| Skill grounding | `make skill-grounding` | Genre skills referenced from src/ |
+| Critic coverage | `make critic-coverage` | All severity levels have effective rules |

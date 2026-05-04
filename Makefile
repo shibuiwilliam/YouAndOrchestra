@@ -1,7 +1,7 @@
 .PHONY: install setup-hooks test test-unit test-integration test-music test-golden test-subagent \
-       test-acoustic lint format arch-lint matrix-check feature-status validate-spec new-project \
-       compose render setup-soundfonts setup-references all-checks honesty-check plan-consumption \
-       skill-grounding critic-coverage backend-honesty audit-monthly
+test-acoustic test-genre-coverage lint format arch-lint meter-lint matrix-check feature-status \
+validate-spec new-project compose render setup-soundfonts setup-references all-checks \
+honesty-check plan-consumption skill-grounding critic-coverage backend-honesty audit-monthly
 
 install:
 	pip install -e ".[dev]"
@@ -35,6 +35,12 @@ test-subjective:
 test-acoustic:
 	pytest tests/audio_regression/ -v -m audio_regression
 
+test-genre-coverage:
+	pytest tests/genre_coverage/ -v -m genre_coverage
+
+calibrate-genres:
+	python tools/calibrate_genres.py
+
 lint:
 	ruff check src/ tests/
 	mypy src/yao/
@@ -45,6 +51,9 @@ format:
 
 arch-lint:
 	python tools/architecture_lint.py
+
+meter-lint:
+	python tools/meter_assumption_lint.py
 
 matrix-check: feature-status
 
