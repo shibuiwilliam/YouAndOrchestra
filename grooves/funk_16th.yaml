@@ -1,0 +1,32 @@
+# Funk 16th groove: tight 16th-note grid with heavy ghost notes
+name: funk_16th
+microtiming:
+  0: 0.0
+  1: -1.0
+  2: 0.0
+  3: 2.0
+  4: 0.0
+  5: -1.0
+  6: 0.0
+  7: 1.5
+  8: 0.0
+  9: -1.0
+  10: 0.0
+  11: 2.0
+  12: 0.0
+  13: -1.0
+  14: 0.0
+  15: 1.0
+velocity_pattern:
+  0: 1.2
+  4: 1.15
+  8: 1.1
+  12: 1.05
+  2: 0.7
+  6: 0.75
+  10: 0.7
+  14: 0.8
+ghost_probability: 0.3
+swing_ratio: 0.5
+timing_jitter_sigma: 3.0
+apply_to_all_instruments: true

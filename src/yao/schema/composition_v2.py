@@ -157,6 +157,43 @@ class EmotionSpec(BaseModel):
         return self
 
 
+class DynamicsShapeSpec(BaseModel):
+    """Phrase-level dynamics shape for a section.
+
+    Attributes:
+        shape: Type of dynamics curve.
+        peak_position: Position of peak for arch/hairpin [0, 1]. Required for arch/hairpin.
+        intensity: How strong the shaping is [0, 1].
+        accents: Specific bar positions with accent marks.
+    """
+
+    shape: Literal["crescendo", "decrescendo", "arch", "hairpin", "steady"] = "steady"
+    peak_position: float | None = None
+    intensity: float = 0.7
+    accents: list[dict[str, float]] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def arch_requires_peak(self) -> DynamicsShapeSpec:
+        """Arch and hairpin shapes require peak_position."""
+        if self.shape in ("arch", "hairpin") and self.peak_position is None:
+            raise SpecValidationError(
+                f"dynamics_shape '{self.shape}' requires peak_position",
+                field="form.sections.dynamics_shape.peak_position",
+            )
+        return self
+
+    @field_validator("intensity")
+    @classmethod
+    def intensity_in_range(cls, v: float) -> float:
+        """Intensity must be in [0, 1]."""
+        if not 0.0 <= v <= 1.0:
+            raise SpecValidationError(
+                f"dynamics_shape.intensity must be 0.0–1.0, got {v}",
+                field="form.sections.dynamics_shape.intensity",
+            )
+        return v
+
+
 class SectionFormSpec(BaseModel):
     """A single section in the song form.
 
@@ -166,6 +203,7 @@ class SectionFormSpec(BaseModel):
         density: Target note density (0.0–1.0).
         dynamics: Dynamic marking (default from global).
         climax: Whether this section is the climax.
+        dynamics_shape: Optional phrase-level dynamics shape.
     """
 
     id: str
@@ -173,6 +211,7 @@ class SectionFormSpec(BaseModel):
     density: float = 0.5
     dynamics: str | None = None
     climax: bool = False
+    dynamics_shape: DynamicsShapeSpec | None = None
 
     @field_validator("id")
     @classmethod

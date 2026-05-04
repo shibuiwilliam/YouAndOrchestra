@@ -197,6 +197,136 @@ JUST_INTONATION_MAJOR = ScaleDefinition(
 )
 
 # ---------------------------------------------------------------------------
+# Japanese traditional scales (12-EDO approximations)
+# ---------------------------------------------------------------------------
+
+JAPANESE_IN = ScaleDefinition(
+    name="japanese_in",
+    intervals_cents=(0, 100, 500, 700, 800),
+    cultural_context=(
+        "Japanese in-scale (陰旋法). Dark, plaintive 5-note scale used in "
+        "traditional Japanese music (shamisen, koto). Characteristic half-step "
+        "intervals at degrees 2 and 5 create a mournful quality. Often heard in "
+        "min'yō folk songs and kabuki."
+    ),
+)
+
+JAPANESE_YO = ScaleDefinition(
+    name="japanese_yo",
+    intervals_cents=(0, 200, 500, 700, 900),
+    cultural_context=(
+        "Japanese yo-scale (陽旋法). Bright, pentatonic scale without semitones. "
+        "Associated with folk songs (min'yō), children's songs, and festive music. "
+        "Equivalent to a major pentatonic. Used in Okinawan music and matsuri."
+    ),
+)
+
+JAPANESE_RITSU = ScaleDefinition(
+    name="japanese_ritsu",
+    intervals_cents=(0, 200, 500, 700, 1000),
+    cultural_context=(
+        "Japanese ritsu-scale (律旋法). One of the two fundamental scales of "
+        "gagaku (court music). Stepwise, dignified character. Used in Buddhist "
+        "chanting (shōmyō) and gagaku ensemble music."
+    ),
+)
+
+JAPANESE_MINYO = ScaleDefinition(
+    name="japanese_minyo",
+    intervals_cents=(0, 300, 500, 700, 1000),
+    cultural_context=(
+        "Japanese min'yō scale (民謡音階). Folk-song scale equivalent to "
+        "minor pentatonic. Used extensively in regional folk songs across Japan. "
+        "Warm, earthy quality. Suitable for shamisen and voice."
+    ),
+)
+
+HIRAJOSHI = ScaleDefinition(
+    name="hirajoshi",
+    intervals_cents=(0, 200, 300, 700, 800),
+    cultural_context=(
+        "Hirajoshi scale (平調子). A koto tuning that became a widely-used "
+        "Japanese scale. Distinctive sound with a semitone between degrees 3 and 4. "
+        "Named after the koto tuning by Yatsuhashi Kengyō (17th century). "
+        "Often used in contemporary Japanese-influenced Western music."
+    ),
+)
+
+IWATO = ScaleDefinition(
+    name="iwato",
+    intervals_cents=(0, 100, 500, 600, 1000),
+    cultural_context=(
+        "Iwato scale (岩戸). Named after the mythological cave of Amaterasu. "
+        "Dark, mysterious 5-note scale with two semitone intervals. "
+        "Used in shakuhachi music and theatrical contexts. "
+        "The most dissonant of the traditional Japanese pentatonic scales."
+    ),
+)
+
+# ---------------------------------------------------------------------------
+# Additional Middle Eastern maqamat
+# ---------------------------------------------------------------------------
+
+MAQAM_HIJAZ = ScaleDefinition(
+    name="maqam_hijaz",
+    intervals_cents=(0, 100, 400, 500, 700, 800, 1000),
+    cultural_context=(
+        "Hijaz maqam (حجاز). Characterized by the augmented-second interval "
+        "between the flat 2nd and major 3rd (100→400 cents). Immediately "
+        "evocative of Middle Eastern music. Used in both sacred and secular "
+        "contexts across the Arab world, Turkey, and Andalusia."
+    ),
+)
+
+MAQAM_KURD = ScaleDefinition(
+    name="maqam_kurd",
+    intervals_cents=(0, 100, 300, 500, 700, 800, 1000),
+    cultural_context=(
+        "Kurd maqam (كرد). A minor-like scale with a flat 2nd degree. "
+        "Melancholic and introspective character. Common in Turkish and "
+        "Arabic music. The Phrygian mode of Western theory is the closest "
+        "equivalent, but performance practice differs significantly."
+    ),
+)
+
+MAQAM_NAHAWAND = ScaleDefinition(
+    name="maqam_nahawand",
+    intervals_cents=(0, 200, 300, 500, 700, 800, 1100),
+    cultural_context=(
+        "Nahawand maqam (نهاوند). Named after the Iranian city. "
+        "Equivalent to the Western harmonic minor scale. Romantic and "
+        "emotional character. Widely used in Arabic, Turkish, and "
+        "Persian classical music."
+    ),
+)
+
+# ---------------------------------------------------------------------------
+# Additional Indian-derived scales
+# ---------------------------------------------------------------------------
+
+RAGA_MARWA = ScaleDefinition(
+    name="raga_marwa",
+    intervals_cents=(0, 100, 400, 600, 700, 1100),
+    cultural_context=(
+        "Hindustani evening raga. 6-note (hexatonic) scale omitting Pa (5th). "
+        "The sharp 4th (tivra Ma) and flat 2nd (komal Re) create a restless, "
+        "yearning quality. Traditionally performed at sunset. One of the most "
+        "challenging ragas to perform due to the absence of the resting tone."
+    ),
+)
+
+RAGA_TODI = ScaleDefinition(
+    name="raga_todi",
+    intervals_cents=(0, 100, 300, 600, 700, 800, 1100),
+    cultural_context=(
+        "Hindustani morning raga of the Todi thaat. Serious, contemplative "
+        "character. Features komal Re (flat 2nd), komal Ga (flat 3rd), "
+        "tivra Ma (sharp 4th), and komal Dha (flat 6th). Associated with "
+        "devotion and pathos. Traditionally performed in late morning."
+    ),
+)
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
@@ -223,4 +353,18 @@ ALL_SCALE_DEFINITIONS: dict[str, ScaleDefinition] = {
     "slendro": SLENDRO,
     # Just Intonation
     "just_intonation_major": JUST_INTONATION_MAJOR,
+    # Japanese
+    "japanese_in": JAPANESE_IN,
+    "japanese_yo": JAPANESE_YO,
+    "japanese_ritsu": JAPANESE_RITSU,
+    "japanese_minyo": JAPANESE_MINYO,
+    "hirajoshi": HIRAJOSHI,
+    "iwato": IWATO,
+    # Additional Maqam
+    "maqam_hijaz": MAQAM_HIJAZ,
+    "maqam_kurd": MAQAM_KURD,
+    "maqam_nahawand": MAQAM_NAHAWAND,
+    # Additional Indian
+    "raga_marwa": RAGA_MARWA,
+    "raga_todi": RAGA_TODI,
 }

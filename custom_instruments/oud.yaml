@@ -1,0 +1,24 @@
+# Oud (عود) — Middle Eastern fretless lute
+name: oud
+midi_low: 43    # G2
+midi_high: 79   # G5
+gm_program: 25  # GM Acoustic Guitar (nylon) as approximation
+custom_sf2_path: null
+cultural_origin: middle_eastern
+idiomatic_techniques:
+  - risha (plectrum technique with feather-like strokes)
+  - trill (rapid alternation between adjacent notes)
+  - glissando (smooth slide, enabled by fretless neck)
+  - qarar (drone on lowest string)
+  - ajnas (tetrachord-based melodic development)
+typical_velocity_range: [35, 105]
+typical_scales:
+  - maqam_rast
+  - maqam_bayati
+  - maqam_hijaz
+  - maqam_nahawand
+notes: >
+  The oud is the ancestor of the European lute. Its fretless neck
+  allows microtonal inflections essential to maqam performance.
+  Standard tuning uses 11 or 13 strings. Source: Ali Jihad Racy,
+  "Making Music in the Arab World" (2003).

@@ -1,0 +1,22 @@
+# Shakuhachi (尺八) — Japanese bamboo flute
+name: shakuhachi
+midi_low: 55    # G3 (standard 1.8 shaku length)
+midi_high: 84   # C6
+gm_program: 77  # GM Shakuhachi
+custom_sf2_path: null  # GM approximation; custom SF2 recommended
+cultural_origin: japanese
+idiomatic_techniques:
+  - meri (pitch bending down by partially closing finger holes)
+  - kari (pitch bending up)
+  - muraiki (breathy, overblown tone for expressive effect)
+  - yuri (vibrato achieved by head movement)
+  - nayashi (slow glissando between notes)
+typical_velocity_range: [40, 100]
+typical_scales:
+  - japanese_in
+  - japanese_ritsu
+  - hirajoshi
+notes: >
+  The shakuhachi is a 5-hole bamboo flute central to Japanese music.
+  Its breathy tone and pitch flexibility make it ideal for meditative
+  and expressive contexts. Source: Riley Lee, "The Shakuhachi" (2021).

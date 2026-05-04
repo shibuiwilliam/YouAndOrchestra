@@ -128,4 +128,5 @@ markers = [
     "music_constraints: music theory constraint tests",
     "subagent: subagent evaluation tests",
     "subjective: subjective quality tests (human-rated, skip in CI)",
+    "audio_regression: audio feature regression tests (weekly CI)",
 ]

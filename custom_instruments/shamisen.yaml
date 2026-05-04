@@ -1,0 +1,22 @@
+# Shamisen (三味線) — Japanese 3-string lute
+name: shamisen
+midi_low: 50    # D3
+midi_high: 79   # G5
+gm_program: 106 # GM Shamisen
+custom_sf2_path: null
+cultural_origin: japanese
+idiomatic_techniques:
+  - bachi strike (percussive plectrum technique)
+  - hajiki (left-hand pizzicato)
+  - suri (slide between notes)
+  - uchi (hammering the string)
+  - sawari (intentional buzzing tone from bridge)
+typical_velocity_range: [50, 120]
+typical_scales:
+  - japanese_in
+  - japanese_minyo
+  - japanese_yo
+notes: >
+  The shamisen has three types (hosozao, chuuzao, futozao) with different
+  neck widths for different genres. The sawari buzz is a defining timbre
+  feature. Source: Henry Johnson, "The Shamisen" (2010).

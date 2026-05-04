@@ -1,7 +1,7 @@
 .PHONY: install setup-hooks test test-unit test-integration test-music test-golden test-subagent \
-       lint format arch-lint matrix-check feature-status validate-spec new-project compose render \
-       setup-soundfonts setup-references all-checks honesty-check plan-consumption skill-grounding \
-       critic-coverage backend-honesty audit-monthly
+       test-acoustic lint format arch-lint matrix-check feature-status validate-spec new-project \
+       compose render setup-soundfonts setup-references all-checks honesty-check plan-consumption \
+       skill-grounding critic-coverage backend-honesty audit-monthly
 
 install:
 	pip install -e ".[dev]"
@@ -31,6 +31,9 @@ test-subagent:
 
 test-subjective:
 	pytest tests/subjective/ -v -m subjective
+
+test-acoustic:
+	pytest tests/audio_regression/ -v -m audio_regression
 
 lint:
 	ruff check src/ tests/

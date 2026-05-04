@@ -23,7 +23,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from yao.schema.composition import CompositionSpec  # noqa: E402
 
-
 _V2_DRAFT_HEADER = """\
 # ============================================================================
 # YaO composition.yaml v2 DRAFT

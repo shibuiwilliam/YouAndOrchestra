@@ -191,15 +191,32 @@ def test_trajectory_compliance():
 - **Per-instrument deterministic RNG** — master_seed:instrument:section for reproducibility
 - **Temperature semantics**: 0.0 = conservative (mostly steps, basic chords), 1.0 = adventurous (leaps, 7th chords, complex rhythms)
 
-### v2.0 Plan Generators (Phase alpha)
-- **`rule_based_form`** — Generates `SongFormPlan` from spec sections
-- **`rule_based_harmony`** — Generates `HarmonyPlan` with chord events per section
+### v2.0 Plan Generators
+- **FormPlanner** — Generates `SongFormPlan` from spec sections (consumes Form Library)
+- **HarmonyPlanner** — Generates `HarmonyPlan` with chord events per section (genre-aware)
+- **Composer (Subagent)** — Generates `MotifPlan` + `PhrasePlan` + `HookPlan`
+- **DrumPatterner** — Generates `DrumPattern` + `GrooveProfile`
+- **Orchestrator** — Generates `ArrangementPlan` with register separation
+- **ConversationDirector** — Generates `ConversationPlan` (Step 5.5)
 
-### v2.0 Note Realizers (Phase alpha)
-- Being built — will wrap the logic from legacy generators into the two-stage pipeline
+### v2.0 Note Realizers
+- **rule_based_v2** — Deterministic, 100% plan consumption, chord-aware voicing
+- **stochastic_v2** — Seeded randomness, 100% plan consumption, temperature control
 
-## Planned Generators
+### Additional Generators
+- **Markov** — Probabilistic transitions from YAML models (bigram, diatonic + pentatonic)
+- **Twelve-tone** — Serial composition with P/I/R/RI row transformations
+- **Process music** — Minimalist phasing/additive/subtractive processes
+- **Constraint solver** — Backtracking CSP with key+range+stepwise constraints
+- **Neural bridge** — Stable Audio texture generation (optional dep)
 
-- **Markov chain** — Probabilistic transitions learned from corpus
-- **Constraint solver** — Backtracking search with hard constraints
-- **AI bridge** — External model integration via API
+### Post-Realization Processing
+- **GrooveApplicator** — Ensemble-wide microtiming + velocity from GrooveProfile
+- **Reactive fills** — Short fills at melodic phrase endings
+- **Frequency clearance** — Octave displacement for spectral collision reduction
+- **Performance pipeline** — Articulation, dynamics curves, microtiming, CC curves
+
+### Melodic Strategies (8)
+Available in the stochastic generator via `MelodicGenerationStrategy`:
+- contour_based, motif_development, linear_voice, arpeggiated
+- scalar_runs, call_response, pedal_tone, hocketing

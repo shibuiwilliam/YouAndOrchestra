@@ -77,3 +77,55 @@ from yao.verify.critique.genre_fitness import (  # noqa: E402
 
 CRITIQUE_RULES.register(TempoOutOfRangeDetector())
 CRITIQUE_RULES.register(InstrumentMismatchDetector())
+# Surprise (2) — Phase γ.1
+from yao.verify.critique.surprise_rules import (  # noqa: E402
+    SurpriseDeficitDetector,
+    SurpriseOverloadDetector,
+)
+
+CRITIQUE_RULES.register(SurpriseDeficitDetector())
+CRITIQUE_RULES.register(SurpriseOverloadDetector())
+# Tension (1) — Phase γ.1
+from yao.verify.critique.tension_rules import (  # noqa: E402
+    TensionArcUnresolvedDetector,
+)
+
+CRITIQUE_RULES.register(TensionArcUnresolvedDetector())
+# Hook (3) — Phase γ.3
+from yao.verify.critique.hook_rules import (  # noqa: E402
+    HookMisplacementDetector,
+    HookOveruseDetector,
+    HookUnderuseDetector,
+)
+
+CRITIQUE_RULES.register(HookOveruseDetector())
+CRITIQUE_RULES.register(HookUnderuseDetector())
+CRITIQUE_RULES.register(HookMisplacementDetector())
+# Dynamics (1) — Phase γ.3
+from yao.verify.critique.dynamics_rules import (  # noqa: E402
+    FlatPhraseDynamicsDetector,
+)
+
+CRITIQUE_RULES.register(FlatPhraseDynamicsDetector())
+# Groove (3) — Phase γ.4
+from yao.verify.critique.groove_rules import (  # noqa: E402
+    EnsembleGrooveConflictDetector,
+    GrooveInconsistencyDetector,
+    MicrotimingFlatnessDetector,
+)
+
+CRITIQUE_RULES.register(GrooveInconsistencyDetector())
+CRITIQUE_RULES.register(MicrotimingFlatnessDetector())
+CRITIQUE_RULES.register(EnsembleGrooveConflictDetector())
+# Conversation (4) — Phase γ.5
+from yao.verify.critique.conversation_rules import (  # noqa: E402
+    ConversationSilenceDetector,
+    FillAbsenceDetector,
+    FrequencyCollisionUnresolvedDetector,
+    PrimaryVoiceAmbiguityDetector,
+)
+
+CRITIQUE_RULES.register(ConversationSilenceDetector())
+CRITIQUE_RULES.register(PrimaryVoiceAmbiguityDetector())
+CRITIQUE_RULES.register(FillAbsenceDetector())
+CRITIQUE_RULES.register(FrequencyCollisionUnresolvedDetector())

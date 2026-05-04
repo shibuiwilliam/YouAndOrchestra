@@ -1,0 +1,16 @@
+# Reggae one-drop groove: emphasis on beat 3, laid-back feel
+name: reggae_one_drop
+microtiming:
+  0: 0.0
+  4: 4.0
+  8: 8.0
+  12: 3.0
+velocity_pattern:
+  0: 0.85
+  4: 0.9
+  8: 1.2
+  12: 0.95
+ghost_probability: 0.1
+swing_ratio: 0.52
+timing_jitter_sigma: 5.0
+apply_to_all_instruments: true

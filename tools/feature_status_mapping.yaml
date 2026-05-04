@@ -356,3 +356,94 @@
     - src/yao/conductor/result.py
   tests:
     - tests/unit/test_conductor.py
+
+# === Phase γ.1: Surprise Score and Tension Arcs ===
+"TensionArc IR (Layer 3.5)":
+  src:
+    - src/yao/ir/tension_arc.py
+  tests:
+    - tests/unit/ir/test_tension_arc.py
+
+"Surprise critique rules (3)":
+  src:
+    - src/yao/verify/critique/surprise_rules.py
+    - src/yao/verify/critique/tension_rules.py
+  tests:
+    - tests/unit/verify/test_surprise_rules.py
+
+"Surprise Score (Layer 4)":
+  src:
+    - src/yao/perception/surprise.py
+  tests:
+    - tests/unit/perception/test_surprise.py
+
+"TensionArcs schema":
+  src:
+    - src/yao/schema/tension_arcs.py
+  tests:
+    - tests/unit/schema/test_tension_arcs.py
+
+"Critique rules (25 total)":
+  src:
+    - src/yao/verify/critique/__init__.py
+  tests:
+    - tests/unit/verify/test_critique_rules.py
+
+# === Phase γ.4: Ensemble Groove ===
+"GrooveProfile IR (Layer 3.5)":
+  src:
+    - src/yao/ir/groove.py
+  tests:
+    - tests/unit/ir/test_groove.py
+
+"Groove Library (12 profiles)":
+  src:
+    - grooves/lofi_hiphop.yaml
+  tests:
+    - tests/unit/ir/test_groove.py
+
+"GrooveApplicator":
+  src:
+    - src/yao/generators/groove_applicator.py
+  tests:
+    - tests/unit/generators/test_groove_applicator.py
+
+"GrooveSpec schema":
+  src:
+    - src/yao/schema/groove.py
+  tests:
+    - tests/unit/schema/test_groove.py
+
+# === Phase γ.7: Multilingual + Multicultural ===
+"Custom instrument profiles (8)":
+  src:
+    - src/yao/constants/custom_instruments.py
+  tests:
+    - tests/unit/constants/test_custom_instruments.py
+
+"Multilingual SpecCompiler (ja)":
+  src:
+    - src/yao/sketch/compiler.py
+  tests:
+    - tests/unit/sketch/test_multilingual.py
+
+# === Phase δ.2: Three-Tier Feedback ===
+"Pin IR + PinsSpec":
+  src:
+    - src/yao/feedback/pin.py
+    - src/yao/schema/pins.py
+  tests:
+    - tests/unit/feedback/test_pin.py
+    - tests/unit/feedback/test_pins_spec.py
+
+"Pin-Aware Regenerator":
+  src:
+    - src/yao/feedback/pin_aware_regenerator.py
+  tests:
+    - tests/unit/feedback/test_pin_aware_regenerator.py
+
+"NL Feedback Translator":
+  src:
+    - src/yao/feedback/nl_translator.py
+  tests:
+    - tests/unit/feedback/test_nl_translator.py

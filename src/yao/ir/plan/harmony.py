@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
+from yao.ir.tension_arc import TensionArc
+
 
 class HarmonicFunction(StrEnum):
     """Functional role of a chord in its key context."""
@@ -138,6 +140,7 @@ class HarmonyPlan:
     cadences: dict[str, CadenceRole] = field(default_factory=dict)
     modulations: list[ModulationEvent] = field(default_factory=list)
     tension_resolution_points: list[float] = field(default_factory=list)
+    tension_arcs: tuple[TensionArc, ...] = ()
 
     def chord_at_beat(self, beat: float) -> ChordEvent | None:
         """Find the chord sounding at the given beat.
@@ -175,6 +178,17 @@ class HarmonyPlan:
         """
         return self.cadences.get(section_id)
 
+    def tension_arcs_in_section(self, section_id: str) -> tuple[TensionArc, ...]:
+        """Return tension arcs whose location is in the given section.
+
+        Args:
+            section_id: Section identifier.
+
+        Returns:
+            Tuple of TensionArcs located in that section.
+        """
+        return tuple(a for a in self.tension_arcs if a.location.section == section_id)
+
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
         return {
@@ -182,14 +196,17 @@ class HarmonyPlan:
             "cadences": {k: v.value for k, v in self.cadences.items()},
             "modulations": [m.to_dict() for m in self.modulations],
             "tension_resolution_points": list(self.tension_resolution_points),
+            "tension_arcs": [a.to_dict() for a in self.tension_arcs],
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> HarmonyPlan:
         """Deserialize from dict."""
+        arcs = tuple(TensionArc.from_dict(a) for a in data.get("tension_arcs", []))
         return cls(
             chord_events=[ChordEvent.from_dict(c) for c in data["chord_events"]],
             cadences={k: CadenceRole(v) for k, v in data["cadences"].items()},
             modulations=[ModulationEvent.from_dict(m) for m in data.get("modulations", [])],
             tension_resolution_points=data.get("tension_resolution_points", []),
+            tension_arcs=arcs,
         )

@@ -1,0 +1,16 @@
+# J-pop tight groove: precise grid with crisp accents
+name: j_pop_tight
+microtiming:
+  0: 0.0
+  4: 0.0
+  8: 0.0
+  12: 0.0
+velocity_pattern:
+  0: 1.1
+  4: 1.05
+  8: 1.1
+  12: 1.0
+ghost_probability: 0.03
+swing_ratio: 0.5
+timing_jitter_sigma: 1.5
+apply_to_all_instruments: true

@@ -1,0 +1,32 @@
+# Trap double-time groove: hi-hat rolls, heavy accents
+name: trap_double_time
+microtiming:
+  0: 0.0
+  1: -1.0
+  2: 0.0
+  3: 1.0
+  4: 0.0
+  5: -1.0
+  6: 0.0
+  7: 1.5
+  8: 0.0
+  9: -1.0
+  10: 0.0
+  11: 1.0
+  12: 0.0
+  13: -1.0
+  14: 0.0
+  15: 2.0
+velocity_pattern:
+  0: 1.2
+  4: 1.0
+  8: 1.15
+  12: 0.95
+  2: 0.6
+  6: 0.65
+  10: 0.6
+  14: 0.7
+ghost_probability: 0.25
+swing_ratio: 0.5
+timing_jitter_sigma: 2.0
+apply_to_all_instruments: true

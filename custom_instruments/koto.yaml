@@ -1,0 +1,22 @@
+# Koto (箏) — Japanese 13-string zither
+name: koto
+midi_low: 40    # E2
+midi_high: 84   # C6
+gm_program: 107 # GM Koto
+custom_sf2_path: null
+cultural_origin: japanese
+idiomatic_techniques:
+  - oshi (pitch bend by pressing string behind bridge)
+  - chirashi (rapid tremolo)
+  - sukui-zume (upward pluck)
+  - shan (sharp accented pluck with pick)
+  - glissando (sweeping across strings)
+typical_velocity_range: [30, 110]
+typical_scales:
+  - hirajoshi
+  - japanese_in
+  - japanese_yo
+notes: >
+  The koto is a 13-string zither and Japan's national instrument.
+  Tunings vary; hirajoshi is the most common. Multiple tuning systems
+  exist for different genres. Source: Fumio Koizumi, "Japanese Music" (1974).

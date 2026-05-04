@@ -1,0 +1,20 @@
+# Tabla (तबला) — Indian paired hand drums
+name: tabla
+midi_low: 36    # C2
+midi_high: 72   # C5
+gm_program: 115 # No exact GM; use Woodblock as placeholder
+custom_sf2_path: null
+cultural_origin: indian
+idiomatic_techniques:
+  - na/ta (right drum open stroke)
+  - tin (right drum edge stroke)
+  - ge/ghe (left drum open stroke)
+  - dha (combined both-drum stroke)
+  - tirakita (fast ornamental pattern)
+typical_velocity_range: [30, 120]
+typical_scales: []
+notes: >
+  The tabla is a pair of drums (dayan right, bayan left) with
+  tunable heads. Over 20 distinct stroke types are named using
+  onomatopoeic syllables (bols). Source: David Courtney,
+  "Fundamentals of Tabla" (2006).

@@ -1,0 +1,20 @@
+# Lo-fi hip-hop groove: laid-back, behind-the-beat feel
+name: lofi_hiphop
+microtiming:
+  0: 0.0
+  2: 3.0
+  4: 8.0
+  6: 5.0
+  8: -2.0
+  10: 4.0
+  12: 10.0
+  14: 6.0
+velocity_pattern:
+  0: 1.1
+  4: 0.85
+  8: 1.05
+  12: 0.8
+ghost_probability: 0.15
+swing_ratio: 0.58
+timing_jitter_sigma: 6.0
+apply_to_all_instruments: true

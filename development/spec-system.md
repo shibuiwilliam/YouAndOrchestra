@@ -145,6 +145,12 @@ constraints:
 | `references.yaml` | `ReferencesSpec` | Aesthetic reference works (positive/negative polarity) |
 | `negative-space.yaml` | `NegativeSpaceSpec` | Intentional silence design |
 | `production.yaml` | `ProductionSpec` | Mix/master parameters (LUFS, stereo width, reverb) |
+| `tension_arcs.yaml` | `TensionArcsSpec` | Short-range tension-resolution structures (2-8 bars) |
+| `hooks.yaml` | `HooksSpec` | Hook deployment strategy (rare/frequent/withhold-then-release) |
+| `groove.yaml` | `GrooveSpec` | Ensemble-wide microtiming and velocity patterns |
+| `conversation.yaml` | `ConversationSpec` | Inter-instrument dialogue and voice focus |
+| `arrangement.yaml` | `ArrangementSpec` | Style transfer with preservation contracts |
+| `pins.yaml` | `PinsSpec` | Localized user feedback (auto-generated via CLI) |
 
 ### `trajectory.yaml` (optional)
 
@@ -207,7 +213,14 @@ specs/projects/my-song/
   +-- composition.yaml    # Required (v1 or v2)
   +-- intent.md           # Recommended
   +-- trajectory.yaml     # Optional
+  +-- tension_arcs.yaml   # Optional
+  +-- hooks.yaml          # Optional
+  +-- groove.yaml         # Optional
+  +-- conversation.yaml   # Optional
   +-- constraints.yaml    # Optional
+  +-- references.yaml     # Optional
+  +-- arrangement.yaml    # Optional (arrangement mode)
+  +-- pins.yaml           # Auto-generated via /pin command
 
 outputs/projects/my-song/
   +-- iterations/
@@ -216,6 +229,7 @@ outputs/projects/my-song/
       |   +-- stems/
       |   +-- analysis.json
       |   +-- evaluation.json
+      |   +-- perceptual.json
       |   +-- provenance.json
       +-- v002/
 ```

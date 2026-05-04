@@ -19,54 +19,27 @@
 
 ---
 
-## v3.0 Waves
+## Phase γ: Eight Structural Improvements — COMPLETE (2026-05-04)
 
-### Wave 1: Honesty — COMPLETE (2026-05-03)
+Delivered the eight improvements from PROJECT.md v2.0 §11:
 
-Closed the gap between documented capability and actual implementation.
-
-| Sprint | Deliverable |
-|---|---|
-| W1.0 | 5 CI honesty tools (honesty-check, backend-honesty, plan-consumption, skill-grounding, critic-coverage) |
-| W1.1 | Composer Subagent — non-empty MotifPlan generation |
-| W1.2 | AnthropicAPIBackend — real LLM calls, is_stub=False |
-| W1.3 | SpecCompiler — Japanese support, 3-stage fallback |
-| W1.4 | V2 Pipeline — rule_based_v2 + stochastic_v2 (100% plan consumption) |
-
-### Wave 2: Alignment — COMPLETE (2026-05-03)
-
-Made the architecture genuinely functional end-to-end.
-
-| Sprint | Deliverable |
-|---|---|
-| W2.1 | V2 realizers registered as default candidates; Skill loader base |
-| W2.2 | 4 aesthetic metrics (surprise, memorability, contrast, pacing); evaluator dimension |
-| W2.3 | Audio feature extraction + MixChain foundation |
-
-### Wave 3: Depth — IN PROGRESS
-
-Expanding capabilities and user experience.
-
-| Sprint | Status | Deliverable |
+| Phase | Feature | Key Deliverable |
 |---|---|---|
-| W3.1 | Planned | Performance Layer auto-integration in Conductor |
-| W3.2 | **Done** | EnsembleConstraint (5 inter-part rules, Orchestrator register assignment) |
-| W3.3 | Planned | Reference library (public domain MIDI + StyleVector cache) |
-| W3.4 | **Done** | StyleVector enhancement (4 copyright-safe histogram fields) |
-| W3.5 | Planned | Subjective Rating CLI (multi-rater, append-only) |
-| W3.6 | **Done** | /sketch 6-turn dialogue with state persistence |
-| W3.7 | Planned | Microtonal/Polyrhythm in V2 realizers |
-| W3.8 | Planned | Live Improvisation V2 pipeline integration |
-| W3.9 | Planned | Arrangement Engine quality (transfer + extraction) |
+| γ.1 | Surprise Score + Tension Arcs | SurpriseScorer, TensionArc IR, 3 critique rules |
+| γ.2 | Acoustic Truth | PerceptualReport, ListeningSimulator, 7 use-case evaluators, 3 divergence rules |
+| γ.3 | Hook IR + Phrase Dynamics | Hook with DeploymentStrategy, DynamicsShape, HooksSpec, 4 critique rules |
+| γ.4 | Ensemble Groove | GrooveProfile IR, GrooveApplicator, GrooveSpec, 3 critique rules |
+| γ.5 | Conversation Plan | ConversationPlan, reactive fills, frequency clearance, 4 critique rules |
+| γ.6 | Diversity Sources | 20-form library, 8 melodic generation strategies |
+| γ.7 | Multilingual | Japanese SpecCompiler (50+ emotion words, valence×arousal) |
+| δ.1 | Arrangement Engine | SourcePlanExtractor, StyleVectorOps, PreservationContract, DiffWriter |
 
-### Wave 4+ (Post v3.0)
+## Phase δ: Production Features — COMPLETE (2026-05-04)
 
-Future exploration — requires roadmap PR after Wave 3 completion:
-- Multi-model orchestration
-- Real-time collaboration
-- VST3 host integration
-- Cloud API server mode
-- Video sync
+| Phase | Feature | Key Deliverable |
+|---|---|---|
+| δ.1 | Arrangement Engine | MIDI→MusicalPlan extraction, style transfer, diff reports |
+| δ.2 | Three-Tier Feedback | Pin IR (localized), NL translator (30 phrases), pin-aware regenerator |
 
 ---
 
@@ -77,6 +50,21 @@ Future exploration — requires roadmap PR after Wave 3 completion:
 | Milestone 1 | ~200 |
 | Milestone 2 | ~500 |
 | Milestone 3 | ~1,094 |
-| Wave 1 complete | ~1,074 |
-| Wave 2 complete | ~1,104 |
-| Wave 3 current | **~1,150** |
+| v3.0 Waves | ~1,150 |
+| Phase γ complete | ~1,680 |
+| Phase δ complete | **~1,748** |
+
+---
+
+## Future Directions
+
+These are research directions, not committed roadmap items:
+
+- **Live performance mode** — real-time MIDI controller input (prototype exists)
+- **Neural generator bridge** — Stable Audio textures under YaO structural control (prototype exists)
+- **DAW MCP integration** — real bidirectional MCP connection to Reaper (interface defined, stub impl)
+- **Multi-model orchestration** — different LLMs for different subagents
+- **Community reference library** — shared StyleVector format for collaboration
+- **Backend-agnostic agents** — Claude Code as one adapter among many
+- **Video sync** — align music to visual cues
+- **Cloud API server** — expose YaO as a web service

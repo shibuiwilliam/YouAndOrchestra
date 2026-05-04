@@ -1,0 +1,23 @@
+# Sitar (सितार) — Indian plucked string instrument
+name: sitar
+midi_low: 48    # C3
+midi_high: 84   # C6
+gm_program: 104 # GM Sitar
+custom_sf2_path: null
+cultural_origin: indian
+idiomatic_techniques:
+  - meend (pitch bend/glide between notes, fundamental to raga)
+  - gamak (oscillation around a note)
+  - murki (rapid ornamental turn)
+  - krintan (pull-off similar to guitar)
+  - jhala (rhythmic strumming on drone strings)
+typical_velocity_range: [40, 110]
+typical_scales:
+  - raga_yaman
+  - raga_bhairav
+  - raga_darbari
+  - raga_todi
+notes: >
+  The sitar has 18-21 strings including sympathetic strings (taraf)
+  that resonate with the played melody. Meend (pitch bending) is
+  essential to raga performance. Source: Ravi Shankar, "My Music, My Life" (1968).

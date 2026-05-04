@@ -1,0 +1,24 @@
+schema_version: "1.0"
+
+tension_arcs:
+  - id: "verse_buildup"
+    location:
+      section: verse
+      bars: [5, 8]
+    pattern: linear_rise
+    target_release:
+      section: chorus
+      bar: 1
+    intensity: 0.7
+    mechanism: "dominant_prolongation"
+
+  - id: "bridge_dip"
+    location:
+      section: bridge
+      bars: [1, 4]
+    pattern: dip
+    target_release:
+      section: bridge
+      bar: 4
+    intensity: 0.5
+    mechanism: "modal_interchange"

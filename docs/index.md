@@ -4,32 +4,40 @@
 
 YaO turns music composition into a structured, reproducible process. Describe what you want in plain language (English or Japanese), and YaO generates a full MIDI score with per-instrument stems, quality evaluation, aesthetic analysis, and a provenance log explaining every decision.
 
-> *Your vision. Your taste. Your soul. — and an Orchestra ready to serve.*
+> *Your vision. Your taste. Your soul. — and an Orchestra ready to listen, respond, and surprise.*
 
 ## What YaO Does
 
 - **Multi-turn sketch dialogue** — 6-turn interactive conversation refines your idea into a complete spec
 - **Natural language composition** — English and Japanese input with 3-stage fallback (LLM → Keyword → Default)
 - **Spec-driven composition** — YAML specs (v1 flat or v2 11-section) with precise control
-- **V2 Pipeline** — 7-step plan-first generation (Form → Harmony → Motif → Drums → Arrangement → Realization)
+- **V2 Pipeline** — 9-step plan-first generation (Form → Harmony → Motif → Drums → Arrangement → Conversation → Realization → Performance → Listening)
 - **4 Note Realizers** — rule_based_v2 and stochastic_v2 consume 100% of the MusicalPlan directly
+- **8 melodic strategies** — contour, motif development, linear voice, arpeggiated, scalar runs, call-response, pedal tone, hocketing
 - **38 instruments** across 9 families with register-aware orchestration
 - **Trajectory curves** — Shape tension, density, predictability, brightness, register height
 - **6-dimension evaluation** — Structure, melody, harmony, aesthetic, arrangement, acoustics
-- **4 aesthetic metrics** — Surprise (bigram NLL), memorability, contrast, pacing
-- **20 adversarial critique rules** — Structured findings with severity and remediation
+- **Acoustic evaluation** — LUFS, spectral features, 7 use-case evaluators, symbolic-acoustic divergence detection
+- **35 adversarial critique rules** — Structured findings with severity and remediation
 - **5 ensemble constraints** — Register separation, downbeat consonance, parallel octave detection
-- **StyleVector** — 10 copyright-safe abstract features for style comparison
+- **20 song forms** — AABA, verse-chorus-bridge, rondo, blues, J-Pop, game BGM, ambient, and more
+- **Ensemble groove** — GrooveProfile applied across all instruments (not just drums)
+- **Inter-instrument conversation** — ConversationPlan with reactive fills and frequency clearance
+- **Hook deployment** — Memorable fragments with strategies (rare, frequent, withhold-then-release)
+- **Arrangement engine** — Style transfer with preservation contracts and diff reports
+- **Three-tier feedback** — Spec-level, section-level, and pin-level with NL translation
+- **StyleVector** — 6 copyright-safe abstract features for style comparison
 - **Provenance tracking** — Every note has a recorded rationale
 - **7 subagents** — Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Critic, Producer
 - **LLM backend** — AnthropicAPIBackend with structured output (tool use), or PythonOnly for CI
-- **~1,150 tests** — Unit, integration, scenario, constraint, golden, aesthetic, subjective
+- **~1,748 tests** — Unit, integration, scenario, constraint, golden, acoustic regression, properties
 - **5 honesty tools** — CI verification that features actually work (not just exist)
 
-## Architecture (v3.0)
+## Architecture (v2.0)
 
 ```
-Spec → PlanOrchestrator → MusicalPlan → Critic Gate → NoteRealizer V2 → Performance → Renderer
+Spec → PlanOrchestrator (9 steps) → MusicalPlan → Critic Gate → NoteRealizer V2
+    → GrooveApplicator → Performance → Renderer → Listening Simulator
 ```
 
 8 layers with strict downward-only dependency. Plan-first generation separates *what to play* from *how to play it*.
@@ -45,6 +53,12 @@ yao conduct "a calm piano piece in D minor for studying, 90 seconds"
 
 # From spec (full control)
 yao compose specs/templates/bgm-90sec.yaml
+
+# Arrange existing piece
+yao arrange my-song --target-genre lofi_hiphop --preserve melody,form
+
+# Localized feedback
+/pin my-song --location "section:chorus,bar:6,beat:3,instrument:piano" --note "too busy"
 ```
 
 Output:
@@ -54,6 +68,7 @@ outputs/projects/<name>/iterations/v001/
   stems/piano.mid    # Per-instrument stems
   analysis.json      # Quality analysis
   evaluation.json    # Quality scores (6 dimensions)
+  perceptual.json    # Acoustic analysis
   provenance.json    # Decision log
 ```
 
@@ -65,7 +80,7 @@ outputs/projects/<name>/iterations/v001/
 4. **Time-axis first** — Trajectory curves before notes
 5. **Human ear is truth** — Automated scores inform; humans decide
 6. **Vertical alignment** — Input, processing, evaluation advance together
-7. **Status honesty** — A ✅ means it actually works
+7. **Acoustic truth complements symbolic truth** — Symbolic metrics necessary, never sufficient
 
 ## Documentation
 

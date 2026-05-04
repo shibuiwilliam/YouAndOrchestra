@@ -1,0 +1,16 @@
+# Pop straight groove: tight, on-the-grid feel with subtle accents
+name: pop_straight
+microtiming:
+  0: 0.0
+  4: 0.0
+  8: 0.0
+  12: 0.0
+velocity_pattern:
+  0: 1.1
+  4: 1.0
+  8: 1.05
+  12: 0.95
+ghost_probability: 0.05
+swing_ratio: 0.5
+timing_jitter_sigma: 2.0
+apply_to_all_instruments: true

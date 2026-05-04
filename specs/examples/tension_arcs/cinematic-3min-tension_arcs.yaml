@@ -1,0 +1,32 @@
+schema_version: "1.0"
+
+tension_arcs:
+  - id: "approach_theme"
+    location:
+      section: intro
+      bars: [5, 8]
+    pattern: linear_rise
+    target_release:
+      section: theme_a
+      bar: 1
+    intensity: 0.6
+    mechanism: "pedal_point_crescendo"
+
+  - id: "development_peak"
+    location:
+      section: development
+      bars: [5, 8]
+    pattern: spike
+    target_release:
+      section: climax
+      bar: 1
+    intensity: 0.9
+    mechanism: "secondary_dominant_chain"
+
+  - id: "false_ending"
+    location:
+      section: climax
+      bars: [5, 8]
+    pattern: deceptive
+    intensity: 0.7
+    mechanism: "deceptive_cadence"

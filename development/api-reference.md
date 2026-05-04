@@ -97,14 +97,21 @@ class ProvenanceLog:
 ```python
 @dataclass(frozen=True)
 class MusicalPlan:
-    song_form: SongFormPlan
+    form: SongFormPlan
     harmony: HarmonyPlan
-    motif: MotifPlan | None = None        # Phase beta
-    phrase: PhrasePlan | None = None       # Phase beta
-    drums: DrumPlan | None = None          # Phase beta
-    arrangement: ArrangementPlan | None = None  # Phase beta
+    trajectory: MultiDimensionalTrajectory
+    intent: IntentSpec
+    provenance: ProvenanceLog
+    global_context: GlobalContext
+    motif: MotifPlan | None = None
+    phrase: PhrasePlan | None = None
+    arrangement: ArrangementPlan | None = None
+    drums: DrumPattern | None = None
+    hook_plan: HookPlan | None = None
+    conversation: ConversationPlan | None = None
 
     def to_json(self) -> str
+    def from_json(cls, json_str, trajectory=None, provenance=None) -> MusicalPlan
 ```
 
 ### `SongFormPlan` (`yao.ir.plan.song_form`)
@@ -267,7 +274,7 @@ class PlanGeneratorBase(ABC):
 
 Register with `@register_plan_generator("name")`.
 
-Implemented: `rule_based_form` (SongFormPlan), `rule_based_harmony` (HarmonyPlan).
+Implemented: FormPlanner, HarmonyPlanner, Composer, DrumPatterner, Orchestrator, ConversationDirector.
 
 ### v2.0: Note Realizers
 

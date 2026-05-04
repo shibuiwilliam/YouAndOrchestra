@@ -7,11 +7,38 @@ messages when assertions fail.
 from __future__ import annotations
 
 from yao.constants.instruments import INSTRUMENT_RANGES
+from yao.ir.groove import GrooveProfile
 from yao.ir.notation import midi_to_note_name
 from yao.ir.note import Note
 from yao.ir.score_ir import ScoreIR
 from yao.ir.voicing import Voicing, check_parallel_fifths
+from yao.schema.composition_v2 import CompositionSpecV2
 from yao.schema.trajectory import TrajectorySpec
+
+
+def make_minimal_spec_v2(**overrides: object) -> CompositionSpecV2:
+    """Create a minimal CompositionSpecV2 for testing.
+
+    Args:
+        **overrides: Keys to override in the spec dict.
+
+    Returns:
+        Validated CompositionSpecV2.
+    """
+    defaults: dict[str, object] = {
+        "version": "2",
+        "identity": {"title": "Test", "duration_sec": 60},
+        "global": {"key": "C major", "bpm": 120},
+        "form": {
+            "sections": [
+                {"id": "verse", "bars": 8},
+                {"id": "chorus", "bars": 8},
+            ]
+        },
+        "arrangement": {"instruments": {"piano": {"role": "melody"}}},
+    }
+    defaults.update(overrides)
+    return CompositionSpecV2.model_validate(defaults)
 
 
 def assert_in_range(notes: list[Note] | tuple[Note, ...], instrument: str) -> None:
@@ -97,3 +124,39 @@ def assert_trajectory_match(
             f"Bar {bar}: velocity {normalized_velocity:.2f} deviates from "
             f"trajectory {expected:.2f} by {deviation:.2f} (tolerance: {tolerance})"
         )
+
+
+def assert_groove_applied(
+    original: ScoreIR,
+    grooved: ScoreIR,
+    groove: GrooveProfile,
+    min_changed_pct: float = 0.5,
+) -> None:
+    """Assert that groove was applied to the score.
+
+    Verifies that at least ``min_changed_pct`` of note start times
+    differ between original and grooved scores.
+
+    Args:
+        original: The pre-groove ScoreIR.
+        grooved: The post-groove ScoreIR.
+        groove: The GrooveProfile that was applied.
+        min_changed_pct: Minimum fraction of notes that must differ [0, 1].
+
+    Raises:
+        AssertionError: If too few notes were affected.
+    """
+    orig_notes = original.all_notes()
+    grooved_notes = grooved.all_notes()
+    assert len(orig_notes) == len(grooved_notes), "Note count changed after groove"
+
+    changed = 0
+    for o, g in zip(orig_notes, grooved_notes, strict=True):
+        if abs(o.start_beat - g.start_beat) > 1e-6 or o.velocity != g.velocity:
+            changed += 1
+
+    pct = changed / len(orig_notes) if orig_notes else 0.0
+    assert pct >= min_changed_pct, (
+        f"Only {pct:.1%} of notes changed (expected >= {min_changed_pct:.1%}). "
+        f"Groove '{groove.name}' may not be applied correctly."
+    )

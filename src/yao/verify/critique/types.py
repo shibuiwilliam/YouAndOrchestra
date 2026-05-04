@@ -24,6 +24,7 @@ class Role(StrEnum):
     ARRANGEMENT = "arrangement"
     STRUCTURE = "structure"
     EMOTIONAL = "emotional"
+    ACOUSTIC = "acoustic"
 
 
 class Severity(StrEnum):

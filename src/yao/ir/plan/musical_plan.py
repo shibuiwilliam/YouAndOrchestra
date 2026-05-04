@@ -16,6 +16,8 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
+from yao.ir.conversation import ConversationPlan
+from yao.ir.hook import HookPlan
 from yao.ir.plan.arrangement import ArrangementPlan
 from yao.ir.plan.drums import DrumPattern
 from yao.ir.plan.harmony import HarmonyPlan
@@ -104,6 +106,10 @@ class MusicalPlan:
     arrangement: ArrangementPlan | None = None
     drums: DrumPattern | None = None
 
+    # Phase γ — None until implemented
+    hook_plan: HookPlan | None = None
+    conversation: ConversationPlan | None = None
+
     def is_complete(self) -> bool:
         """Return True only when all plan dimensions exist.
 
@@ -149,6 +155,10 @@ class MusicalPlan:
             result["arrangement"] = self.arrangement.to_dict()
         if self.drums is not None:
             result["drums"] = self.drums.to_dict()
+        if self.hook_plan is not None:
+            result["hook_plan"] = self.hook_plan.to_dict()
+        if self.conversation is not None:
+            result["conversation"] = self.conversation.to_dict()
         return result
 
     def to_json(self) -> str:
@@ -178,6 +188,8 @@ class MusicalPlan:
         phrase = PhrasePlan.from_dict(data["phrase"]) if "phrase" in data else None
         arrangement = ArrangementPlan.from_dict(data["arrangement"]) if "arrangement" in data else None
         drums = DrumPattern.from_dict(data["drums"]) if "drums" in data else None
+        hook_plan = HookPlan.from_dict(data["hook_plan"]) if "hook_plan" in data else None
+        conversation = ConversationPlan.from_dict(data["conversation"]) if "conversation" in data else None
         global_ctx = GlobalContext.from_dict(data["global_context"]) if "global_context" in data else GlobalContext()
 
         return cls(
@@ -191,6 +203,8 @@ class MusicalPlan:
             phrase=phrase,
             arrangement=arrangement,
             drums=drums,
+            hook_plan=hook_plan,
+            conversation=conversation,
         )
 
 
