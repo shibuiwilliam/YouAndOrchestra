@@ -143,12 +143,12 @@ Conductor Feedback Loop (up to 3 iterations + audio loop)
 ## Package Layout
 
 ```
-src/yao/           228 Python modules
+src/yao/           241 Python modules
   constants/       Layer 0: 46 instruments, 28 scales, 20 forms, 14 chords
   schema/          Layer 1: Pydantic specs (v1 + v2 + v3), genre profiles (24 files)
   sketch/          Layer 1.5: NL compiler (3-stage), emotion vocab, dialogue (5 files)
-  ir/              Layer 3: Score IR + Plan IR (33 files)
-  generators/      Layer 2: 9 generators, 8 melodic strategies, performance (39 files)
+  ir/              Layer 3: Score IR + Plan IR (34 files)
+  generators/      Layer 2: 9 generators, 8 melodic strategies, performance (40+ files)
   perception/      Layer 4: Audio features, style vector, surprise, mood (9 files)
   render/          Layer 5: MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel (14 files)
   verify/          Layer 6: Evaluator, 35 critique rules, constraints (30 files)
@@ -164,6 +164,7 @@ src/yao/           228 Python modules
   annotate/        UI: Annotation server (2 files)
   skills/          Genre skill loader (2 files)
   runtime/         Project runtime (2 files)
+  sound_design/    Sound design: Patches, effects (2 files)
 ```
 
 ## Library Confinement
@@ -174,7 +175,7 @@ src/yao/           228 Python modules
 | `music21` | ir/, render/ | generators, schema |
 | `librosa` | perception/, verify/acoustic/ | all other layers |
 | `pyloudnorm` | perception/, mix/ | all other layers |
-| `pedalboard` | mix/ | all other layers |
+| `pedalboard` | mix/, sound_design/ | all other layers |
 | `anthropic` | agents/anthropic_api_backend.py | everywhere else |
 | `sounddevice` | improvise/, cli (preview/watch) | all other layers |
 | `torch` | generators/neural/ | all other layers |

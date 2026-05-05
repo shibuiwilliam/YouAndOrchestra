@@ -124,7 +124,6 @@ outputs/projects/<name>/iterations/v001/
 
 ### Audits & Design
 - [Wave 1 Completion](audit/wave-1-completion.md) -- Honesty wave results
-- [Wave 2 Completion](audit/wave-2-completion.md) -- Alignment wave results
 - [Monthly Audit](audit/2026-05-monthly.md) -- Latest status
 
 ### Migration

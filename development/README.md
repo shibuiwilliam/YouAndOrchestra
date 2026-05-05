@@ -27,9 +27,9 @@ Technical documentation for contributors and AI agents developing YaO.
 - **Version:** 0.1.0
 - **Phase:** v2.0 -- All major phases complete (gamma + delta + v3.0 Waves 1-3)
 - **Python:** 3.11+
-- **Source modules:** 228 Python modules in `src/yao/`
-- **Test files:** 249 test files, ~2,157 tests passing
-- **Test categories:** unit, integration, scenario, constraint, golden, acoustic regression, properties, genre coverage, subjective
+- **Source modules:** 241 Python modules in `src/yao/`
+- **Test files:** 259 test files, ~2,157 tests passing
+- **Test categories:** unit, integration, scenario, constraint, golden, acoustic regression, properties, genre coverage, subjective, tools
 
 ### Generation
 

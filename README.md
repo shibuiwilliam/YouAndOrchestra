@@ -1,6 +1,8 @@
 # You and Orchestra (YaO)
 
-**An agentic music production environment built on Claude Code.** Describe what you want in plain language, and YaO generates a full MIDI score with per-instrument stems, quality evaluation, and a provenance log explaining every decision.
+**Describe music in plain language. Get a full MIDI score with stems, quality evaluation, and a log explaining every decision.**
+
+YaO is an agentic music production environment built on Claude Code. It takes your idea -- a sentence, a conversation, or a detailed YAML spec -- and runs it through a 9-step generation pipeline with 7 AI subagents, 35 adversarial critique rules, and automatic iteration until the result meets quality thresholds. Everything is explainable: every note has a provenance record explaining why it exists.
 
 > Your vision. Your taste. Your soul. -- and an Orchestra ready to listen, respond, and surprise.
 
@@ -15,62 +17,52 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-Requires **Python 3.11+**. Audio rendering requires [FluidSynth](#audio-rendering).
+Requires **Python 3.11+**. Audio rendering (MIDI to WAV) requires [FluidSynth](#audio-rendering).
 
-Then launch Claude Code and start composing:
+### Your first piece
+
+The fastest way to hear something:
+
+```bash
+yao conduct "a calm piano piece in D minor, 90 seconds"
+```
+
+This generates MIDI, evaluates quality across 6 dimensions, and iterates automatically if metrics fall short. Output lands in `outputs/projects/`.
+
+Or launch Claude Code for an interactive experience:
 
 ```bash
 claude
 > /sketch a melancholic piano piece for studying on a rainy evening
 ```
 
-Or use the CLI directly:
-
-```bash
-yao conduct "a calm piano piece in D minor, 90 seconds"
-```
-
----
-
-## What YaO Does
-
-YaO is a complete music production pipeline -- from idea to MIDI, WAV, and sheet music:
-
-```
-/sketch  ->  /compose  ->  /critique  ->  /regenerate-section  ->  /render
-```
-
-1. **Sketch** -- describe your idea in natural language (English or Japanese), refine through 6-turn dialogue
-2. **Compose** -- generate with automatic quality evaluation + aesthetic scoring
-3. **Critique** -- 35 adversarial rules find every weakness
-4. **Regenerate** -- fix specific sections based on feedback
-5. **Pin** -- attach localized feedback to specific bars/beats/instruments
-6. **Arrange** -- transform an existing piece into a new style with preservation contracts
-7. **Render** -- output to MIDI, WAV (FluidSynth), MusicXML, LilyPond/PDF, Reaper RPP, or Strudel
+The `/sketch` command walks you through a 6-turn dialogue to refine your idea, then you can `/compose`, `/critique`, and `/render`.
 
 ---
 
 ## Three Ways to Compose
 
-### Interactive (recommended for exploration)
-
-Launch Claude Code and use slash commands:
+### 1. Interactive sketch (recommended for exploration)
 
 ```
-/sketch a tense horror game BGM with dissonant strings and sparse percussion
+/sketch tense horror game BGM with dissonant strings and sparse percussion
 /compose my-horror-bgm
 /critique my-horror-bgm
 /pin my-horror-bgm --location "section:chorus,bar:3" --note "too busy"
 /render my-horror-bgm
 ```
 
-### Natural language (one-shot)
+The sketch dialogue supports both English and Japanese input.
+
+### 2. Natural language (one-shot)
 
 ```bash
 yao conduct "epic orchestral trailer music building to a massive brass climax"
 ```
 
-### From YAML spec (full control)
+The Conductor generates, evaluates, adapts, and regenerates -- up to 3 iterations -- until quality thresholds pass.
+
+### 3. YAML spec (full control)
 
 ```bash
 yao new-project my-piece
@@ -78,7 +70,28 @@ yao new-project my-piece
 yao compose specs/projects/my-piece/composition.yaml
 ```
 
-YaO supports three spec formats: **v1** (simple flat YAML), **v2** (11-section detailed), and **v3** (composable with extends/overrides/fragments). See [Spec System](development/spec-system.md) for details.
+YaO supports three spec formats:
+- **v1** -- Simple flat YAML for quick experiments
+- **v2** -- 11-section detailed spec with full control over melody, harmony, rhythm, arrangement, and production
+- **v3** -- Composable specs with `extends`, `overrides`, and reusable `fragments`
+
+See [Spec System](development/spec-system.md) for details.
+
+---
+
+## What You Get
+
+Each generation creates a versioned iteration (`v001`, `v002`, ...) so you never lose previous versions:
+
+```
+outputs/projects/my-piece/iterations/v001/
+  full.mid           # Complete MIDI score
+  stems/piano.mid    # Per-instrument MIDI stems
+  analysis.json      # Structural analysis
+  evaluation.json    # Quality scores (6 dimensions)
+  perceptual.json    # Acoustic analysis (LUFS, spectral, temporal)
+  provenance.json    # Causal graph of every decision
+```
 
 ---
 
@@ -117,43 +130,11 @@ YaO supports three spec formats: **v1** (simple flat YAML), **v2** (11-section d
 
 ---
 
-## Slash Commands
-
-| Command | Purpose |
-|---|---|
-| `/sketch` | 6-turn interactive dialogue to build a complete spec |
-| `/compose <project>` | Run Conductor loop (generate, evaluate, adapt) |
-| `/conduct <description>` | Natural-language composition with feedback loop |
-| `/critique <project>` | Adversarial critique with structured findings |
-| `/regenerate-section <project> <section>` | Re-generate one section |
-| `/render <project>` | MIDI to WAV audio, MusicXML, LilyPond, or Strudel |
-| `/explain <question>` | Query the provenance log |
-| `/arrange <project>` | Style transfer with preservation contracts |
-| `/pin <project> <location> <note>` | Attach localized feedback |
-| `/feedback <project> <text>` | Natural-language feedback to structured suggestions |
-
----
-
-## Architecture
-
-YaO uses an 8-layer architecture with strict downward-only dependency flow, enforced by CI:
-
-```
-Layer 7: Reflection & Learning       (reflect/, agents/)
-Layer 6: Verification & Critique     (verify/ -- 35 rules, aesthetic metrics, acoustic evaluation)
-Layer 5: Rendering                   (render/ -- MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel)
-Layer 4.5: Performance Expression    (generators/performance/ -- articulation, dynamics, microtiming)
-Layer 4: Perception                  (perception/ -- audio features, style vectors, surprise, use-case eval)
-Layer 3.5: Musical Plan IR           (ir/plan/ -- form, harmony, motif, phrase, arrangement, drums, conversation)
-Layer 3: Score IR                    (ir/ -- note, part, section, voicing, timing, hook, dynamics_shape, groove)
-Layer 2: Generation Strategy         (generators/ -- plan generators, note realizers, reactive fills)
-Layer 1: Specification               (schema/, sketch/ -- YAML specs, NL compiler, hooks, groove)
-Layer 0: Constants                   (constants/ -- 46 instruments, 28 scales, 20 forms, 14 chords)
-```
+## How It Works
 
 ### The V2 Pipeline (9 Steps)
 
-Plan-first generation separates *what to play* from *how to play it*:
+YaO separates *what to play* from *how to play it*. Six plan generators decide structure, harmony, motifs, rhythm, orchestration, and inter-instrument dialogue. Then a note realizer places concrete notes that faithfully execute the plan.
 
 ```
 User Input (natural language or YAML)
@@ -163,33 +144,66 @@ User Input (natural language or YAML)
   -> [Step 3]  Composer        -> MotifPlan + PhrasePlan + HookPlan
   -> [Step 4]  Drum Patterner  -> DrumPattern + GrooveProfile
   -> [Step 5]  Orchestrator    -> ArrangementPlan
-  -> [Step 5.5] Conversation   -> ConversationPlan
-  === Critic Gate (MPIR-level evaluation) ===
+  -> [Step 5.5] Conversation   -> ConversationPlan (inter-instrument dialogue)
+  === Critic Gate (35 adversarial rules before any notes are placed) ===
   -> [Step 6]  Note Realizer V2 -> ScoreIR (100% plan consumption)
   -> [Step 6.5] Performance    -> Articulation, dynamics, microtiming
   -> [Step 7]  Renderer        -> MIDI / WAV / MusicXML / LilyPond / Score
-  -> [Step 7.5] Listening Sim  -> PerceptualReport
-  -> Evaluator (6 dimensions)  -> Conductor feedback loop
+  -> [Step 7.5] Listening Sim  -> PerceptualReport (LUFS, spectral, temporal)
+  -> Evaluator (6 dimensions)  -> Conductor feedback loop (up to 3 iterations)
 ```
+
+### 7 Subagents
+
+YaO models the roles of a real music production team:
+
+| Subagent | Role | Key Output |
+|---|---|---|
+| **Producer** | Coordinates all agents, resolves conflicts | SongFormPlan |
+| **Composer** | Melodies, motifs, thematic development | MotifPlan + PhrasePlan |
+| **Harmony Theorist** | Chord progressions, cadences, modulations | HarmonyPlan |
+| **Rhythm Architect** | Drum patterns, grooves, syncopation | DrumPattern + GrooveProfile |
+| **Orchestrator** | Instruments, voicings, register separation | ArrangementPlan |
+| **Mix Engineer** | EQ, compression, reverb, loudness | ProductionManifest |
+| **Adversarial Critic** | Finds weaknesses -- never praises | Structured Findings |
+
+Subagents run via **PythonOnlyBackend** (default, CI-safe) or **AnthropicAPIBackend** (real LLM calls with structured output via tool use).
+
+---
+
+## Slash Commands
+
+| Command | Purpose |
+|---|---|
+| `/sketch` | 6-turn interactive dialogue to build a complete spec |
+| `/compose <project>` | Run Conductor loop (generate, evaluate, adapt) |
+| `/conduct <description>` | Natural-language composition with feedback loop |
+| `/critique <project>` | Adversarial critique with structured findings |
+| `/regenerate-section <project> <section>` | Re-generate one section, keep the rest |
+| `/render <project>` | MIDI to WAV audio, MusicXML, LilyPond, or Strudel |
+| `/explain <question>` | Query the provenance log |
+| `/arrange <project>` | Style transfer with preservation contracts |
+| `/pin <project> <location> <note>` | Attach localized feedback to specific bars/beats/instruments |
+| `/feedback <project> <text>` | Natural-language feedback translated to structured suggestions |
 
 ---
 
 ## Generation Strategies
 
-YaO supports 8 generation strategies, from deterministic to experimental:
+YaO supports 8 generation strategies:
 
 | Strategy | Description |
 |---|---|
 | **rule_based_v2** | Deterministic, chord-aware, motif placement, phrase contour |
 | **stochastic_v2** | Seed + temperature controlled, non-chord tones, rhythmic variety |
-| **rule_based** | Legacy deterministic via v1 adapter |
-| **stochastic** | Legacy seed-based via v1 adapter |
 | **markov** | Probabilistic transitions from learned patterns |
 | **twelve_tone** | Serialist composition using tone rows (P/I/R/RI) |
 | **process_music** | Minimalist generative processes (phasing, additive, subtractive) |
 | **constraint_solver** | Backtracking search with hard constraints |
+| **rule_based** | Legacy deterministic (via v1 adapter) |
+| **stochastic** | Legacy seed-based (via v1 adapter) |
 
-### Melodic Strategies (8)
+### 8 Melodic Strategies
 
 | Strategy | Character |
 |---|---|
@@ -208,18 +222,16 @@ YaO supports 8 generation strategies, from deterministic to experimental:
 
 Every composition is automatically evaluated across 6 dimensions:
 
-### Formal Metrics
-
 | Dimension | Weight | What It Measures |
 |---|---|---|
 | Structure | 20% | Section contrast, bar count, rhythm variety |
 | Melody | 25% | Pitch range, stepwise motion, contour variety |
 | Harmony | 20% | Pitch class variety, consonance ratio |
-| **Aesthetic** | **20%** | Surprise, memorability, contrast, pacing |
+| Aesthetic | 20% | Surprise, memorability, contrast, pacing |
 | Arrangement | 10% | Texture variety, register separation |
 | Acoustics | 5% | Spectral balance, LUFS compliance |
 
-### Acoustic Evaluation (Perception Layer)
+### Acoustic Evaluation
 
 | Category | Metrics |
 |---|---|
@@ -228,7 +240,7 @@ Every composition is automatically evaluated across 6 dimensions:
 | Temporal | Onset density per section, tempo stability |
 | Use-case | YouTube BGM, Game BGM, Advertisement, Study Focus, Meditation, Workout, Cinematic |
 
-### Adversarial Critique (35 rules across 15 categories)
+### Adversarial Critique (35 Rules)
 
 The critique system works like a panel of experts, each looking for specific weaknesses:
 
@@ -253,24 +265,6 @@ The critique system works like a panel of experts, each looking for specific wea
 
 ---
 
-## 7 Subagents
-
-YaO models the roles of a real music production team:
-
-| Subagent | Role | Key Output |
-|---|---|---|
-| **Producer** | Coordinates all agents, resolves conflicts | SongFormPlan |
-| **Composer** | Melodies, motifs, thematic development | MotifPlan + PhrasePlan |
-| **Harmony Theorist** | Chord progressions, cadences, modulations | HarmonyPlan |
-| **Rhythm Architect** | Drum patterns, grooves, syncopation | DrumPattern + GrooveProfile |
-| **Orchestrator** | Instruments, voicings, register separation | ArrangementPlan |
-| **Mix Engineer** | EQ, compression, reverb, loudness | ProductionManifest |
-| **Adversarial Critic** | Finds weaknesses -- never praises | Findings |
-
-Subagents run via **PythonOnlyBackend** (default, CI-safe) or **AnthropicAPIBackend** (real LLM calls with structured output via tool use).
-
----
-
 ## Music Theory Support
 
 - **46 instruments** across 9 families (including 8 non-Western: shakuhachi, koto, shamisen, taiko, sitar, tabla, oud, ney)
@@ -288,7 +282,7 @@ Subagents run via **PythonOnlyBackend** (default, CI-safe) or **AnthropicAPIBack
 
 ---
 
-## Three-Tier Feedback
+## Feedback and Iteration
 
 YaO supports feedback at three levels of granularity:
 
@@ -300,9 +294,7 @@ YaO supports feedback at three levels of granularity:
 
 Natural-language feedback (e.g., "the chorus feels weak") is translated to structured suggestions via `/feedback`, which maps 30+ phrases to specific adaptations.
 
----
-
-## Trajectory System
+### Trajectory System
 
 Shape the emotional arc independently from notes, across 5 dimensions:
 
@@ -317,6 +309,45 @@ trajectories:
 ```
 
 Dimensions: **tension**, **density**, **predictability**, **brightness**, **register height**.
+
+---
+
+## Arrangement Engine
+
+Transform an existing piece into a new style while preserving what matters:
+
+```bash
+/arrange my-song --target-genre lofi_hiphop --preserve melody,form
+```
+
+Operations: **regroove**, **reharmonize**, **reorchestrate**, **retempo**, **transpose**. Each transformation generates a diff report and respects preservation contracts.
+
+---
+
+## Output Formats
+
+| Format | Notes |
+|---|---|
+| MIDI | Default output with per-instrument stems |
+| WAV | Requires FluidSynth + SoundFont |
+| MusicXML | Import into Finale, MuseScore, Sibelius |
+| LilyPond / PDF | Publication-quality engraving |
+| Reaper RPP | DAW project with per-track MIDI |
+| Strudel | Live-coding notation for browser playback |
+
+---
+
+## Ensemble Constraints
+
+Inter-part validation for multi-instrument arrangements:
+
+| Rule | What It Checks |
+|---|---|
+| `register_separation` | Instruments maintain minimum distance |
+| `downbeat_consonance` | Bass-melody consonance on strong beats |
+| `no_parallel_octaves` | No parallel octave motion between parts |
+| `no_frequency_collision` | Parts don't overlap excessively in pitch |
+| `bass_below_melody` | Bass stays in lower register |
 
 ---
 
@@ -337,45 +368,6 @@ Abstract features for style comparison -- never includes melody, chords, or hook
 
 ---
 
-## Arrangement Engine
-
-Transform an existing piece into a new style while preserving what matters:
-
-```bash
-/arrange my-song --target-genre lofi_hiphop --preserve melody,form
-```
-
-Operations: **regroove**, **reharmonize**, **reorchestrate**, **retempo**, **transpose**. Each transformation generates a diff report and respects preservation contracts.
-
----
-
-## Output Formats
-
-| Format | Command | Notes |
-|---|---|---|
-| MIDI | Default output | Per-instrument stems included |
-| WAV | `/render` | Requires FluidSynth + SoundFont |
-| MusicXML | Via render API | Import into Finale, MuseScore, Sibelius |
-| LilyPond / PDF | Via render API | Publication-quality engraving |
-| Reaper RPP | Via render API | DAW project with per-track MIDI |
-| Strudel | Via render API | Live-coding notation for browser playback |
-
----
-
-## Ensemble Constraints
-
-Inter-part validation for multi-instrument arrangements:
-
-| Rule | What It Checks |
-|---|---|
-| `register_separation` | Instruments maintain minimum distance |
-| `downbeat_consonance` | Bass-melody consonance on strong beats |
-| `no_parallel_octaves` | No parallel octave motion between parts |
-| `no_frequency_collision` | Parts don't overlap excessively in pitch |
-| `bass_below_melody` | Bass stays in lower register |
-
----
-
 ## CLI Reference
 
 | Command | Description |
@@ -386,13 +378,53 @@ Inter-part validation for multi-instrument arrangements:
 | `yao render <midi>` | Render MIDI to WAV |
 | `yao validate <spec>` | Validate spec YAML |
 | `yao evaluate <project>` | Evaluate latest iteration |
+| `yao critique <project>` | Adversarial critique |
 | `yao diff <spec> --seed-a N --seed-b M` | Compare two stochastic generations |
 | `yao explain <spec>` | Query provenance decisions |
 | `yao new-project <name>` | Create project skeleton |
 | `yao preview <spec>` | In-memory generate + play (no file output) |
 | `yao watch <spec>` | Auto-regenerate on file change |
+| `yao arrange <project>` | Transform into another style |
 | `yao rate <project>` | Interactive 5-dimension rating |
 | `yao reflect ingest` | Aggregate ratings into UserStyleProfile |
+
+---
+
+## Architecture
+
+YaO uses an 8-layer architecture with strict downward-only dependency flow, enforced by CI:
+
+```
+Layer 7: Reflection & Learning       (reflect/, agents/)
+Layer 6: Verification & Critique     (verify/ -- 35 rules, aesthetic metrics, acoustic evaluation)
+Layer 5: Rendering                   (render/ -- MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel)
+Layer 4.5: Performance Expression    (generators/performance/ -- articulation, dynamics, microtiming)
+Layer 4: Perception                  (perception/ -- audio features, style vectors, surprise, use-case eval)
+Layer 3.5: Musical Plan IR           (ir/plan/ -- form, harmony, motif, phrase, arrangement, drums, conversation)
+Layer 3: Score IR                    (ir/ -- note, part, section, voicing, timing, hook, dynamics_shape, groove)
+Layer 2: Generation Strategy         (generators/ -- plan generators, note realizers, reactive fills)
+Layer 1: Specification               (schema/, sketch/ -- YAML specs, NL compiler, hooks, groove)
+Layer 0: Constants                   (constants/ -- 46 instruments, 28 scales, 20 forms, 14 chords)
+```
+
+Layer boundaries are enforced by `tools/architecture_lint.py` -- lower layers never import upper layers.
+
+---
+
+## Multi-Genre Capabilities
+
+YaO supports 22 genre skills with genre-specific evaluation weights, chord palettes, and instrumentation defaults:
+
+| Genre | Key Feature | Example |
+|---|---|---|
+| **Cinematic** | Wide trajectory arcs, orchestral texture evolution | `yao conduct "epic orchestral trailer building to brass climax"` |
+| **Lo-fi Hip Hop** | Loop evolution, tape saturation sound design | `yao conduct "lofi study beat, 82 BPM, dusty Rhodes chords"` |
+| **J-Pop** | Complex form (verse/pre-chorus/chorus/D-melody), vocal singability | `yao conduct "J-pop chorus with wide melodic range and key change"` |
+| **Ambient** | Drone-safe evaluation, texture-first composition | `yao conduct "ambient drone, single evolving pad, 5 minutes"` |
+| **Deep House** | Four-on-the-floor, loop architecture, filter evolution | `yao conduct "deep house 122 BPM, Rhodes chords, sub bass"` |
+| **Jazz** | Jazz swing grooves, extended chord voicings | `yao conduct "jazz ballad, brushed drums, walking bass"` |
+| **Classical** | Baroque, romantic, and orchestral styles | `yao conduct "string quartet in late Romantic style, D minor"` |
+| **World** | Bossa nova, Celtic, Indian classical, Arab maqam | `yao conduct "bossa nova for nylon guitar and soft percussion"` |
 
 ---
 
@@ -408,46 +440,14 @@ brew install fluid-synth
 sudo apt-get install fluidsynth
 ```
 
-Place a `.sf2` file in `soundfonts/`, then use `/render`.
-
----
-
-## CI and Quality
-
-```bash
-make all-checks    # Full quality pipeline (lint + arch-lint + tests + golden + honesty)
-make test          # All tests (~2,157)
-make lint          # ruff + mypy strict
-make arch-lint     # Layer boundary enforcement
-make test-golden   # Golden MIDI regression tests
-make test-acoustic # Audio feature regression (weekly CI)
-make honesty-check # Verify no stub features marked as complete
-make backend-honesty
-make plan-consumption
-make skill-grounding
-make critic-coverage
-make calibrate-genres  # Genre profile parameter sweep
-```
-
----
-
-## Optional Dependencies
-
-YaO has a lean core with optional extras for specialized features:
-
-| Extra | Install | Features |
-|---|---|---|
-| `dev` | `pip install -e ".[dev]"` | pytest, mypy, ruff, pre-commit |
-| `neural` | `pip install -e ".[neural]"` | Stable Audio texture generation (torch, transformers) |
-| `live` | `pip install -e ".[live]"` | Real-time MIDI improvisation (mido, python-rtmidi) |
-| `annotate` | `pip install -e ".[annotate]"` | Browser-based A/B audition and annotation UI (FastAPI) |
+Place a `.sf2` file in `soundfonts/`, then use `/render` or `yao render`.
 
 ---
 
 ## Project Structure
 
 ```
-src/yao/           228 Python modules
+src/yao/           241 Python modules
   constants/       46 instruments, 28 scales, 20 forms, 14 chords, MIDI maps
   schema/          Pydantic specs (v1 + v2 + v3 composability), genre profiles
   sketch/          NL -> spec compiler (EN + JP), 6-turn dialogue
@@ -471,12 +471,44 @@ src/yao/           228 Python modules
   annotate/        Browser-based time-range annotation UI
   skills/          Genre skill loader + registry (22 genres)
   runtime/         Project runtime (undo/redo, caching, lockfile)
-tests/             249 test files, ~2,157 test functions
-tools/             20 CI tools (honesty, architecture lint, genre calibration)
+tests/             259 test files, ~2,157 test functions
+tools/             17 CI tools (honesty, architecture lint, genre calibration)
 .claude/           Agent prompts, slash commands, genre skills, guides
 docs/              Architecture docs, design docs, audit reports
 development/       Contributor guide, API reference, roadmap
 ```
+
+---
+
+## CI and Quality
+
+```bash
+make all-checks    # Full quality pipeline (lint + arch-lint + tests + golden + honesty)
+make test          # All tests (~2,157)
+make lint          # ruff + mypy strict
+make arch-lint     # Layer boundary enforcement
+make test-golden   # Golden MIDI regression tests
+make test-acoustic # Audio feature regression (weekly CI)
+make honesty-check # Verify no stub features marked as complete
+make backend-honesty
+make plan-consumption
+make skill-grounding
+make critic-coverage
+make calibrate-genres  # Genre profile parameter sweep
+```
+
+5 honesty tools run in CI to verify that features actually work, not just exist.
+
+---
+
+## Optional Dependencies
+
+| Extra | Install | Features |
+|---|---|---|
+| `dev` | `pip install -e ".[dev]"` | pytest, mypy, ruff, pre-commit |
+| `neural` | `pip install -e ".[neural]"` | Stable Audio texture generation (torch, transformers) |
+| `live` | `pip install -e ".[live]"` | Real-time MIDI improvisation (mido, python-rtmidi) |
+| `annotate` | `pip install -e ".[annotate]"` | Browser-based A/B audition and annotation UI (FastAPI) |
 
 ---
 
@@ -492,32 +524,6 @@ development/       Contributor guide, API reference, roadmap
 
 ---
 
-## v2.0 Multi-Genre Capabilities
-
-YaO v2.0 removes the Western tonal bias of v1.0. The same system now generates
-quality output across diverse genres:
-
-| Genre | Key v2.0 Feature | Example |
-|-------|-------------------|---------|
-| **Cinematic** | Wide trajectory arcs, orchestral texture evolution | `yao conduct "epic orchestral trailer building to brass climax"` |
-| **Lo-fi Hip Hop** | Loop evolution, tape saturation sound design | `yao conduct "lofi study beat, 82 BPM, dusty Rhodes chords"` |
-| **J-Pop** | Complex form (verse/pre-chorus/chorus/D-melody), vocal singability | `yao conduct "J-pop chorus with wide melodic range and key change"` |
-| **Ambient** | Drone-safe evaluation, texture-first composition | `yao conduct "ambient drone, single evolving pad, 5 minutes"` |
-| **Deep House** | Four-on-the-floor, loop architecture, filter evolution | `yao conduct "deep house 122 BPM, Rhodes chords, sub bass"` |
-| **Western Pop** | Hook-driven, verse-chorus, memorable motifs | `yao conduct "pop song with singable chorus hook, 120 BPM"` |
-
-### What Makes v2.0 Different
-
-- **Tonal System Abstraction**: Blues b3 is a feature, not a defect. Drone music isn't penalized for low pitch variety. Modal jazz uses its own consonance rules.
-- **Genre-Conditional Evaluation**: Each genre Skill declares its own evaluator weights. Lo-fi prioritizes groove; cinematic prioritizes trajectory.
-- **Sound Design Layer**: Same MIDI + different `sound_design.yaml` = different audio character.
-- **Loop-First Generation**: `loop_evolution` strategy for genres built on repetition.
-- **Vocal Singability**: Tessitura, breath points, and leap constraints for vocal tracks.
-- **Six-Phase Protocol**: Intent → Sketch → Skeleton → Dialogue → Fill → Listen. No shortcuts.
-- **Reference-Driven Evaluation**: 7 feature extractors + weighted distance to aesthetic anchors.
-
----
-
 ## Documentation
 
 | Document | Purpose |
@@ -526,9 +532,8 @@ quality output across diverse genres:
 | [PROJECT.md](PROJECT.md) | Full design (v2.0) |
 | [CLAUDE.md](CLAUDE.md) | Development rules and conventions |
 | [VISION.md](VISION.md) | Target architecture |
-| [docs/design/v2-summary.md](docs/design/v2-summary.md) | v2.0 architecture summary for new contributors |
-| [development/](development/) | Contributor guide, API reference, roadmap |
 | [docs/](docs/) | Architecture, tutorials, reference, audit reports |
+| [development/](development/) | Contributor guide, API reference, roadmap |
 
 ---
 

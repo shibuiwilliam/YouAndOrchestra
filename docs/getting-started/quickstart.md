@@ -123,7 +123,7 @@ Add a `generation` section to get varied output:
 
 ```yaml
 generation:
-  strategy: stochastic    # rule_based, stochastic, markov, twelve_tone, process_music
+  strategy: stochastic    # rule_based, stochastic, markov, twelve_tone, process_music, constraint_solver
   seed: 42                # change for different results
   temperature: 0.7        # 0.0=conservative, 1.0=adventurous
 ```

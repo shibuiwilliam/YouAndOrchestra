@@ -14,6 +14,7 @@
 | Properties | `tests/properties/` | Property-based genre invariants across strategies and seeds | ~20 |
 | Subjective | `tests/subjective/` | Human rating threshold validation | ~5 |
 | LLM Quality | `tests/llm_quality/` | NL generation quality tests | ~5 |
+| Tonal Systems | `tests/tonal_systems/` | Tonal system IR tests | ~5 |
 | Tools | `tests/tools/` | CI audit tool tests | ~15 |
 | **Total** | | | **~2,157** |
 
