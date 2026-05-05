@@ -1,78 +1,87 @@
 ---
-genre: cinematic
-tempo_range: [60, 160]
-typical_keys: [Dm, Cm, Bb, F]
-modal_options: [minor, major]
-default_swing: 0.0
-typical_drum_pattern: null
-preferred_instruments: [strings_ensemble, french_horn, piano, cello, timpani]
-avoided_instruments: [synth_lead_saw, electric_guitar_clean]
-evaluation_weights:
-  structure: 0.25
-  melody: 0.20
-  harmony: 0.25
-  acoustics: 0.15
-  arrangement: 0.15
-default_groove: cinematic_legato
-default_melody_strategy: contour_based
+genre_id: cinematic
+display_name: "Cinematic"
+parent_genres: [orchestral, film_score]
+related_genres: [epic_trailer, ambient, neoclassical]
+typical_use_cases: [film_score, trailer, game_cutscene, advertisement]
+ensemble_template: classical_chamber
+default_subagents:
+  active: [composer, harmony_theorist, orchestrator, mix_engineer, adversarial_critic, producer]
+  inactive: [beatmaker, sample_curator, loop_architect]
 ---
 
-# Cinematic Music — Genre Skill
+## Defining Characteristics
+- Tempo: 60-160 BPM (slow majestic 60-100, action 120-160)
+- Wide dynamic range (pp to ff)
+- Orchestral palette: strings, brass, piano, percussion
+- Simple memorable motifs (singable themes)
+- Gradual section transitions (no sudden cuts)
+- Wide voicings spread across register
+- Major-minor ambiguity is a strength
 
-## Tempo
-- Range: 60-160 BPM (slow majestic 60-100, action 120-160)
-- Sweet spot: 80 BPM (emotional), 140 BPM (action)
+## Required Spec Patterns
+```yaml
+tempo_bpm: 80  # or 140 for action
+time_signature: "4/4"
+instruments:
+  - name: strings_ensemble
+    role: melody
+  - name: french_horn
+    role: counter_melody
+  - name: piano
+    role: harmony
+  - name: cello
+    role: bass
+```
 
-## Key Preferences
-- D minor (epic), C minor (dark/dramatic), Bb major (heroic), F major (pastoral)
-- Major-minor ambiguity is a strength of this genre
+## Idiomatic Chord Progressions
+- i-VI-III-VII (epic minor, ~35%)
+- i-iv-VI-V (emotional minor, ~25%)
+- I-V-vi-IV (heroic major, ~20%)
+- i-i-iv-V (tension build, ~10%)
+- V-vi (deceptive cadence for subverted expectation)
 
-## Iconic Chord Progressions (frequency-ranked)
-1. i-VI-III-VII (epic minor, ~35%)
-2. i-iv-VI-V (emotional minor, ~25%)
-3. I-V-vi-IV (heroic major, ~20%)
-4. i-i-iv-V (tension build, ~10%)
-5. V-vi (deceptive cadence for subverted expectation)
+## Idiomatic Rhythms
+- Orchestral percussion only (timpani rolls, cymbal swells)
+- No drum kit patterns
+- Legato string lines with sustained notes
+- Horn stabs on downbeats for emphasis
 
-## Drum Pattern Family
-- Default: none (orchestral percussion: timpani, cymbals, snare rolls)
-- Avoid drum kit patterns entirely
-
-## Instrumentation Defaults
-- Core: strings_ensemble, french_horn, piano, cello
-- Common additions: timpani, choir (pad), contrabass
-- Avoid: synth leads, drum kit, electric guitar
-
-## Section Structure
-- Establishing: 4-8 bars, sparse texture (solo piano or strings), pp-mp
-- Build: 8-16 bars, gradually adding instruments, mp-mf
-- Climax: 4-8 bars, full orchestra, ff, dense texture
-- Resolution: 4-8 bars, thinning texture, returning to opening mood, mp-pp
-
-## Trajectory Patterns
-- Hero's Journey: tension 0.2 → 0.5 → 0.9 → 0.3
-- Suspense: tension 0.4 → 0.6 → 0.8 → 0.95 → 0.2
-- Pastoral: tension 0.2 → 0.35 → 0.2
-
-## Cadences
-- Authentic (V-I) for heroic resolution
-- Plagal (IV-I) for peaceful endings
-- Deceptive (V-vi) for emotional subversion
-
-## Cliches to AVOID
+## Anti-Patterns
 - Rapid tempo changes (cinema needs steady pace for editing)
 - Overly complex harmonies (clarity is paramount for emotional impact)
 - Drum kit patterns (use timpani and orchestral percussion instead)
 - Synth leads (breaks the orchestral illusion)
 - Abrupt endings (cinematic music needs denouement)
+- Staccato-only writing in strings (legato is the genre's voice)
 
-## Quality Heuristics
-- Wide voicings preferred (spread across register)
-- Dynamics range should be wide (pp to ff)
-- Section transitions should be gradual (no sudden cuts)
-- Motifs should be simple and memorable (singable themes)
+## Reference Tracks
+- None yet (rights-cleared orchestral references needed)
 
-## Use Cases
-- Film scores, trailers, advertisements
-- Game cutscenes, menu music
-- YouTube background (epic/emotional content)
+## Default Sound Design
+```yaml
+instruments:
+  strings_ensemble: { synthesis: { kind: sample_based, pack: "orchestral_strings" } }
+  french_horn: { synthesis: { kind: sample_based, pack: "orchestral_brass" } }
+  piano: { synthesis: { kind: sample_based, pack: "concert_grand" } }
+  timpani: { synthesis: { kind: sample_based, pack: "orchestral_percussion" } }
+```
+
+## Evaluation Weight Adjustments
+structure.section_contrast: 1.3
+melody.contour_variety: 1.2
+melody.motif_recall_strength: 1.3
+harmony.consonance_ratio: 1.0
+rhythm.groove_consistency: 0.5
+arrangement.texture_density_evolution: 1.4
+
+## Default Trajectories
+```yaml
+trajectories:
+  tension:
+    type: bezier
+    waypoints: [[0, 0.2], [0.3, 0.5], [0.7, 0.9], [1.0, 0.3]]
+  density:
+    type: stepped
+    sections: { establishing: 0.2, build: 0.5, climax: 0.95, resolution: 0.3 }
+```

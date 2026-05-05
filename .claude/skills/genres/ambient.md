@@ -1,23 +1,97 @@
 ---
-genre: ambient
-tempo_range: [60, 90]
-typical_keys: [C, G, D, Am]
-modal_options: [lydian, dorian, mixolydian, major]
-default_swing: 0.0
-typical_drum_pattern: null
-preferred_instruments: [synth_pad_warm, piano, strings_ensemble]
-avoided_instruments: [timpani, piccolo, xylophone, trumpet, trombone, tuba, electric_guitar_clean, electric_bass_pick]
-evaluation_weights:
-  structure: 0.10
-  melody: 0.15
-  harmony: 0.15
-  acoustics: 0.20
-  texture: 0.40
-default_groove: ambient_fluid
-default_melody_strategy: pedal_tone
+genre_id: ambient
+display_name: "Ambient"
+parent_genres: [electronic, experimental]
+related_genres: [drone, dark_ambient, new_age, soundscape]
+typical_use_cases: [meditation, relaxation, art_installation, focus_music]
+ensemble_template: ambient_solo
+default_subagents:
+  active: [texture_composer, sound_designer, mix_engineer, adversarial_critic, producer]
+  inactive: [composer, harmony_theorist, rhythm_architect, beatmaker, loop_architect]
 ---
 
 # Ambient — Genre Skill
+
+## Defining Characteristics
+- Tempo: 60-90 BPM (often felt rather than metronomic, or free time)
+- Extremely sparse note density (1-4 notes sounding at any time)
+- Long sustained tones (whole notes or longer, tied across bars)
+- Very low velocity range (30-70, rarely above)
+- Wide register spacing between voices (3+ octaves open voicings)
+- Harmonic rhythm: one chord per 4-16 bars
+- Slow attack and very long release envelopes
+- Silence and space are compositional elements
+- Textural variety through timbre, not rhythm or melody
+- No traditional section boundaries; pieces evolve gradually
+
+## Required Spec Patterns
+```yaml
+tempo_bpm: 72
+time_signature: "4/4"  # or "free"
+instruments:
+  - name: synth_pad_warm
+    role: pad
+  - name: piano
+    role: melody
+  - name: strings_ensemble
+    role: pad
+generation:
+  strategy: stochastic
+  temperature: 0.2
+```
+
+## Idiomatic Chord Progressions
+- Imaj7 sustained (single chord drone, ~30%)
+- Imaj7-IVmaj7 (two-chord float, ~25%)
+- Imaj7-IImaj7 (Lydian parallel movement, ~15%)
+- i7-bVII7 (modal minor drift, ~15%)
+- Imaj9-vi9-IVmaj9-Imaj9 (slow cycle, ~10%)
+
+## Idiomatic Rhythms
+- No rhythmic patterns; ambient avoids regular pulse
+- Attacks should be spread irregularly
+- Ghost-note texture only if any percussion is present
+
+## Anti-Patterns
+- Strong rhythmic patterns or beats (destroys the ambient quality)
+- Short staccato notes (ambient requires sustained, evolving tones)
+- Rapid harmonic rhythm (chords should last 4-16 bars minimum)
+- Loud dynamics above mp (ambient lives in ppp to mp; mf is a climax)
+- Melodic themes with clear contour (fragments, not melodies)
+- Sudden changes in texture or dynamics (everything must be gradual)
+- Drum kit patterns of any kind
+- Bright brass or woodwind instruments
+
+## Reference Tracks
+- None yet (rights-cleared ambient references needed)
+
+## Default Sound Design
+```yaml
+instruments:
+  synth_pad_warm: { synthesis: { kind: subtractive, filter_cutoff_lfo_hz: 0.05 } }
+  piano: { synthesis: { kind: sample_based, pack: "felt_piano_close_mic" }, effect_chain: [{ type: reverb, wet: 0.6 }] }
+  strings_ensemble: { synthesis: { kind: sample_based, pack: "orchestral_strings" }, effect_chain: [{ type: reverb, wet: 0.7 }] }
+```
+
+## Evaluation Weight Adjustments
+structure.section_contrast: 0.3
+melody.contour_variety: 0.3
+melody.stepwise_motion_ratio: 0.3
+harmony.consonance_ratio: 0.8
+harmony.pitch_class_variety: 0.3
+rhythm.groove_consistency: 0.1
+arrangement.texture_density_evolution: 1.5
+
+## Default Trajectories
+```yaml
+trajectories:
+  tension:
+    type: bezier
+    waypoints: [[0, 0.05], [0.3, 0.15], [0.6, 0.25], [0.85, 0.35], [1.0, 0.1]]
+  density:
+    type: bezier
+    waypoints: [[0, 0.1], [0.4, 0.2], [0.7, 0.3], [1.0, 0.1]]
+```
 
 ## Tempo
 - Range: 60-90 BPM (often felt rather than metronomic)

@@ -10,8 +10,7 @@ from pathlib import Path
 
 import pretty_midi
 
-from yao.constants.instruments import INSTRUMENT_RANGES
-from yao.constants.midi import DEFAULT_PPQ, GENERAL_MIDI_INSTRUMENTS
+from yao.constants.midi import DEFAULT_PPQ
 from yao.errors import RenderError
 from yao.ir.score_ir import ScoreIR
 from yao.ir.timing import beats_to_seconds
@@ -110,19 +109,10 @@ def _is_drum_instrument(instrument_name: str) -> bool:
 
 
 def _resolve_program(instrument_name: str) -> int:
-    """Resolve an instrument name to a General MIDI program number."""
-    if _is_drum_instrument(instrument_name):
-        return 0
+    """Resolve an instrument name to a General MIDI program number.
 
-    if instrument_name in GENERAL_MIDI_INSTRUMENTS:
-        return GENERAL_MIDI_INSTRUMENTS[instrument_name]
+    Delegates to the canonical implementation in midi_writer.
+    """
+    from yao.render.midi_writer import _resolve_program as _resolve
 
-    inst_range = INSTRUMENT_RANGES.get(instrument_name)
-    if inst_range is not None:
-        return inst_range.program
-
-    alias = _INSTRUMENT_ALIASES.get(instrument_name)
-    if alias and alias in GENERAL_MIDI_INSTRUMENTS:
-        return GENERAL_MIDI_INSTRUMENTS[alias]
-
-    return 0
+    return _resolve(instrument_name)

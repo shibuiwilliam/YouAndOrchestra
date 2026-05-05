@@ -1,5 +1,5 @@
 ---
-genre_id: lofi_hiphop
+genre_id: lo_fi_hiphop
 display_name: "Lo-fi Hip Hop"
 parent_genres: [hip_hop, jazz]
 related_genres: [chillhop, boom_bap, jazzhop]
