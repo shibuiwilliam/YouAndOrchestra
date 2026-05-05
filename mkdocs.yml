@@ -47,7 +47,7 @@ nav:
   - Tutorials:
     - Claude Code Workflow: tutorials/claude-code-workflow.md
   - Guides:
-    - Feature Status Discipline: guides/feature-status-discipline.md
+    - Feature Status Discipline: guide/feature-status-discipline.md
   - Reference:
     - Glossary: glossary.md
     - Provenance Schema: provenance-schema.md
