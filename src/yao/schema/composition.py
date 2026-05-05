@@ -24,6 +24,7 @@ class InstrumentSpec(BaseModel):
     role: Literal["melody", "harmony", "bass", "rhythm", "pad", "counter_melody"]
     counter_to: str | None = None
     density_factor: float = 0.5
+    velocity_boost: int = 0
 
     @field_validator("name")
     @classmethod
@@ -42,6 +43,10 @@ class SectionSpec(BaseModel):
     time_signature: str | None = None
     key: str | None = None
     dynamics: str = "mf"
+    active_instruments: list[str] | None = None
+    recall_melody_from: str | None = None
+    recall_counter_melody_from: str | None = None
+    unison_melody: bool = False
 
     @field_validator("bars")
     @classmethod

@@ -170,7 +170,13 @@ class RuleBasedGenerator(GeneratorBase):
             section_end = current_bar + section_spec.bars
 
             parts: list[Part] = []
-            for instr_spec in spec.instruments:
+            # Filter instruments by active_instruments if specified
+            active_instruments = spec.instruments
+            if section_spec.active_instruments is not None:
+                active_set = set(section_spec.active_instruments)
+                active_instruments = [i for i in spec.instruments if i.name in active_set]
+
+            for instr_spec in active_instruments:
                 notes = self._generate_part_notes(
                     instrument=instr_spec.name,
                     role=instr_spec.role,
@@ -185,6 +191,19 @@ class RuleBasedGenerator(GeneratorBase):
                     provenance=provenance,
                     chord_pattern=chord_pattern,
                 )
+                # Apply velocity boost if specified
+                if instr_spec.velocity_boost != 0:
+                    notes = [
+                        Note(
+                            pitch=n.pitch,
+                            start_beat=n.start_beat,
+                            duration_beats=n.duration_beats,
+                            velocity=max(1, min(127, n.velocity + instr_spec.velocity_boost)),
+                            instrument=n.instrument,
+                        )
+                        for n in notes
+                    ]
+
                 parts.append(Part(instrument=instr_spec.name, notes=tuple(notes)))
 
             sections.append(

@@ -108,6 +108,20 @@ def score_ir_to_midi(
         program = _resolve_program(instr_name)
         is_drum = _is_drum_instrument(instr_name)
 
+        # Remap melodic pitches to correct GM drum map pitches
+        if is_drum:
+            gm_pitch = _resolve_drum_pitch(instr_name)
+            if gm_pitch is not None:
+                notes = [
+                    pretty_midi.Note(
+                        velocity=n.velocity,
+                        pitch=gm_pitch,
+                        start=n.start,
+                        end=n.end,
+                    )
+                    for n in notes
+                ]
+
         midi_instrument = pretty_midi.Instrument(
             program=program,
             is_drum=is_drum,
@@ -199,7 +213,7 @@ def write_midi(
 
 
 # Keywords that indicate a drum/percussion instrument
-_DRUM_KEYWORDS = ("drum", "breakbeat", "percussion", "kit", "hi_hat", "snare", "kick")
+_DRUM_KEYWORDS = ("drum", "breakbeat", "percussion", "kit", "hi_hat", "snare", "kick", "cymbal", "gong")
 
 # Fuzzy mapping for instrument names not in the GM table
 _INSTRUMENT_ALIASES: dict[str, str] = {
@@ -210,9 +224,16 @@ _INSTRUMENT_ALIASES: dict[str, str] = {
     "hi_hat_layer": "drums",
     "string_stabs": "pizzicato_strings",
     "atmospheric_pad": "pad_warm",
+    "atmospheric_pads": "pad_warm",
     "electric_guitar": "electric_guitar_distortion",
     "bass_guitar": "electric_bass_pick",
     "strings_section": "strings_ensemble",
+    "bass": "contrabass",
+    "euphonium": "tuba",
+    "piano_chords": "piano",
+    "piano_bass": "piano",
+    "piano_melody_a": "piano",
+    "clarinet_melody": "clarinet",
 }
 
 
@@ -221,6 +242,51 @@ def _is_drum_instrument(instrument_name: str) -> bool:
     if instrument_name == "drums":
         return True
     return any(kw in instrument_name.lower() for kw in _DRUM_KEYWORDS)
+
+
+# Mapping from instrument names to GM drum map pitch (Channel 10).
+# When a drum instrument's notes have melodic pitches, remap them all to
+# the correct GM drum sound.
+_DRUM_INSTRUMENT_TO_GM_PITCH: dict[str, int] = {
+    "drum": 36,  # generic drum → kick
+    "bass_drum": 36,  # kick
+    "kick": 36,
+    "kick_drum": 36,
+    "snare": 38,
+    "snare_drum": 38,
+    "tenor_drum": 47,  # tom_mid
+    "tom": 47,
+    "tom_low": 41,
+    "tom_mid": 47,
+    "tom_high": 50,
+    "cymbal": 49,  # crash cymbal
+    "crash": 49,
+    "crash_cymbal": 49,
+    "chinese_cymbal": 52,  # chinese cymbal (GM #52)
+    "gong": 52,  # gong/tam-tam (closest GM equivalent)
+    "ride": 51,
+    "ride_cymbal": 51,
+    "hi_hat": 42,  # closed hat
+    "closed_hat": 42,
+    "open_hat": 46,
+    "pedal_hat": 44,
+    "clap": 39,
+    "rim": 37,
+    "tambourine": 54,
+    "shaker": 70,
+}
+
+
+def _resolve_drum_pitch(instrument_name: str) -> int | None:
+    """Return the GM drum map pitch for a named drum instrument, or None."""
+    name_lower = instrument_name.lower()
+    if name_lower in _DRUM_INSTRUMENT_TO_GM_PITCH:
+        return _DRUM_INSTRUMENT_TO_GM_PITCH[name_lower]
+    # Try substring match
+    for key, pitch in _DRUM_INSTRUMENT_TO_GM_PITCH.items():
+        if key in name_lower:
+            return pitch
+    return None
 
 
 def _normalize_instrument_name(instrument_name: str) -> str:

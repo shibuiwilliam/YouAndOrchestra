@@ -234,6 +234,8 @@ class StochasticGenerator(GeneratorBase):
         """Generate all sections with controlled randomness."""
         sections: list[Section] = []
         current_bar = 0
+        # Store primary melody per section for cross-section recall
+        section_melodies: dict[str, tuple[list[Note], int]] = {}
 
         for section_spec in spec.sections:
             section_start = current_bar
@@ -248,17 +250,96 @@ class StochasticGenerator(GeneratorBase):
             )
 
             parts: list[Part] = []
+            # Filter instruments by active_instruments if specified
+            active_instruments = spec.instruments
+            if section_spec.active_instruments is not None:
+                active_set = set(section_spec.active_instruments)
+                active_instruments = [i for i in spec.instruments if i.name in active_set]
+
             # Track melody instruments for motif-based differentiation
-            melody_instruments = [i for i in spec.instruments if i.role == "melody"]
+            melody_instruments = [i for i in active_instruments if i.role == "melody"]
             primary_melody_notes: list[Note] | None = None
 
-            for instr_spec in spec.instruments:
+            # Check if this section recalls melodies from other sections
+            recalled_melody: list[Note] | None = None
+            if section_spec.recall_melody_from and section_spec.recall_melody_from in section_melodies:
+                src_notes, src_start = section_melodies[section_spec.recall_melody_from]
+                beat_offset = bars_to_beats(section_start - src_start, spec.time_signature)
+                recalled_melody = [
+                    Note(
+                        pitch=n.pitch,
+                        start_beat=n.start_beat + beat_offset,
+                        duration_beats=n.duration_beats,
+                        velocity=n.velocity,
+                        instrument=n.instrument,
+                    )
+                    for n in src_notes
+                ]
+
+            recalled_counter_melody: list[Note] | None = None
+            if section_spec.recall_counter_melody_from and section_spec.recall_counter_melody_from in section_melodies:
+                src_notes, src_start = section_melodies[section_spec.recall_counter_melody_from]
+                beat_offset = bars_to_beats(section_start - src_start, spec.time_signature)
+                recalled_counter_melody = [
+                    Note(
+                        pitch=n.pitch,
+                        start_beat=n.start_beat + beat_offset,
+                        duration_beats=n.duration_beats,
+                        velocity=n.velocity,
+                        instrument=n.instrument,
+                    )
+                    for n in src_notes
+                ]
+
+            for instr_spec in active_instruments:
                 # Per-instrument RNG for decorrelated output
                 instr_rng = self._instrument_rng(seed, instr_spec.name, section_spec.name)
 
                 # For 2nd+ melody instrument, use motif transformations
-                melody_index = melody_instruments.index(instr_spec) if instr_spec in melody_instruments else -1
-                if melody_index > 0 and primary_melody_notes:
+                raw_melody_index = melody_instruments.index(instr_spec) if instr_spec in melody_instruments else -1
+                melody_index = raw_melody_index
+                is_unison_follower = section_spec.unison_melody and raw_melody_index > 0
+
+                if recalled_counter_melody and instr_spec.role == "counter_melody":
+                    # Use recalled counter melody for counter_melody instruments
+                    notes = self._generate_melody_from_motif(
+                        seed_notes=recalled_counter_melody,
+                        instrument=instr_spec.name,
+                        melody_index=0,
+                        start_bar=section_start,
+                        bars=section_spec.bars,
+                        time_signature=section_spec.time_signature or spec.time_signature,
+                        section_spec=section_spec,
+                        trajectory=trajectory,
+                        rng=instr_rng,
+                    )
+                elif recalled_melody and melody_index >= 0:
+                    # Use recalled melody for all melody instruments in this section
+                    notes = self._generate_melody_from_motif(
+                        seed_notes=recalled_melody,
+                        instrument=instr_spec.name,
+                        melody_index=melody_index,
+                        start_bar=section_start,
+                        bars=section_spec.bars,
+                        time_signature=section_spec.time_signature or spec.time_signature,
+                        section_spec=section_spec,
+                        trajectory=trajectory,
+                        rng=instr_rng,
+                    )
+                elif is_unison_follower and primary_melody_notes:
+                    # Unison: replay the same melody directly (melody_index=0)
+                    notes = self._generate_melody_from_motif(
+                        seed_notes=primary_melody_notes,
+                        instrument=instr_spec.name,
+                        melody_index=0,
+                        start_bar=section_start,
+                        bars=section_spec.bars,
+                        time_signature=section_spec.time_signature or spec.time_signature,
+                        section_spec=section_spec,
+                        trajectory=trajectory,
+                        rng=instr_rng,
+                    )
+                elif melody_index > 0 and primary_melody_notes:
                     notes = self._generate_melody_from_motif(
                         seed_notes=primary_melody_notes,
                         instrument=instr_spec.name,
@@ -289,6 +370,19 @@ class StochasticGenerator(GeneratorBase):
                     if melody_index == 0:
                         primary_melody_notes = notes
 
+                # Apply velocity boost if specified
+                if instr_spec.velocity_boost != 0:
+                    notes = [
+                        Note(
+                            pitch=n.pitch,
+                            start_beat=n.start_beat,
+                            duration_beats=n.duration_beats,
+                            velocity=max(1, min(127, n.velocity + instr_spec.velocity_boost)),
+                            instrument=n.instrument,
+                        )
+                        for n in notes
+                    ]
+
                 # Apply genre-specific biases
                 if genre_profile:
                     # Swing on non-drum instruments
@@ -298,6 +392,12 @@ class StochasticGenerator(GeneratorBase):
                     notes = self._apply_genre_velocity(notes, genre_profile)
 
                 parts.append(Part(instrument=instr_spec.name, notes=tuple(notes)))
+
+            # Store primary melody for this section (for recall by later sections)
+            if primary_melody_notes:
+                section_melodies[section_spec.name] = (primary_melody_notes, section_start)
+            elif recalled_melody:
+                section_melodies[section_spec.name] = (recalled_melody, section_start)
 
             provenance.record(
                 layer="generator",
@@ -627,9 +727,14 @@ class StochasticGenerator(GeneratorBase):
         seed_motif = Motif(notes=tuple(seed_notes), label="primary_melody")
 
         # Apply transformation based on melody index
-        transformations = [invert, retrograde]
-        transform_fn = transformations[(melody_index - 1) % len(transformations)]
-        transformed = transform_fn(seed_motif)
+        # melody_index=0: direct replay (no transformation, just re-instrument)
+        # melody_index=1+: apply invert/retrograde transformations
+        if melody_index == 0:
+            transformed = seed_motif
+        else:
+            transformations = [invert, retrograde]
+            transform_fn = transformations[(melody_index - 1) % len(transformations)]
+            transformed = transform_fn(seed_motif)
 
         # Determine target octave range for this instrument
         target_octave = self._target_octave(instrument, "melody")
@@ -1160,19 +1265,18 @@ class StochasticGenerator(GeneratorBase):
             total = sum(rhythm)
             scaled_rhythm = [r * beats_per_bar / total for r in rhythm]
 
+            # Clamp root_pitch into instrument range before building rhythm pitches
+            inst_range = INSTRUMENT_RANGES.get(instrument)
+            if inst_range is not None:
+                while root_pitch > inst_range.midi_high:
+                    root_pitch -= 12
+                while root_pitch < inst_range.midi_low:
+                    root_pitch += 12
+
             # Rhythm uses root and fifth only for percussive clarity
             rhythm_pitches = [root_pitch, root_pitch + 7]
             rhythm_pitches = [p for p in rhythm_pitches if self._is_in_range(p, instrument)]
             if not rhythm_pitches:
-                self._record_recovery(
-                    "RHYTHM_PITCH_OUT_OF_RANGE",
-                    "warning",
-                    [root_pitch, root_pitch + 7],
-                    [root_pitch],
-                    f"Rhythm pitches outside {instrument} range, using root only",
-                    "Rhythm part loses interval variety, only root note",
-                    ["use instrument with wider range"],
-                )
                 rhythm_pitches = [root_pitch]
 
             beat_offset: Beat = 0.0
