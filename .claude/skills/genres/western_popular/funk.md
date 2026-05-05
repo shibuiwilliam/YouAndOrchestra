@@ -23,6 +23,14 @@ representative_techniques:
   - sixteenth_note_hi_hat
   - rhythmic_muting
   - one_chord_vamp
+evaluation_weights:
+  structure: 0.10
+  melody: 0.15
+  harmony: 0.15
+  acoustics: 0.15
+  groove_pocket: 0.45
+default_groove: funk_16th
+default_melody_strategy: riff_based
 ---
 
 # Funk — Genre Skill

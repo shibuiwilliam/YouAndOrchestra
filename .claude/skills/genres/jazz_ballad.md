@@ -7,6 +7,14 @@ default_swing: 0.67
 typical_drum_pattern: jazz_swing_ride
 preferred_instruments: [piano, acoustic_bass, trumpet]
 avoided_instruments: [synth_lead_square, synth_lead_saw, synth_bass, electric_guitar_clean, electric_bass_pick, xylophone]
+evaluation_weights:
+  structure: 0.15
+  melody: 0.30
+  harmony: 0.30
+  acoustics: 0.10
+  groove_pocket: 0.15
+default_groove: jazz_swing
+default_melody_strategy: arpeggiated
 ---
 
 # Jazz Ballad — Genre Skill

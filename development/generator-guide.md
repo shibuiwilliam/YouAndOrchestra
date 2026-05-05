@@ -29,7 +29,7 @@ class GeneratorBase(ABC):
 
 Register with `@register_generator("name")`. Select at runtime with `get_generator("name")`.
 
-Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `process_music`, `constraint_solver`.
+Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `process_music`, `constraint_solver`, `rule_based_v2`, `stochastic_v2`.
 
 ## Creating a Plan Generator (v2.0)
 

@@ -1,6 +1,6 @@
 # You and Orchestra (YaO)
 
-**An agentic music production environment built on Claude Code** -- describe what you want in plain language, and YaO generates a full MIDI score with per-instrument stems, quality evaluation, and a provenance log explaining every decision.
+**An agentic music production environment built on Claude Code.** Describe what you want in plain language, and YaO generates a full MIDI score with per-instrument stems, quality evaluation, and a provenance log explaining every decision.
 
 > Your vision. Your taste. Your soul. -- and an Orchestra ready to listen, respond, and surprise.
 
@@ -13,7 +13,6 @@ git clone https://github.com/shibuiwilliam/YouAndOrchestra
 cd YouAndOrchestra
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-make setup-hooks
 ```
 
 Requires **Python 3.11+**. Audio rendering requires [FluidSynth](#audio-rendering).
@@ -79,6 +78,43 @@ yao new-project my-piece
 yao compose specs/projects/my-piece/composition.yaml
 ```
 
+YaO supports three spec formats: **v1** (simple flat YAML), **v2** (11-section detailed), and **v3** (composable with extends/overrides/fragments). See [Spec System](development/spec-system.md) for details.
+
+---
+
+## Example Prompts
+
+### Simple
+
+```
+/sketch a melancholic piano piece for studying on a rainy evening
+/sketch anime opening theme, energetic J-pop style, 90 BPM, full orchestra
+/sketch tense horror game BGM with dissonant strings and sparse percussion
+/sketch upbeat 8-bit chiptune for a retro platformer boss fight
+/sketch gentle jazz trio for a late-night cafe scene, brushed drums and walking bass
+/sketch epic orchestral trailer music building to a massive brass climax
+/sketch minimalist ambient piece with slow-evolving pad textures, 60 BPM
+/sketch funky slap bass groove with wah guitar and tight drums, 110 BPM
+/sketch classical string quartet in the style of late Romantic era, D minor
+/sketch Japanese festival matsuri music with taiko drums and shinobue flute
+/sketch smooth bossa nova for a sunset beach bar, nylon guitar and soft percussion
+```
+
+### Advanced
+
+```
+/sketch cinematic sci-fi soundtrack, 130 BPM, layered synth pads with orchestral strings, brass stabs on downbeats, sparse piano motif, 180 seconds, build from silence to wall of sound
+/sketch lo-fi hip-hop study beat, 75 BPM, detuned electric piano chords, vinyl crackle texture, side-chained kick with muted bass, jazzy 7th voicings, loopable 90 seconds
+/sketch Baroque fugue for harpsichord and string trio, 3 voices, subject-answer-countersubject structure, D minor, 100 BPM, strict voice leading, 120 seconds
+/sketch Indian classical fusion, sitar melody over tabla and tanpura drone, Raga Yaman ascending phrases, 90 BPM, gradually introduce cello and flute harmonizing, 180 seconds
+/sketch Studio Ghibli-inspired waltz, 3/4 time, 108 BPM, piano lead with accordion counter-melody, pizzicato strings, glockenspiel accents, warm and nostalgic, 150 seconds
+/sketch high-energy drum and bass track, 174 BPM, breakbeat drums with heavy sub-bass reese, staccato string stabs, atmospheric pads, tension ramp in the last 16 bars, 150 seconds
+/sketch Flamenco bulerias for nylon guitar, cajon, and handclaps, 12-beat compas cycle, rasgueado strumming, falsetas over Am-G-F-E progression, 100 seconds
+/sketch ambient generative soundscape for planetarium, 50 BPM, granular-style evolving textures with oboe and cello drones, no percussion, very slow harmonic motion, 240 seconds
+/sketch aggressive industrial metal, 140 BPM, drop-tuned palm-muted guitar riff in 7/8, double kick drums, distorted bass following guitar, dissonant brass hits on accents, 90 seconds
+/sketch big band swing, 160 BPM, walking bass, ride cymbal, trumpet section melody in unison then harmony soli, trombone counter-melody, piano comping, saxophone shout chorus at climax, 120 seconds
+```
+
 ---
 
 ## Slash Commands
@@ -96,41 +132,11 @@ yao compose specs/projects/my-piece/composition.yaml
 | `/pin <project> <location> <note>` | Attach localized feedback |
 | `/feedback <project> <text>` | Natural-language feedback to structured suggestions |
 
-### Example `/sketch` Prompts
-
-```
-/sketch a melancholic piano piece for studying on a rainy evening
-/sketch anime opening theme, energetic J-pop style, 90 BPM, full orchestra with electric sounds
-/sketch tense horror game BGM with dissonant strings and sparse percussion
-/sketch upbeat 8-bit chiptune for a retro platformer boss fight
-/sketch gentle jazz trio for a late-night cafe scene, brushed drums and walking bass
-/sketch epic orchestral trailer music building to a massive brass climax
-/sketch minimalist ambient piece with slow-evolving pad textures, 60 BPM
-/sketch funky slap bass groove with wah guitar and tight drums, 110 BPM
-/sketch classical string quartet in the style of late Romantic era, D minor
-/sketch Japanese festival matsuri music with taiko drums and shinobue flute
-```
-
-### Advanced `/sketch` Prompts
-
-```
-/sketch cinematic sci-fi soundtrack, 130 BPM, layered synth pads with orchestral strings, brass stabs on downbeats, sparse piano motif, 180 seconds, build from silence to wall of sound
-/sketch lo-fi hip-hop study beat, 75 BPM, detuned electric piano chords, vinyl crackle texture, side-chained kick with muted bass, jazzy 7th voicings, loopable 90 seconds
-/sketch Baroque fugue for harpsichord and string trio, 3 voices, subject-answer-countersubject structure, D minor, 100 BPM, strict voice leading, 120 seconds
-/sketch high-energy drum and bass track, 174 BPM, breakbeat drums with heavy sub-bass reese, staccato string stabs, atmospheric pads, tension ramp in the last 16 bars, 150 seconds
-/sketch Flamenco bulerias for nylon guitar, cajon, and handclaps, 12-beat compas cycle, rasgueado strumming, falsetas over Am-G-F-E progression, 100 seconds
-/sketch ambient generative soundscape for planetarium, 50 BPM, granular-style evolving textures with oboe and cello drones, no percussion, very slow harmonic motion, 240 seconds
-/sketch big band swing, 160 BPM, walking bass, ride cymbal, trumpet section melody in unison then harmony soli, trombone counter-melody, piano comping, saxophone shout chorus at climax, 120 seconds
-/sketch Indian classical fusion, sitar melody over tabla and tanpura drone, Raga Yaman ascending phrases, 90 BPM, gradually introduce cello and flute harmonizing, 180 seconds
-/sketch aggressive industrial metal, 140 BPM, drop-tuned palm-muted guitar riff in 7/8, double kick drums, distorted bass following guitar, dissonant brass hits on accents, 90 seconds
-/sketch Studio Ghibli-inspired waltz, 3/4 time, 108 BPM, piano lead with accordion counter-melody, pizzicato strings, glockenspiel accents, warm and nostalgic but bittersweet, 150 seconds
-```
-
 ---
 
 ## Architecture
 
-YaO uses an 8-layer architecture with strict downward-only dependency flow:
+YaO uses an 8-layer architecture with strict downward-only dependency flow, enforced by CI:
 
 ```
 Layer 7: Reflection & Learning       (reflect/, agents/)
@@ -222,7 +228,7 @@ Every composition is automatically evaluated across 6 dimensions:
 | Temporal | Onset density per section, tempo stability |
 | Use-case | YouTube BGM, Game BGM, Advertisement, Study Focus, Meditation, Workout, Cinematic |
 
-### Adversarial Critique (35 rules across 12 categories)
+### Adversarial Critique (35 rules across 15 categories)
 
 The critique system works like a panel of experts, each looking for specific weaknesses:
 
@@ -236,7 +242,8 @@ The critique system works like a panel of experts, each looking for specific wea
 | Emotional (2) | Intent divergence, trajectory violation |
 | Genre Fitness (2) | Tempo out of range, instrument mismatch |
 | Memorability (2) | Hook weakness, motif absence |
-| Surprise (3) | Surprise deficit, surprise overload, tension arc unresolved |
+| Surprise (2) | Surprise deficit, surprise overload |
+| Tension (1) | Tension arc unresolved |
 | Hook (3) | Hook overuse, hook underuse, hook misplacement |
 | Dynamics (1) | Flat phrase dynamics |
 | Groove (3) | Groove inconsistency, microtiming flatness, ensemble conflict |
@@ -440,7 +447,7 @@ YaO has a lean core with optional extras for specialized features:
 ## Project Structure
 
 ```
-src/yao/           222 Python modules
+src/yao/           228 Python modules
   constants/       46 instruments, 28 scales, 20 forms, 14 chords, MIDI maps
   schema/          Pydantic specs (v1 + v2 + v3 composability), genre profiles
   sketch/          NL -> spec compiler (EN + JP), 6-turn dialogue
@@ -464,8 +471,8 @@ src/yao/           222 Python modules
   annotate/        Browser-based time-range annotation UI
   skills/          Genre skill loader + registry (22 genres)
   runtime/         Project runtime (undo/redo, caching, lockfile)
-tests/             195 test files, ~2,157 test functions
-tools/             15 CI tools (honesty, architecture lint, genre calibration)
+tests/             249 test files, ~2,157 test functions
+tools/             20 CI tools (honesty, architecture lint, genre calibration)
 .claude/           Agent prompts, slash commands, genre skills, guides
 docs/              Architecture docs, design docs, audit reports
 development/       Contributor guide, API reference, roadmap

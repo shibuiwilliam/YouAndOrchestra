@@ -8,10 +8,15 @@ from __future__ import annotations
 
 import pytest
 
+from yao.ir.note import Note
+from yao.ir.score_ir import Part, ScoreIR, Section
 from yao.perception.psych_mapper import (
     EMOTION_TO_FEATURES,
     all_emotions,
     emotion_to_generator_params,
+    estimate_arousal,
+    estimate_tension,
+    estimate_valence,
     get_feature_profile,
 )
 
@@ -148,3 +153,149 @@ class TestAllEmotions:
     def test_minimum_count(self) -> None:
         """Should have at least 16 emotions (4 per quadrant)."""
         assert len(all_emotions()) >= 16  # noqa: PLR2004
+
+
+# ── Score → Perception estimator tests (C3) ──────────────────────────
+
+
+def _make_high_arousal_score() -> ScoreIR:
+    """Dense, high-velocity, high-register notes → high arousal."""
+    notes = tuple(
+        Note(pitch=80 + (i % 12), start_beat=i * 0.25, duration_beats=0.25, velocity=110, instrument="piano")
+        for i in range(64)
+    )
+    return ScoreIR(
+        title="high_arousal",
+        tempo_bpm=140,
+        time_signature="4/4",
+        key="C major",
+        sections=(Section(name="A", start_bar=0, end_bar=4, parts=(Part(instrument="piano", notes=notes),)),),
+    )
+
+
+def _make_low_arousal_score() -> ScoreIR:
+    """Sparse, low-velocity, low-register notes → low arousal."""
+    notes = tuple(
+        Note(pitch=48 + (i % 5), start_beat=i * 2.0, duration_beats=1.5, velocity=40, instrument="piano")
+        for i in range(8)
+    )
+    return ScoreIR(
+        title="low_arousal",
+        tempo_bpm=60,
+        time_signature="4/4",
+        key="A minor",
+        sections=(Section(name="A", start_bar=0, end_bar=4, parts=(Part(instrument="piano", notes=notes),)),),
+    )
+
+
+def _make_major_score() -> ScoreIR:
+    """Major-key arpeggios → high valence."""
+    # C major triad arpeggios (C-E-G)
+    notes = tuple(
+        Note(pitch=p, start_beat=i * 1.0, duration_beats=0.5, velocity=80, instrument="piano")
+        for i, p in enumerate([60, 64, 67, 72, 64, 67, 60, 64, 67, 72, 64, 67, 60, 64, 67, 72])
+    )
+    return ScoreIR(
+        title="major",
+        tempo_bpm=120,
+        time_signature="4/4",
+        key="C major",
+        sections=(Section(name="A", start_bar=0, end_bar=4, parts=(Part(instrument="piano", notes=notes),)),),
+    )
+
+
+def _make_minor_score() -> ScoreIR:
+    """Minor-key with dissonance → low valence."""
+    # C minor + chromatic intervals (C-Eb-G, C-Db)
+    notes = tuple(
+        Note(pitch=p, start_beat=i * 1.0, duration_beats=0.5, velocity=80, instrument="piano")
+        for i, p in enumerate([60, 63, 67, 60, 61, 63, 60, 63, 67, 60, 61, 63, 60, 63, 67, 60])
+    )
+    return ScoreIR(
+        title="minor",
+        tempo_bpm=80,
+        time_signature="4/4",
+        key="C minor",
+        sections=(Section(name="A", start_bar=0, end_bar=4, parts=(Part(instrument="piano", notes=notes),)),),
+    )
+
+
+class TestEstimateArousal:
+    """Tests for C3 estimate_arousal — score → perceived arousal."""
+
+    def test_high_arousal_score(self) -> None:
+        score = _make_high_arousal_score()
+        arousal = estimate_arousal(score)
+        assert arousal > 0.5
+
+    def test_low_arousal_score(self) -> None:
+        score = _make_low_arousal_score()
+        arousal = estimate_arousal(score)
+        assert arousal < 0.5
+
+    def test_high_greater_than_low(self) -> None:
+        high = estimate_arousal(_make_high_arousal_score())
+        low = estimate_arousal(_make_low_arousal_score())
+        assert high > low
+
+    def test_empty_score(self) -> None:
+        score = ScoreIR(title="empty", tempo_bpm=120, time_signature="4/4", key="C major", sections=())
+        assert estimate_arousal(score) == 0.0
+
+    def test_returns_bounded(self) -> None:
+        arousal = estimate_arousal(_make_high_arousal_score())
+        assert 0.0 <= arousal <= 1.0
+
+
+class TestEstimateValence:
+    """Tests for C3 estimate_valence — score → perceived valence."""
+
+    def test_major_higher_valence(self) -> None:
+        major = estimate_valence(_make_major_score())
+        minor = estimate_valence(_make_minor_score())
+        assert major > minor
+
+    def test_returns_bounded(self) -> None:
+        val = estimate_valence(_make_major_score())
+        assert 0.0 <= val <= 1.0
+
+    def test_empty_score(self) -> None:
+        score = ScoreIR(title="empty", tempo_bpm=120, time_signature="4/4", key="C major", sections=())
+        assert estimate_valence(score) == 0.5
+
+
+class TestEstimateTension:
+    """Tests for C3 estimate_tension — per-bar tension."""
+
+    def test_dissonant_bar_higher_tension(self) -> None:
+        """A bar with dissonant intervals should have higher tension."""
+        # Bar with tritone and semitone
+        dissonant_notes = tuple(
+            Note(pitch=p, start_beat=float(i), duration_beats=0.5, velocity=100, instrument="piano")
+            for i, p in enumerate([60, 61, 66, 67])  # C, Db, F#, G — tritone + semitone
+        )
+        score = ScoreIR(
+            title="dissonant",
+            tempo_bpm=120,
+            time_signature="4/4",
+            key="C major",
+            sections=(
+                Section(
+                    name="A",
+                    start_bar=0,
+                    end_bar=1,
+                    parts=(Part(instrument="piano", notes=dissonant_notes),),
+                ),
+            ),
+        )
+        tension = estimate_tension(score, bar=0)
+        assert tension > 0.2
+
+    def test_empty_bar_zero_tension(self) -> None:
+        score = ScoreIR(title="t", tempo_bpm=120, time_signature="4/4", key="C major", sections=())
+        assert estimate_tension(score, bar=5) == 0.0
+
+    def test_returns_bounded(self) -> None:
+        score = _make_high_arousal_score()
+        tension = estimate_tension(score, bar=0)
+        assert 0.0 <= tension <= 1.0

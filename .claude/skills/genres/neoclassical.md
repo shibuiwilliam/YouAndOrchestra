@@ -7,6 +7,14 @@ default_swing: 0.0
 typical_drum_pattern: null
 preferred_instruments: [violin, viola, cello, piano]
 avoided_instruments: [synth_lead_square, synth_lead_saw, synth_pad_warm, synth_bass, electric_bass_finger, electric_bass_pick, electric_guitar_clean]
+evaluation_weights:
+  structure: 0.25
+  melody: 0.25
+  harmony: 0.30
+  acoustics: 0.10
+  arrangement: 0.10
+default_groove: null
+default_melody_strategy: linear_voice
 ---
 
 # Neoclassical — Genre Skill

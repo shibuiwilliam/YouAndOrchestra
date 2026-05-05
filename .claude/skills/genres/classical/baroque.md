@@ -24,6 +24,14 @@ representative_techniques:
   - ornaments_trill_mordent
   - sequence_patterns
   - circle_of_fifths
+evaluation_weights:
+  structure: 0.25
+  melody: 0.25
+  harmony: 0.30
+  acoustics: 0.10
+  arrangement: 0.10
+default_groove: null
+default_melody_strategy: linear_voice
 ---
 
 # Baroque — Genre Skill

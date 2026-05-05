@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from yao.ir.motif import Motif, augment, diminish, invert, retrograde, transpose
+from yao.ir.motif import Motif, MotifNetwork, MotifNode, augment, diminish, invert, retrograde, transpose
 from yao.ir.note import Note
 
 
@@ -114,3 +114,126 @@ class TestDiminish:
         result = diminish(m, 2.0)
         for note in result.notes:
             assert note.duration_beats == 0.5
+
+
+class TestMotifNode:
+    """Tests for A2 MotifNode."""
+
+    def test_node_creation(self) -> None:
+        m = _make_simple_motif()
+        node = MotifNode(motif=m, parent_id=None, transformation="identity", bar_locations=(0, 1))
+        assert node.motif.label == "test_motif"
+        assert node.parent_id is None
+        assert node.bar_locations == (0, 1)
+
+    def test_derived_node(self) -> None:
+        m = _make_simple_motif()
+        t = transpose(m, 5)
+        node = MotifNode(motif=t, parent_id="test_motif", transformation="transpose", bar_locations=(4, 5))
+        assert node.parent_id == "test_motif"
+        assert node.transformation == "transpose"
+
+
+class TestMotifNetwork:
+    """Tests for A2 MotifNetwork."""
+
+    def _build_network(self) -> MotifNetwork:
+        """Build a test network: seed + 3 derived motifs across 16 bars."""
+        m = _make_simple_motif()
+        net = MotifNetwork(total_bars=16)
+        seed_key = net.add_node(MotifNode(motif=m, bar_locations=(0, 1, 2, 3)))
+        net.add_node(
+            MotifNode(
+                motif=transpose(m, 5),
+                parent_id=seed_key,
+                transformation="transpose",
+                bar_locations=(4, 5, 6, 7),
+            )
+        )
+        net.add_node(
+            MotifNode(
+                motif=invert(m),
+                parent_id=seed_key,
+                transformation="invert",
+                bar_locations=(8, 9),
+            )
+        )
+        net.add_node(
+            MotifNode(
+                motif=retrograde(m),
+                parent_id=seed_key,
+                transformation="retrograde",
+                bar_locations=(12, 13),
+            )
+        )
+        return net
+
+    def test_coverage_ratio_full(self) -> None:
+        net = self._build_network()
+        # Bars covered: 0-9, 12-13 = 12 out of 16
+        assert net.coverage_ratio() == 12 / 16
+
+    def test_coverage_ratio_empty(self) -> None:
+        net = MotifNetwork(total_bars=8)
+        assert net.coverage_ratio() == 0.0
+
+    def test_coverage_ratio_complete(self) -> None:
+        m = _make_simple_motif()
+        net = MotifNetwork(total_bars=4)
+        net.add_node(MotifNode(motif=m, bar_locations=(0, 1, 2, 3)))
+        assert net.coverage_ratio() == 1.0
+
+    def test_variation_diversity_multiple_transforms(self) -> None:
+        net = self._build_network()
+        # Has identity, transpose, invert, retrograde = 4 types
+        diversity = net.variation_diversity()
+        assert diversity > 0.5  # fairly diverse
+
+    def test_variation_diversity_single_transform(self) -> None:
+        m = _make_simple_motif()
+        net = MotifNetwork(total_bars=8)
+        # All nodes use same transformation
+        for i in range(4):
+            net.add_node(
+                MotifNode(
+                    motif=transpose(m, i),
+                    transformation="transpose",
+                    bar_locations=(i * 2,),
+                )
+            )
+        assert net.variation_diversity() == 0.0  # no diversity
+
+    def test_variation_diversity_empty(self) -> None:
+        net = MotifNetwork(total_bars=8)
+        assert net.variation_diversity() == 0.0
+
+    def test_trace_lineage(self) -> None:
+        net = self._build_network()
+        # The transposed motif should trace back to the seed
+        # Find the key for the transposed motif
+        keys = list(net.nodes.keys())
+        transposed_key = keys[1]  # second added
+        lineage = net.trace_lineage(transposed_key)
+        assert len(lineage) == 2  # seed + derived
+        assert lineage[0].transformation == "identity"  # seed
+        assert lineage[1].transformation == "transpose"
+
+    def test_trace_lineage_seed(self) -> None:
+        net = self._build_network()
+        keys = list(net.nodes.keys())
+        lineage = net.trace_lineage(keys[0])
+        assert len(lineage) == 1  # just the seed
+
+    def test_trace_lineage_nonexistent(self) -> None:
+        net = self._build_network()
+        lineage = net.trace_lineage("nonexistent")
+        assert len(lineage) == 0
+
+    def test_add_node_auto_key(self) -> None:
+        net = MotifNetwork(total_bars=4)
+        m = Motif(notes=(), label="")  # empty label
+        key = net.add_node(MotifNode(motif=m, bar_locations=(0,)))
+        assert key == "motif"
+        # Adding another with same empty label gets a suffix
+        key2 = net.add_node(MotifNode(motif=m, bar_locations=(1,)))
+        assert key2 == "motif_1"

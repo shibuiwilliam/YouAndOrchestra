@@ -22,6 +22,14 @@ representative_techniques:
   - shuffle_rhythm
   - turnaround_licks
   - bent_notes
+evaluation_weights:
+  structure: 0.15
+  melody: 0.25
+  harmony: 0.20
+  acoustics: 0.15
+  groove_pocket: 0.25
+default_groove: shuffle_blues
+default_melody_strategy: call_response
 ---
 
 # Blues — Genre Skill

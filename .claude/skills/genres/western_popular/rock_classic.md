@@ -22,6 +22,14 @@ representative_techniques:
   - palm_muting
   - blues_bend
   - call_and_response
+evaluation_weights:
+  structure: 0.20
+  melody: 0.25
+  harmony: 0.15
+  acoustics: 0.15
+  groove_pocket: 0.25
+default_groove: rock_backbeat
+default_melody_strategy: riff_based
 ---
 
 # Classic Rock — Genre Skill

@@ -22,6 +22,14 @@ references:
   - "Marcus, S.L. (2007). Music in Egypt. Oxford University Press."
   - "Touma, H.H. (1996). The Music of the Arabs. Amadeus Press."
   - "Racy, A.J. (2003). Making Music in the Arab World. Cambridge University Press."
+evaluation_weights:
+  structure: 0.15
+  melody: 0.30
+  harmony: 0.20
+  acoustics: 0.15
+  groove_pocket: 0.20
+default_groove: null
+default_melody_strategy: modal
 ---
 
 # Arabic Maqam — Genre Skill

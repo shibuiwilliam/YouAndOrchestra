@@ -135,6 +135,92 @@ class GrooveProfile:
         )
 
     @classmethod
+    def from_midi(cls, midi_path: Path, beats_per_bar: int = 4, name: str | None = None) -> GrooveProfile:
+        """Extract a groove profile from a MIDI file by analyzing deviation from the quantized grid.
+
+        Reads note onsets, quantizes them to the nearest 16th-note position,
+        and computes the average timing offset and velocity at each position.
+
+        Args:
+            midi_path: Path to a MIDI file.
+            beats_per_bar: Beats per bar (default 4 for 4/4 time).
+            name: Optional name for the profile. Defaults to the MIDI filename stem.
+
+        Returns:
+            GrooveProfile with extracted microtiming and velocity patterns.
+
+        Raises:
+            FileNotFoundError: If the MIDI file does not exist.
+        """
+        import pretty_midi
+
+        if not midi_path.exists():
+            msg = f"MIDI file not found: {midi_path}"
+            raise FileNotFoundError(msg)
+
+        pm = pretty_midi.PrettyMIDI(str(midi_path))
+        profile_name = name or midi_path.stem
+
+        # Collect all note onsets with their velocities
+        subdivisions = beats_per_bar * 4  # 16th notes per bar
+        try:
+            tempo = pm.estimate_tempo() or 120.0
+        except ValueError:
+            tempo = 120.0
+        # Also check tempo changes embedded in the MIDI
+        if pm.get_tempo_changes()[1].size > 0:
+            tempo = float(pm.get_tempo_changes()[1][0])
+        beat_duration = 60.0 / tempo  # seconds per beat
+        sixteenth_duration = beat_duration / 4.0  # seconds per 16th note
+
+        # Accumulators: position → list of (offset_ms, velocity)
+        offsets_by_pos: dict[int, list[float]] = {i: [] for i in range(subdivisions)}
+        velocities_by_pos: dict[int, list[int]] = {i: [] for i in range(subdivisions)}
+
+        for instrument in pm.instruments:
+            for note in instrument.notes:
+                # Time in 16th-note units
+                pos_in_16ths = note.start / sixteenth_duration
+                # Nearest quantized position
+                quantized = round(pos_in_16ths)
+                # Position within the bar
+                bar_pos = quantized % subdivisions
+                # Offset from grid in milliseconds
+                offset_ms = (pos_in_16ths - quantized) * sixteenth_duration * 1000.0
+                # Clamp to valid range
+                offset_ms = max(-50.0, min(50.0, offset_ms))
+
+                offsets_by_pos[bar_pos].append(offset_ms)
+                velocities_by_pos[bar_pos].append(note.velocity)
+
+        # Compute averages
+        microtiming: dict[int, float] = {}
+        velocity_pattern: dict[int, float] = {}
+        global_avg_vel = 80.0  # fallback
+
+        all_vels = [v for vels in velocities_by_pos.values() for v in vels]
+        if all_vels:
+            global_avg_vel = sum(all_vels) / len(all_vels)
+
+        for pos in range(subdivisions):
+            if offsets_by_pos[pos]:
+                avg_offset = sum(offsets_by_pos[pos]) / len(offsets_by_pos[pos])
+                microtiming[pos] = round(avg_offset, 2)
+
+            if velocities_by_pos[pos]:
+                avg_vel = sum(velocities_by_pos[pos]) / len(velocities_by_pos[pos])
+                velocity_pattern[pos] = round(avg_vel / global_avg_vel, 3) if global_avg_vel > 0 else 1.0
+
+        return cls(
+            name=profile_name,
+            microtiming=microtiming,
+            velocity_pattern=velocity_pattern,
+            ghost_probability=0.0,
+            swing_ratio=0.5,
+            timing_jitter_sigma=0.0,
+        )
+
+    @classmethod
     def from_yaml(cls, path: Path) -> GrooveProfile:
         """Load a GrooveProfile from a YAML file.
 

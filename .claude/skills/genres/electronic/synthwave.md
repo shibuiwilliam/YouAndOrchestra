@@ -23,6 +23,14 @@ representative_techniques:
   - chorus_detuned_leads
   - slow_pad_swells
   - retro_bass_sequences
+evaluation_weights:
+  structure: 0.20
+  melody: 0.25
+  harmony: 0.15
+  acoustics: 0.20
+  groove_pocket: 0.20
+default_groove: edm_4onfloor
+default_melody_strategy: arpeggiated
 ---
 
 # Synthwave — Genre Skill

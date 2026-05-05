@@ -22,6 +22,14 @@ references:
   - "Jairazbhoy, N.A. (1971). The Rags of North Indian Music. Wesleyan University Press."
   - "Powers, H.S. (1965). Indian Music and the English Language. Ethnomusicology, 9(1)."
   - "Bor, J. (1999). The Raga Guide. Nimbus Records / Rotterdam Conservatory."
+evaluation_weights:
+  structure: 0.15
+  melody: 0.35
+  harmony: 0.10
+  acoustics: 0.15
+  groove_pocket: 0.25
+default_groove: null
+default_melody_strategy: modal
 ---
 
 # Indian Classical Hindustani — Genre Skill

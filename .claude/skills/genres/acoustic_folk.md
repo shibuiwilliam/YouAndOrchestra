@@ -7,6 +7,14 @@ default_swing: 0.0
 typical_drum_pattern: ballad_brushed
 preferred_instruments: [acoustic_guitar_nylon, acoustic_guitar_steel, piano, flute]
 avoided_instruments: [synth_lead_square, synth_lead_saw, synth_pad_warm, synth_bass, electric_bass_pick, electric_guitar_clean]
+evaluation_weights:
+  structure: 0.20
+  melody: 0.30
+  harmony: 0.25
+  acoustics: 0.10
+  groove_pocket: 0.15
+default_groove: pop_straight
+default_melody_strategy: contour_based
 ---
 
 # Acoustic Folk — Genre Skill

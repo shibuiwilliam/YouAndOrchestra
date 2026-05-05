@@ -27,6 +27,14 @@ expert_review_note: "Based on Kalinak, K. 'Settling the Score' (1992, Univ. of W
 references:
   - "Kalinak, K. (1992). Settling the Score. University of Wisconsin Press."
   - "Davis, R. (2010). Complete Guide to Film Scoring. Berklee Press."
+evaluation_weights:
+  structure: 0.25
+  melody: 0.20
+  harmony: 0.25
+  acoustics: 0.15
+  arrangement: 0.15
+default_groove: cinematic_legato
+default_melody_strategy: contour_based
 ---
 
 # Film Score Dramatic — Genre Skill

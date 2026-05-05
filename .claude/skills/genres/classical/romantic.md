@@ -24,6 +24,14 @@ representative_techniques:
   - dynamic_range_ppp_to_fff
   - enharmonic_modulation
   - pedal_point
+evaluation_weights:
+  structure: 0.20
+  melody: 0.25
+  harmony: 0.25
+  acoustics: 0.15
+  arrangement: 0.15
+default_groove: null
+default_melody_strategy: contour_based
 ---
 
 # Romantic — Genre Skill

@@ -146,6 +146,61 @@ class TestGlobal:
         with pytest.raises(SpecValidationError, match="Time signature must be"):
             GlobalSpec(time_signature="4-4")
 
+    def test_blends_default_empty(self) -> None:
+        spec = GlobalSpec()
+        assert spec.blends == []
+
+    def test_blends_single(self) -> None:
+        from yao.schema.composition_v2 import GenreBlendSpec
+
+        spec = GlobalSpec(
+            genre="jazz",
+            blends=[GenreBlendSpec(name="hiphop", weight=0.3, blend_aspects=["groove", "mix_aesthetics"])],
+        )
+        assert len(spec.blends) == 1
+        assert spec.blends[0].name == "hiphop"
+        assert "groove" in spec.blends[0].blend_aspects
+
+    def test_blends_multiple(self) -> None:
+        from yao.schema.composition_v2 import GenreBlendSpec
+
+        spec = GlobalSpec(
+            genre="jazz",
+            blends=[
+                GenreBlendSpec(name="hiphop", weight=0.2, blend_aspects=["groove"]),
+                GenreBlendSpec(name="ambient", weight=0.1, blend_aspects=["texture", "reverb"]),
+            ],
+        )
+        assert len(spec.blends) == 2
+
+    def test_blend_weight_out_of_range(self) -> None:
+        from yao.schema.composition_v2 import GenreBlendSpec
+
+        with pytest.raises((SpecValidationError, ValidationError)):
+            GenreBlendSpec(name="rock", weight=0.0, blend_aspects=[])
+
+    def test_blend_invalid_aspect(self) -> None:
+        from yao.schema.composition_v2 import GenreBlendSpec
+
+        with pytest.raises((SpecValidationError, ValidationError)):
+            GenreBlendSpec(name="rock", weight=0.3, blend_aspects=["nonexistent"])
+
+    def test_blend_all_valid_aspects(self) -> None:
+        from yao.schema.composition_v2 import GenreBlendSpec
+
+        valid_aspects = [
+            "harmony",
+            "melody",
+            "groove",
+            "instrumentation",
+            "form",
+            "mix_aesthetics",
+            "texture",
+            "reverb",
+        ]
+        blend = GenreBlendSpec(name="rock", weight=0.5, blend_aspects=valid_aspects)
+        assert len(blend.blend_aspects) == 8
+
 
 # ---------------------------------------------------------------------------
 # Emotion tests
@@ -169,6 +224,19 @@ class TestEmotion:
         spec = EmotionSpec()
         assert spec.valence == 0.5
         assert spec.nostalgia == 0.3
+
+    def test_target_mood_none_by_default(self) -> None:
+        spec = EmotionSpec()
+        assert spec.target_mood is None
+
+    def test_target_mood_accepted(self) -> None:
+        spec = EmotionSpec(target_mood={"arousal": 0.5, "valence": -0.3, "tension": 0.7})
+        assert spec.target_mood is not None
+        assert spec.target_mood["arousal"] == 0.5
+
+    def test_target_mood_empty_dict(self) -> None:
+        spec = EmotionSpec(target_mood={})
+        assert spec.target_mood == {}
 
 
 # ---------------------------------------------------------------------------
@@ -242,6 +310,36 @@ class TestMelody:
         # Here we test that the validator doesn't crash on invalid input.
         r = NoteRangeSpec(min="X9", max="C5")
         assert r.min == "X9"  # Stored as-is; deeper validation at use time
+
+    def test_melody_strategy_valid(self) -> None:
+        spec = MelodySpec(melody_strategy="arpeggiated")
+        assert spec.melody_strategy == "arpeggiated"
+
+    def test_melody_strategy_none_allowed(self) -> None:
+        spec = MelodySpec(melody_strategy=None)
+        assert spec.melody_strategy is None
+
+    def test_melody_strategy_default_none(self) -> None:
+        spec = MelodySpec()
+        assert spec.melody_strategy is None
+
+    def test_melody_strategy_invalid_rejected(self) -> None:
+        with pytest.raises((SpecValidationError, ValidationError)):
+            MelodySpec(melody_strategy="nonexistent_strategy")
+
+    def test_all_strategies_accepted(self) -> None:
+        for name in [
+            "contour_based",
+            "motif_development",
+            "linear_voice",
+            "arpeggiated",
+            "scalar_runs",
+            "call_response",
+            "pedal_tone",
+            "hocketing",
+        ]:
+            spec = MelodySpec(melody_strategy=name)
+            assert spec.melody_strategy == name
 
 
 # ---------------------------------------------------------------------------

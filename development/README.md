@@ -25,10 +25,10 @@ Technical documentation for contributors and AI agents developing YaO.
 ## Current State
 
 - **Version:** 0.1.0
-- **Phase:** v2.0 -- Phase gamma complete + Phase delta complete
+- **Phase:** v2.0 -- All major phases complete (gamma + delta + v3.0 Waves 1-3)
 - **Python:** 3.11+
-- **Source files:** 222 Python modules in `src/yao/`
-- **Test files:** 195 test files, ~2,157 tests passing
+- **Source modules:** 228 Python modules in `src/yao/`
+- **Test files:** 249 test files, ~2,157 tests passing
 - **Test categories:** unit, integration, scenario, constraint, golden, acoustic regression, properties, genre coverage, subjective
 
 ### Generation
@@ -42,7 +42,7 @@ Technical documentation for contributors and AI agents developing YaO.
 ### Evaluation and Critique
 
 - **Evaluation:** 11+ metrics across 6 dimensions (structure, melody, harmony, aesthetic, arrangement, acoustics)
-- **Critique rules:** 35 structured rules across 12+ categories
+- **Critique rules:** 35 structured rules across 15 categories
 - **Aesthetic metrics:** 4 (surprise, memorability, contrast, pacing)
 - **Acoustic evaluation:** LUFS, spectral features, onset density, 7 use-case evaluators, symbolic-acoustic divergence detection
 - **Ensemble constraints:** 5 inter-part rules (register separation, downbeat consonance, no parallel octaves, no frequency collision, bass below melody)
@@ -71,5 +71,6 @@ Technical documentation for contributors and AI agents developing YaO.
 - **Groove:** GrooveProfile IR + GrooveApplicator (ensemble-wide microtiming)
 - **Conversation:** ConversationPlan + reactive fills + frequency clearance
 - **Rendering:** MIDI, WAV, MusicXML, LilyPond/PDF, Reaper RPP, Strudel
+- **Mix:** Per-track EQ, compression, reverb + master chain (pedalboard-based)
 - **CI:** GitHub Actions + pre-commit hooks + 5 honesty check tools + weekly audio regression
 - **Provenance:** Append-only causal graph with record_id + caused_by edges

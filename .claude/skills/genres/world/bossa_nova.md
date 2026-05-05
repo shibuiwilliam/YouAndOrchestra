@@ -25,6 +25,14 @@ expert_review_note: "Based on McGowan & Pessanha 'The Brazilian Sound' (2009, Te
 references:
   - "McGowan, C. & Pessanha, R. (2009). The Brazilian Sound. Temple University Press."
   - "Castro, R. (2000). Bossa Nova: The Story of the Brazilian Music That Seduced the World. A Capella Books."
+evaluation_weights:
+  structure: 0.15
+  melody: 0.25
+  harmony: 0.30
+  acoustics: 0.10
+  groove_pocket: 0.20
+default_groove: bossa_nova
+default_melody_strategy: contour_based
 ---
 
 # Bossa Nova — Genre Skill

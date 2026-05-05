@@ -65,6 +65,49 @@ class IdentitySpec(BaseModel):
         return v
 
 
+class GenreBlendSpec(BaseModel):
+    """A secondary genre to blend into the primary genre.
+
+    Specifies which aspects of the secondary genre should influence
+    the composition and at what weight.
+
+    Attributes:
+        name: Genre name (must match a genre Skill).
+        weight: Blend weight in (0.0, 1.0). Higher = more influence.
+        blend_aspects: Which musical dimensions of the secondary genre apply.
+            Valid aspects: harmony, melody, groove, instrumentation,
+            form, mix_aesthetics, texture, reverb.
+    """
+
+    name: str
+    weight: float = 0.3
+    blend_aspects: list[str] = []
+
+    @field_validator("weight")
+    @classmethod
+    def weight_in_range(cls, v: float) -> float:
+        """Weight must be in (0.0, 1.0)."""
+        if not 0.0 < v < 1.0:
+            raise SpecValidationError(
+                f"Blend weight must be in (0.0, 1.0), got {v}",
+                field="global.blends.weight",
+            )
+        return v
+
+    @field_validator("blend_aspects")
+    @classmethod
+    def aspects_valid(cls, v: list[str]) -> list[str]:
+        """Blend aspects must be from the allowed set."""
+        valid = {"harmony", "melody", "groove", "instrumentation", "form", "mix_aesthetics", "texture", "reverb"}
+        for aspect in v:
+            if aspect not in valid:
+                raise SpecValidationError(
+                    f"Unknown blend aspect '{aspect}'. Valid: {sorted(valid)}",
+                    field="global.blends.blend_aspects",
+                )
+        return v
+
+
 class GlobalSpec(BaseModel):
     """Global musical parameters.
 
@@ -72,13 +115,16 @@ class GlobalSpec(BaseModel):
         key: Key signature (e.g., "D major").
         bpm: Tempo in beats per minute.
         time_signature: Time signature (e.g., "4/4").
-        genre: Genre tag (e.g., "future_pop").
+        genre: Primary genre tag (e.g., "jazz").
+        blends: Optional list of secondary genres to blend in.
+            Each blend specifies which aspects to adopt and at what weight.
     """
 
     key: str = "C major"
     bpm: float = 120.0
     time_signature: str = "4/4"
     genre: str = "general"
+    blends: list[GenreBlendSpec] = []
 
     @field_validator("key")
     @classmethod
@@ -139,6 +185,11 @@ class EmotionSpec(BaseModel):
         tension: High tension (1.0) to relaxed (0.0).
         warmth: Warm (1.0) to cold (0.0).
         nostalgia: Nostalgic (1.0) to present-focused (0.0).
+        target_mood: Optional full MoodProfile target as a dict.
+            Keys match MoodProfile fields: arousal, valence, tension,
+            intimacy, grandeur, nostalgia, aggression, sophistication.
+            Values in [-1.0, 1.0] for arousal/valence, [0.0, 1.0] for extended.
+            When present, the Conductor uses mood delta as adaptation signal.
     """
 
     valence: float = 0.5
@@ -146,6 +197,7 @@ class EmotionSpec(BaseModel):
     tension: float = 0.5
     warmth: float = 0.5
     nostalgia: float = 0.3
+    target_mood: dict[str, float] | None = None
 
     @model_validator(mode="after")
     def all_in_unit_range(self) -> EmotionSpec:
@@ -393,6 +445,10 @@ class MelodySpec(BaseModel):
     Attributes:
         range: Note range (min/max).
         contour: Melodic contour shape.
+        melody_strategy: Which melodic generation strategy to use.
+            Must be one of the registered MelodicGenerationStrategy values.
+            If None, defaults to the genre Skill's default_melody_strategy
+            or "contour_based".
         motif: Motif generation parameters.
         intervals: Interval constraints.
         phrase: Phrase structure parameters.
@@ -400,9 +456,33 @@ class MelodySpec(BaseModel):
 
     range: NoteRangeSpec | None = None
     contour: str = "arch"
+    melody_strategy: str | None = None
     motif: MotifSpec = Field(default_factory=MotifSpec)
     intervals: IntervalSpec = Field(default_factory=IntervalSpec)
     phrase: PhraseSpec = Field(default_factory=PhraseSpec)
+
+    @field_validator("melody_strategy")
+    @classmethod
+    def melody_strategy_valid(cls, v: str | None) -> str | None:
+        """Validate melody_strategy against known strategies."""
+        if v is None:
+            return v
+        valid = {
+            "contour_based",
+            "motif_development",
+            "linear_voice",
+            "arpeggiated",
+            "scalar_runs",
+            "call_response",
+            "pedal_tone",
+            "hocketing",
+        }
+        if v not in valid:
+            raise SpecValidationError(
+                f"Unknown melody_strategy '{v}'. Valid: {sorted(valid)}",
+                field="melody.melody_strategy",
+            )
+        return v
 
 
 class CadenceMap(BaseModel, extra="allow"):

@@ -7,6 +7,14 @@ default_swing: 0.0
 typical_drum_pattern: null
 preferred_instruments: [strings_ensemble, french_horn, piano, cello, timpani]
 avoided_instruments: [synth_lead_saw, electric_guitar_clean]
+evaluation_weights:
+  structure: 0.25
+  melody: 0.20
+  harmony: 0.25
+  acoustics: 0.15
+  arrangement: 0.15
+default_groove: cinematic_legato
+default_melody_strategy: contour_based
 ---
 
 # Cinematic Music — Genre Skill

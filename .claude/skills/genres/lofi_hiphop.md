@@ -7,6 +7,14 @@ default_swing: 0.6
 typical_drum_pattern: lofi_laidback
 preferred_instruments: [piano, electric_piano, electric_bass_finger]
 avoided_instruments: [synth_lead_square, synth_lead_saw, trumpet, piccolo, tuba]
+evaluation_weights:
+  structure: 0.10
+  melody: 0.15
+  harmony: 0.15
+  acoustics: 0.20
+  groove_pocket: 0.40
+default_groove: lofi_hiphop
+default_melody_strategy: arpeggiated
 ---
 
 # Lo-fi Hip Hop — Genre Skill

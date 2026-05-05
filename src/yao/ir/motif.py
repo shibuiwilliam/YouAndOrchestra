@@ -9,7 +9,8 @@ PROJECT.md §5.1: Composer Subagent generates motifs as the seeds of a compositi
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+import math
+from dataclasses import dataclass, field, replace
 
 from yao.ir.note import Note
 from yao.types import MidiNote
@@ -166,3 +167,137 @@ def diminish(motif: Motif, factor: float = 2.0) -> Motif:
         A new Motif with compressed durations.
     """
     return augment(motif, 1.0 / factor)
+
+
+# ---------------------------------------------------------------------------
+# Motif Network (A2)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class MotifNode:
+    """A node in the motif evolutionary tree.
+
+    Tracks how a motif instance relates to its parent through transformation,
+    and where in the piece it appears.
+
+    Attributes:
+        motif: The motif at this node.
+        parent_id: Label of the parent motif, or None if this is a seed.
+        transformation: The transformation applied to derive this from its parent.
+        bar_locations: Bars where this motif instance appears.
+    """
+
+    motif: Motif
+    parent_id: str | None = None
+    transformation: str = "identity"
+    bar_locations: tuple[int, ...] = ()
+
+
+@dataclass
+class MotifNetwork:
+    """Tracks the evolutionary tree of motifs across a piece.
+
+    The network records which motifs appear, how they derive from each other,
+    and where they are placed. This enables structural critique: "motif coverage
+    is only 30%" or "all variations are transpositions — consider inversions."
+
+    Goodhart defense: coverage_ratio can be gamed by inserting trivial
+    motif fragments everywhere. Cross-check with variation_diversity
+    (which requires different transformation types) and the critic's
+    motif-quality checks.
+
+    Attributes:
+        nodes: Mapping from motif label/id to its MotifNode.
+        total_bars: Total number of bars in the piece.
+    """
+
+    nodes: dict[str, MotifNode] = field(default_factory=dict)
+    total_bars: int = 1
+
+    def add_node(self, node: MotifNode, key: str | None = None) -> str:
+        """Add a motif node to the network.
+
+        Args:
+            node: The MotifNode to add.
+            key: Optional explicit key. If None, auto-generates a unique key
+                from the motif label.
+
+        Returns:
+            The key under which the node was stored.
+        """
+        if key is None:
+            base = node.motif.label or "motif"
+            key = base
+            counter = 0
+            while key in self.nodes:
+                counter += 1
+                key = f"{base}_{counter}"
+        self.nodes[key] = node
+        return key
+
+    def trace_lineage(self, motif_id: str) -> list[MotifNode]:
+        """Trace the derivation chain from a motif back to its seed.
+
+        Args:
+            motif_id: Label of the motif to trace.
+
+        Returns:
+            List of MotifNodes from seed to the given motif.
+        """
+        chain: list[MotifNode] = []
+        current_id: str | None = motif_id
+        visited: set[str] = set()
+        while current_id and current_id in self.nodes and current_id not in visited:
+            visited.add(current_id)
+            node = self.nodes[current_id]
+            chain.append(node)
+            current_id = node.parent_id
+        chain.reverse()
+        return chain
+
+    def coverage_ratio(self) -> float:
+        """Fraction of bars containing some motif derivative.
+
+        Returns:
+            Float in [0.0, 1.0]. 1.0 means every bar has motif material.
+        """
+        if self.total_bars <= 0:
+            return 0.0
+        covered_bars: set[int] = set()
+        for node in self.nodes.values():
+            covered_bars.update(node.bar_locations)
+        return len(covered_bars) / self.total_bars
+
+    def variation_diversity(self) -> float:
+        """Shannon entropy of transformation types used, normalized.
+
+        Higher values indicate more diverse use of transformations.
+        A piece using only transpositions scores lower than one using
+        transposition, inversion, retrograde, and augmentation.
+
+        Returns:
+            Float in [0.0, 1.0]. 0.0 if only one transformation type.
+        """
+        if not self.nodes:
+            return 0.0
+
+        from collections import Counter
+
+        transform_counts = Counter(node.transformation for node in self.nodes.values())
+        total = sum(transform_counts.values())
+        if total <= 1:
+            return 0.0
+
+        num_types = len(transform_counts)
+        if num_types <= 1:
+            return 0.0
+
+        entropy = 0.0
+        for count in transform_counts.values():
+            p = count / total
+            if p > 0:
+                entropy -= p * math.log2(p)
+
+        max_entropy = math.log2(num_types)
+        return entropy / max_entropy if max_entropy > 0 else 0.0

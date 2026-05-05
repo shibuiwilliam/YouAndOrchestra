@@ -7,7 +7,7 @@ git clone https://github.com/shibuiwilliam/YouAndOrchestra
 cd YouAndOrchestra
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-make all-checks   # Should see ~2,157+ tests passing + 6 golden
+make all-checks   # Should see ~2,157 tests passing + 6 golden + 5 honesty tools
 ```
 
 Requires **Python 3.11+**.

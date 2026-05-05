@@ -653,38 +653,61 @@ The Conductor's adaptation logic reads from all four axes; no single axis domina
 
 ---
 
-## 13. Roadmap (v2)
+## 13. Roadmap (v2.1 — updated to reflect implementation progress)
 
-v2 reframes the v1 phase plan. v1 Phase 1 (symbolic foundation) is complete. v2 begins at Phase 2.
+v2 reframes the v1 phase plan. v1 Phase 1 (symbolic foundation) is complete. v2 implementation is ~75% done.
 
-### Phase 2: Genre + Aesthetic (Sprints 1–2)
-- Sprint 1: B1 (genre Skill template + 10 Tier-1 populated), A3 (4 melody strategies), A4 (10 GrooveTemplates).
-- Sprint 2: C1 (reference library, 20+ entries), C2 (style vector), C3 (psych mapper: arousal/valence/tension), D2 (mood profile in pipeline).
+### Phase 2: Genre + Aesthetic — ~80% DONE
+- ✅ B1: 22 genre Skills populated (3 Tier-1 still needed: pop, hiphop, orchestral classical; field enrichment needed).
+- ⚠️ A3: 8 melody strategies implemented (schema integration pending).
+- ✅ A4: 20 GrooveTemplates + GrooveProfile + GrooveApplicator.
+- ⚠️ C1: Reference library at 10 entries (target: 20+; tools needed).
+- ⚠️ C2: StyleVector implemented (missing arithmetic ops + cosine_similarity).
+- ⚠️ C3: PsychMapper emotion→feature done (score→perception direction pending).
+- ⚠️ D2: Mood profile partially covered by EmotionSpec; standalone MoodProfile type pending.
 
-### Phase 3: Multi-Agent + Expression (Sprints 3–4)
-- Sprint 3: E1 (PipelineGenerator), E2 (ProgrammaticCritic), E3 (ProducerEngine).
-- Sprint 4: A5 (compound meter / polymeter / polyrhythm), A6 (articulation + expression IR), A1 (Phrase IR), A2 (Motif Network).
+### Phase 3: Multi-Agent + Expression — ✅ DONE
+- ✅ E1: Performance pipeline + Producer subagent orchestration (5-step).
+- ✅ E2: 15+ programmatic critique rules.
+- ✅ E3: Producer with conflict arbitration + provenance.
+- ✅ A5: Compound meter, polymeter, polyrhythm.
+- ✅ A6: Articulation + Expression IR + performance realizers.
+- ✅ A1: Phrase IR.
+- ⚠️ A2: Motif transforms done, MotifNetwork class pending.
 
-### Phase 4: Practical Usability (Sprint 5)
-- F4 (Live Preview Server), D1 (Genre-Aware Evaluator), F5 (Loopability Validator), D3 (Human Feedback Logger).
+### Phase 4: Practical Usability — ~90% DONE
+- ✅ F4: Audition/preview server.
+- ✅ D1: Genre-aware evaluator with dynamic weights.
+- ❌ F5: Loopability Validator (not started).
+- ✅ D3: Human Feedback Logger + Conductor integration.
 
-### Phase 5: Specialty Expansion (Sprints 6+)
-- F1 (Arrangement Engine), F3 (Constraint Solver), F2 (AI-Seed), F8 (Production Layer / VST), B3/B4 (Tonal/Rhythm Systems), F6 (Vocal IR), F7 (Tuning), B2 (Genre blending), C4 (AestheticReport integration).
+### Phase 5: Specialty Expansion — ~60% DONE
+- ✅ F1: Arrangement engine (5 operations).
+- ✅ F3: Constraint solver.
+- ❌ F2: AI-Seed Generator (not started).
+- ✅ F8: Mix/production chain.
+- ❌ B3/B4: TonalSystem/RhythmSystem Protocols (infrastructure exists, formalization pending).
+- ❌ F6: Vocal IR (not started).
+- ✅ F7: Tuning system.
+- ⚠️ B2: Genre blending (partial).
+- ✅ C4: Aesthetic report (listening simulator).
 
 ### Phase 6: Reflection & Learning (continuous)
-- Style profile per user, community reference sharing, IDyOM-class predictive models.
+- ✅ Style profile learning.
+- ✅ Provenance graph.
+- Remaining: community reference sharing, IDyOM-class predictive models.
 
 ### User-Value Milestones (parallel measurement)
 
-| Milestone | User value | Unblocked by |
-|---|---|---|
-| Describe & Hear ✅ | "YAML in, music out" | v1 |
-| Iterate & Improve ✅ | "Tell it what's wrong, it improves" | v1 |
-| Richer Music | "Pro-quality harmony, rhythm, dynamics" | A1–A6, B1 |
-| My Style | "Learns my preferences" | C1–C3, D3 |
-| Multi-Genre | "Convincing across diverse genres" | B1–B4, C1–C4, D1 |
-| Production Ready | "Usable in real projects" | F1, F4, F8 |
-| Stage Ready | "Live performance, real-time" | Phase 5 / `/improvise` |
+| Milestone | User value | Unblocked by | Status |
+|---|---|---|---|
+| Describe & Hear | "YAML in, music out" | v1 | ✅ |
+| Iterate & Improve | "Tell it what's wrong, it improves" | v1 | ✅ |
+| Richer Music | "Pro-quality harmony, rhythm, dynamics" | A1–A6, B1 | ✅ |
+| My Style | "Learns my preferences" | C1–C3, D3 | ⚠️ 80% |
+| Multi-Genre | "Convincing across diverse genres" | B1–B4, C1–C4, D1 | ⚠️ 70% |
+| Production Ready | "Usable in real projects" | F1, F4, F8 | ✅ |
+| Stage Ready | "Live performance, real-time" | Phase 5 / `/improvise` | ⚠️ 60% |
 
 ---
 

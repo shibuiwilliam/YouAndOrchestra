@@ -7,6 +7,14 @@ default_swing: 0.0
 typical_drum_pattern: pop_8beat
 preferred_instruments: [piano, acoustic_guitar_steel, electric_bass_finger]
 avoided_instruments: [tuba, harpsichord, timpani, baritone_sax]
+evaluation_weights:
+  structure: 0.25
+  melody: 0.30
+  harmony: 0.20
+  acoustics: 0.10
+  groove_pocket: 0.15
+default_groove: j_pop_tight
+default_melody_strategy: contour_based
 ---
 
 # J-Pop — Genre Skill

@@ -7,6 +7,14 @@ default_swing: 0.0
 typical_drum_pattern: null
 preferred_instruments: [synth_pad_warm, piano, strings_ensemble]
 avoided_instruments: [timpani, piccolo, xylophone, trumpet, trombone, tuba, electric_guitar_clean, electric_bass_pick]
+evaluation_weights:
+  structure: 0.10
+  melody: 0.15
+  harmony: 0.15
+  acoustics: 0.20
+  texture: 0.40
+default_groove: ambient_fluid
+default_melody_strategy: pedal_tone
 ---
 
 # Ambient — Genre Skill

@@ -140,6 +140,32 @@ Conductor Feedback Loop (up to 3 iterations + audio loop)
 | `AgentOutput` | subagents/base.py | Universal subagent output |
 | `GenreProfile` | schema/genre_profile.py | Genre-specific defaults (tempo, harmony, instruments, etc.) |
 
+## Package Layout
+
+```
+src/yao/           228 Python modules
+  constants/       Layer 0: 46 instruments, 28 scales, 20 forms, 14 chords
+  schema/          Layer 1: Pydantic specs (v1 + v2 + v3), genre profiles (24 files)
+  sketch/          Layer 1.5: NL compiler (3-stage), emotion vocab, dialogue (5 files)
+  ir/              Layer 3: Score IR + Plan IR (33 files)
+  generators/      Layer 2: 9 generators, 8 melodic strategies, performance (39 files)
+  perception/      Layer 4: Audio features, style vector, surprise, mood (9 files)
+  render/          Layer 5: MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel (14 files)
+  verify/          Layer 6: Evaluator, 35 critique rules, constraints (30 files)
+  reflect/         Layer 7: Provenance, style profile (6 files)
+  conductor/       Orchestration: Generate-evaluate-adapt loop (8 files)
+  subagents/       7 subagent implementations (9 files)
+  agents/          Backend protocol: PythonOnly, Anthropic API (6 files)
+  arrange/         Arrangement: Style ops, extraction, diff (12 files)
+  feedback/        Feedback: Pin, NL translator, regenerator (4 files)
+  mix/             Mix: EQ, compression, reverb, master (6 files)
+  improvise/       Live: Real-time engine (4 files)
+  audition/        UI: A/B comparison server (2 files)
+  annotate/        UI: Annotation server (2 files)
+  skills/          Genre skill loader (2 files)
+  runtime/         Project runtime (2 files)
+```
+
 ## Library Confinement
 
 | Library | Allowed In | Prohibited Elsewhere |

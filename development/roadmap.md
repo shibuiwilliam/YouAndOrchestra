@@ -70,10 +70,10 @@ Delivered the eight improvements from PROJECT.md v2.0:
 
 Everything below is implemented, tested, and verified by CI honesty tools:
 
-- 222 Python source modules
-- 195 test files with ~2,157 tests
+- 228 Python source modules
+- 249 test files with ~2,157 tests
 - 8 generation strategies + 8 melodic strategies
-- 35 critique rules across 12+ categories
+- 35 critique rules across 15 categories
 - 46 instruments (9 families), 28+ scales, 20 forms, 14 chords
 - 15 drum patterns, 20 groove profiles
 - 22 genre skills, 3 culture skills
@@ -81,6 +81,9 @@ Everything below is implemented, tested, and verified by CI honesty tools:
 - 6 output formats (MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel)
 - 7 use-case evaluators (YouTube BGM, Game BGM, Ad, Study, Meditation, Workout, Cinematic)
 - 5 honesty check tools enforced in CI
+- Mix chain with per-track EQ, compression, reverb + master (pedalboard-based)
+- Multilingual spec compilation (English + Japanese)
+- 102 example project specs across diverse genres
 
 ---
 

@@ -7,6 +7,14 @@ default_swing: 0.0
 typical_drum_pattern: game_drive_16bit
 preferred_instruments: [synth_lead_square, synth_lead_saw, synth_bass]
 avoided_instruments: [strings_ensemble, french_horn, oboe, cello, viola, contrabass, synth_pad_warm, acoustic_guitar_nylon]
+evaluation_weights:
+  structure: 0.25
+  melody: 0.35
+  harmony: 0.15
+  acoustics: 0.10
+  groove_pocket: 0.15
+default_groove: pop_straight
+default_melody_strategy: scalar_runs
 ---
 
 # Game 8-bit Chiptune — Genre Skill

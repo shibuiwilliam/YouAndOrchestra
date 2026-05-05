@@ -23,6 +23,14 @@ representative_techniques:
   - riser_builds
   - filter_sweeps
   - drop_impact
+evaluation_weights:
+  structure: 0.25
+  melody: 0.20
+  harmony: 0.10
+  acoustics: 0.20
+  groove_pocket: 0.25
+default_groove: edm_4onfloor
+default_melody_strategy: arpeggiated
 ---
 
 # EDM House — Genre Skill

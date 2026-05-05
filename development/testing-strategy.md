@@ -13,6 +13,8 @@
 | Genre Coverage | `tests/genre_coverage/` | Per-genre schema validation, profile loading, all 22 genres | ~111 |
 | Properties | `tests/properties/` | Property-based genre invariants across strategies and seeds | ~20 |
 | Subjective | `tests/subjective/` | Human rating threshold validation | ~5 |
+| LLM Quality | `tests/llm_quality/` | NL generation quality tests | ~5 |
+| Tools | `tests/tools/` | CI audit tool tests | ~15 |
 | **Total** | | | **~2,157** |
 
 ## Running Tests

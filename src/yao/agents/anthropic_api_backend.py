@@ -24,9 +24,9 @@ from typing import Any
 import structlog
 
 try:
-    import anthropic  # type: ignore[import-not-found]
+    import anthropic
 except ImportError:
-    anthropic = None  # type: ignore[assignment,unused-ignore]
+    anthropic = None  # type: ignore[assignment]
 
 from yao.agents.protocol import AgentInvocationConfig
 from yao.errors import AgentBackendError, AgentOutputParseError, BackendNotConfiguredError

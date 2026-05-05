@@ -61,6 +61,206 @@ class StyleVector:
     cadence_type_distribution: tuple[float, ...] = (0.0,) * 4
     rhythm_complexity: float = 0.0
 
+    def _to_flat(self) -> list[float]:
+        """Flatten all features into a single vector for arithmetic.
+
+        Returns:
+            List of all scalar and tuple element values in a fixed order.
+        """
+        parts: list[float] = [
+            self.harmonic_rhythm,
+            self.voice_leading_smoothness,
+            self.motif_density,
+            self.rhythm_complexity,
+        ]
+        parts.extend(self.rhythmic_density_per_bar)
+        parts.extend(self.register_distribution)
+        parts.extend(self.timbre_centroid_curve)
+        parts.extend(self.interval_class_histogram)
+        parts.extend(self.chord_quality_histogram)
+        parts.extend(self.cadence_type_distribution)
+        return parts
+
+    def _tuple_lengths(self) -> tuple[int, int, int, int, int, int]:
+        """Return lengths of the six variable-length tuple fields."""
+        return (
+            len(self.rhythmic_density_per_bar),
+            len(self.register_distribution),
+            len(self.timbre_centroid_curve),
+            len(self.interval_class_histogram),
+            len(self.chord_quality_histogram),
+            len(self.cadence_type_distribution),
+        )
+
+    @staticmethod
+    def _from_flat(
+        values: list[float],
+        lengths: tuple[int, int, int, int, int, int],
+    ) -> StyleVector:
+        """Reconstruct a StyleVector from a flat value list and tuple lengths.
+
+        Args:
+            values: Flat list of all feature values.
+            lengths: Lengths of the six tuple fields.
+
+        Returns:
+            Reconstructed StyleVector.
+        """
+        idx = 0
+        harmonic_rhythm = values[idx]
+        idx += 1
+        voice_leading_smoothness = values[idx]
+        idx += 1
+        motif_density = values[idx]
+        idx += 1
+        rhythm_complexity = values[idx]
+        idx += 1
+
+        rhythmic_density = tuple(values[idx : idx + lengths[0]])
+        idx += lengths[0]
+        register_dist = tuple(values[idx : idx + lengths[1]])
+        idx += lengths[1]
+        timbre_curve = tuple(values[idx : idx + lengths[2]])
+        idx += lengths[2]
+        interval_hist = tuple(values[idx : idx + lengths[3]])
+        idx += lengths[3]
+        chord_hist = tuple(values[idx : idx + lengths[4]])
+        idx += lengths[4]
+        cadence_dist = tuple(values[idx : idx + lengths[5]])
+        idx += lengths[5]
+
+        return StyleVector(
+            harmonic_rhythm=harmonic_rhythm,
+            voice_leading_smoothness=voice_leading_smoothness,
+            rhythmic_density_per_bar=rhythmic_density,
+            register_distribution=register_dist,
+            timbre_centroid_curve=timbre_curve,
+            motif_density=motif_density,
+            interval_class_histogram=interval_hist,
+            chord_quality_histogram=chord_hist,
+            cadence_type_distribution=cadence_dist,
+            rhythm_complexity=rhythm_complexity,
+        )
+
+    @staticmethod
+    def _align_lengths(
+        a: StyleVector,
+        b: StyleVector,
+    ) -> tuple[list[float], list[float], tuple[int, int, int, int, int, int]]:
+        """Align two StyleVectors to the same tuple lengths by zero-padding shorter tuples.
+
+        Args:
+            a: First StyleVector.
+            b: Second StyleVector.
+
+        Returns:
+            Tuple of (flat_a, flat_b, max_lengths).
+        """
+        a_lens = a._tuple_lengths()
+        b_lens = b._tuple_lengths()
+        max_lens = tuple(max(al, bl) for al, bl in zip(a_lens, b_lens, strict=True))
+
+        def _pad_and_flatten(sv: StyleVector, target_lens: tuple[int, ...]) -> list[float]:
+            parts: list[float] = [
+                sv.harmonic_rhythm,
+                sv.voice_leading_smoothness,
+                sv.motif_density,
+                sv.rhythm_complexity,
+            ]
+            tuples = [
+                sv.rhythmic_density_per_bar,
+                sv.register_distribution,
+                sv.timbre_centroid_curve,
+                sv.interval_class_histogram,
+                sv.chord_quality_histogram,
+                sv.cadence_type_distribution,
+            ]
+            for t, tl in zip(tuples, target_lens, strict=True):
+                parts.extend(t)
+                parts.extend([0.0] * (tl - len(t)))
+            return parts
+
+        return (
+            _pad_and_flatten(a, max_lens),
+            _pad_and_flatten(b, max_lens),
+            max_lens,  # type: ignore[return-value]
+        )
+
+    def __add__(self, other: StyleVector) -> StyleVector:
+        """Element-wise addition of two StyleVectors.
+
+        Args:
+            other: StyleVector to add.
+
+        Returns:
+            New StyleVector with summed values.
+        """
+        flat_a, flat_b, lengths = StyleVector._align_lengths(self, other)
+        result = [a + b for a, b in zip(flat_a, flat_b, strict=True)]
+        return StyleVector._from_flat(result, lengths)
+
+    def __sub__(self, other: StyleVector) -> StyleVector:
+        """Element-wise subtraction of two StyleVectors.
+
+        Args:
+            other: StyleVector to subtract.
+
+        Returns:
+            New StyleVector with differenced values.
+        """
+        flat_a, flat_b, lengths = StyleVector._align_lengths(self, other)
+        result = [a - b for a, b in zip(flat_a, flat_b, strict=True)]
+        return StyleVector._from_flat(result, lengths)
+
+    def __mul__(self, scalar: float) -> StyleVector:
+        """Scalar multiplication of a StyleVector.
+
+        Args:
+            scalar: The scalar to multiply by.
+
+        Returns:
+            New StyleVector with scaled values.
+        """
+        flat = self._to_flat()
+        result = [v * scalar for v in flat]
+        return StyleVector._from_flat(result, self._tuple_lengths())
+
+    def __rmul__(self, scalar: float) -> StyleVector:
+        """Right-hand scalar multiplication.
+
+        Args:
+            scalar: The scalar to multiply by.
+
+        Returns:
+            New StyleVector with scaled values.
+        """
+        return self.__mul__(scalar)
+
+    def cosine_similarity(self, other: StyleVector) -> float:
+        """Compute cosine similarity to another StyleVector.
+
+        Cosine similarity measures the angle between two vectors,
+        independent of magnitude. Returns 1.0 for identical direction,
+        0.0 for orthogonal, -1.0 for opposite.
+
+        Goodhart defense: cosine similarity alone can be gamed by matching
+        feature ratios without matching absolute values. Always pair with
+        Euclidean distance_to() to catch magnitude divergence.
+
+        Args:
+            other: The other StyleVector.
+
+        Returns:
+            Cosine similarity in [-1.0, 1.0].
+        """
+        flat_a, flat_b, _ = StyleVector._align_lengths(self, other)
+        dot = sum(a * b for a, b in zip(flat_a, flat_b, strict=True))
+        mag_a = math.sqrt(sum(a * a for a in flat_a))
+        mag_b = math.sqrt(sum(b * b for b in flat_b))
+        if mag_a < 1e-12 or mag_b < 1e-12:
+            return 0.0
+        return dot / (mag_a * mag_b)
+
     def distance_to(self, other: StyleVector) -> float:
         """Compute Euclidean distance to another StyleVector.
 

@@ -23,6 +23,14 @@ representative_techniques:
   - chord_extensions_7th_9th_13th
   - ii_V_I_resolution
   - comping_patterns
+evaluation_weights:
+  structure: 0.15
+  melody: 0.25
+  harmony: 0.35
+  acoustics: 0.10
+  groove_pocket: 0.15
+default_groove: jazz_swing
+default_melody_strategy: arpeggiated
 ---
 
 # Jazz Swing — Genre Skill

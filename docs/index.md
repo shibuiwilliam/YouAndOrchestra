@@ -22,7 +22,7 @@ YaO turns music composition into a structured, reproducible process. Describe wh
 - **Trajectory curves** -- Shape tension, density, predictability, brightness, register height
 - **6-dimension evaluation** -- Structure, melody, harmony, aesthetic, arrangement, acoustics
 - **Acoustic evaluation** -- LUFS, spectral features, 7 use-case evaluators, symbolic-acoustic divergence detection
-- **35 adversarial critique rules** across 12+ categories -- structured findings with severity and remediation
+- **35 adversarial critique rules** across 15 categories -- structured findings with severity and remediation
 - **5 ensemble constraints** -- Register separation, downbeat consonance, parallel octave detection, frequency collision, bass-melody ordering
 - **Ensemble groove** -- GrooveProfile applied across all instruments (not just drums)
 - **Inter-instrument conversation** -- ConversationPlan with reactive fills and frequency clearance
@@ -57,7 +57,7 @@ Spec -> PlanOrchestrator (9 steps) -> MusicalPlan -> Critic Gate -> NoteRealizer
 yao conduct "a calm piano piece in D minor for studying, 90 seconds"
 
 # From spec (full control)
-yao compose specs/templates/bgm-90sec.yaml
+yao compose specs/templates/minimal.yaml
 
 # Arrange existing piece
 /arrange my-song --target-genre lofi_hiphop --preserve melody,form
@@ -113,11 +113,19 @@ outputs/projects/<name>/iterations/v001/
 - [Instruments](reference/instruments.md) -- 46 instruments with MIDI ranges
 - [Music Theory](reference/music-theory.md) -- Scales, chords, dynamics
 
+### Development
+- [Contributing](../development/CONTRIBUTING.md) -- 5-minute setup for contributors
+- [Architecture](../development/architecture.md) -- System architecture details
+- [API Reference](../development/api-reference.md) -- Public API surface
+- [Generator Guide](../development/generator-guide.md) -- Building generators
+- [Spec System](../development/spec-system.md) -- YAML spec formats
+- [Testing Strategy](../development/testing-strategy.md) -- Test categories and strategy
+- [Roadmap](../development/roadmap.md) -- Development history and future directions
+
 ### Audits & Design
 - [Wave 1 Completion](audit/wave-1-completion.md) -- Honesty wave results
 - [Wave 2 Completion](audit/wave-2-completion.md) -- Alignment wave results
 - [Monthly Audit](audit/2026-05-monthly.md) -- Latest status
-- [Aesthetic Benchmark](wave-2-2-aesthetic-benchmark.md) -- Metric validation
 
 ### Migration
 - [v2 Baseline Report](migration/v2-baseline-report.md) -- Gap analysis

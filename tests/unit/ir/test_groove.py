@@ -10,6 +10,8 @@ Tests cover:
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from yao.ir.groove import GrooveProfile, available_grooves, load_groove
@@ -95,6 +97,77 @@ class TestGrooveProfile:
     def test_apply_drums_only(self) -> None:
         profile = self._make_profile(apply_to_all_instruments=False)
         assert profile.apply_to_all_instruments is False
+
+
+class TestGrooveFromMidi:
+    """Tests for A4 GrooveProfile.from_midi()."""
+
+    def test_from_midi_basic(self, tmp_path: Path) -> None:
+        """Extract groove from a simple MIDI file with on-grid notes."""
+        import pretty_midi
+
+        pm = pretty_midi.PrettyMIDI(initial_tempo=120.0)
+        inst = pretty_midi.Instrument(program=0)
+        beat_dur = 0.5  # 120 BPM → 0.5s per beat
+        sixteenth = beat_dur / 4.0
+
+        # Place notes exactly on the grid at positions 0, 4, 8, 12 (quarter notes)
+        for bar in range(2):
+            for pos in [0, 4, 8, 12]:
+                start = bar * (beat_dur * 4) + pos * sixteenth
+                inst.notes.append(pretty_midi.Note(velocity=80, pitch=60, start=start, end=start + 0.1))
+
+        pm.instruments.append(inst)
+        midi_path = tmp_path / "test_groove.mid"
+        pm.write(str(midi_path))
+
+        profile = GrooveProfile.from_midi(midi_path)
+        assert profile.name == "test_groove"
+        # On-grid notes should have near-zero microtiming offsets
+        for pos in [0, 4, 8, 12]:
+            assert abs(profile.microtiming_at(pos)) < 5.0
+
+    def test_from_midi_velocity_pattern(self, tmp_path: Path) -> None:
+        """Velocity variation should appear in the extracted velocity_pattern."""
+        import pretty_midi
+
+        pm = pretty_midi.PrettyMIDI(initial_tempo=120.0)
+        inst = pretty_midi.Instrument(program=0)
+        beat_dur = 0.5
+        sixteenth = beat_dur / 4.0
+
+        # Accent on beat 1 (pos 0), softer on others
+        for bar in range(4):
+            bar_start = bar * beat_dur * 4
+            inst.notes.append(pretty_midi.Note(velocity=120, pitch=60, start=bar_start, end=bar_start + 0.1))
+            for pos in [4, 8, 12]:
+                start = bar_start + pos * sixteenth
+                inst.notes.append(pretty_midi.Note(velocity=60, pitch=60, start=start, end=start + 0.1))
+
+        pm.instruments.append(inst)
+        midi_path = tmp_path / "vel_test.mid"
+        pm.write(str(midi_path))
+
+        profile = GrooveProfile.from_midi(midi_path)
+        # Position 0 should be louder than position 4
+        assert profile.velocity_mult_at(0) > profile.velocity_mult_at(4)
+
+    def test_from_midi_nonexistent_raises(self, tmp_path: Path) -> None:
+        with pytest.raises(FileNotFoundError, match="not found"):
+            GrooveProfile.from_midi(tmp_path / "no_such_file.mid")
+
+    def test_from_midi_custom_name(self, tmp_path: Path) -> None:
+        import pretty_midi
+
+        pm = pretty_midi.PrettyMIDI(initial_tempo=120.0)
+        inst = pretty_midi.Instrument(program=0)
+        inst.notes.append(pretty_midi.Note(velocity=80, pitch=60, start=0.0, end=0.5))
+        pm.instruments.append(inst)
+        midi_path = tmp_path / "test.mid"
+        pm.write(str(midi_path))
+
+        profile = GrooveProfile.from_midi(midi_path, name="my_groove")
+        assert profile.name == "my_groove"
 
 
 class TestGrooveLibrary:

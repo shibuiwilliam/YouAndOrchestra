@@ -26,6 +26,14 @@ references:
   - "Vallely, F. (2011). The Companion to Irish Traditional Music. Cork University Press."
   - "Breathnach, B. (1971). Folk Music and Dances of Ireland. Ossian Publications."
   - "Hast, D. & Scott, S. (2004). Music in Ireland. Oxford University Press."
+evaluation_weights:
+  structure: 0.20
+  melody: 0.30
+  harmony: 0.20
+  acoustics: 0.10
+  groove_pocket: 0.20
+default_groove: pop_straight
+default_melody_strategy: scalar_runs
 ---
 
 # Celtic Traditional — Genre Skill

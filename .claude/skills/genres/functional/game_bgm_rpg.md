@@ -27,6 +27,14 @@ expert_review_note: "Based on Collins, K. 'Game Sound' (2008, MIT Press); Sweet,
 references:
   - "Collins, K. (2008). Game Sound. MIT Press."
   - "Sweet, M. (2014). Writing Interactive Music for Video Games. Addison-Wesley."
+evaluation_weights:
+  structure: 0.20
+  melody: 0.25
+  harmony: 0.20
+  acoustics: 0.15
+  groove_pocket: 0.20
+default_groove: pop_straight
+default_melody_strategy: contour_based
 ---
 
 # Game BGM (RPG) — Genre Skill
