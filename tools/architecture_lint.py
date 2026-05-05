@@ -34,6 +34,7 @@ LAYER_MAP: dict[str, int] = {
     "ir": 1,  # IR data types (Score IR + Plan IR) shared across all layers
     "reflect": 1,  # provenance types are cross-cutting
     "generators": 2,
+    "sound_design": 3,  # Layer 3.5: patches, effects, synthesis config
     "perception": 4,
     "arrange": 5,  # arrangement engine uses ir, render, schema
     "mix": 5,
@@ -52,7 +53,7 @@ RESTRICTED_LIBRARIES: dict[str, set[str]] = {
     "music21": {"ir", "verify", "render"},
     "librosa": {"verify", "perception"},
     "pyloudnorm": {"verify", "perception", "mix"},
-    "pedalboard": {"mix"},
+    "pedalboard": {"sound_design", "mix"},
 }
 
 SRC_DIR = Path("src/yao")
