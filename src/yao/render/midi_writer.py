@@ -210,6 +210,9 @@ _INSTRUMENT_ALIASES: dict[str, str] = {
     "hi_hat_layer": "drums",
     "string_stabs": "pizzicato_strings",
     "atmospheric_pad": "pad_warm",
+    "electric_guitar": "electric_guitar_distortion",
+    "bass_guitar": "electric_bass_pick",
+    "strings_section": "strings_ensemble",
 }
 
 

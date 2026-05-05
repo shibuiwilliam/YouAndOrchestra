@@ -114,13 +114,10 @@ outputs/projects/<name>/iterations/v001/
 - [Music Theory](reference/music-theory.md) -- Scales, chords, dynamics
 
 ### Development
-- [Contributing](../development/CONTRIBUTING.md) -- 5-minute setup for contributors
-- [Architecture](../development/architecture.md) -- System architecture details
-- [API Reference](../development/api-reference.md) -- Public API surface
-- [Generator Guide](../development/generator-guide.md) -- Building generators
-- [Spec System](../development/spec-system.md) -- YAML spec formats
-- [Testing Strategy](../development/testing-strategy.md) -- Test categories and strategy
-- [Roadmap](../development/roadmap.md) -- Development history and future directions
+- [Architecture](architecture/layers.md) -- System architecture details
+- [Composition Specs](guide/composition-spec.md) -- YAML spec formats
+- [CLI Reference](guide/cli-reference.md) -- Command-line interface
+- [Design Decisions](architecture/decisions.md) -- Architectural decisions
 
 ### Audits & Design
 - [Wave 1 Completion](audit/wave-1-completion.md) -- Honesty wave results

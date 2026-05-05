@@ -1,10 +1,13 @@
-.PHONY: install setup-hooks test test-unit test-integration test-music test-golden test-subagent \
+.PHONY: install install-all setup-hooks test test-unit test-integration test-music test-golden test-subagent \
 test-acoustic test-genre-coverage lint format arch-lint meter-lint matrix-check feature-status \
 validate-spec new-project compose render setup-soundfonts setup-references all-checks \
 honesty-check plan-consumption skill-grounding critic-coverage backend-honesty audit-monthly
 
 install:
 	pip install -e ".[dev]"
+
+install-all:
+	pip install -e ".[dev,neural,live,annotate]"
 
 setup-hooks:
 	pre-commit install
