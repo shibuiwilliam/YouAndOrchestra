@@ -14,6 +14,7 @@ from pydantic import BaseModel, field_validator
 
 from yao.constants.music import DYNAMICS_TO_VELOCITY, SCALE_INTERVALS
 from yao.errors import SpecValidationError
+from yao.schema.tonal_system import TonalSystem, promote_legacy_key
 
 
 class InstrumentSpec(BaseModel):
@@ -135,6 +136,7 @@ class CompositionSpec(BaseModel):
     title: str
     genre: str = "general"
     key: str = "C major"
+    tonal_system: TonalSystem | None = None
     tempo_bpm: float = 120.0
     time_signature: str = "4/4"
     total_bars: int = 0
@@ -217,6 +219,16 @@ class CompositionSpec(BaseModel):
         if self.total_bars > 0:
             return self.total_bars
         return sum(s.bars for s in self.sections)
+
+    def effective_tonal_system(self) -> TonalSystem:
+        """Return the tonal system, auto-promoting from legacy key if needed.
+
+        If `tonal_system` is explicitly set, returns it directly.
+        Otherwise, promotes the legacy `key` string to a TonalSystem.
+        """
+        if self.tonal_system is not None:
+            return self.tonal_system
+        return promote_legacy_key(self.key)
 
     @classmethod
     def from_yaml(cls, path: Path) -> CompositionSpec:

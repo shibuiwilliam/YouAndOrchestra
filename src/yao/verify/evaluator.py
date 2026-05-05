@@ -21,6 +21,7 @@ from yao.errors import VerificationError
 from yao.ir.score_ir import ScoreIR
 from yao.schema.composition import CompositionSpec
 from yao.schema.genre_profile import UnifiedGenreProfile
+from yao.schema.tonal_system import TonalSystem
 from yao.schema.trajectory import TrajectorySpec
 from yao.verify.metric_goal import MetricGoal, MetricGoalType, evaluate_metric
 
@@ -464,11 +465,16 @@ def evaluate_melody(score: ScoreIR) -> list[EvaluationScore]:
     return results
 
 
-def evaluate_harmony(score: ScoreIR) -> list[EvaluationScore]:
-    """Evaluate harmonic quality.
+def evaluate_harmony(
+    score: ScoreIR,
+    tonal_system: TonalSystem | None = None,
+) -> list[EvaluationScore]:
+    """Evaluate harmonic quality, dispatching on tonal system.
 
     Args:
         score: The ScoreIR to evaluate.
+        tonal_system: Optional tonal system for genre-aware evaluation.
+            When provided, metrics that don't apply to the system are skipped.
 
     Returns:
         List of harmony evaluation scores.
@@ -478,21 +484,39 @@ def evaluate_harmony(score: ScoreIR) -> list[EvaluationScore]:
     if not all_notes:
         return results
 
-    # Pitch class variety
-    pitch_classes = set(n.pitch % 12 for n in all_notes)
-    pc_variety = len(pitch_classes) / 12.0
-    results.append(
-        _score_via_goal(
-            "harmony",
-            "pitch_class_variety",
-            pc_variety,
-            MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.3, max_value=1.0),
-        )
-    )
+    # Resolve tonal system (default to tonal_major_minor if not provided)
+    ts = tonal_system if tonal_system is not None else TonalSystem()
 
-    # Consonance ratio
-    consonant_intervals = {0, 3, 4, 5, 7, 8, 9, 12}
-    if len(all_notes) >= 2:  # noqa: PLR2004
+    # Pitch class variety — not applicable for drone (low variety is intentional)
+    if ts.is_pitch_class_variety_applicable:
+        pitch_classes = set(n.pitch % 12 for n in all_notes)
+        pc_variety = len(pitch_classes) / 12.0
+        results.append(
+            _score_via_goal(
+                "harmony",
+                "pitch_class_variety",
+                pc_variety,
+                MetricGoal(type=MetricGoalType.BETWEEN, min_value=0.3, max_value=1.0),
+            )
+        )
+    else:
+        # Drone: pitch class variety is not penalized, score as perfect
+        results.append(
+            _score_via_goal(
+                "harmony",
+                "pitch_class_variety",
+                1.0,
+                MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.0),
+            )
+        )
+
+    # Consonance ratio — not applicable for atonal or drone
+    if ts.is_consonance_applicable and len(all_notes) >= 2:  # noqa: PLR2004
+        # Blues: include b3 (3 semitones) and b7 (10 semitones) as consonant
+        consonant_intervals = {0, 3, 4, 5, 7, 8, 9, 12}
+        if ts.allows_blue_notes:
+            consonant_intervals |= {6, 10}  # b5 (tritone) and b7
+
         consonance_count = 0
         pair_count = 0
         for i in range(len(all_notes)):
@@ -502,17 +526,24 @@ def evaluate_harmony(score: ScoreIR) -> list[EvaluationScore]:
                     pair_count += 1
                     if interval in consonant_intervals:
                         consonance_count += 1
-        if pair_count == 0:
-            return results
-        consonance_ratio = consonance_count / pair_count
-        # v2 fix: consonance uses AT_LEAST instead of TARGET_BAND.
-        # "Consonance ratio too high" is not a meaningful failure.
+        if pair_count > 0:
+            consonance_ratio = consonance_count / pair_count
+            results.append(
+                _score_via_goal(
+                    "harmony",
+                    "consonance_ratio",
+                    consonance_ratio,
+                    MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.4),
+                )
+            )
+    elif not ts.is_consonance_applicable:
+        # Atonal/drone: consonance is not a meaningful metric, score as perfect
         results.append(
             _score_via_goal(
                 "harmony",
                 "consonance_ratio",
-                consonance_ratio,
-                MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.4),
+                1.0,
+                MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.0),
             )
         )
 
@@ -595,6 +626,8 @@ def evaluate_score(
     report = EvaluationReport(title=score.title, dimension_weights=weights)
     report.scores.extend(evaluate_structure(score, spec, trajectory))
     report.scores.extend(evaluate_melody(score))
-    report.scores.extend(evaluate_harmony(score))
+    # Pass tonal system for genre-aware harmony evaluation
+    tonal_sys = spec.effective_tonal_system() if spec is not None else None
+    report.scores.extend(evaluate_harmony(score, tonal_system=tonal_sys))
     report.scores.extend(evaluate_rhythm(score))
     return report
