@@ -492,6 +492,32 @@ development/       Contributor guide, API reference, roadmap
 
 ---
 
+## v2.0 Multi-Genre Capabilities
+
+YaO v2.0 removes the Western tonal bias of v1.0. The same system now generates
+quality output across diverse genres:
+
+| Genre | Key v2.0 Feature | Example |
+|-------|-------------------|---------|
+| **Cinematic** | Wide trajectory arcs, orchestral texture evolution | `yao conduct "epic orchestral trailer building to brass climax"` |
+| **Lo-fi Hip Hop** | Loop evolution, tape saturation sound design | `yao conduct "lofi study beat, 82 BPM, dusty Rhodes chords"` |
+| **J-Pop** | Complex form (verse/pre-chorus/chorus/D-melody), vocal singability | `yao conduct "J-pop chorus with wide melodic range and key change"` |
+| **Ambient** | Drone-safe evaluation, texture-first composition | `yao conduct "ambient drone, single evolving pad, 5 minutes"` |
+| **Deep House** | Four-on-the-floor, loop architecture, filter evolution | `yao conduct "deep house 122 BPM, Rhodes chords, sub bass"` |
+| **Western Pop** | Hook-driven, verse-chorus, memorable motifs | `yao conduct "pop song with singable chorus hook, 120 BPM"` |
+
+### What Makes v2.0 Different
+
+- **Tonal System Abstraction**: Blues b3 is a feature, not a defect. Drone music isn't penalized for low pitch variety. Modal jazz uses its own consonance rules.
+- **Genre-Conditional Evaluation**: Each genre Skill declares its own evaluator weights. Lo-fi prioritizes groove; cinematic prioritizes trajectory.
+- **Sound Design Layer**: Same MIDI + different `sound_design.yaml` = different audio character.
+- **Loop-First Generation**: `loop_evolution` strategy for genres built on repetition.
+- **Vocal Singability**: Tessitura, breath points, and leap constraints for vocal tracks.
+- **Six-Phase Protocol**: Intent → Sketch → Skeleton → Dialogue → Fill → Listen. No shortcuts.
+- **Reference-Driven Evaluation**: 7 feature extractors + weighted distance to aesthetic anchors.
+
+---
+
 ## Documentation
 
 | Document | Purpose |
@@ -500,6 +526,7 @@ development/       Contributor guide, API reference, roadmap
 | [PROJECT.md](PROJECT.md) | Full design (v2.0) |
 | [CLAUDE.md](CLAUDE.md) | Development rules and conventions |
 | [VISION.md](VISION.md) | Target architecture |
+| [docs/design/v2-summary.md](docs/design/v2-summary.md) | v2.0 architecture summary for new contributors |
 | [development/](development/) | Contributor guide, API reference, roadmap |
 | [docs/](docs/) | Architecture, tutorials, reference, audit reports |
 
