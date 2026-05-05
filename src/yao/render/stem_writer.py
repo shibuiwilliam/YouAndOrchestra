@@ -53,7 +53,7 @@ def write_stems(
         )
 
         program = _resolve_program(instrument)
-        is_drum = instrument == "drums"
+        is_drum = _is_drum_instrument(instrument)
 
         midi_instrument = pretty_midi.Instrument(
             program=program,
@@ -87,11 +87,42 @@ def write_stems(
     return written
 
 
+# Keywords that indicate a drum/percussion instrument
+_DRUM_KEYWORDS = ("drum", "breakbeat", "percussion", "kit", "hi_hat", "snare", "kick")
+
+# Fuzzy mapping for instrument names not in the GM table
+_INSTRUMENT_ALIASES: dict[str, str] = {
+    "breakbeat_drums": "drums",
+    "sub_bass_reese": "synth_bass",
+    "sub_bass": "synth_bass",
+    "reese_bass": "synth_bass",
+    "hi_hat_layer": "drums",
+    "string_stabs": "pizzicato_strings",
+    "atmospheric_pad": "pad_warm",
+}
+
+
+def _is_drum_instrument(instrument_name: str) -> bool:
+    """Determine if an instrument should use the MIDI drum channel."""
+    if instrument_name == "drums":
+        return True
+    return any(kw in instrument_name.lower() for kw in _DRUM_KEYWORDS)
+
+
 def _resolve_program(instrument_name: str) -> int:
     """Resolve an instrument name to a General MIDI program number."""
+    if _is_drum_instrument(instrument_name):
+        return 0
+
     if instrument_name in GENERAL_MIDI_INSTRUMENTS:
         return GENERAL_MIDI_INSTRUMENTS[instrument_name]
+
     inst_range = INSTRUMENT_RANGES.get(instrument_name)
     if inst_range is not None:
         return inst_range.program
+
+    alias = _INSTRUMENT_ALIASES.get(instrument_name)
+    if alias and alias in GENERAL_MIDI_INSTRUMENTS:
+        return GENERAL_MIDI_INSTRUMENTS[alias]
+
     return 0

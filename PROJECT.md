@@ -1,141 +1,164 @@
-# PROJECT.md — You and Orchestra (YaO)
+# PROJECT.md — You and Orchestra (YaO) v2.0
 
-> *An agentic music production environment built on Claude Code*
-> *— where you are the conductor, and the AI is your orchestra.*
+> *An agentic music production environment built on Claude Code.*
+> *Where you are the conductor, and the AI is your orchestra.*
 >
-> **Document version**: 2.0
-> **Updated**: 2026-05-04
-> **Status**: Forward-looking design integrating IMPROVEMENT.md remediations
+> **This is the v2.0 design.** It supersedes v1.0 by integrating the genre-diversity
+> and musical-quality improvements specified in `IMPROVEMENT.md`.
+
+---
+
+## Table of Contents
+
+0. [The Essence of YaO](#0-the-essence-of-yao)
+1. [The Conductor Metaphor](#1-the-conductor-metaphor)
+2. [Design Principles](#2-design-principles)
+3. [Architecture: The 7-Layer Model (v2)](#3-architecture-the-7-layer-model-v2)
+4. [Directory Structure](#4-directory-structure)
+5. [Orchestra: Subagent Design (v2)](#5-orchestra-subagent-design-v2)
+6. [The 6-Phase Cognitive Protocol (Now Executable)](#6-the-6-phase-cognitive-protocol-now-executable)
+7. [Specification Language (v2)](#7-specification-language-v2)
+8. [Custom Commands](#8-custom-commands)
+9. [Skills as Genre Knowledge](#9-skills-as-genre-knowledge)
+10. [Hooks](#10-hooks)
+11. [MCP Integration](#11-mcp-integration)
+12. [Quality Assurance: Multi-Layered Evaluation](#12-quality-assurance-multi-layered-evaluation)
+13. [Roadmap (v2)](#13-roadmap-v2)
+14. [Quick Start](#14-quick-start)
+15. [File Formats and Interoperability](#15-file-formats-and-interoperability)
+16. [Ethics and Licensing](#16-ethics-and-licensing)
+17. [Document Relationships](#17-document-relationships)
+18. [Future Architectural Extensions](#18-future-architectural-extensions)
+19. [Glossary](#19-glossary)
+20. [Closing](#20-closing)
 
 ---
 
 ## 0. The Essence of YaO
 
-**You and Orchestra (YaO)** is an **agentic music production environment** built on Claude Code. Unlike conventional "AI music tools" that emit music from a single black box, YaO conducts **a division-of-labor among multiple specialized AI agents (Orchestra Members)** under the direction of a human (You = Conductor).
+**You and Orchestra (YaO)** is an agentic music production environment built on Claude Code. Unlike "AI music tools" that emit music from a black box, YaO is structured as a **division of labor among AI subagents (Orchestra Members), conducted by you (the human Conductor).**
 
-All YaO design subordinates to one proposition:
+All design in YaO derives from one proposition:
 
-> **Music production is not a one-shot intuitive act, but a reproducible and improvable creative-engineering process.**
+> **Music creation is not a one-shot, sensory act. It is a reproducible, improvable engineering process.**
 
-For this reason, YaO treats music **as code, specifications, tests, diffs, and provenance** before treating it as audio files. We call this the **Music-as-Code philosophy**.
+YaO therefore treats music as **code, specifications, tests, diffs, and provenance** *before* it ever becomes audio. This is the **Music-as-Code** philosophy.
 
-YaO v2.0 extends this philosophy with a critical realization: **the implicit defaults of "melody + harmony + 4/4 + 12-tone equal temperament + uniform velocity" are not universal**. They are one tradition among many. YaO v2.0 makes these dimensions explicit, modular, and genre-aware so that the system can authentically produce music from across the world's traditions — from Balkan 7/8 dances to Arabic maqam improvisations to J Dilla-grooved lo-fi hip-hop.
+### What v2 Adds Over v1
+
+v1.0 established the symbolic foundation: 7-layer architecture, IR, generators, MIDI rendering, evaluation, provenance, and a Conductor feedback loop. v2.0 builds on that foundation with five new commitments:
+
+1. **Rich musical expression** (Layer 1/3): Phrase IR, Motif Networks, articulation, expression, micro-timing.
+2. **Genre diversity as a first-class concept** (Layer 2/3): pluggable melody strategies, groove templates, tonal/rhythm system abstractions, structured genre Skills.
+3. **Aesthetic judgment is real** (Layer 4 *implemented*): reference library, style vectors, psych-mapping, mood profiles.
+4. **Genre-aware evaluation** (Layer 6): different genres, different success criteria.
+5. **Multi-agent coordination is live** (across the stack): the 6-phase cognitive protocol becomes executable code; Producer arbitration becomes runtime, not documentation.
+
+The 5 design principles, the 7-layer boundary discipline, and the Music-as-Code ethos are unchanged.
 
 ---
 
-## 1. The Metaphor: You and Orchestra
+## 1. The Conductor Metaphor
 
-Every YaO concept maps to an orchestra metaphor. Internalizing this correspondence is the shortest path to using YaO correctly.
+YaO concepts map to an orchestra. Internalizing this mapping is the shortest path to using YaO correctly.
 
-| YaO Component | Orchestra Metaphor | Implementation |
+| YaO concept | Orchestra metaphor | Implementation |
 |---|---|---|
 | **You** | Conductor | The human project owner |
-| **Score** | Sheet Music | YAML specs in `specs/*.yaml` |
+| **Score** | Sheet music | YAML specifications under `specs/` |
 | **Orchestra Members** | Players | Subagents (Composer, Critic, Theorist, etc.) |
-| **Concertmaster** | Lead Player | Producer Subagent (overall coordinator) |
-| **Rehearsal** | Practice | Generate-evaluate-adapt iteration loop |
-| **Library** | Sheet Music Archive | `references/` for reference compositions |
-| **Performance** | Live Show | Rendered final audio |
-| **Recording** | Studio Capture | Artifacts in `outputs/` |
-| **Critic / Reviewer** | Music Critic | Adversarial Critic Subagent |
-| **Style Library** | Repertoire Tradition | GenreProfile YAML database |
-| **Tuning Standards** | Pitch Reference | TuningSystem IR |
-| **Time Discipline** | Conductor's Beat | MeterSpec + GrooveProfile IR |
-| **Performance Practice** | Articulation Tradition | Articulation IR |
+| **Concertmaster** | Lead violinist | Producer Subagent (final arbiter) |
+| **Rehearsal** | Practice run | The generate → evaluate → adapt → regenerate loop |
+| **Library** | Sheet-music archive | `references/` — license-cleared corpus |
+| **Style Cards** | Genre-specific tradition guides | `.claude/skills/genres/` |
+| **Performance** | Live concert | Rendered final audio |
+| **Recording** | Master tape | `outputs/` artifacts |
+| **Critic** | Reviewer | Adversarial Critic Subagent + Programmatic Critic |
+| **Tempo Sketch** | Pacing diagram | Trajectory curves (tension/density/etc.) |
 
-The Conductor (You) does not write every note. The Conductor's job is to **clarify intent, direct the players, judge during rehearsal, and ensure the quality of the performance**. YaO brings this division of labor into AI.
+The Conductor does not write every note. The Conductor's job is to **clarify intent, set direction, judge during rehearsal, and own the quality of the performance**. YaO ports this division to AI.
 
 ---
 
 ## 2. Design Principles
 
-All YaO implementation decisions are tested against these **six immutable principles**. They are also transcribed to CLAUDE.md as agent decision criteria.
+These five principles are immutable. Every implementation decision must be justifiable against them.
 
-### Principle 1: The Agent is an Environment, Not a Composer
+### Principle 1: Agent = Environment, not Composer
+YaO accelerates human creativity by 10x; it does not replace it. Generation is one of YaO's affordances, not its purpose.
 
-YaO aspires to be "an environment that makes human composition 10× faster," not "an AI that writes songs." Full automation is rejected; the goal is to accelerate and augment human creative judgment.
+### Principle 2: Every Decision Is Explainable
+Every note, every chord choice, every instrument selection has a Provenance entry. There are no decisions YaO cannot account for.
 
-### Principle 2: Demand Explainability for Every Decision
+### Principle 3: Constraints Liberate
+Specs, references, negative space, and theory rules are scaffolds, not cages. Unconstrained freedom produces paralysis.
 
-Every generated note, chord, and arrangement decision records its rationale. This is persisted as a Provenance Graph, traceable, reviewable, and revisable.
+### Principle 4: Time-Axis First
+Trajectory curves (tension, density, valence, predictability) are designed *before* notes. Notes fill in the curves' implications.
 
-### Principle 3: Constraints Liberate, They Do Not Constrain
+### Principle 5: The Human Ear Is the Final Truth
+Automated metrics inform; humans decide. v2 makes this principle operational with the Human Feedback Logger.
 
-Explicit specs (YAML), reference libraries, and negative space designs function as scaffolding, not cages. Unlimited freedom paralyzes; structure liberates.
+### v2 Corollaries
 
-### Principle 4: Time-Axis First (Generalized)
+These follow logically from the principles but are made explicit for v2:
 
-**v2.0 generalization**: Music is first designed as **time-axis trajectories** — not only tension/density curves, but also **meter changes, groove profiles, articulation envelopes, and tuning systems**. Notes are filled in only after these time-axis decisions are committed. This produces structurally meaningful music in any tradition.
-
-### Principle 5: The Human Ear is the Final Truth
-
-No matter how refined automated metrics become, the human listening experience is the final judge. Agents **support, not replace** human judgment.
-
-### Principle 6: Vertical Alignment
-
-The expressiveness of the **input** (spec), the depth of the **processing** (pipeline), and the resolution of the **output evaluation** must advance together. Deepening any one alone is wasted. Every release must demonstrate progress on all three.
+- **Corollary 4a (Aesthetic Anchoring)**: Aesthetic judgment must be grounded in references and empirical psychology, not in metrics alone.
+- **Corollary 5a (No Goodhart)**: For every metric that drives generation, an orthogonal metric or human signal must check it.
+- **Corollary 1a (Genre Pluralism)**: No genre is privileged. Western pop is one tradition among many; the system must not penalize others for being themselves.
 
 ---
 
-## 3. Architecture: The 8-Layer Model
+## 3. Architecture: The 7-Layer Model (v2)
 
-YaO v2.0 organizes into **8 strictly separated layers**. Each layer has independent input/output contracts and is exchangeable and testable in isolation.
+YaO is partitioned into 7 layers with strict downward-only dependencies. The architecture v1 introduced is preserved; v2 fills in Layer 4 (previously empty) and enriches Layers 2, 3, and 6.
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│ Layer 7: Reflection & Learning                               │
-│   Learn from production history, update user preferences     │
-├──────────────────────────────────────────────────────────────┤
-│ Layer 6: Verification & Critique                             │
-│   Auto-evaluation, adversarial critique, genre-aware         │
-│   metrics, audio-domain perceptual analysis                  │
-├──────────────────────────────────────────────────────────────┤
-│ Layer 5: Rendering                                           │
-│   MIDI / audio / score writing, microtonal MIDI,             │
-│   articulation keyswitch, stem export                        │
-├──────────────────────────────────────────────────────────────┤
-│ Layer 4: Perception Substitute                               │
-│   Reference-driven aesthetic anchoring,                      │
-│   psychology mapping, audio feature extraction               │
-├──────────────────────────────────────────────────────────────┤
-│ Layer 3.5: Musical Plan IR (MPIR)                            │
-│   SongFormPlan, HarmonyPlan, MotifPlan,                      │
-│   ArrangementPlan, DrumPlan — the "why" layer                │
-├──────────────────────────────────────────────────────────────┤
-│ Layer 3: Score IR + Domain IR                                │
-│   ScoreIR, MeterSpec, GrooveProfile,                         │
-│   TuningSystem, Articulation, ExpressionCurve                │
-├──────────────────────────────────────────────────────────────┤
-│ Layer 2: Generation Strategy                                 │
-│   Pluggable generators: rule_based, stochastic,              │
-│   markov, constraint_solver; ensemble routing                │
-├──────────────────────────────────────────────────────────────┤
-│ Layer 1: Specification + GenreProfile                        │
-│   YAML specs (v1, v2, v3), GenreProfile schema,              │
-│   spec composability (extends, overrides, fragments)         │
-├──────────────────────────────────────────────────────────────┤
-│ Layer 0: Constants                                           │
-│   Instrument ranges, MIDI mappings, scales, chords           │
-└──────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│ Layer 7: Reflection & Learning                                  │
+│   Provenance graph, style-profile learning, feedback ingestion  │
+├─────────────────────────────────────────────────────────────────┤
+│ Layer 6: Verification & Critique                                │
+│   Music lint • Genre-aware evaluator • Programmatic critic      │
+│   Loopability validator • Score diff • Constraint checker       │
+├─────────────────────────────────────────────────────────────────┤
+│ Layer 5: Rendering                                              │
+│   MIDI writer • SoundFont renderer • Optional VST host          │
+│   Mix engine • Master engine • Stems • Live preview server      │
+├─────────────────────────────────────────────────────────────────┤
+│ Layer 4: Perception Substitute    ← NEW (v2)                    │
+│   Reference matcher • Style vector • Psych mapper               │
+│   Mood profile • Aesthetic report                               │
+├─────────────────────────────────────────────────────────────────┤
+│ Layer 3: Intermediate Representation (IR)                       │
+│   ScoreIR • Note (with Articulation/Expression) • Phrase        │
+│   Motif Network • Voicing • Harmony                             │
+│   Tonal System • Rhythm System • Groove Template • Vocal IR     │
+├─────────────────────────────────────────────────────────────────┤
+│ Layer 2: Generation Strategy                                    │
+│   Rule-based • Stochastic • Pipeline (6-phase)                  │
+│   AI-Seed • Constraint-Solver • Markov                          │
+│   MelodyStrategy plugins (chord_tone, bebop, pentatonic, modal,│
+│   riff_based, ambient_drone, melismatic)                        │
+├─────────────────────────────────────────────────────────────────┤
+│ Layer 1: Specification                                          │
+│   YAML schemas • Pydantic models • Sketch-to-Spec dialogue      │
+└─────────────────────────────────────────────────────────────────┘
+       Layer 0 (Constants): instrument ranges, scales, chords,
+       MIDI maps, dynamics, groove constants, mood lexicons
 ```
 
-### Dependency Rule
+### Strict Dependency Rules
 
-Lower layers do **not** know about upper layers. Cross-layer imports are forbidden. The architecture lint tool (`make arch-lint`) enforces this via AST analysis.
+- A layer may depend on layers strictly below it. Sideways and upward dependencies are forbidden.
+- The AST-based linter (`tools/architecture_lint.py`) enforces these boundaries at CI time.
+- New modules are placed by answering "What does this code do?" against the discriminator questions in CLAUDE.md.
 
-### Comparison with v1.0
+### What Each Layer Owns in v2
 
-| Layer | v1.0 | v2.0 |
-|---|---|---|
-| 0 | Implicit | **Explicit Constants layer** |
-| 1 | YAML spec | YAML + **GenreProfile** + **composability** |
-| 2 | Generators | Generators + **ensemble routing** |
-| 3 | ScoreIR | ScoreIR + **MeterSpec** + **GrooveProfile** + **TuningSystem** + **Articulation** |
-| 3.5 | (not present) | **MPIR** — formalized |
-| 4 | Stub | **Implemented** with reference matching, audio features, psychology |
-| 5 | MIDI/audio | + **microtonal MIDI**, **keyswitch routing** |
-| 6 | Verify | + **genre-aware**, **audio-domain**, **arrangement diff** |
-| 7 | Reflect | + **A/B audition feedback**, **style profile learning** |
+- **Layer 4 (Perception Substitute, new)** owns the question: *"Would a human find this aesthetically convincing?"* Reference matching, psych mapping, and mood profiling all live here. Layer 4 is the answer to "AI cannot listen."
+- **Layer 6 (Verify, expanded)** now owns *both* programmatic critique (no LLM, fast, CI-suitable) and orchestration of the LLM-based Adversarial Critic Subagent (deeper, slower, pre-finalization).
+- **Layer 2 (Generation, expanded)** holds **plug-and-play strategies**, not a single algorithm. The Pipeline generator orchestrates the 6-phase protocol; AI-Seed delegates motif generation to an LLM; Constraint-Solver uses CP-SAT.
 
 ---
 
@@ -143,1069 +166,685 @@ Lower layers do **not** know about upper layers. Cross-layer imports are forbidd
 
 ```
 yao/
-├── PROJECT.md                          # Full design (this file)
-├── CLAUDE.md                           # Agent operational rules
-├── VISION.md                           # Target architecture roadmap
-├── FEATURE_STATUS.md                   # Single source of truth
-├── README.md                           # User quickstart
+├── CLAUDE.md                        # Agent rules
+├── PROJECT.md                       # This file
+├── README.md                        # User quickstart
+├── IMPROVEMENT.md                   # Live tracking of v2 improvements
 ├── pyproject.toml
 ├── Makefile
 │
 ├── .claude/
-│   ├── commands/                       # Slash commands
-│   ├── agents/                         # Subagent definitions (7)
-│   ├── skills/
-│   │   ├── genres/                     # 12+ genre profiles (Markdown + YAML)
-│   │   ├── theory/                     # Voice leading, counterpoint, etc.
-│   │   ├── instruments/                # Per-instrument vocabulary
-│   │   ├── psychology/                 # Empirical music psychology
-│   │   ├── grooves/                    # Groove profiles (Markdown form)
-│   │   ├── tunings/                    # Tuning system documentation
-│   │   ├── meters/                     # Meter family documentation
-│   │   └── aesthetics/                 # "Great vs OK" per genre
-│   ├── guides/                         # Developer guides
-│   └── hooks/                          # Pre-commit, post-generate
+│   ├── commands/                    # Custom slash commands
+│   │   ├── compose.md
+│   │   ├── arrange.md
+│   │   ├── critique.md
+│   │   ├── morph.md
+│   │   ├── improvise.md
+│   │   ├── explain.md
+│   │   ├── regenerate-section.md
+│   │   ├── sketch.md
+│   │   └── render.md
+│   ├── agents/                      # Subagent definitions
+│   │   ├── producer.md
+│   │   ├── composer.md
+│   │   ├── harmony-theorist.md
+│   │   ├── rhythm-architect.md
+│   │   ├── orchestrator.md
+│   │   ├── adversarial-critic.md
+│   │   └── mix-engineer.md
+│   ├── skills/                      # Domain knowledge modules
+│   │   ├── genres/                  # Tier-1/2/3 genre Skills
+│   │   ├── theory/
+│   │   ├── instruments/
+│   │   └── psychology/
+│   ├── guides/                      # Developer guides (cross-cuts)
+│   │   ├── architecture.md
+│   │   ├── coding-conventions.md
+│   │   ├── music-engineering.md
+│   │   ├── testing.md
+│   │   └── workflow.md
+│   └── hooks/                       # Forced-execution scripts
+│       ├── pre-commit-lint.sh
+│       ├── post-generate-render.sh
+│       ├── post-generate-critique.sh
+│       └── update-provenance.sh
 │
 ├── specs/
-│   ├── projects/                       # User compositions
-│   ├── templates/                      # v1, v2, v3 templates
-│   └── fragments/                      # Reusable spec fragments
-│       ├── genres/
-│       ├── grooves/
-│       ├── meters/
-│       ├── tunings/
-│       └── instrumentation/
+│   ├── projects/                    # User compositions
+│   ├── templates/                   # Reusable spec scaffolds
+│   └── fragments/                   # Reusable spec fragments (v2 §18.4)
 │
 ├── src/
 │   ├── yao/
-│   │   ├── conductor/                  # Orchestration engine
-│   │   ├── constants/                  # Layer 0
-│   │   ├── schema/                     # Layer 1: Pydantic models
-│   │   │   ├── composition.py          # v1 + v2 + v3
-│   │   │   ├── genre_profile.py        # GenreProfile schema
-│   │   │   ├── meter.py                # MeterSpec schema
-│   │   │   ├── groove.py               # GrooveProfile schema
-│   │   │   ├── tuning.py               # TuningSystem schema
-│   │   │   ├── articulation.py         # Articulation schema
-│   │   │   └── composability.py        # extends/overrides/fragments
-│   │   ├── ir/                         # Layer 3
-│   │   │   ├── score_ir.py
+│   │   ├── constants/               # Layer 0
+│   │   │   ├── instruments.py
+│   │   │   ├── scales.py
+│   │   │   ├── chords.py
+│   │   │   ├── dynamics.py
+│   │   │   └── grooves.py           # NEW — built-in GrooveTemplates
+│   │   ├── schema/                  # Layer 1: Pydantic
+│   │   ├── ir/                      # Layer 3
 │   │   │   ├── note.py
-│   │   │   ├── meter.py                # MeterSpec IR
-│   │   │   ├── groove.py               # GrooveProfile IR
-│   │   │   ├── tuning.py               # TuningSystem IR
-│   │   │   ├── articulation.py         # Articulation, ExpressionCurve
-│   │   │   ├── timing.py               # Meter-aware
-│   │   │   ├── notation.py
-│   │   │   ├── voicing.py              # Tuning-aware
+│   │   │   ├── score_ir.py
 │   │   │   ├── harmony.py
+│   │   │   ├── voicing.py
 │   │   │   ├── motif.py
-│   │   │   ├── trajectory.py
-│   │   │   └── plan/                   # Layer 3.5: MPIR
-│   │   ├── generators/                 # Layer 2
+│   │   │   ├── timing.py
+│   │   │   ├── notation.py
+│   │   │   ├── phrase.py            # NEW (A1)
+│   │   │   ├── groove.py            # NEW (A4)
+│   │   │   ├── tonal_system.py      # NEW (B3)
+│   │   │   ├── rhythm_system.py     # NEW (B4)
+│   │   │   └── vocal.py             # NEW (F6)
+│   │   ├── generators/              # Layer 2
+│   │   │   ├── base.py
+│   │   │   ├── registry.py
 │   │   │   ├── rule_based.py
 │   │   │   ├── stochastic.py
-│   │   │   ├── markov.py               # NEW
-│   │   │   ├── constraint_solver.py    # NEW
-│   │   │   ├── drum_patterner.py
-│   │   │   ├── counter_melody.py
-│   │   │   └── ensemble.py             # NEW: per-part routing
-│   │   ├── perception/                 # Layer 4
-│   │   │   ├── audio_features.py       # librosa-based
-│   │   │   ├── use_case_eval.py        # Use-case targeting
-│   │   │   ├── reference_matcher.py    # Stage 3
-│   │   │   ├── psych_mapper.py         # Russell circumplex
-│   │   │   └── style_vector.py
-│   │   ├── render/                     # Layer 5
-│   │   │   ├── midi_writer.py          # Microtonal-capable
-│   │   │   ├── stem_writer.py
+│   │   │   ├── pipeline.py          # NEW (E1) — 6-phase orchestrator
+│   │   │   ├── ai_seed.py           # NEW (F2)
+│   │   │   ├── constraint_solver.py # NEW (F3)
+│   │   │   ├── producer.py          # NEW (E3)
+│   │   │   └── melody/              # NEW (A3) — pluggable strategies
+│   │   │       ├── base.py
+│   │   │       ├── chord_tone.py
+│   │   │       ├── bebop.py
+│   │   │       ├── pentatonic.py
+│   │   │       ├── modal.py
+│   │   │       ├── riff_based.py
+│   │   │       ├── ambient_drone.py
+│   │   │       └── melismatic.py
+│   │   ├── perception/              # Layer 4 — NEW
+│   │   │   ├── reference_matcher.py # (C1)
+│   │   │   ├── style_vector.py      # (C2)
+│   │   │   ├── psych_mapper.py      # (C3)
+│   │   │   ├── mood.py              # (D2)
+│   │   │   └── aesthetic.py         # (C4)
+│   │   ├── render/                  # Layer 5
+│   │   │   ├── midi_writer.py
 │   │   │   ├── audio_renderer.py
-│   │   │   ├── articulation_router.py  # NEW: keyswitch routing
-│   │   │   └── musicxml_writer.py
-│   │   ├── verify/                     # Layer 6
+│   │   │   ├── stem_export.py
+│   │   │   ├── iteration_mgr.py
+│   │   │   ├── vst_host.py          # NEW (F8)
+│   │   │   ├── mix_engine.py        # NEW (F8)
+│   │   │   ├── master_engine.py     # NEW (F8)
+│   │   │   └── live_preview.py      # NEW (F4)
+│   │   ├── verify/                  # Layer 6
 │   │   │   ├── lint.py
 │   │   │   ├── analyzer.py
-│   │   │   ├── evaluator.py            # Genre-aware weights
-│   │   │   ├── critique/               # 30+ rules
+│   │   │   ├── evaluator.py         # → genre-aware (D1)
 │   │   │   ├── diff.py
-│   │   │   └── constraints.py
-│   │   ├── arrange/                    # Arrangement engine
-│   │   │   ├── source_extractor.py     # MIDI → SourcePlan
-│   │   │   ├── style_vector_ops.py     # Vector arithmetic
-│   │   │   ├── preservation.py         # Preservation contracts
-│   │   │   └── arrangement_diff.py     # Markdown diff
-│   │   └── reflect/                    # Layer 7
-│   │       ├── provenance.py           # Causal graph
-│   │       ├── feedback.py
-│   │       └── style_profile.py        # User style learning
-│   └── cli/                            # CLI commands
+│   │   │   ├── constraints.py
+│   │   │   ├── critic.py            # NEW (E2) — programmatic critic
+│   │   │   └── loopability.py       # NEW (F5)
+│   │   ├── reflect/                 # Layer 7
+│   │   │   ├── provenance.py
+│   │   │   ├── feedback_logger.py   # NEW (D3)
+│   │   │   └── style_profile.py     # NEW (Phase 6)
+│   │   ├── arrangement/             # NEW (F1) — top-level package
+│   │   │   ├── engine.py
+│   │   │   ├── reharmonize.py
+│   │   │   ├── regroove.py
+│   │   │   ├── reorchestrate.py
+│   │   │   └── restyle.py
+│   │   ├── conductor/               # Auto-iteration
+│   │   │   ├── conductor.py
+│   │   │   ├── feedback.py
+│   │   │   └── result.py
+│   │   ├── errors.py
+│   │   └── types.py
+│   └── cli/
+│       └── main.py
 │
 ├── references/
-│   ├── catalog.yaml
+│   ├── catalog.yaml                 # license-verified
 │   ├── midi/
+│   ├── musicxml/
 │   └── extracted_features/
 │
-├── drum_patterns/
-│   ├── grooves/                        # GrooveProfile YAMLs
-│   └── meters/                         # Per-meter pattern families
+├── outputs/
+│   └── projects/<name>/iterations/v<NNN>/
+│       ├── full.mid
+│       ├── stems/
+│       ├── audio.wav
+│       ├── analysis.json
+│       ├── evaluation.json
+│       ├── aesthetic_report.json    # NEW
+│       ├── critique.md
+│       ├── provenance.json
+│       └── human_feedback.jsonl     # NEW
 │
-├── tunings/                            # TuningSystem YAMLs
-│   ├── 12tet.yaml
-│   ├── just_intonation.yaml
-│   ├── maqam_rast.yaml
-│   ├── pelog.yaml
-│   ├── werckmeister_3.yaml
-│   └── partch_43.yaml
-│
-├── outputs/                            # Generated artifacts
-├── soundfonts/                         # Audio rendering
-├── gallery/                            # Curated examples per genre
+├── soundfonts/
+├── plugins/                         # NEW — VST3 collection (gitignored, local only)
 ├── tests/
 │   ├── unit/
 │   ├── integration/
-│   ├── scenarios/
 │   ├── music_constraints/
-│   ├── golden/
-│   └── genre_coverage/                 # NEW: per-genre validation
+│   ├── scenarios/
+│   ├── perception/                  # NEW (v2)
+│   └── golden/
 ├── tools/
 │   ├── architecture_lint.py
-│   ├── feature_status_check.py
-│   ├── genre_calibrator.py             # NEW: parameter sweep
-│   └── skill_sync.py
+│   └── validate_references.py       # NEW (C1)
 └── docs/
     ├── design/
-    ├── genres/                         # NEW: per-genre user guide
-    ├── recipes/                        # NEW: purpose-driven recipes
     ├── tutorials/
     └── glossary.md
 ```
 
 ---
 
-## 5. The Orchestra: Subagent Design
+## 5. Orchestra: Subagent Design (v2)
 
-### 5.1 The Seven Players
+In v2, Subagent definitions in `.claude/agents/` are **executable**, not just descriptive. The Pipeline generator (Layer 2) instantiates each as a programmatic role with specific tool permissions and concrete outputs.
 
-YaO v2.0 keeps the seven subagents introduced in v1.0, with expanded responsibilities to consume the new IRs.
+### 5.1 Composer
+- **Owns**: melodies, motifs, themes, structural skeletons.
+- **Reads**: `intent.md`, `composition.yaml`, `trajectory.yaml`, `references.yaml`, the chosen MelodyStrategy plugin.
+- **Emits**: `tuple[Phrase, ...]` per part, with `MotifNetwork` annotations.
+- **Forbidden**: instrument selection, final voicing.
+- **Evaluation**: motif memorability, repetition/variation balance, trajectory-fit, phrase coherence.
 
-#### 5.1.1 Composer
-- **Responsibility**: Melody, motif, theme, structural outline
-- **Inputs**: `intent.md`, `composition.yaml`, `trajectory.yaml`, `references.yaml`, **GenreProfile**, **MeterSpec**
-- **Outputs**: `MotifPlan`, `PhrasePlan` (Score IR motifs and phrase structure)
-- **Forbidden**: Instrument selection, final voicing (Orchestrator's job)
-- **v2.0 additions**: Must respect MeterSpec for phrase boundaries; consult GenreProfile for melody contour preferences
+### 5.2 Harmony Theorist
+- **Owns**: chord progressions, modulations, cadences, reharmonization.
+- **Reads**: Composer's melodic skeleton, `composition.yaml` `harmony` block, the active TonalSystem.
+- **Emits**: `ChordProgression` (Roman numerals + voicing candidates).
+- **Evaluation**: functional integrity, tension/resolution balance, genre-typical vocabulary.
 
-#### 5.1.2 Harmony Theorist
-- **Responsibility**: Chord progressions, modulations, cadences, reharmonization
-- **Inputs**: Composer's melody draft, harmony section of spec, **TuningSystem**, **GenreProfile**
-- **Outputs**: `HarmonyPlan` (chord events with function, tension, cadence role)
-- **v2.0 additions**: Functions correctly in non-12TET tunings; respects genre-specific signature/forbidden progressions
+### 5.3 Rhythm Architect
+- **Owns**: drums, grooves, syncopation, fills, micro-timing.
+- **Reads**: `composition.yaml` `rhythm` block, the active RhythmSystem and GrooveTemplate.
+- **Emits**: rhythmic placement for all parts; drum patterns; per-section accent maps.
+- **Evaluation**: groove feel, humanization quality, section contrast.
 
-#### 5.1.3 Rhythm Architect
-- **Responsibility**: Drum patterns, grooves, syncopation, fills
-- **Inputs**: Spec rhythm section, **MeterSpec**, **GrooveProfile**, GenreProfile
-- **Outputs**: `DrumPattern` (now meter- and groove-aware)
-- **v2.0 additions**: Generates patterns in any meter; applies microtiming offsets from groove profiles
+### 5.4 Orchestrator
+- **Owns**: instrument assignments, voicings, register placement, countermelodies.
+- **Reads**: outputs of Composer / Harmony Theorist / Rhythm Architect; genre Skill `instrumentation`.
+- **Emits**: complete `ScoreIR` with idiomatic per-instrument writing.
+- **Evaluation**: frequency-space conflict avoidance, idiomatic instrument writing, texture density.
 
-#### 5.1.4 Orchestrator
-- **Responsibility**: Instrument assignment, voicing, register placement, counter-melody
-- **Inputs**: All plans above, GenreProfile, **per-instrument articulation vocabulary**
-- **Outputs**: `ArrangementPlan` with articulation choices
-- **v2.0 additions**: Selects articulations from each instrument's vocabulary; manages frequency space across instrument register decisions
+### 5.5 Adversarial Critic
+- **Owns**: weakness detection. **Never praises.**
+- **Reads**: any intermediate or final ScoreIR.
+- **Emits**: `critique.md` with severity-rated issue list.
+- **Evaluation**: comprehensiveness and specificity of weaknesses found.
+- **v2 addition**: works alongside the **Programmatic Critic** (`src/yao/verify/critic.py`). Programmatic Critic runs in milliseconds and gates candidates; LLM-based Adversarial Critic runs at finalization for depth.
 
-#### 5.1.5 Adversarial Critic
-- **Responsibility**: Find every weakness; never praise
-- **Inputs**: MPIR (preferred) or Score IR (fallback)
-- **Outputs**: `critique.md` with structured `Finding` objects (severity, evidence, location, recommendation)
-- **v2.0 additions**: Genre-specific critique rules from GenreProfile; aesthetic critique via Perception Layer; metric drift detection; arrangement-mode critique
+### 5.6 Mix Engineer
+- **Owns**: stereo placement, dynamics, frequency masking, loudness (LUFS).
+- **Reads**: Orchestrator output + `production.yaml` + genre Skill `mix_aesthetics`.
+- **Emits**: mix-engine instructions (per-track EQ/compression/reverb/pan) → consumed by `render/mix_engine.py`.
+- **Evaluation**: LUFS target met, frequency balance, stereo width.
 
-#### 5.1.6 Mix Engineer
-- **Responsibility**: Stereo placement, dynamics, frequency balance, loudness management
-- **Inputs**: Orchestrator output + production parameters
-- **Outputs**: Mix instructions per track (EQ, compression, reverb, panning)
-- **v2.0 additions**: Genre-aware production chains from GenreProfile (e.g., lo-fi vinyl simulation, trap sidechain)
-
-#### 5.1.7 Producer
-- **Responsibility**: Coordination, conflict resolution, final judgment, dialogue with Conductor (human)
-- **Inputs**: All subagent outputs + human feedback
-- **Outputs**: Final decisions, escalation requests
-- **Privilege**: Only subagent who can override others
-- **v2.0 additions**: Consults Vertical Alignment Principle when balancing input/processing/evaluation; escalates when GenreProfile is incomplete
-
-### 5.2 Subagent ↔ Pipeline Mapping
-
-```
-Step 1 Form Planner       ← Producer (form is meta)
-Step 2 Harmony Planner    ← Harmony Theorist
-Step 3 Motif Developer    ← Composer
-Step 4 Drum Patterner     ← Rhythm Architect
-Step 5 Arranger           ← Orchestrator
-═══ Critic Gate ═══       ← Adversarial Critic (operates on MPIR)
-Step 6 Note Realizer      ← Composer (low-level, ensemble routing)
-Step 7 Renderer           ← Mix Engineer
-Post-render Critique      ← Adversarial Critic (operates on audio features)
-```
-
-### 5.3 The Critic is Special
-
-The Adversarial Critic **never praises**. Its sole purpose is to find weaknesses — structurally, aesthetically, and genre-specifically. The Producer balances critique against intent. This adversarial structure prevents the system from optimizing into self-satisfaction.
+### 5.7 Producer
+- **Owns**: integration, prioritization, dialogue with the human Conductor, final calls.
+- **Reads**: outputs from all subagents, all critic reports, human feedback.
+- **Emits**: final production decisions, regeneration directives, provenance entries explaining each.
+- **Privilege**: the **only** subagent allowed to override another subagent's output.
+- **Evaluation**: fidelity of final score to `intent.md`.
 
 ---
 
-## 6. The Cognitive Protocol: 6 Phases × 7 Steps
+## 6. The 6-Phase Cognitive Protocol (Now Executable)
 
-YaO's `/compose` and `/arrange` commands enforce **6 cognitive phases** mapped onto the **7-step generation pipeline**. This eliminates the "agent jumps straight to writing notes" failure pattern.
+The 6-phase cognitive protocol described in v1 is now **runnable code** in v2. The `pipeline` generator strategy (`src/yao/generators/pipeline.py`) executes the phases in order, recording each phase boundary in Provenance.
 
-| Cognitive Phase | Pipeline Steps | Goal |
-|---|---|---|
-| 1. Intent Crystallization | (pre-pipeline) | Finalize `intent.md` in 1–3 sentences |
-| 2. Architectural Sketch | Step 1 (Form Planner) + trajectory.yaml | Draw time-axis trajectories before any notes |
-| 3. Skeletal Generation | Steps 2–5 (5 candidate plans) | Generate 5 MPIR candidates with diverse seeds |
-| 4. Critic-Composer Dialogue | Critic Gate ranks/selects | Critic ranks; Producer selects winner or merges |
-| 5. Detailed Filling | Steps 6–7 | Realize MPIR → Score IR → MIDI/audio |
-| 6. Listening Simulation | Perception Layer | Audio-feature evaluation; divergence triggers replan |
+```
+Phase 1: Intent Crystallization
+  ↓ Read intent.md; verify it is unambiguous; record into Provenance
+Phase 2: Architectural Sketch
+  ↓ Compute trajectory curves first; no notes yet
+Phase 3: Skeletal Generation (multi-candidate)
+  ↓ Composer produces 5–10 60%-complete skeletons
+Phase 4: Critic-Composer Dialogue
+  ↓ Programmatic Critic scores all candidates; Producer picks/merges
+Phase 5: Detailed Filling
+  ↓ Harmony Theorist → Rhythm Architect → Orchestrator fill the winner
+Phase 6: Listening Simulation
+  ↓ Perception Substitute Layer evaluates aesthetics
+  ↓ If aesthetic_score < threshold: regenerate weakest section
+```
 
-### Multi-Candidate Generation
+### Phase boundaries in code
 
-In Phase 3, the Conductor instantiates **5 parallel pipelines** through Steps 2–5 with different seeds. The Critic at the Critic Gate ranks all five plans. The Producer either selects a winner or instructs Composer to merge strengths from multiple candidates into a new plan.
+```python
+class PipelineGenerator(GeneratorBase):
+    def generate(self) -> tuple[ScoreIR, ProvenanceLog]:
+        log = ProvenanceLog()
 
-This is not a metaphor. It is implemented in `conductor/multi_candidate.py` and exposed via `--candidates 5` on the CLI.
+        log.record_phase("intent_crystallization", intent=self.spec.intent)
+        trajectory = self._sketch_trajectory()
+        log.record_phase("architectural_sketch", trajectory=trajectory)
+
+        candidates = [self._skeleton(trajectory, seed_offset=k)
+                      for k in range(self.candidate_count)]
+        log.record_phase("skeletal_generation", count=len(candidates))
+
+        winner = self._critic_dialogue(candidates, log)
+        with_harmony  = self.harmony_theorist.fill(winner)
+        with_rhythm   = self.rhythm_architect.fill(with_harmony)
+        orchestrated  = self.orchestrator.fill(with_rhythm)
+        log.record_phase("detailed_filling", instruments=orchestrated.instruments)
+
+        aesthetic = self.perception.evaluate(orchestrated)
+        if aesthetic.overall_score < self.spec.thresholds.aesthetic_min:
+            orchestrated = self._regen_weakest(orchestrated, aesthetic)
+        log.record_phase("listening_simulation",
+                         aesthetic_score=aesthetic.overall_score)
+        return orchestrated, log
+```
+
+The Conductor's outer loop (already in v1: generate → evaluate → adapt) wraps Pipeline. Each invocation of Pipeline is one inner pass; the Conductor's adaptation drives outer iterations.
 
 ---
 
-## 7. Specification Layer: 11 YAML Document Types
+## 7. Specification Language (v2)
 
-YaO v2.0 describes a composition through the following **11 YAML documents** — all version-controlled, all diffable.
+YaO describes a piece using a small set of YAML files plus auto-generated artifacts. v2 adds new schemas and extends existing ones.
 
-### 7.1 `intent.md` (Natural Language)
-The composition's essence in 1–3 sentences. The final ground truth for all decisions.
+### 7.1 `intent.md` (natural language)
+1–3 sentences fixing the piece's essence. Final ground for every decision.
 
-### 7.2 `composition.yaml` (Composition Parameters)
-Key, tempo, meter, form, genre, instrumentation, sections. v3 schema introduces explicit `meter_spec`, `tuning_system`, and `genre_profile_ref` fields.
+### 7.2 `composition.yaml` (extended)
 
 ```yaml
-# v3 example
-schema_version: 3
-title: "Mediterranean Storm"
+title: ...
+identity:
+  purpose: ...
+  duration_sec: 90
+  loopable: true
 
-genre_profile: balkan_dance              # references GenreProfile YAML
+key: D minor
+tempo_bpm: 92
+time_signature:
+  primary: "6/8"
+  groupings: [3, 3]
+  polymeter: []
+  polyrhythm: []
 
-meter:
-  default:
-    numerator: 7
-    denominator: 8
-    grouping: [3, 2, 2]
-  changes:
-    - { at_bar: 32, numerator: 4, denominator: 4 }    # mid-piece change
+tonal_system: common_practice    # NEW (B3)
+rhythm_system: western_meter     # NEW (B4)
+melody_strategy: chord_tone      # NEW (A3) — selects melody plugin
 
-tuning:
-  system: "12tet"                       # default; could be "maqam_rast" etc.
+genre:                           # NEW (B2) — blended genres allowed
+  primary: { name: cinematic, weight: 0.7 }
+  blends:
+    - { name: neoclassical, weight: 0.3, blend_aspects: [harmony, instrumentation] }
 
-groove:
-  default: "balkan_kopanitsa"           # references GrooveProfile
+groove: orchestral_rubato        # NEW (A4)
+
+instruments:
+  - { name: violin, role: melody, articulations_allowed: [legato, staccato, marcato] }
+  - { name: cello,  role: bass,   articulations_allowed: [legato, pizzicato] }
 
 sections:
-  - name: intro
-    bars: 8
-    dynamics: mp
-    meter_override: { numerator: 3, denominator: 4 }   # this section in 3/4
+  - { name: intro,  bars: 4,  dynamics: pp }
+  - { name: verse,  bars: 8,  dynamics: mp }
+  - { name: chorus, bars: 8,  dynamics: f  }
+  - { name: outro,  bars: 4,  dynamics: pp }
+
+generation:
+  strategy: pipeline             # NEW — selects v2 multi-stage generator
+  candidate_count: 5
+  seed: 42
+
+target_mood:                     # NEW (D2)
+  arousal: 0.55
+  valence: -0.20
+  tension: 0.45
+  intimacy: 0.65
+  grandeur: 0.40
+  nostalgia: 0.55
+
+thresholds:
+  aesthetic_min: 0.70
+  predictability_max: 0.85
 ```
 
-### 7.3 `trajectory.yaml` (Time-Axis Curves)
-Five trajectory dimensions: tension, density, predictability, brightness, register_height.
+### 7.3 `trajectory.yaml`
+Time-axis curves for `tension`, `density`, `valence`, `predictability`. Three curve types: `bezier`, `stepped`, `linear`. Unchanged from v1 except all four dimensions are now mandatory.
 
-### 7.4 `references.yaml` (Aesthetic References)
-Positive and negative reference compositions. Comparison axes restricted to **abstract features** (tempo, density curve, spectral balance) — never melody or chord progressions.
-
-### 7.5 `negative-space.yaml` (Silence Design)
-Phrase breath marks, pre-climax silence, frequency gaps, deliberate texture drops.
-
-### 7.6 `arrangement.yaml` (Arrangement Mode)
-Source file, preservation contract, transformation contract, evaluation weights.
-
-### 7.7 `production.yaml` (Mix and Master)
-LUFS target, stereo width, reverb, EQ chain. Genre-aware defaults from GenreProfile.
-
-### 7.8 `provenance.json` (Auto-Generated)
-Causal graph of every generation decision. Read-only for humans; appended automatically.
-
-### 7.9 `genre_profile.yaml` (Genre Definition, NEW in v2.0)
-The numeric backbone of genre identity. See Section 9.
-
-### 7.10 `meter_spec.yaml` (Meter Definition, NEW in v2.0)
-Reusable meter specifications. Referenced by `composition.yaml`.
-
-### 7.11 `groove_profile.yaml` (Groove Definition, NEW in v2.0)
-Microtiming and velocity offsets. Referenced by `composition.yaml`.
-
-### 7.12 Spec Composability (NEW in v2.0)
-v3 specs can compose from fragments:
+### 7.4 `references.yaml` (newly active)
 
 ```yaml
-extends:
-  - fragments/genres/lofi_hiphop.yaml
-  - fragments/grooves/j_dilla.yaml
-  - fragments/instrumentation/jazz_trio.yaml
-
-overrides:
-  tempo_bpm: 95
-  meter:
-    numerator: 5
-    denominator: 4
+positive:
+  - { id: ref_007, weight: 0.6, extract: [harmony, motif] }
+  - { id: ref_012, weight: 0.3, extract: [groove, mix] }
+negative:
+  - { id: ref_092, anti_weight: 0.5, avoid: [predictable_progression] }
 ```
+
+References point to entries in `references/catalog.yaml` (license-cleared).
+
+### 7.5 `negative-space.yaml`
+Silence design: required rests, frequency reservations, drop sections.
+
+### 7.6 `arrangement.yaml` (used by `/arrange`)
+
+```yaml
+input:
+  source_file: inputs/source.mid
+  rights_status: owned
+preserve: [melody, song_form]
+transform:
+  target_style: lo-fi-hiphop
+  preserve_aspects: [melody]
+  intensity: 0.7
+avoid: [overcrowded_arrangement, melody_range_change]
+```
+
+### 7.7 `production.yaml`
+
+```yaml
+target_lufs: -16
+stereo_width: 0.7
+master_chain: lo-fi-hiphop_default      # references genre Skill preset
+stems_export: true
+```
+
+### 7.8 `provenance.json` (auto-generated, append-only)
+Every generation decision recorded with timestamp, parameters, and rationale. v2 expands to record phase boundaries (§6) and Subagent attributions.
+
+### 7.9 `human_feedback.jsonl` (newly active, append-only)
+Per-iteration tagged feedback from the human Conductor. Read by the Conductor's adaptation logic.
 
 ---
 
-## 8. New Domain IRs in v2.0
+## 8. Custom Commands
 
-### 8.1 MeterSpec IR
-
-```python
-@dataclass(frozen=True)
-class MeterSpec:
-    numerator: int                          # 4, 3, 6, 5, 7, 11, ...
-    denominator: int                        # 4, 8, 16, ...
-    grouping: tuple[int, ...]               # (3, 2, 2) for 7/8 long-short-short
-    is_compound: bool                        # 6/8, 9/8, 12/8 are compound
-    pulse_unit: str                          # "quarter", "eighth", "dotted_quarter"
-    metric_accents: tuple[float, ...]        # weight per pulse position
-```
-
-The `grouping` field disambiguates `7/8 (3,2,2)` (Bartók) from `7/8 (2,2,3)` (Bulgarian *kopanitsa*) from `7/8 (2,3,2)` (Greek *kalamatianos*) — these sound entirely different.
-
-### 8.2 GrooveProfile IR
-
-```python
-@dataclass(frozen=True)
-class GrooveProfile:
-    name: str
-    timing_offsets: dict[BeatPosition, float]   # ms offsets per beat position
-    velocity_offsets: dict[BeatPosition, int]
-    timing_jitter_ms: float                      # principled randomness
-    velocity_jitter: int
-    per_instrument_offset: dict[str, float]     # snare delays differently
-    swing_curve: tuple[float, ...] | None        # subdivision-level swing
-```
-
-Initial library of 15 grooves: `j_dilla_drunken`, `motown_pushed`, `bossa_clave`, `swing_60`, `swing_67`, `latin_clave_son`, `latin_clave_rumba`, `funk_pocket`, `trap_modern`, `dnb_amen`, `reggae_one_drop`, `afrobeat_tony_allen`, `nola_second_line`, `dilla_brokenbeat`, `straight`.
-
-### 8.3 TuningSystem IR
-
-```python
-@dataclass(frozen=True)
-class TuningSystem:
-    name: str
-    cents_deviation: dict[int, float]      # MIDI note → cents from 12TET
-    ratios: tuple[float, ...] | None       # for Just Intonation
-    notes_per_octave: int = 12              # 24 quarter-tone, 53 for 53-EDO
-    base_frequency_hz: float = 440.0
-    requires_mpe: bool = False              # MIDI Polyphonic Expression
-```
-
-Initial systems: `12tet`, `just_intonation_5_limit`, `pythagorean`, `mean_tone_quarter`, `werckmeister_3`, `kirnberger_3`, `maqam_rast`, `pelog`, `slendro`, `partch_43`, `bohlen_pierce`, `53_edo`.
-
-### 8.4 Articulation and ExpressionCurve IR
-
-```python
-@dataclass(frozen=True)
-class Articulation:
-    name: str                              # "staccato", "legato", "marcato", "pizz"
-    duration_factor: float                 # 1.0 normal, 0.5 staccato, 1.0 legato
-    velocity_modifier: int
-    keyswitch: int | None                  # MIDI keyswitch for sample libs
-    cc_changes: list[tuple[int, int]]      # (cc_num, value) for VST control
-
-@dataclass(frozen=True)
-class ExpressionCurve:
-    cc_number: int                         # 1 modwheel, 11 expression, 64 sustain
-    waypoints: tuple[tuple[Beat, int], ...] # (beat, value) pairs
-    interpolation: str = "linear"           # or "bezier", "stepped"
-```
-
-### 8.5 Extended Note IR
-
-```python
-@dataclass(frozen=True)
-class Note:
-    pitch: MidiNote
-    start: Beat
-    duration: Beat
-    velocity: Velocity
-    # v2.0 additions:
-    articulation: Articulation | None = None
-    expression: tuple[ExpressionCurve, ...] = ()
-    tuning_offset_cents: float = 0.0       # microtonal deviation
-    microtiming_offset_ms: float = 0.0     # groove-derived
-```
-
-Backward compatibility: All new fields are optional with safe defaults.
+| Command | Purpose | Phase 6 wired? | Subagents involved |
+|---|---|---|---|
+| `/sketch` | Sketch → Spec dialogue | n/a | Producer |
+| `/compose <project>` | Compose from spec via Pipeline | yes | All |
+| `/arrange <project>` | Transform via Arrangement Engine | yes | Orchestrator + Adversarial Critic |
+| `/critique <iteration>` | Run LLM-based Adversarial Critic | n/a | Adversarial Critic |
+| `/regenerate-section <project> <section>` | Regenerate one section | yes | Composer + Producer |
+| `/morph <from> <to> <bars>` | Interpolate two style profiles | yes | Composer + Orchestrator |
+| `/improvise <input>` | Real-time accompaniment (Phase 5+) | n/a | Composer + Rhythm Architect |
+| `/explain <element>` | Trace a decision via Provenance | n/a | Producer |
+| `/diff <iter_a> <iter_b>` | Musical diff between iterations | n/a | Verify |
+| `/render <iteration>` | MIDI → audio + score | n/a | Mix Engineer |
+| `/feedback <project> <iter>` | Record human listening feedback | n/a | Reflection layer |
 
 ---
 
-## 9. The GenreProfile System
+## 9. Skills as Genre Knowledge
 
-A **GenreProfile** is the numeric backbone of a genre's identity. It drives generator defaults, evaluation weights, and critic thresholds. Each GenreProfile is paired with a Markdown Skill document (for Subagent prompts) — and the YAML is **derived from the Markdown front-matter** to prevent desync.
+`.claude/skills/` is the contributor surface for non-engineers. Genre Skills are Markdown files with a structured front-matter block (machine-readable) and a free-form body (human-readable).
 
-### 9.1 GenreProfile YAML Schema
+### 9.1 Genre Skill Tiering
 
-```yaml
-schema_version: 1
-identity:
-  name: "Lo-fi Hip-Hop"
-  family: "hip-hop"
-  parent: null                           # for inheritance
-  origin: "early 2010s, J Dilla legacy"
+- **Tier 1 (10 must-have)**: cinematic ✅, orchestral classical, jazz, pop, rock, hiphop, electronic dance, ambient, folk, bossa nova / latin.
+- **Tier 2 (10 extended)**: lo-fi hiphop, neoclassical, metal, R&B, blues, country, game BGM, anime / J-pop, reggae, funk.
+- **Tier 3 (8+ global / specialist)**: Indian classical, Arabic maqam, West African, East Asian traditional, Klezmer, Flamenco, Tango, Bluegrass.
 
-tempo:
-  central: 82
-  range: [70, 95]
-  drift_tolerance: 0.05
+### 9.2 Required Sections in Each Genre Skill
 
-meter:
-  default: "4/4"
-  alternates: ["6/8 (rare)"]
+Identity, Harmony (typical / reharmonization / cliches), Melody (scale, phrase structure, embellishments, range, MelodyStrategy), Rhythm (default GrooveTemplate, subdivisions, syncopation, drum patterns), Instrumentation (core / optional / roles), Form, Mix Aesthetics (stereo, LUFS, EQ curve, FX), References, Adversarial Critic Rules, Compatible Genre Blends.
 
-tuning:
-  default: "12tet"
+### 9.3 Theory, Instrument, and Psychology Skills
 
-groove:
-  default: "j_dilla_drunken"
-  swing: { value: 0.58, range: [0.50, 0.65] }
-  micro_timing:
-    snare_offset_ms: { mean: -18, std: 8 }
-    hat_offset_ms: { mean: 0, std: 12 }
+- **Theory**: voice-leading ✅, reharmonization, counterpoint, modal interchange, secondary dominants, blue-note theory.
+- **Instruments**: piano ✅, strings, brass, woodwinds, drums, synths, guitar, vocals — each documenting range, idiomatic playing, articulation defaults, common pitfalls.
+- **Psychology**: tension-resolution ✅, emotion-mapping, memorability, expectation (Huron), arousal-valence (Russell, Schubert).
 
-harmony:
-  preferred_chord_extensions: ["maj7", "min7", "9", "11", "13"]
-  modulation_frequency: 0.1
-  key_preferences: ["minor", "modal_minor"]
-  cliche_progressions_to_avoid: ["I-V-vi-IV"]
-  signature_progressions: ["ii7-V7-Imaj7", "iv7-V7-i7"]
+---
 
-melody:
-  range_octaves: 1.5
-  contour: ["arch", "wave"]
-  syncopation: { mean: 0.45 }
-  pentatonic_bias: 0.4
+## 10. Hooks
 
-drums:
-  default_pattern: "lofi_boom_bap"
-  kick_density: { mean: 2.5, range: [1.5, 4] }
-  snare_position: ["beat_2", "beat_4"]
-  ghost_notes: 0.3
+Hooks are **forced-execution** scripts. They run regardless of agent intent. v2 keeps the v1 set and adds two.
 
-instrumentation:
-  required: ["drums", "bass"]
-  signature: ["rhodes", "felt_piano", "sub_bass", "vinyl_noise"]
-  optional: ["sax_sample", "guitar_chord", "vocal_chop"]
-  forbidden: ["modern_synth_lead", "trap_808"]
+| Hook | When | Purpose |
+|---|---|---|
+| `pre-commit-lint` | git commit | music21 lint, schema validation |
+| `post-generate-render` | after every `/compose` | auto MIDI→audio + score |
+| `post-generate-critique` | after every `/compose` | run Programmatic Critic + (if configured) Adversarial Critic |
+| `update-provenance` | after every change | reconcile Provenance graph |
+| `validate-references` | weekly + pre-commit | NEW — license-clearance enforcement on `references/` |
+| `dogfood-snapshot` | end of each Sprint | NEW — generate Tier-1 dogfood corpus, archive under `outputs/dogfood/sprint-N/` |
 
-articulation_defaults:
-  piano: ["legato", "soft_pedal"]
-  bass: ["fingered", "muted"]
+---
 
-production:
-  filter_chain:
-    - { type: "lowpass", cutoff: 8000, resonance: 0.2 }
-    - { type: "saturator", drive: 0.3 }
-    - { type: "vinyl_simulation", crackle: 0.4 }
-  sidechain: false
-  stereo_width: 0.6
-  bit_reduction: { enabled: true, depth: 12 }
-  target_lufs: -14
+## 11. MCP Integration
 
-evaluation:
-  weights:
-    structure: 0.20
-    melody: 0.15
-    harmony: 0.20
-    rhythm: 0.30
-    timbre: 0.15
-  bonus_metrics:
-    - { name: "vinyl_authenticity", target: 0.7 }
-    - { name: "j_dilla_groove_match", target: 0.6 }
+YaO is designed to integrate with MCP servers. Connections are not required to use YaO, but greatly extend capability.
 
-generator_assignments:
-  drums: { strategy: "markov", model: "j_dilla_corpus" }
-  bass: { strategy: "constraint_solver", strict_function: true }
-  melody: { strategy: "stochastic", temperature: 0.4 }
-  pad: { strategy: "rule_based", template: "minor_pentatonic" }
-
-aesthetic_critique:
-  - rule: "must_have_imperfection"
-    description: "At least one of: vinyl noise, tape wobble, slight detuning"
-    severity: major
-  - rule: "no_perfect_quantization"
-    description: "Drums must show microtiming variance > 5ms std"
-    severity: major
-```
-
-### 9.2 GenreProfile Inheritance
-
-`lofi_hiphop` extends `hip_hop` extends `groove_based`. Common features inherit; differences are stated explicitly. This keeps the genre tree maintainable as it grows from 12 to 50+ genres.
-
-### 9.3 Initial GenreProfile Library (v2.0 Target: 24)
-
-| Family | Profiles |
+| MCP target | Purpose |
 |---|---|
-| Western Classical | classical, baroque, romantic, contemporary_classical, neoclassical |
-| Cinematic | cinematic_orchestral, cinematic_hybrid, video_game_orchestral |
-| Jazz | jazz_ballad, bebop, fusion, modal_jazz |
-| Pop / Rock | j_pop, k_pop, pop, rock_classic, indie_rock, math_rock |
-| Electronic | techno, house, trance, ambient, idm |
-| Hip-Hop | hip_hop, lofi_hiphop, trap, dnb |
-| World Music | bossa_nova, samba, balkan_dance, indian_classical, gamelan, arabic_maqam |
-| Folk | acoustic_folk, celtic_folk |
-| Game/8-bit | game_8bit_chiptune |
-
-### 9.4 Genre Calibration
-
-`make calibrate-genres` runs a parameter sweep:
-1. Generate 100 specs per genre, sampling within profile ranges
-2. Run through Conductor
-3. Extract audio features via librosa
-4. Compare to reference compositions in the genre
-5. Update profile values if drift is detected
-
-This is continuous calibration — running periodically as the system evolves.
+| **DAW (Reaper preferred)** | Project files, track layout, mix automation |
+| **Sample libraries** | Drum samples, one-shots, loops |
+| **Reference DB** | Searchable catalog of license-cleared MIDI/audio |
+| **MIDI controller** | Live improvisation input |
+| **SoundFont/VST server** | Audio rendering |
+| **Cloud storage** | Output backup, team sharing |
+| **LLM APIs** | AI-Seed generator backend |
 
 ---
 
-## 10. The Generation Pipeline (v2.0)
+## 12. Quality Assurance: Multi-Layered Evaluation
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│ Step 1: Form Planner    Spec + Trajectory + GenreProfile         │
-│                                  ↓                                │
-│                          SongFormPlan (with MeterSpec)            │
-├──────────────────────────────────────────────────────────────────┤
-│ Step 2: Harmony Planner                                           │
-│                                  ↓                                │
-│                          HarmonyPlan (tuning-aware)               │
-├──────────────────────────────────────────────────────────────────┤
-│ Step 3: Motif Developer                                           │
-│                                  ↓                                │
-│                          MotifPlan + PhrasePlan                   │
-├──────────────────────────────────────────────────────────────────┤
-│ Step 4: Drum Patterner   meter + groove + genre                   │
-│                                  ↓                                │
-│                          DrumPattern (meter-aware, groove-aware)  │
-├──────────────────────────────────────────────────────────────────┤
-│ Step 5: Arranger         articulation defaults from genre         │
-│                                  ↓                                │
-│                          ArrangementPlan                          │
-├──────────────────────────────────────────────────────────────────┤
-│ ════════════ MUSICAL PLAN COMPLETE — Critic Gate ════════════     │
-│                                                                   │
-│       Adversarial Critic operates on MPIR                        │
-│       Findings → plan-level edits OR plan rejection              │
-├──────────────────────────────────────────────────────────────────┤
-│ Step 6: Note Realizer    ensemble routing per part                │
-│                                  ↓                                │
-│                          ScoreIR (with articulation, microtiming) │
-├──────────────────────────────────────────────────────────────────┤
-│ Step 7: Renderer         MIDI (with pitch_bend if microtonal)     │
-│                                  ↓                                │
-│                          MIDI / Audio / Score                     │
-├──────────────────────────────────────────────────────────────────┤
-│ Post-Render Critique     audio features via librosa               │
-│                                  ↓                                │
-│                          PerceptualReport                         │
-│                          → if divergent, replan offending sections│
-└──────────────────────────────────────────────────────────────────┘
-```
+v2 evaluates output across **three orthogonal axes**, each guarding against the others' failure modes.
 
-### Determinism
+### 12.1 Symbolic / Theoretical (Layer 6)
+Music lint, voice-leading checks, range conformance, constraint satisfaction. Catches: rule violations.
 
-Every step is seeded; every step records its provenance. The combination `(spec, trajectory, genre_profile, seed_per_step)` is sufficient to reproduce any output bit-for-bit.
+### 12.2 Genre-Aware Numerical (Layer 6 — D1)
+Structure / melody / harmony / acoustics + genre-specific dimensions (`groove_pocket`, `drone_immersion`, `loop_seamlessness`, etc.) weighted by the active genre Skill. Catches: genre mismatch.
 
----
+### 12.3 Aesthetic / Perceptual (Layer 4 — C1–C4)
+Reference matching, style-vector similarity, psych-mapped arousal/valence/tension/memorability/predictability, mood-profile distance. Catches: technically correct but emotionally dead.
 
-## 11. Layer 4: Perception Substitute
+### 12.4 Human Feedback (Layer 7 — D3)
+Per-iteration tagged listening notes. Catches: everything the metrics missed.
 
-The Perception Substitute Layer addresses YaO's most distinctive challenge: **LLMs cannot listen**. Layer 4 substitutes for hearing through three stages.
+### Failure Mode Matrix
 
-### 11.1 Stage 1: Audio Feature Extraction
-
-After audio rendering, extract via librosa and pyloudnorm:
-- LUFS (integrated, short-term, momentary)
-- Peak, RMS, dynamic range
-- Spectral centroid, rolloff, flatness
-- Onset density per section
-- Tempo stability (ms drift)
-- Frequency band energy ratios (sub, low, mid, high)
-
-These produce a `PerceptualReport` with objective acoustic dimensions.
-
-### 11.2 Stage 2: Use-Case Targeting
-
-```python
-USE_CASE_EVALUATIONS = {
-    "youtube_bgm": [vocal_space, loopability, fatigue_risk, lufs_target],
-    "game_bgm": [loop_seam_smoothness, tension_curve_match, repetition_tolerance],
-    "advertisement": [hook_entry_under_7s, energy_peak_position, memorability],
-    "study_focus": [low_distraction, dynamic_stability, predictability],
-    "concert_hall": [dynamic_range, climactic_arc, sustained_tension],
-    "club_dj_set": [beatmatchable_intro, energy_floor, mix_in_out],
-}
-```
-
-### 11.3 Stage 3: Reference Matching (Abstract Features Only)
-
-Compute style vectors and compare to references. Comparison axes are restricted to **abstract features** (tempo, density curve, spectral balance, section energy, groove profile). Forbidden axes (melody, chord progression, identifiable hooks) are enforced at the schema level — deviating raises a schema error.
-
-### 11.4 Affective Computing-Derived Emotional Evaluation
-
-Use Russell's circumplex model (valence × arousal) to map music to a 2D emotional space. Compare to coordinates declared in `intent.md`. Mapping function grounded in Juslin & Sloboda's *Handbook of Music and Emotion*.
-
----
-
-## 12. The Arrangement Engine
-
-### 12.1 Pipeline
-
-```
-[Input]      MIDI / MusicXML / (audio with stems)
-   ↓
-[Source Extractor]   Section detection, melody extraction,
-                     chord estimation, motif detection,
-                     role classification, groove extraction
-   ↓
-[SourcePlan] = MPIR of input piece
-   ↓
-[Preservation Plan]   melody, hook rhythm, chord function, form
-[Transformation Plan] genre, bpm, reharm, regroove, reorch
-   ↓
-[Style Vector Op]
-   target_plan = source_plan
-                 - vec(source_genre)
-                 + vec(target_genre)
-                 ⊕ preservation_constraints
-   ↓
-[TargetPlan] = MPIR of arranged piece
-   ↓
-[Note Realizer]  → ScoreIR → MIDI / audio
-   ↓
-[Arrangement Diff]   Markdown report: preserved / changed / risks
-   ↓
-[Evaluation]
-```
-
-### 12.2 Why MPIR Enables Arrangement
-
-Arrangement at the *note level* is brittle — pitch substitution, tempo stretching, instrument remapping. Arrangement at the *plan level* is robust — preserve the harmonic function, vary the voicing; preserve the motif identity, vary the rhythm shape.
-
-### 12.3 Arrangement Spec
-
-```yaml
-arrangement:
-  input:
-    file: "inputs/original.mid"
-    rights_status: "owned_or_licensed"        # required field
-
-  preserve:
-    melody:        { enabled: true, similarity_min: 0.85 }
-    hook_rhythm:   { enabled: true, similarity_min: 0.80 }
-    chord_function:{ enabled: true, similarity_min: 0.75 }
-    form:          { enabled: true }
-
-  transform:
-    target_genre: "lofi_hiphop"
-    bpm: { mode: "set", value: 86 }
-    harmony:
-      reharmonization_level: 0.35
-      add_7ths: true
-    rhythm:
-      target_groove: "j_dilla_drunken"        # NEW in v2.0
-    orchestration:
-      drums: "dusty_kit"
-      bass: "warm_upright"
-    tuning:                                    # NEW in v2.0
-      target_system: "12tet"
-
-  evaluate:
-    original_preservation_weight: 0.5
-    transformation_strength_weight: 0.3
-    musical_quality_weight: 0.2
-```
-
-### 12.4 Arrangement Diff Output
-
-Every arrangement run produces a Markdown diff comparable to git diffs, with sections labeled "Preserved / Changed / Risks / Rejected." Each line is human-auditable.
-
-### 12.5 Failure-Mode Critic Rules for Arrangement
-
-- `register_shift`: melody preserved logically but instrument substitution moves perceptual register
-- `groove_collision`: source groove conflicts with target genre conventions
-- `rights_concern`: preservation similarity so high that result resembles source
-- `transformation_under_target`: requested transformation strength 0.5, achieved 0.2
-
----
-
-## 13. Custom Commands
-
-| Command | Purpose | Primary Subagent |
+| Failure mode | Symptom | Caught by |
 |---|---|---|
-| `/sketch` | Interactive spec creation through dialogue | Producer |
-| `/compose <project>` | Generate from spec with Conductor loop | Composer → all |
-| `/arrange <project>` | Transform existing composition | Orchestrator + Critic |
-| `/critique <iteration>` | Adversarial feedback on existing iteration | Adversarial Critic |
-| `/regenerate-section <project> <section>` | Regenerate one section | Composer + Producer |
-| `/morph <from> <to> <bars>` | Interpolate between two compositions | Composer + Orchestrator |
-| `/improvise <input>` | Real-time accompaniment (live mode) | Composer + Rhythm |
-| `/explain <element>` | Trace decision via Provenance Graph | Producer |
-| `/diff <iter_a> <iter_b>` | Music-aware diff between iterations | Verifier |
-| `/render <iteration>` | Render MIDI to audio/score | Mix Engineer |
-| `/audition <project>` | A/B comparison UI in browser | (UI command) |
-| `/calibrate <genre>` | Run parameter sweep for genre | (Tool command) |
+| Formal boredom | Rule-compliant, predictable | C3 (predictability), Programmatic Critic, D3 |
+| Formal breakdown | Rule violations | Music lint, Programmatic Critic |
+| Emotional death | Technically right, unmoving | C2 (reference distance), C3 (memorability), D3 |
+| Cliché contamination | Overly familiar | Programmatic Critic (cliché patterns), C2 (anti-references) |
+| Excessive ornamentation | Cluttered | Genre-aware evaluator (texture cap) |
+| Section dis-coherence | Poor transitions | Trajectory match, Loopability |
+| Frequency conflict | Mud | Mix Engineer, frequency masking analyzer |
+
+The Conductor's adaptation logic reads from all four axes; no single axis dominates.
 
 ---
 
-## 14. Skills (Knowledge Modules)
+## 13. Roadmap (v2)
 
-`.claude/skills/` houses structured domain knowledge. Subagents consult these as needed.
+v2 reframes the v1 phase plan. v1 Phase 1 (symbolic foundation) is complete. v2 begins at Phase 2.
 
-### 14.1 Genre Skills (Target: 24)
-Each genre has both a Markdown form (Subagent prompts) and a YAML form (programmatic GenreProfile). The YAML is generated from the Markdown front-matter — they cannot desync.
+### Phase 2: Genre + Aesthetic (Sprints 1–2)
+- Sprint 1: B1 (genre Skill template + 10 Tier-1 populated), A3 (4 melody strategies), A4 (10 GrooveTemplates).
+- Sprint 2: C1 (reference library, 20+ entries), C2 (style vector), C3 (psych mapper: arousal/valence/tension), D2 (mood profile in pipeline).
 
-### 14.2 Theory Skills
-Voice leading, counterpoint, reharmonization, modal interchange, secondary dominants, modulation techniques. Each entry has examples and counter-examples; rules tagged with genre dependencies.
+### Phase 3: Multi-Agent + Expression (Sprints 3–4)
+- Sprint 3: E1 (PipelineGenerator), E2 (ProgrammaticCritic), E3 (ProducerEngine).
+- Sprint 4: A5 (compound meter / polymeter / polyrhythm), A6 (articulation + expression IR), A1 (Phrase IR), A2 (Motif Network).
 
-### 14.3 Instrument Skills
-Each of the 38+ supported instruments has a Skill with range, idiomatic patterns, articulation vocabulary, frequency profile, and characteristic phrases.
+### Phase 4: Practical Usability (Sprint 5)
+- F4 (Live Preview Server), D1 (Genre-Aware Evaluator), F5 (Loopability Validator), D3 (Human Feedback Logger).
 
-### 14.4 Psychology Skills
-Empirical music-psychology mappings (Krumhansl, Huron, Juslin & Sloboda) for the Perception Layer's psych mapper.
+### Phase 5: Specialty Expansion (Sprints 6+)
+- F1 (Arrangement Engine), F3 (Constraint Solver), F2 (AI-Seed), F8 (Production Layer / VST), B3/B4 (Tonal/Rhythm Systems), F6 (Vocal IR), F7 (Tuning), B2 (Genre blending), C4 (AestheticReport integration).
 
-### 14.5 Groove Skills (NEW in v2.0)
-Each groove profile has a Markdown explanation — what makes Motown push? Why does Dilla's snare delay sound human? — alongside the YAML profile.
+### Phase 6: Reflection & Learning (continuous)
+- Style profile per user, community reference sharing, IDyOM-class predictive models.
 
-### 14.6 Tuning Skills (NEW in v2.0)
-Each tuning system has a Markdown introduction — when to use just intonation, why maqam Rast feels distinctive, what historical temperaments enable in Baroque music.
+### User-Value Milestones (parallel measurement)
 
-### 14.7 Meter Skills (NEW in v2.0)
-Documentation of meter families: irregular meters, additive meters, compound meters, mixed meters.
-
-### 14.8 Aesthetics Skills (NEW in v2.0)
-"Great vs OK per genre" — articulating the difference between competent and memorable in each tradition. For prompt-time consultation by Subagents, not for hard rules.
-
----
-
-## 15. Hooks (Automated Quality Gates)
-
-Hooks are **scripts that execute regardless of agent memory**. They are the system's defense against agents forgetting their guidelines.
-
-| Hook | Trigger | Action |
+| Milestone | User value | Unblocked by |
 |---|---|---|
-| `pre-commit-lint` | git commit | YAML schema check, music21 lint, golden test smoke, GenreProfile validation |
-| `post-generate-render` | After generation | Auto-render audio, write critique |
-| `post-generate-critique` | After generation | Run rule-based critique, persist `critique.json` |
-| `post-arrange-diff` | After arrangement | Generate Arrangement Diff Markdown |
-| `update-provenance` | Any plan/score change | Append to causal provenance graph |
-| `spec-changed-show-diff` | Edit spec | Show what changed musically (MPIR-level) |
-| `genre-profile-validate` | GenreProfile change | Run calibration sanity check |
-| `tuning-mpe-check` | Microtonal output | Verify MPE compatibility, warn if not |
+| Describe & Hear ✅ | "YAML in, music out" | v1 |
+| Iterate & Improve ✅ | "Tell it what's wrong, it improves" | v1 |
+| Richer Music | "Pro-quality harmony, rhythm, dynamics" | A1–A6, B1 |
+| My Style | "Learns my preferences" | C1–C3, D3 |
+| Multi-Genre | "Convincing across diverse genres" | B1–B4, C1–C4, D1 |
+| Production Ready | "Usable in real projects" | F1, F4, F8 |
+| Stage Ready | "Live performance, real-time" | Phase 5 / `/improvise` |
 
 ---
 
-## 16. MCP Integration
-
-| MCP Target | Purpose | Phase |
-|---|---|---|
-| **Reaper DAW** | Project file read/write, track layout | gamma |
-| **Sample library** | Search/fetch drum samples, one-shots | gamma |
-| **Reference DB** | Rights-cleared reference catalog | gamma |
-| **MIDI controller** | Live mode input | delta |
-| **SoundFont/VST host** | Tone rendering with articulation routing | gamma |
-| **Cloud storage** | Artifact backup, team share | delta |
-| **Pianoteq** | Microtonal piano rendering | gamma |
-| **Csound bridge** | Beyond-MIDI tunings | epsilon |
-
----
-
-## 17. Quality Evaluation: Genre-Aware Metrics
-
-YaO v2.0 evaluates compositions across **5 dimensions** with **genre-specific weights** (from GenreProfile).
-
-### 17.1 Structure (default 25%, configurable)
-Section contrast, climax position, density curve fit, repetition balance, loopability.
-
-### 17.2 Melody (default 30%, configurable)
-Range fit, motif memorability, singability, phrase closure, contour variation.
-
-### 17.3 Harmony (default 25%, configurable)
-Chord function fit, tension resolution, harmonic complexity match, cadence strength.
-
-### 17.4 Rhythm (NEW in v2.0, default 10%, up to 40% for percussion-centric)
-Groove consistency, polyrhythmic density, pattern evolution, microtiming complexity, onset density per beat.
-
-### 17.5 Timbre (NEW in v2.0, default 5%, up to 20% for electronic genres)
-Spectral centroid arc, spectral complexity, timbral variety per section, dynamic range, transient density.
-
-### 17.6 Arrangement Mode Additional Metrics
-Original preservation rate, transformation strength, instrument role clarity, frequency collision risk.
-
-### 17.7 Acoustic Mode (Layer 4 Output)
-LUFS target match, beat stability, spectral balance, onset density.
-
----
-
-## 18. Development Roadmap (180-Day Plan)
-
-The roadmap follows VISION.md's phase structure, advancing **input, processing, and evaluation** in lockstep per the Vertical Alignment Principle.
-
-### Phase 1.5 (Days 1–14): Pre-Phase-2 Foundation [NEW]
-Address the three highest-impact, lowest-effort genre-coverage issues:
-- GenreProfile YAML schema strict definition + numeric backfill of 8 genres
-- Dynamic evaluation weights from GenreProfile (incl. percussion-centric flag)
-- MeterSpec IR + DrumPattern meter-aware refactor
-
-**Milestone**: Compositions in 3/4, 5/4, 6/8, 7/8 generate correctly. Techno and trap evaluate against rhythm-centric metrics.
-
-### Phase 2 (Days 15–60): Plan Layer & Mechanized Critique
-- MotifPlan / PhrasePlan / DrumPattern / ArrangementPlan implemented
-- Adversarial Critic: 30+ rules across 6 categories
-- Multi-candidate Conductor (5 candidates → critic-rank → producer-pick)
-- Markov + constraint_solver Note Realizers
-- GrooveProfile IR + initial library (15 grooves)
-- Articulation IR + Note IR extension
-- Spec composability (`extends:`, `overrides:`, `fragments/`)
-- Genre Coverage Tests
-
-**Milestone**: Lo-fi hip-hop with J Dilla groove. Cinematic with proper articulation. 24 GenreProfile YAMLs validated.
-
-### Phase 3 (Days 61–105): Differentiation — Perception & Arrangement
-- Perception Stage 1 (audio features)
-- Perception Stage 2 (use-case targeted)
-- Counter-melody Generator
-- Arrangement Engine (full):
-  - SourcePlan extractor (MIDI → MPIR)
-  - Style vector operations
-  - Preservation/transformation contract
-  - Arrangement Diff Markdown
-- Reference Matcher (Stage 3, abstract features only)
-- TuningSystem IR + microtonal MIDI rendering
-
-**Milestone**: Existing MIDI → arranged MIDI in different genre, with structured diff. Microtonal scales (maqam, just intonation) generate audibly.
-
-### Phase 4 (Days 106–150): Production Readiness
-- Production Manifest + Mix Chain (pedalboard)
-- Sketch-to-Spec dialogue state machine
-- Strudel emitter (browser-side instant audition)
-- A/B Audition UI in browser
-- Causal Provenance Graph
-- Reaper MCP integration
-- 12 additional Genre Skills (target: 24 total)
-
-**Milestone**: Commercial BGM creator can use YaO end-to-end and import into a DAW for finishing.
-
-### Phase 5 (Days 151–180+): Reflection & Continuous Improvement
-- Reflection Layer (Layer 7) for user style profiles
-- Genre Calibration via parameter sweeps
-- Curriculum Learning for Conductor
-- Community reference library shared format
-- Live improvisation mode
-
----
-
-## 19. Quickstart
-
-### 19.1 Setup
+## 14. Quick Start
 
 ```bash
-git clone <yao-repo>
+git clone <repo>
 cd yao
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 make setup-soundfonts
-make setup-hooks
+make all-checks
 ```
 
-### 19.2 First Composition
-
 ```bash
-# Quick natural-language generation
-yao conduct "a calm piano piece in D minor for studying, 90 seconds"
-
-# Genre-specific generation with GenreProfile
-yao conduct "a Balkan folk dance" --genre balkan_dance
-
-# YAML-based with composability
-cat > specs/projects/my-experiment/composition.yaml <<EOF
-schema_version: 3
-extends:
-  - fragments/genres/lofi_hiphop.yaml
-overrides:
-  meter:
-    numerator: 5
-    denominator: 4
-EOF
-yao compose specs/projects/my-experiment/composition.yaml
-```
-
-### 19.3 Interactive (Recommended)
-
-```bash
+# 1. Sketch a piece
+yao new-project rainy-cafe
 claude
-> /sketch a mysterious puzzle game BGM, minimal and looping
-> /compose my-puzzle-bgm
-> /critique my-puzzle-bgm
-> /regenerate-section my-puzzle-bgm bridge
-> /audition my-puzzle-bgm                # browser A/B comparison
-```
+> /sketch
+> "A 90-second melancholy piano-cello piece for a rainy cafe scene"
+> (Producer crystallizes intent and proposes references)
 
-### 19.4 Arrangement Mode
+# 2. Compose
+> /compose rainy-cafe
 
-```bash
-cp my_song.mid specs/projects/my-arrangement/source.mid
-cat > specs/projects/my-arrangement/arrangement.yaml <<EOF
-arrangement:
-  input: { file: source.mid, rights_status: owned }
-  preserve: { melody: { enabled: true, similarity_min: 0.85 } }
-  transform:
-    target_genre: lofi_hiphop
-    target_groove: j_dilla_drunken
-EOF
-yao arrange my-arrangement
+# 3. Listen and feed back
+afplay outputs/projects/rainy-cafe/iterations/v001/audio.wav
+yao feedback rainy-cafe v001 --section chorus --bars 17-24 --tag "boring" --severity 0.6
+
+# 4. Conductor adapts
+> /compose rainy-cafe        # creates v002 incorporating feedback
+
+# 5. Critique
+> /critique rainy-cafe v002
+
+# 6. Regenerate weak parts
+> /regenerate-section rainy-cafe bridge
+
+# 7. Arrange to a different genre
+> /arrange rainy-cafe --target lo-fi-hiphop --preserve melody
 ```
 
 ---
 
-## 20. File Formats and Interoperability
+## 15. File Formats and Interoperability
 
-YaO adopts these standard formats to ensure interoperability with external tools.
-
-| Purpose | Format | Reason |
+| Use | Format | Why |
 |---|---|---|
-| Music data | MIDI (.mid), MusicXML (.xml) | Industry standard, all DAWs |
-| Microtonal MIDI | MPE-encoded MIDI | Hardware/software MPE-compatible |
-| Score | LilyPond (.ly), PDF | High-quality typesetting |
-| Specs | YAML | Human-readable, git-friendly |
-| Intermediate Reps | JSON | Schema-validatable |
-| Provenance | JSON (graph structure) | Causal chain expression |
-| Audio | WAV (production), FLAC/MP3 (distribution) | Universal support |
-| Live coding | Strudel patterns | Browser-instant audition |
-| Beyond MIDI | Csound, Faust | Microtonal/spectral that exceed MIDI |
+| Symbolic music | MIDI (.mid), MusicXML (.xml) | Industry standard |
+| Score | LilyPond (.ly), PDF | High quality |
+| Specs | YAML | Human + git friendly |
+| IR | JSON | Programmatic, schema-validated |
+| Provenance | JSON | Graph-friendly |
+| Feedback | JSONL | Append-only |
+| Audio (production) | WAV (24-bit) | Lossless |
+| Audio (delivery) | FLAC, MP3 | Standard |
+| Live patterns | Strudel pattern strings | Browser playback |
+| Microtonal | MTS sysex / MPE | Standard for non-12-TET |
 
-Custom formats are avoided. Only what existing standards cannot express is added minimally.
-
----
-
-## 21. Ethics and Licensing
-
-### 21.1 Reference Data
-References must be **rights-cleared compositions only**. Each is recorded in `references/catalog.yaml` with license status. Unknown-status compositions are excluded.
-
-### 21.2 Artist Imitation
-Specifications like "in the style of <named living artist>" are not recommended. Instead, use **abstract feature descriptions**:
-
-> ✗ "Joe Hisaishi style"
-> ✓ "Wide open string voicings, ascending motifs, major-minor ambiguity, meditative tempo"
-
-### 21.3 Generated Output Rights
-Music generated by YaO is owned by the user, in principle. If the influence of a reference composition exceeds a threshold (computed from style vector similarity), a warning is issued.
-
-### 21.4 Transparency
-All generated output should be marked "produced with YaO" along with the list of aesthetic anchors consulted, recorded in `provenance.json`.
-
-### 21.5 Cultural Appropriation Caution
-GenreProfiles for non-Western traditions (maqam, gamelan, Indian classical) include cultural context Markdown documents that explain practice traditions, performance contexts, and respect considerations. The system warns when these are used without consultation of the documents.
+YaO does not invent new formats unless none of the above can express what is needed.
 
 ---
 
-## 22. Document Relationships
+## 16. Ethics and Licensing
+
+### 16.1 Reference Library
+Only `public_domain`, `owned`, or permissive Creative Commons (`cc_by`, `cc_by_sa`) entries allowed in `references/catalog.yaml`. The `validate-references` hook enforces this in CI.
+
+### 16.2 Artist Imitation
+Naming a living artist as a reference is **discouraged**. Prefer abstract feature descriptions:
+- ✗ "Joe Hisaishi style"
+- ✓ "Wide open string voicings, ascending stepwise motifs, modal mixture, contemplative tempo"
+
+### 16.3 Output Rights
+Generated works belong to the user by default. If reference influence on a piece exceeds an internal threshold (cosine similarity > 0.9 in style space), the system warns and records the warning in Provenance.
+
+### 16.4 Transparency
+Every generated work has a Provenance entry listing the references that influenced it. We recommend disclosing "made with YaO" alongside output.
+
+---
+
+## 17. Document Relationships
 
 | File | Audience | Content |
 |---|---|---|
-| `PROJECT.md` (this) | Humans + Agents | Overall design, philosophy, architecture |
-| `CLAUDE.md` | Agents primarily | Operational rules, prohibitions, skill pointers |
+| `PROJECT.md` (this) | Humans + agents | Full design, philosophy, architecture |
+| `CLAUDE.md` | Agents primarily | Inviolable rules, prohibitions, Skill pointers |
 | `README.md` | Humans primarily | Quickstart, minimal usage |
-| `VISION.md` | Humans + Agents | Target architecture, roadmap |
-| `FEATURE_STATUS.md` | Humans + Agents | Single source of truth for capabilities |
-| `IMPROVEMENT.md` | Humans + Agents | Analysis and improvement plan |
-| `docs/design/*.md` | Humans + Agents | Individual design decision records |
-| `docs/genres/*.md` | Musicians | Per-genre user guide |
-| `docs/recipes/*.md` | Users | Purpose-driven YAML recipes |
-| `.claude/guides/*.md` | Developers + Agents | Technical guides (architecture, music, testing) |
+| `IMPROVEMENT.md` | Both | v2 improvement tracking, acceptance criteria |
+| `.claude/guides/*.md` | Both | Cross-cutting developer guidance |
+| `docs/design/*.md` | Both | Per-decision design records (ADR-style) |
 
 ---
 
-## 23. Glossary
+## 18. Future Architectural Extensions
 
-**Conductor (You)** — The human project owner. Final decision-maker.
+### 18.1 Project Runtime (Stateful Sessions)
+The current CLI is stateless. A `ProjectRuntime` will provide section-level generation cache, feedback queue, undo/redo at the musical level.
 
-**Orchestra** — Collective term for Subagents.
+### 18.2 Abstract Agent Protocol
+Subagent definitions in `.claude/agents/` are coupled to Claude Code. We will define a backend-agnostic Python protocol (`AgentRole`, `AgentContext`, `AgentOutput`) so other LLM providers can plug in.
 
-**Score** — YAML documents in `specs/`. Complete description of a composition.
+### 18.3 Immediate Feedback Path
+The YAML → MIDI → WAV → external player path is too slow. F4 (Live Preview Server) is the first step. Future steps: in-browser preview via Strudel, direct WAV playback via `sounddevice`.
 
-**Score IR** — Intermediate representation that implementations operate on.
+### 18.4 Spec Composability
+`specs/fragments/` will hold reusable spec snippets, with `extends:` / `overrides:` keywords to compose them.
 
-**MPIR (Musical Plan IR)** — Layer 3.5; the "why" representation between spec and score.
+### 18.5 Adaptive / Interactive Music
+For game audio, an `adaptive:` spec block defines named states (e.g., `explore`, `combat`) and inter-state transitions (`stinger_then_crossfade`, etc.). Output becomes a Wwise/FMOD-compatible state machine.
 
-**Trajectory** — Time-axis curves of musical properties (tension, density, etc.).
-
-**MeterSpec** — Explicit meter representation with grouping and accents.
-
-**GrooveProfile** — Microtiming and velocity offsets that define a genre's feel.
-
-**TuningSystem** — Pitch deviations from 12TET; supports microtonal traditions.
-
-**Articulation** — Performance technique (legato, staccato, etc.) at the note level.
-
-**ExpressionCurve** — Time-varying CC values (modwheel, expression).
-
-**GenreProfile** — Numeric backbone of genre identity; drives generators and evaluators.
-
-**Aesthetic Reference Library** — Reference compositions as aesthetic anchors.
-
-**Perception Substitute Layer** — Layer 4; compensates for "AI cannot listen."
-
-**Provenance** — Causal graph of generation decisions.
-
-**Adversarial Critic** — Subagent that intentionally attacks output.
-
-**Negative Space** — Explicit design of what NOT to play.
-
-**Style Vector** — Multi-dimensional feature vector representing a genre/style.
-
-**Iteration** — Versioned generation within a project (`v001`, `v002`, ...).
-
-**Music Lint** — Auto-detection of music theory and constraint violations.
-
-**Sketch-to-Spec** — Dialogue process from natural-language sketch to YAML spec.
-
-**Vertical Alignment** — Principle that input/processing/evaluation advance together.
-
-**Recoverable Decision** — Logged decision that bypassed strict validation; CI-checked.
-
-**Critic Gate** — Architectural checkpoint between Step 5 and Step 6 where MPIR is critiqued.
-
-**Multi-Candidate Generation** — 5 parallel pipelines yielding 5 plans for Critic ranking.
+### 18.6 Style Profile Per User
+Phase 6 introduces persistent user preferences derived from feedback history. Style profiles are versioned per project owner under `~/.yao/profiles/`.
 
 ---
 
-## 24. The Future YaO Imagines
+## 19. Glossary
 
-YaO v2.0 is not "an AI that produces music." It is **infrastructure for humans and AI to co-create music, each contributing their distinctive strengths**.
+- **Aesthetic Score** — Overall score from Layer 4, blending reference and psych metrics.
+- **Aesthetic Reference Library** — License-cleared corpus serving as taste anchors.
+- **Articulation** — Note-level performance attribute (legato, staccato, ghost, etc.).
+- **Conductor (capital C)** — The human project owner; final decision-maker.
+- **Conductor (lowercase, the engine)** — The generate/evaluate/adapt loop, separate from the human Conductor.
+- **GrooveTemplate** — Reusable micro-timing + velocity pattern.
+- **Iteration** — Versioned generation under one project (`v001`, `v002`, …).
+- **Motif Network** — Tree of motif derivatives, tracking all transformations.
+- **Music Lint** — Theory-based automated rule check.
+- **Negative Space** — The intentional absence of sound; required rests and gaps.
+- **Orchestra** — Collective name for Subagents.
+- **Perception Substitute Layer** — Layer 4; replaces the missing AI ear with reference + psych machinery.
+- **Phrase** — A musical sentence with role (antecedent/consequent/free), motif lineage, and cadence target.
+- **Pipeline (the generator)** — Layer-2 generator that runs the 6-phase protocol.
+- **Programmatic Critic** — Rule-based, fast critic in Layer 6.
+- **Provenance** — Append-only record of every generation decision and rationale.
+- **Score (capital S)** — The full set of YAML specs for a piece.
+- **Score IR** — Internal representation Layer 3 emits.
+- **Sketch-to-Spec** — Conversational mode converting natural language into YAML specs.
+- **Style Vector** — High-dimensional feature vector representing a style; supports arithmetic.
+- **Subagent** — A specialized AI role (Composer, Critic, etc.); see §5.
+- **Tonal System** — Pluggable abstraction of pitch organization (common-practice, modal, raga, maqam, …).
+- **Trajectory** — Time-axis curve for tension, density, valence, predictability.
 
-- Humans contribute **intent, judgment, and sensibility**.
-- AI contributes **theoretical knowledge, iteration speed, and exhaustive record-keeping**.
-- YaO is **the structured collaborative process that makes both possible**.
+---
 
-The expanded scope of v2.0 — meter pluralism, groove authenticity, microtonal traditions, articulation expression, genre-aware evaluation, arrangement transformation — is in service of one principle:
+## 20. Closing
 
-> **The world's musical traditions are diverse; YaO must honor them.**
+YaO v2 is not "AI that makes music." It is the structured environment in which a human Conductor and a disciplined AI Orchestra co-create music — faster, deeper, and far more reproducibly than either could alone.
 
-Western melody and harmony are one tradition. African polyrhythm is another. Arabic maqam, Indian raga, Indonesian gamelan, Bulgarian asymmetric meters, J Dilla's microtiming, J-Pop's bridge conventions — each has its own logic, its own beauty, its own discipline. YaO v2.0 commits to representing these on equal footing.
+- The **human** brings intent, taste, and final judgment.
+- The **AI Orchestra** brings theory mastery, iteration speed, exhaustive memory, and patient critique.
+- **YaO** is the place where these two strengths combine without either dominating.
 
-Great music will always be **the expression of a human soul**. YaO aims to make that expression **faster, deeper, and more reproducible — across every tradition the human soul speaks in**.
+Great music remains the expression of a human soul. YaO's job is to make that expression **faster, deeper, and more reproducible**. Nothing more, nothing less.
 
 > *Your vision. Your taste. Your soul.*
-> *— and an Orchestra ready to serve, in every tradition.*
+> *— and an Orchestra ready to serve.*
 
 ---
 
 **Project: You and Orchestra (YaO)**
 *Document version: 2.0*
-*Last updated: 2026-05-04*
-*Compatible with: Claude Code, Claude Sonnet 4.6+ / Opus 4.7+*
+*Last updated: 2026-05-05*
+*Supersedes: v1.0 (2026-04-27)*
