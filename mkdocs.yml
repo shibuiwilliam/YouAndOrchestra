@@ -27,7 +27,44 @@ nav:
   - Architecture:
     - Layer Model: architecture/layers.md
     - Design Decisions: architecture/decisions.md
-    - "ADR-0001: Layer Architecture": design/0001-layer-architecture.md
+  - Design:
+    - v2 Summary: design/v2-summary.md
+    - ADRs:
+      - "ADR-0001: Layer Architecture": design/0001-layer-architecture.md
+      - "ADR-0001: Genre Skill Template": design/0001-genre-skill-template.md
+      - "ADR-0002: Tonal System": design/0002-tonal-system.md
+      - "ADR-0003: Sound Design": design/0003-sound-design.md
+      - "ADR-0004: Reference Evaluation": design/0004-reference-evaluation.md
+      - "ADR-0005: Subagent Protocol": design/0005-subagent-protocol.md
+      - "ADR-0006: Phase Protocol": design/0006-phase-protocol.md
+      - "ADR-0007: Loop Generator": design/0007-loop-generator.md
+      - "ADR-0008: Vocal Track": design/0008-vocal-track.md
+    - Wave 1:
+      - Composer: design/wave-1-1-composer.md
+      - Anthropic API: design/wave-1-2-anthropic-api.md
+      - Golden Diff: design/wave-1-4-golden-diff.md
+      - Note Realizer v2: design/wave-1-4-note-realizer-v2.md
+    - Wave 2:
+      - Aesthetic Metrics: design/wave-2-2-aesthetic-metrics.md
+    - Wave 3:
+      - Ensemble Constraints: design/wave-3-2-ensemble-constraints.md
+    - Arrange:
+      - Overview: design/arrange/overview.md
+    - Feedback:
+      - NL Translation: design/feedback/nl-translation.md
+      - Pin: design/feedback/pin.md
+    - Perception:
+      - Stage 1: design/perception/stage1.md
+      - Surprise: design/perception/surprise.md
+    - Plan IR:
+      - Conversation: design/plan-ir/conversation.md
+      - Groove: design/plan-ir/groove.md
+      - Hook: design/plan-ir/hook.md
+      - Tension Arcs: design/plan-ir/tension-arcs.md
+    - Sketch:
+      - Multilingual: design/sketch/multilingual.md
+    - Spec:
+      - Forms: design/spec/forms.md
   - Tutorials:
     - Claude Code Workflow: tutorials/claude-code-workflow.md
   - Guides:
@@ -38,6 +75,12 @@ nav:
     - Provenance Schema: provenance-schema.md
     - Supported Instruments: reference/instruments.md
     - Music Theory: reference/music-theory.md
+  - Audit:
+    - 2026-05 Monthly: audit/2026-05-monthly.md
+    - 2026-05 Status Reaudit: audit/2026-05-status-reaudit.md
+    - Baseline Violations: audit/baseline-violations.md
+    - Wave 1 Completion: audit/wave-1-completion.md
+    - Wave 2 Completion: audit/wave-2-completion.md
   - Migration:
     - v1.1 Baseline Report: migration/v1.1-baseline-report.md
     - v2 Baseline Report: migration/v2-baseline-report.md
@@ -47,6 +90,14 @@ nav:
     - v2 Functional Improvement: migration/v2-functional-improvement-plan.md
     - v2 Document Transition: migration/v2-document-transition.md
     - Silent Fallback Inventory: migration/silent-fallback-inventory.md
+  - Waves:
+    - Wave 1-2 Comparison: wave-1-2-comparison.md
+    - Wave 1-3 Japanese Quality: wave-1-3-japanese-quality.md
+    - Wave 2-1 Skill Demo: wave-2-1-skill-demo.md
+    - Wave 2-2 Aesthetic Benchmark: wave-2-2-aesthetic-benchmark.md
+    - Wave 2-3 Audio Demo: wave-2-3-audio-demo.md
+    - Wave 3-5 Rating Collection: wave-3-5-rating-collection.md
+    - Wave 3-6 Dialogue Samples: wave-3-6-dialogue-samples.md
 
 markdown_extensions:
   - admonition
