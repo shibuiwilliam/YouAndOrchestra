@@ -1,0 +1,106 @@
+title: "Short String v1"
+description: "A short, elegant Romantic-era string ensemble miniature"
+
+tonal_system:
+  kind: tonal_major_minor
+  key: A
+  mode: major
+
+tempo_bpm: 90
+time_signature: "4/4"
+duration_seconds: 30
+
+instruments:
+  - name: violin_1
+    role: melody
+    midi_program: 40
+    range: [55, 88]
+  - name: violin_2
+    role: harmony
+    midi_program: 40
+    range: [55, 84]
+  - name: viola
+    role: harmony
+    midi_program: 41
+    range: [48, 79]
+  - name: cello
+    role: bass
+    midi_program: 42
+    range: [36, 72]
+  - name: contrabass
+    role: bass
+    midi_program: 43
+    range: [28, 55]
+
+sections:
+  - name: intro
+    bars: 2
+    dynamics: pp
+    density: 0.3
+    tension: 0.2
+    active_instruments: [viola, cello, contrabass]
+  - name: section_a
+    bars: 8
+    dynamics: mf
+    density: 0.7
+    tension: 0.5
+    active_instruments: [violin_1, violin_2, viola, cello, contrabass]
+  - name: outro
+    bars: 1
+    dynamics: pp
+    density: 0.25
+    tension: 0.15
+    active_instruments: [violin_1, viola, cello, contrabass]
+
+trajectory:
+  tension:
+    type: linear
+    waypoints:
+      - {bar: 0, value: 0.2}
+      - {bar: 2, value: 0.35}
+      - {bar: 5, value: 0.5}
+      - {bar: 8, value: 0.65}
+      - {bar: 10, value: 0.15}
+  density:
+    type: linear
+    waypoints:
+      - {bar: 0, value: 0.3}
+      - {bar: 3, value: 0.7}
+      - {bar: 8, value: 0.75}
+      - {bar: 10, value: 0.25}
+
+constraints:
+  must:
+    - "legato articulation throughout"
+    - "melody in singable range A4-E5"
+    - "diatonic harmony in A major"
+  must_not:
+    - "parallel fifths between voices"
+    - "voice crossing between violin_1 and violin_2"
+    - "dynamics exceeding forte"
+  prefer:
+    - "stepwise melodic motion"
+    - "common tones between chords"
+    - "contrary motion between outer voices"
+  avoid:
+    - "large melodic leaps greater than octave"
+    - "chromatic passages"
+    - "syncopation"
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.3
+
+style:
+  genre: classical
+  era: romantic
+  references:
+    like:
+      - "Tchaikovsky Serenade for Strings"
+      - "Dvorak string writing"
+      - "Elgar Serenade for Strings"
+    avoid:
+      - "modern extended techniques"
+      - "aggressive double stops"
+      - "dense polyphony"

@@ -1,0 +1,20 @@
+# Trajectory: Short String v1
+# Single gentle arch — sparse intro, full quartet in body, quiet resolution
+
+tension:
+  type: linear
+  waypoints:
+    - {bar: 0, value: 0.20}
+    - {bar: 2, value: 0.35}
+    - {bar: 5, value: 0.50}
+    - {bar: 8, value: 0.65}
+    - {bar: 10, value: 0.15}
+
+density:
+  type: linear
+  waypoints:
+    - {bar: 0, value: 0.30}
+    - {bar: 2, value: 0.55}
+    - {bar: 5, value: 0.70}
+    - {bar: 8, value: 0.75}
+    - {bar: 10, value: 0.25}

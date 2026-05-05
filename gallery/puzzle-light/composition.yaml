@@ -1,0 +1,102 @@
+title: "Puzzle Light"
+genre: "game"
+tonal_system:
+  kind: tonal_major_minor
+  key: "C"
+  mode: "major"
+
+tempo_bpm: 90
+time_signature: "4/4"
+total_bars: 11
+loopable: true
+
+instruments:
+  - name: glockenspiel
+    role: melody
+    density_factor: 0.6
+    techniques: [staccato, bell_tone]
+  - name: marimba
+    role: counter_melody
+    density_factor: 0.5
+    techniques: [ostinato, arpeggiated]
+  - name: piano
+    role: harmony
+    density_factor: 0.4
+    techniques: [arpeggiated, block_chord]
+  - name: drums
+    role: rhythm
+    density_factor: 0.3
+    techniques: [brushes, light_shaker]
+
+sections:
+  - name: section_a
+    bars: 4
+    dynamics: "mp"
+    tempo_bpm: 90
+    time_signature: "4/4"
+  - name: section_b
+    bars: 4
+    dynamics: "mf"
+    tempo_bpm: 90
+    time_signature: "4/4"
+  - name: section_a_prime
+    bars: 3
+    dynamics: "mp"
+    tempo_bpm: 90
+    time_signature: "4/4"
+
+drums:
+  pattern_family: "ballad_brushed"
+  swing: 0.1
+  humanize_ms: 5.0
+  ghost_notes_density: 0.05
+  fills_at: []
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.4
+
+constraints:
+  - type: must
+    scope: global
+    rule: "glockenspiel carries a simple 2-bar melodic motif that repeats with slight variation"
+  - type: must
+    scope: global
+    rule: "marimba provides interlocking rhythmic counterpoint to the glockenspiel melody"
+  - type: must
+    scope: global
+    rule: "piano plays light arpeggiated chords, supporting harmony without dominating"
+  - type: must
+    scope: global
+    rule: "drums stay minimal — shaker or brushed hi-hat pattern only, no heavy kicks"
+  - type: must
+    scope: global
+    rule: "piece loops seamlessly — section_a_prime ending connects smoothly to section_a beginning"
+  - type: must
+    scope: global
+    rule: "diatonic harmony only — I, IV, V, vi, simple progressions"
+  - type: must_not
+    scope: global
+    rule: "dark or tense harmonies — no minor key passages, diminished chords, or tritones"
+  - type: must_not
+    scope: global
+    rule: "sudden dynamic changes — all transitions are gradual and gentle"
+  - type: must_not
+    scope: global
+    rule: "complex jazz voicings or extended chords — keep harmony simple and bright"
+  - type: must_not
+    scope: global
+    rule: "heavy drum fills or aggressive percussion — maintain lightness throughout"
+  - type: prefer
+    scope: global
+    rule: "stepwise melodic motion in glockenspiel — small intervals, playful contour"
+  - type: prefer
+    scope: global
+    rule: "marimba patterns use sixteenth notes for a minimalist interlocking feel"
+  - type: prefer
+    scope: global
+    rule: "section_b adds marimba counter-melody for increased density"
+  - type: prefer
+    scope: global
+    rule: "toy-like, crystalline timbral quality throughout"

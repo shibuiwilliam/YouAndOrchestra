@@ -1,0 +1,65 @@
+title: "Short Anime V1"
+genre: "j_rock_anime"
+key: "Bb major"
+tempo_bpm: 165
+time_signature: "4/4"
+total_bars: 19
+instruments:
+  - name: electric_guitar_lead
+    role: melody
+    density_factor: 0.95
+    velocity_boost: 25
+  - name: electric_guitar_rhythm
+    role: harmony
+    density_factor: 0.7
+  - name: bass_guitar
+    role: bass
+  - name: violin_ensemble
+    role: melody
+    density_factor: 0.95
+    velocity_boost: 15
+  - name: cello_ensemble
+    role: bass
+    density_factor: 0.4
+  - name: trumpet
+    role: counter_melody
+    density_factor: 0.85
+    velocity_boost: 18
+  - name: french_horn
+    role: harmony
+    density_factor: 0.5
+  - name: synth_pad
+    role: pad
+    density_factor: 0.3
+  - name: timpani
+    role: rhythm
+    density_factor: 0.3
+    velocity_boost: 15
+  - name: crash_cymbal
+    role: rhythm
+    density_factor: 0.2
+drums:
+  pattern_family: "rock_backbeat"
+  swing: 0.0
+  humanize_ms: 5.0
+  ghost_notes_density: 0.1
+  fills_at: ["hook_a", "climax_b"]
+sections:
+  - name: intro
+    bars: 2
+    dynamics: "ff"
+  - name: hook_a
+    bars: 8
+    dynamics: "f"
+  - name: climax_b
+    bars: 8
+    dynamics: "ff"
+    recall_melody_from: "hook_a"
+    unison_melody: true
+  - name: tag
+    bars: 1
+    dynamics: "fff"
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.15

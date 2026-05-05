@@ -1,0 +1,51 @@
+tension:
+  type: linear
+  waypoints:
+    - bar: 0
+      value: 0.9
+    - bar: 2
+      value: 0.5
+    - bar: 5
+      value: 0.6
+    - bar: 10
+      value: 0.7
+    - bar: 11
+      value: 0.8
+    - bar: 15
+      value: 0.95
+    - bar: 18
+      value: 1.0
+    - bar: 19
+      value: 0.0
+
+density:
+  type: linear
+  waypoints:
+    - bar: 0
+      value: 0.8
+    - bar: 2
+      value: 0.4
+    - bar: 5
+      value: 0.5
+    - bar: 10
+      value: 0.7
+    - bar: 11
+      value: 0.8
+    - bar: 15
+      value: 0.95
+    - bar: 18
+      value: 1.0
+    - bar: 19
+      value: 1.0
+
+brightness:
+  type: linear
+  waypoints:
+    - bar: 0
+      value: 0.7
+    - bar: 10
+      value: 0.8
+    - bar: 18
+      value: 1.0
+    - bar: 19
+      value: 0.9

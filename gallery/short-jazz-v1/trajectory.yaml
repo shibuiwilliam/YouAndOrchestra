@@ -1,0 +1,16 @@
+trajectories:
+  tension:
+    type: bezier
+    waypoints: [[0, 0.15], [2, 0.20], [3, 0.40], [6, 0.45], [7, 0.50], [9, 0.60], [10, 0.20]]
+  density:
+    type: bezier
+    waypoints: [[0, 0.20], [2, 0.30], [3, 0.50], [6, 0.55], [7, 0.60], [9, 0.65], [10, 0.25]]
+  brightness:
+    type: bezier
+    waypoints: [[0, 0.25], [2, 0.30], [3, 0.40], [6, 0.45], [7, 0.50], [9, 0.55], [10, 0.25]]
+  register_height:
+    type: bezier
+    waypoints: [[0, 0.15], [2, 0.20], [3, 0.25], [6, 0.30], [7, 0.30], [9, 0.35], [10, 0.15]]
+  predictability:
+    type: stepped
+    sections: { intro: 0.7, theme_a: 0.5, theme_a_prime: 0.4 }

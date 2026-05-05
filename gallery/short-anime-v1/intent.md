@@ -1,0 +1,1 @@
+A 30-second Japanese anime opening theme. Energetic, heroic, and uplifting — an explosive orchestral-rock hybrid. Brass fanfares answer distorted guitar melody over driving drums. B-flat major for brightness. Hits hard from beat one, builds to a full-ensemble climax, ends with a single powerful accent. No subtlety — this is a title card.

@@ -1,0 +1,71 @@
+title: "Short Jazz v1"
+genre: "jazz"
+key: "Bb minor"
+tempo_bpm: 80
+time_signature: "4/4"
+total_bars: 10
+
+instruments:
+  - name: tenor_sax
+    role: melody
+    density_factor: 0.5
+  - name: piano
+    role: harmony
+    density_factor: 0.5
+  - name: contrabass
+    role: bass
+    density_factor: 0.6
+  - name: drums
+    role: rhythm
+    density_factor: 0.4
+  - name: tubular_bell
+    role: pad
+    density_factor: 0.1
+    velocity_boost: -10
+
+sections:
+  - name: intro
+    bars: 2
+    dynamics: "pp"
+    active_instruments: ["piano", "contrabass", "tubular_bell"]
+  - name: theme_a
+    bars: 4
+    dynamics: "mp"
+  - name: theme_a_prime
+    bars: 4
+    dynamics: "mf"
+
+drums:
+  pattern_family: "jazz_swing_ride"
+  swing: 0.5
+  humanize_ms: 12.0
+  ghost_notes_density: 0.2
+  fills_at: ["theme_a_prime"]
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.4
+
+constraints:
+  - type: prefer
+    scope: global
+    rule: "extended jazz voicings (min7, min9, dom7b9, ii-V-i)"
+  - type: prefer
+    scope: global
+    rule: "walking bass in quarter notes with chromatic approach"
+  - type: prefer
+    scope: global
+    rule: "saxophone plays smooth legato melody with space between phrases"
+  - type: prefer
+    scope: global
+    rule: "tubular bell accents only at phrase boundaries (bar 1 beat 1 and bar 9)"
+  - type: must_not
+    scope: global
+    rule: "velocity exceeds mf (keep intimate and nocturnal)"
+  - type: prefer
+    scope: global
+    rule: "laid-back swing feel throughout"
+  - type: prefer
+    scope: global
+    rule: "last 2 beats of bar 10 thin out for seamless loop back to intro"
