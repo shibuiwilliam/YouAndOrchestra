@@ -1,6 +1,6 @@
 # Supported Instruments
 
-YaO supports 46 instruments across 9 families. Each has a defined MIDI range and General MIDI program number, centralized in `src/yao/constants/instruments.py`. Eight non-Western instruments have extended profiles in `src/yao/constants/custom_instruments.py` with cultural origin, idiomatic techniques, and typical scales.
+YaO supports 54 instruments across 10 families (46 standard + 8 non-Western cultural). Each has a defined MIDI range and General MIDI program number, centralized in `src/yao/constants/instruments.py`. Eight non-Western instruments have extended profiles in `src/yao/constants/custom_instruments.py` with cultural origin, idiomatic techniques, and typical scales.
 
 ## Keyboard
 

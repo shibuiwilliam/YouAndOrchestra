@@ -29,10 +29,10 @@ Claude Code will:
 
 Claude Code will guide you through choices:
 - Key and tempo suggestions with musical reasoning
-- Instrument selection from 46 available instruments (including 8 non-Western)
+- Instrument selection from 54 available instruments (including 8 non-Western cultural)
 - Section structure (intro/verse/chorus/outro)
 - Dynamic arc and trajectory curves
-- Writes the YAML spec (v1 or v2 format) and validates it for you
+- Writes the YAML spec and validates it for you
 
 ### `/compose` — Generate with the Conductor
 
@@ -195,15 +195,16 @@ Behind the scenes, Claude Code can invoke specialized subagents:
 
 ## Domain Skills
 
-YaO includes 28 domain knowledge skills that Claude Code can draw on:
+YaO includes 44 domain knowledge skills that Claude Code can draw on:
 
 | Category | Skills |
 |---|---|
-| Genres (22) | cinematic, jazz, rock, pop, electronic, ambient, classical, lofi, funk, blues, reggae, latin, country, metal, r_and_b, hip_hop, edm, world, chiptune, j_pop, bossa_nova, trap |
+| Genres (29) | cinematic, jazz_swing, jazz_ballad, rock_classic, pop, pop_western, pop_japan, electronic (edm_house, synthwave), ambient, deep_house, lo_fi_hiphop, funk, blues, hiphop, baroque, romantic, orchestral_classical, neoclassical, acoustic_folk, game_8bit_chiptune, game_bgm_rpg, film_score_dramatic, bossa_nova, celtic_traditional, arab_maqam, indian_classical_hindustani, j_pop |
 | Cultures (3) | Japanese, Middle Eastern, Indian Classical |
-| Theory (1) | Voice leading |
+| Theory (4) | Voice leading, Microtonal, Process music, Twelve-tone |
 | Instruments (1) | Piano |
-| Psychology (1) | Tension-resolution |
+| Psychology (2) | Tension-resolution, Emotion mapping |
+| Articulation (4) | Jazz microtiming, Piano pedaling, Strings articulation, Winds articulation |
 
 ---
 

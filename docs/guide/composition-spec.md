@@ -1,8 +1,12 @@
 # Composition Spec Reference
 
-YaO supports two spec formats: **v1** (simple, flat) and **v2** (detailed, 11-section). The format is auto-detected when loading.
+YaO supports three spec formats. The format is auto-detected when loading.
 
-## v1 Format (Simple)
+- **Simple format** — flat YAML, quick to write
+- **Detailed format** — 11-section YAML for fine control
+- **Composable format** — extends/overrides pattern with fragment reuse
+
+## Simple Format
 
 ```yaml
 title: "My Piece"              # Required
@@ -25,15 +29,15 @@ sections:                       # At least one required
     key: "G major"              # Optional: override per section
 
 generation:                     # Optional
-  strategy: "rule_based"        # rule_based, stochastic, rule_based_v2, stochastic_v2,
-                                # markov, twelve_tone, process_music, constraint_solver
+  strategy: "stochastic"        # rule_based, stochastic, markov, twelve_tone,
+                                # process_music, constraint_solver, loop_evolution, ai_seed
   seed: 42                      # Integer, for reproducibility
   temperature: 0.5              # 0.0–1.0, variation control
 ```
 
-## v2 Format (Detailed)
+## Detailed Format (11-section)
 
-The v2 format provides 11 dedicated sections for finer control over all aspects of a composition. Auto-detected by the presence of an `identity` key.
+Provides dedicated sections for finer control over all aspects. Auto-detected by the presence of an `identity` key.
 
 ```yaml
 identity:
@@ -104,7 +108,7 @@ constraints:
     severity: error
 ```
 
-### v2 Sections
+### Sections Reference
 
 | Section | Purpose |
 |---------|---------|
@@ -120,15 +124,21 @@ constraints:
 | `production` | LUFS target, stereo width, effects |
 | `constraints` | Musical rules (must/must_not/prefer/avoid) |
 
-### v2 Templates
+## Composable Format
 
-Three templates are available in `specs/templates/v2/`:
+Uses `extends` and `overrides` to build on existing specs or fragments:
 
-| Template | Description |
-|----------|-------------|
-| `bgm-90sec-pop.yaml` | Pop-style BGM with emotion, form, melody, and production sections |
-| `cinematic-3min.yaml` | Full cinematic with trajectory, constraints, and all 11 sections |
-| `loopable-game-bgm.yaml` | Seamlessly looping game music with loop-aware constraints |
+```yaml
+extends: "specs/fragments/lofi_base.yaml"
+overrides:
+  globals:
+    key: "E minor"
+    bpm: 75
+  emotion:
+    nostalgia: 0.8
+```
+
+Fragments in `specs/fragments/` provide reusable building blocks (jazz_trio, lofi_base, cinematic_base).
 
 ## Supported Keys
 
@@ -137,6 +147,18 @@ Any combination of root note + scale type:
 **Root notes:** C, C#, D, D#, E, F, F#, G, G#, A, A#, B (also Db, Eb, Gb, Ab, Bb)
 
 **Scale types:** major, minor, harmonic_minor, melodic_minor, dorian, mixolydian, lydian, phrygian, locrian, pentatonic_major, pentatonic_minor, blues, whole_tone, chromatic
+
+## Tonal Systems
+
+For non-Western or non-tonal music, use the `tonal_system` field instead of `key`:
+
+```yaml
+tonal_system:
+  kind: "maqam"       # tonal_major_minor, modal, pentatonic, blues,
+                      # microtonal, atonal, drone, raga, maqam, custom
+  root: "D"
+  maqam_name: "hijaz"
+```
 
 ## Dynamics
 
@@ -153,11 +175,8 @@ Any combination of root note + scale type:
 
 ## Validation
 
-Run `yao validate <spec.yaml>` to check your spec without generating. Both v1 and v2 formats are validated at load time via Pydantic.
-
-```python
-from yao.schema.loader import load_composition_spec_auto
-
-# Auto-detects v1 or v2
-spec = load_composition_spec_auto(Path("my-spec.yaml"))
+```bash
+yao validate my-spec.yaml
 ```
+
+All formats are validated at load time via Pydantic. Invalid specs produce clear error messages.

@@ -47,7 +47,7 @@ The file is a JSON array of provenance records:
 3. The `rationale` field must be meaningful — not "because the code said so"
 4. When merging provenance from multiple runs, concatenate the arrays
 
-## RecoverableDecision Records (v2.0)
+## RecoverableDecision Records
 
 When a generator must compromise (e.g., a note falls outside an instrument's range), it emits a `RecoverableDecision` instead of silently clamping. These are stored in the provenance log with additional fields:
 
@@ -88,7 +88,7 @@ prov.record(
     rationale="Scale-based melody in C major.",
 )
 
-# Log a compromise (v2.0)
+# Log a compromise
 decision = RecoverableDecision(
     code="NOTE_OUT_OF_RANGE",
     severity="warning",

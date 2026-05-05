@@ -4,7 +4,7 @@ YaO ships with ready-to-use templates in `specs/templates/`.
 
 ## Available Templates
 
-### V1 Format
+### Simple Format
 
 | Template | Duration | Instruments | Sections |
 |----------|----------|-------------|----------|
@@ -14,12 +14,12 @@ YaO ships with ready-to-use templates in `specs/templates/`.
 | `trajectory-example.yaml` | -- | -- | Trajectory curves only |
 | `lofi-cafe.yaml` | -- | Piano, bass | Lo-fi cafe vibe |
 
-### V2 Format (11-section spec)
+### Detailed Format (11-section spec)
 
 | Template | Duration | Description |
 |----------|----------|-------------|
-| `v2/cinematic-3min.yaml` | ~2.4min | Full v2 cinematic with emotion, hooks, groove |
-| `v2/bgm-90sec-pop.yaml` | ~58s | Pop BGM with v2 melody/harmony sections |
+| `v2/cinematic-3min.yaml` | ~2.4min | Full cinematic with emotion, hooks, groove |
+| `v2/bgm-90sec-pop.yaml` | ~58s | Pop BGM with melody/harmony sections |
 | `v2/loopable-game-bgm.yaml` | -- | Game background music, loop-friendly |
 
 ## Using a Template
@@ -30,9 +30,6 @@ cp specs/templates/bgm-90sec.yaml specs/projects/my-song/composition.yaml
 
 # Or generate directly from a template
 yao compose specs/templates/cinematic-3min.yaml
-
-# V2 templates work the same way
-yao compose specs/templates/v2/cinematic-3min.yaml
 ```
 
 ## Creating Your Own Template

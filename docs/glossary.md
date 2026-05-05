@@ -24,9 +24,9 @@ Terms used throughout the YaO codebase and documentation.
 
 **Constraint Violation** — An error raised when a musical rule is broken (e.g., note out of instrument range). See `yao.errors.ConstraintViolationError`.
 
-**Critic Gate** — (v2.0) A validation step between CPIR completion and Note Realization. The Adversarial Critic evaluates the plan before any notes are placed, preventing "fundamentally weak plan, beautifully realized" outcomes.
+**Critic Gate** — A validation step between CPIR completion and Note Realization. The Adversarial Critic evaluates the plan before any notes are placed, preventing "fundamentally weak plan, beautifully realized" outcomes.
 
-**Finding** — (v2.0) A structured critique result emitted by critique rules. Contains rule ID, severity (critical/major/minor/suggestion), evidence, location, and recommendation. Replaces free-text critique. See `yao.verify.critique.types.Finding`.
+**Finding** —  A structured critique result emitted by critique rules. Contains rule ID, severity (critical/major/minor/suggestion), evidence, location, and recommendation. Replaces free-text critique. See `yao.verify.critique.types.Finding`.
 
 **Frozen Dataclass** — Python `@dataclass(frozen=True)`. Used for all IR domain objects to ensure immutability and provenance integrity.
 
@@ -42,7 +42,7 @@ Terms used throughout the YaO codebase and documentation.
 
 **IR (Intermediate Representation)** — The internal data structures (`Note`, `Part`, `Section`, `ScoreIR`) that represent music between generation and rendering. Layer 3 in the architecture.
 
-**MetricGoal** — (v2.0) A typed evaluation goal specifying how a metric should be scored. Modes include binary (pass/fail), target (must exceed threshold), tolerance (within range), and comparison (against reference). See `yao.verify.metric_goal.MetricGoal`.
+**MetricGoal** —  A typed evaluation goal specifying how a metric should be scored. Modes include binary (pass/fail), target (must exceed threshold), tolerance (within range), and comparison (against reference). See `yao.verify.metric_goal.MetricGoal`.
 
 **MIDI Note Number** — Integer 0–127 representing pitch. C4 (middle C) = 60. See `yao.types.MidiNote`.
 
@@ -52,13 +52,13 @@ Terms used throughout the YaO codebase and documentation.
 
 **Music Lint** — Automated detection of musical constraint violations (range errors, parallel fifths, etc.). See `yao.verify.music_lint`.
 
-**Music-as-Plan** — (v2.0) YaO's evolved philosophy: what makes music compelling is decided in the *planning* phase, before any note is written. Evolved from the original "Music-as-Code" philosophy.
+**Music-as-Plan** — YaO's core philosophy: what makes music compelling is decided in the *planning* phase, before any note is written.
 
-**MusicalPlan** — (v2.0) The integrated container holding all plan components (SongFormPlan, HarmonyPlan, etc.). The central type of Layer 3a (CPIR). See `yao.ir.plan.musical_plan.MusicalPlan`.
+**MusicalPlan** —  The integrated container holding all plan components (SongFormPlan, HarmonyPlan, etc.). The central type of Layer 3a (CPIR). See `yao.ir.plan.musical_plan.MusicalPlan`.
 
 **Negative Space** — The intentional design of silence, frequency gaps, and texture reduction. What is NOT played is as important as what IS played.
 
-**Note Realizer** — (v2.0) A generator that takes a MusicalPlan and produces a ScoreIR (concrete notes). The second stage of v2.0 generation. See `yao.generators.note.base.NoteRealizerBase`.
+**Note Realizer** — A generator that takes a MusicalPlan and produces a ScoreIR (concrete notes). The second stage of generation (after plan generation). See `yao.generators.note.base.NoteRealizerBase`.
 
 **Orchestra** — The collection of all AI subagents. Metaphor for the multi-agent system.
 
@@ -72,7 +72,7 @@ Terms used throughout the YaO codebase and documentation.
 
 **Pitch Class** — A note name regardless of octave (C, D, E, etc.). Represented as 0–11 (C=0).
 
-**Plan Generator** — (v2.0) A generator that takes a CompositionSpec and produces a plan component (e.g., SongFormPlan, HarmonyPlan). The first stage of v2.0 generation. See `yao.generators.plan.base.PlanGeneratorBase`.
+**Plan Generator** — A generator that takes a CompositionSpec and produces a plan component (e.g., SongFormPlan, HarmonyPlan). The first stage of generation (before note realization). See `yao.generators.plan.base.PlanGeneratorBase`.
 
 **PPQ (Pulses Per Quarter Note)** — MIDI timing resolution. YaO default: 220. See `yao.constants.midi.DEFAULT_PPQ`.
 
@@ -80,7 +80,7 @@ Terms used throughout the YaO codebase and documentation.
 
 **Quality Score** — A user-facing aggregate score from 1.0 to 10.0 across 6 dimensions: structure (20%), melody (25%), harmony (20%), aesthetic (20%), arrangement (10%), acoustics (5%). Computed by `EvaluationReport.quality_score`. See `yao.verify.evaluator`.
 
-**RecoverableDecision** — (v2.0) A logged, traceable fallback when a generator must compromise (e.g., note out of range). Replaces silent clamps. Records the original value, recovered value, reason, musical impact, and suggested fixes. See `yao.reflect.recoverable.RecoverableDecision`.
+**RecoverableDecision** —  A logged, traceable fallback when a generator must compromise (e.g., note out of range). Replaces silent clamps. Records the original value, recovered value, reason, musical impact, and suggested fixes. See `yao.reflect.recoverable.RecoverableDecision`.
 
 **Score IR** — The central data structure: a complete composition represented as sections, parts, and notes. See `yao.ir.score_ir.ScoreIR`.
 
@@ -88,7 +88,7 @@ Terms used throughout the YaO codebase and documentation.
 
 **Sketch-to-Spec** — The interactive process of transforming a natural language description into a structured YAML specification.
 
-**SongFormPlan** — (v2.0) A component of the Composition Plan IR (CPIR) that specifies section structure, bar counts, and dynamics arcs. See `yao.ir.plan.song_form.SongFormPlan`.
+**SongFormPlan** —  A component of the Composition Plan IR (CPIR) that specifies section structure, bar counts, and dynamics arcs. See `yao.ir.plan.song_form.SongFormPlan`.
 
 **StochasticConfig** — A frozen dataclass containing all tunable parameters for the stochastic generator (15 values: duration factors, velocity offsets, accent values, temperature thresholds, chord probability scales). Centralizes magic numbers that were previously scattered throughout the code. See `yao.generators.stochastic.StochasticConfig`.
 
@@ -102,7 +102,7 @@ Terms used throughout the YaO codebase and documentation.
 
 **Velocity** — MIDI note intensity (1–127). Never hardcoded — always derived from dynamics curves. See `yao.types.Velocity`.
 
-**Vertical Alignment** — (v2.0) The principle that input expressiveness (specs), processing depth (generation), and evaluation resolution (critique) must advance together. Never deepen one layer alone.
+**Vertical Alignment** —  The principle that input expressiveness (specs), processing depth (generation), and evaluation resolution (critique) must advance together. Never deepen one layer alone.
 
 **UserStyleProfile** — Aggregated preferences from subjective ratings, stored as preferred ranges and confidence per dimension (memorability, emotional fit, technical quality, genre fitness, overall). Built via `yao reflect ingest`.
 

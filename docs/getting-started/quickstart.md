@@ -1,169 +1,152 @@
 # Quick Start
 
+Generate your first piece in under 2 minutes.
+
+---
+
 ## Install
 
 ```bash
-git clone https://github.com/shibuiwilliam/YouAndOrchestra
-cd YouAndOrchestra
-python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-Requires **Python 3.11+**.
+Optional extras:
+```bash
+pip install -e ".[neural]"     # Stable Audio bridge
+pip install -e ".[live]"       # Realtime improvisation
+pip install -e ".[annotate]"   # A/B audition + annotation UI
+```
 
-## Three Ways to Get Started
+---
 
-### Option A: Interactive Sketch (recommended)
+## Option A: Interactive Sketch (Recommended)
 
-Launch Claude Code and start a conversation:
+Use the `/sketch` command in Claude Code for a guided 6-turn dialogue:
+
+```
+/sketch
+> A melancholic piano piece with strings, about 90 seconds
+```
+
+The sketch dialogue asks about mood, instruments, structure, and constraints, then generates a complete YAML spec and composition.
+
+---
+
+## Option B: Natural Language
 
 ```bash
-claude
-> /sketch a calm piano piece in D minor for studying
+yao conduct "upbeat jazz trio, 2 minutes, swinging and playful"
 ```
 
-The sketch dialogue walks you through 6 turns to refine your idea into a complete spec. Then:
+The Conductor translates your description to a spec, generates a composition, evaluates it, and iterates up to 3 times.
 
-```
-> /compose my-piece
-> /critique my-piece
-> /render my-piece
+Japanese is also supported:
+```bash
+yao conduct "雨の午後のような、メランコリックなピアノ曲、90秒"
 ```
 
-### Option B: Natural Language (fastest)
+---
+
+## Option C: From YAML Spec
 
 ```bash
-yao conduct "a calm piano piece in C major, 16 bars, ambient"
+# Create a project skeleton
+yao new-project my-piece
+
+# Edit the generated spec, then compose
+yao compose my-piece/composition.yaml
 ```
 
-The Conductor evaluates quality after generation and automatically adapts the spec if metrics fail, then regenerates until everything passes.
-
-### Option C: From YAML Spec (full control)
-
-Create a project:
-
-```bash
-yao new-project my-first-song
-```
-
-This creates:
-```
-specs/projects/my-first-song/
-  +-- composition.yaml   # Your music specification
-  +-- intent.md          # Describe what the piece should feel like
-```
-
-Edit `specs/projects/my-first-song/composition.yaml`:
+### Minimal spec structure:
 
 ```yaml
-title: My First Song
-genre: ambient
-key: C major
-tempo_bpm: 120
+title: "My First Piece"
+genre: "cinematic"
+key: "C minor"
+tempo_bpm: 100
 time_signature: "4/4"
-
+total_bars: 32
 instruments:
   - name: piano
     role: melody
-
+  - name: cello
+    role: accompaniment
 sections:
   - name: intro
-    bars: 4
-    dynamics: mp
-  - name: verse
     bars: 8
+    dynamics: mp
+  - name: main
+    bars: 16
     dynamics: mf
   - name: outro
-    bars: 4
-    dynamics: pp
-```
-
-Then generate:
-
-```bash
-# Single pass
-yao compose specs/projects/my-first-song/composition.yaml
-
-# With automatic iteration (recommended)
-yao conduct --spec specs/projects/my-first-song/composition.yaml --project my-first-song
-```
-
-Each run auto-creates a new iteration (`v001`, `v002`, ...) so you never lose previous versions.
-
-## Listen
-
-```bash
-# Open MIDI in your default player
-open outputs/projects/my-first-song/iterations/v001/full.mid
-
-# Or render to WAV (requires FluidSynth -- see Audio Setup)
-yao render outputs/projects/my-first-song/iterations/v001/full.mid
-
-# Or preview directly (in-memory, no file output)
-yao preview specs/projects/my-first-song/composition.yaml
-```
-
-## What You Get
-
-Each generation creates:
-
-```
-outputs/projects/my-first-song/iterations/v001/
-  full.mid           # Complete MIDI score
-  stems/             # Per-instrument MIDI stems
-  analysis.json      # Quality analysis
-  evaluation.json    # Quality scores (6 dimensions)
-  perceptual.json    # Acoustic analysis
-  provenance.json    # Decision log explaining every choice
-```
-
-## Try Different Generators
-
-Add a `generation` section to get varied output:
-
-```yaml
+    bars: 8
+    dynamics: p
 generation:
-  strategy: stochastic    # rule_based, stochastic, markov, twelve_tone, process_music, constraint_solver
-  seed: 42                # change for different results
-  temperature: 0.7        # 0.0=conservative, 1.0=adventurous
+  strategy: stochastic
+  seed: 42
+  temperature: 0.7
 ```
 
-## Fix One Section
+---
 
-If only one section needs improvement:
+## Output Structure
+
+After generation, your project contains:
+
+```
+outputs/projects/<name>/iterations/v001/
+  full.mid              # Complete MIDI file
+  stems/                # Per-instrument MIDI files
+  analysis.json         # Structural analysis
+  evaluation.json       # 6-dimension quality scores
+  perceptual.json       # Audio perception report (if rendered)
+  provenance.json       # Decision log (every note explained)
+  critique.md           # Adversarial critique findings
+  audio.wav             # Rendered audio (if --render-audio)
+```
+
+---
+
+## Generation Strategies
+
+| Strategy | Character |
+|----------|-----------|
+| `rule_based` | Deterministic, predictable |
+| `stochastic` | Probabilistic, temperature-controlled |
+| `markov` | N-gram patterns, style-aware |
+| `twelve_tone` | Serial composition (P/I/R/RI) |
+| `process_music` | Phasing, additive, subtractive |
+| `constraint_solver` | CSP backtracking |
+| `loop_evolution` | Loop-first, layer evolution |
+| `ai_seed` | Motif generation from intent |
+
+---
+
+## Iterate and Refine
 
 ```bash
-yao regenerate-section my-first-song verse --seed 99
+# Regenerate just the chorus
+yao regenerate-section my-piece chorus --seed 99
+
+# Pin feedback to a specific location
+yao pin "verse:bar4:piano — too busy, simplify"
+
+# Arrange an existing piece in a new style
+/arrange my-piece/full.mid --style jazz_ballad
+
+# Preview without saving to disk
+yao preview my-spec.yaml
+
+# Watch for spec changes and auto-regenerate
+yao watch my-spec.yaml
 ```
 
-This creates a new iteration with only the verse regenerated, keeping intro and outro intact.
-
-## Give Localized Feedback
-
-Attach feedback to a specific location:
-
-```
-/pin my-first-song --location "section:verse,bar:5,instrument:piano" --note "melody is too busy here"
-```
-
-Or use natural language:
-
-```
-/feedback my-first-song "the chorus needs more energy"
-```
-
-## Arrange Into a New Style
-
-Transform your piece into a different genre:
-
-```
-/arrange my-first-song --target-genre lofi_hiphop --preserve melody,form
-```
+---
 
 ## Next Steps
 
-- [Templates](templates.md) -- Start from a ready-made spec
-- [Audio Setup](audio-setup.md) -- Render MIDI to WAV with FluidSynth
-- [CLI Reference](../guide/cli-reference.md) -- All commands and options
-- [Composition Spec](../guide/composition-spec.md) -- YAML schema details (v1 + v2 + v3)
-- [Claude Code Workflow](../tutorials/claude-code-workflow.md) -- Interactive music creation with subagents
+- [Spec Templates](templates.md) — pre-built starting points for common genres
+- [Audio Setup](audio-setup.md) — render MIDI to WAV
+- [CLI Reference](../guide/cli-reference.md) — all commands and options
+- [Composition Specs](../guide/composition-spec.md) — full spec format reference
+- [Claude Code Workflow](../tutorials/claude-code-workflow.md) — interactive session guide
