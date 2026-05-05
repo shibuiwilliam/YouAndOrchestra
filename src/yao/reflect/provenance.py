@@ -29,6 +29,11 @@ class ProvenanceRecord:
         rationale: Why this particular decision was made.
         record_id: Unique identifier for causal graph edges.
         caused_by: IDs of records that influenced this decision.
+        agent: Subagent identifier (v2.0). Required for subagent decisions.
+        phase: Cognitive phase name (v2.0). E.g., "SKELETAL_GENERATION".
+        confidence: Decision confidence in [0.0, 1.0] (v2.0).
+        alternatives_rejected: Other options considered but not chosen (v2.0).
+        skill_referenced: Genre Skill that informed this decision (v2.0).
     """
 
     timestamp: str
@@ -39,6 +44,11 @@ class ProvenanceRecord:
     rationale: str
     record_id: str = ""
     caused_by: tuple[str, ...] = ()
+    agent: str | None = None
+    phase: str | None = None
+    confidence: float | None = None
+    alternatives_rejected: tuple[str, ...] = ()
+    skill_referenced: str | None = None
 
     @classmethod
     def create(
@@ -50,6 +60,11 @@ class ProvenanceRecord:
         source: str,
         rationale: str,
         caused_by: tuple[str, ...] = (),
+        agent: str | None = None,
+        phase: str | None = None,
+        confidence: float | None = None,
+        alternatives_rejected: tuple[str, ...] = (),
+        skill_referenced: str | None = None,
     ) -> ProvenanceRecord:
         """Create a new provenance record with the current timestamp.
 
@@ -60,6 +75,11 @@ class ProvenanceRecord:
             source: What triggered this operation.
             rationale: Why this decision was made.
             caused_by: IDs of records that influenced this decision.
+            agent: Subagent identifier (v2.0, optional).
+            phase: Cognitive phase name (v2.0, optional).
+            confidence: Decision confidence in [0.0, 1.0] (v2.0, optional).
+            alternatives_rejected: Alternatives considered (v2.0, optional).
+            skill_referenced: Genre Skill that informed this decision (v2.0, optional).
 
         Returns:
             A new ProvenanceRecord with current UTC timestamp and auto-generated ID.
@@ -80,6 +100,11 @@ class ProvenanceRecord:
             rationale=rationale,
             record_id=record_id,
             caused_by=caused_by,
+            agent=agent,
+            phase=phase,
+            confidence=confidence,
+            alternatives_rejected=alternatives_rejected,
+            skill_referenced=skill_referenced,
         )
 
 
@@ -111,6 +136,11 @@ class ProvenanceLog:
         source: str,
         rationale: str,
         caused_by: tuple[str, ...] = (),
+        agent: str | None = None,
+        phase: str | None = None,
+        confidence: float | None = None,
+        alternatives_rejected: tuple[str, ...] = (),
+        skill_referenced: str | None = None,
     ) -> ProvenanceRecord:
         """Create and append a provenance record in one step.
 
@@ -121,6 +151,11 @@ class ProvenanceLog:
             source: What triggered this operation.
             rationale: Why this decision was made.
             caused_by: IDs of records that influenced this decision.
+            agent: Subagent identifier (v2.0, optional).
+            phase: Cognitive phase name (v2.0, optional).
+            confidence: Decision confidence in [0.0, 1.0] (v2.0, optional).
+            alternatives_rejected: Alternatives considered (v2.0, optional).
+            skill_referenced: Genre Skill that informed this decision (v2.0, optional).
 
         Returns:
             The newly created record (for chaining causal references).
@@ -132,6 +167,11 @@ class ProvenanceLog:
             source=source,
             rationale=rationale,
             caused_by=caused_by,
+            agent=agent,
+            phase=phase,
+            confidence=confidence,
+            alternatives_rejected=alternatives_rejected,
+            skill_referenced=skill_referenced,
         )
         self.add(rec)
         return rec

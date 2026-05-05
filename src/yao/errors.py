@@ -159,6 +159,28 @@ class AgentOutputParseError(AgentBackendError):
         super().__init__(message)
 
 
+class PhaseIncompleteError(YaOError):
+    """Raised when a phase transition is attempted without required artifacts.
+
+    Attributes:
+        phase: The phase that is incomplete.
+        missing_artifacts: List of artifact names that are missing.
+    """
+
+    def __init__(
+        self,
+        phase: str,
+        missing_artifacts: list[str],
+        message: str | None = None,
+    ) -> None:
+        self.phase = phase
+        self.missing_artifacts = missing_artifacts
+        if message is None:
+            artifacts_str = ", ".join(missing_artifacts) if missing_artifacts else "(none)"
+            message = f"Phase '{phase}' is incomplete. Missing artifacts: {artifacts_str}"
+        super().__init__(message)
+
+
 class IncompleteGenreProfileError(YaOError):
     """Raised when a GenreProfile is missing required sections.
 

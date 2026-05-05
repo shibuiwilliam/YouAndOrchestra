@@ -220,8 +220,44 @@ def _is_drum_instrument(instrument_name: str) -> bool:
     return any(kw in instrument_name.lower() for kw in _DRUM_KEYWORDS)
 
 
+def _normalize_instrument_name(instrument_name: str) -> str:
+    """Strip numeric suffixes like '_1', '_2' and common prefixes.
+
+    Examples:
+        'violin_1' -> 'violin'
+        'piano_high' -> 'piano'
+        'orchestral_strings' -> 'strings_ensemble'
+    """
+    import re
+
+    # Strip trailing _N (digit suffixes)
+    stripped = re.sub(r"_\d+$", "", instrument_name)
+    if stripped != instrument_name:
+        return stripped
+
+    # Strip common qualifier suffixes
+    for suffix in ("_high", "_mid", "_low", "_left", "_right"):
+        if instrument_name.endswith(suffix):
+            return instrument_name[: -len(suffix)]
+
+    return instrument_name
+
+
+# Mapping for compound/qualified names that don't reduce to a GM key via suffix stripping
+_COMPOUND_ALIASES: dict[str, str] = {
+    "orchestral_strings": "strings_ensemble",
+    "synth_pad": "synth_pad_warm",
+    "string_pad": "synth_pad_strings",
+    "brass": "brass_section",
+    "strings": "strings_ensemble",
+}
+
+
 def _resolve_program(instrument_name: str) -> int:
     """Resolve an instrument name to a General MIDI program number.
+
+    Tries exact match, then suffix-stripped match, then alias mapping,
+    then substring match against known GM instruments.
 
     Args:
         instrument_name: Canonical instrument name.
@@ -245,6 +281,31 @@ def _resolve_program(instrument_name: str) -> int:
     alias = _INSTRUMENT_ALIASES.get(instrument_name)
     if alias and alias in GENERAL_MIDI_INSTRUMENTS:
         return GENERAL_MIDI_INSTRUMENTS[alias]
+
+    # Try compound alias mapping
+    compound = _COMPOUND_ALIASES.get(instrument_name)
+    if compound and compound in GENERAL_MIDI_INSTRUMENTS:
+        return GENERAL_MIDI_INSTRUMENTS[compound]
+
+    # Try suffix-stripped name (e.g., violin_1 -> violin, piano_high -> piano)
+    normalized = _normalize_instrument_name(instrument_name)
+    if normalized != instrument_name:
+        if normalized in GENERAL_MIDI_INSTRUMENTS:
+            return GENERAL_MIDI_INSTRUMENTS[normalized]
+        norm_range = INSTRUMENT_RANGES.get(normalized)
+        if norm_range is not None:
+            return norm_range.program
+        norm_compound = _COMPOUND_ALIASES.get(normalized)
+        if norm_compound and norm_compound in GENERAL_MIDI_INSTRUMENTS:
+            return GENERAL_MIDI_INSTRUMENTS[norm_compound]
+
+    # Try substring match: find the longest GM key contained in the name
+    best_match = ""
+    for gm_name in GENERAL_MIDI_INSTRUMENTS:
+        if gm_name in instrument_name and len(gm_name) > len(best_match):
+            best_match = gm_name
+    if best_match:
+        return GENERAL_MIDI_INSTRUMENTS[best_match]
 
     # Default to piano
     return 0

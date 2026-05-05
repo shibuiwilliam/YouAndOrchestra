@@ -44,7 +44,9 @@ def _v1_to_v2(spec: CompositionSpec) -> CompositionSpecV2:
         }
         for s in spec.sections
     ]
-    instruments = {inst.name: {"role": inst.role} for inst in spec.instruments}
+    # Map v1 roles to v2-allowed roles (v2 doesn't have counter_melody)
+    _role_map = {"counter_melody": "melody"}
+    instruments = {inst.name: {"role": _role_map.get(inst.role, inst.role)} for inst in spec.instruments}
 
     # Estimate duration
     total_bars = sum(s.bars for s in spec.sections)
