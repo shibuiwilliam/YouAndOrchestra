@@ -1,0 +1,8 @@
+name: electronic_dubstep
+genre: electronic
+beat_positions: [0.0, 1.75, 2.0, 3.5]
+duration_pattern: [1.0, 0.25, 1.0, 0.5]
+swing_ratio: 0.5
+velocity_pattern: [1.0, 0.6, 1.0, 0.7]
+syncopation_level: 0.5
+applies_to: ["rhythm", "bass"]

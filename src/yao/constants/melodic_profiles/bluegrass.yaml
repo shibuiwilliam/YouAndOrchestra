@@ -1,0 +1,111 @@
+genre: bluegrass
+description: >
+  Bluegrass (1940s–present); fast, acoustic, virtuosic Appalachian music.
+  Characterized by rapid flatpicking and fiddle runs, major-key and
+  Mixolydian tonality, pentatonic-based melodies with chromatic passing
+  tones, driving rhythm with emphasis on beats 2 and 4, and a high-energy
+  improvisatory tradition built on short melodic cells and sequences.
+
+scale_preferences:
+  major: 0.30
+  mixolydian: 0.20
+  pentatonic_major: 0.20
+  blues: 0.10
+  dorian: 0.10
+  pentatonic_minor: 0.10
+
+interval_distribution:
+  distribution:
+    0: 0.05
+    1: 0.08
+    2: 0.28
+    3: 0.22
+    4: 0.10
+    5: 0.10
+    7: 0.10
+    12: 0.07
+
+chord_tone_targeting: 0.65
+chromaticism_level: 0.15
+syncopation_level: 0.30
+
+phrase_length_distribution:
+  distribution:
+    2: 0.20
+    4: 0.45
+    8: 0.30
+    16: 0.05
+
+cadence_patterns:
+  - name: "bluegrass_authentic"
+    chord_sequence: ["V", "I"]
+    melodic_target: "1"
+  - name: "G_run"
+    chord_sequence: ["V", "I"]
+    melodic_target: "1"
+  - name: "mixolydian_cadence"
+    chord_sequence: ["bVII", "I"]
+    melodic_target: "1"
+  - name: "bluegrass_turnaround"
+    chord_sequence: ["I", "IV", "V", "I"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "flatpick_16ths"
+    pattern: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75]
+    durations: [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.2
+  - name: "driving_8ths"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.15
+  - name: "vocal_melody"
+    pattern: [0.0, 0.5, 1.0, 2.0, 2.5, 3.0]
+    durations: [0.5, 0.5, 1.0, 0.5, 0.5, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.2
+
+ornament_profile:
+  grace_note_probability: 0.15
+  trill_probability: 0.05
+  bend_probability: 0.10
+  slide_probability: 0.15
+  ghost_note_probability: 0.05
+  legato_ratio: 0.40
+  staccato_ratio: 0.15
+  accent_ratio: 0.20
+
+typical_ranges:
+  melody: ["G3", "A5"]
+
+motif_length_bars: 1.0
+motif_recurrence_rate: 0.55
+motif_transformations:
+  identity: 0.25
+  transposed: 0.30
+  sequential: 0.20
+  fragmented: 0.15
+  inverted: 0.05
+  chromatic_decoration: 0.05
+
+groove_profile_name: "bluegrass_drive"
+
+anti_patterns:
+  - name: "too_slow"
+    description: "Bluegrass is fast; typical tempo is 120-180 BPM"
+    severity: "major"
+    fix_suggestion: "Set tempo_bpm between 120 and 180 for up-tempo pieces"
+  - name: "electric_instruments"
+    description: "Bluegrass is acoustic; avoid electric guitar or synth timbres"
+    severity: "critical"
+    fix_suggestion: "Use acoustic guitar, banjo, mandolin, fiddle, upright bass"
+  - name: "swing_feel"
+    description: "Bluegrass uses straight 8ths and 16ths, not swing"
+    severity: "major"
+    fix_suggestion: "Set swing_ratio to 0.5"
+  - name: "too_chromatic"
+    description: "Bluegrass melodies are pentatonic-based with passing tones"
+    severity: "major"
+    fix_suggestion: "Reduce chromaticism_level below 0.25; favor pentatonic movement"

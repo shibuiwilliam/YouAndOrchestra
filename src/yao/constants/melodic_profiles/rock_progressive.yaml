@@ -1,0 +1,117 @@
+genre: rock_progressive
+description: >
+  Progressive rock (1970s–present); complex, adventurous, virtuosic.
+  Characterized by odd time signatures, extended compositions with
+  multi-section structures, modal and chromatic harmony, wide melodic
+  leaps, and through-composed development rather than verse-chorus repetition.
+
+scale_preferences:
+  dorian: 0.20
+  mixolydian: 0.20
+  lydian: 0.15
+  natural_minor: 0.15
+  harmonic_minor: 0.10
+  phrygian: 0.10
+  whole_tone: 0.05
+  chromatic: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.05
+    1: 0.08
+    2: 0.18
+    3: 0.15
+    4: 0.12
+    5: 0.10
+    7: 0.12
+    8: 0.05
+    9: 0.05
+    12: 0.10
+
+chord_tone_targeting: 0.50
+chromaticism_level: 0.45
+syncopation_level: 0.50
+
+phrase_length_distribution:
+  distribution:
+    3: 0.10
+    5: 0.15
+    7: 0.20
+    8: 0.25
+    11: 0.10
+    16: 0.20
+
+cadence_patterns:
+  - name: "modal_cadence"
+    chord_sequence: ["bVII", "I"]
+    melodic_target: "1"
+  - name: "deceptive_prog"
+    chord_sequence: ["V", "bVI"]
+    melodic_target: "3"
+  - name: "lydian_resolution"
+    chord_sequence: ["II", "I"]
+    melodic_target: "1"
+  - name: "half_cadence_modal"
+    chord_sequence: ["iv", "V"]
+    melodic_target: "5"
+
+rhythm_templates:
+  - name: "odd_meter_7_8"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.4
+  - name: "odd_meter_5_4"
+    pattern: [0.0, 1.0, 2.0, 3.0, 4.0]
+    durations: [1.0, 1.0, 1.0, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.3
+  - name: "compound_12_8"
+    pattern: [0.0, 0.33, 0.67, 1.0, 1.33, 1.67, 2.0, 2.33, 2.67, 3.0, 3.33, 3.67]
+    durations: [0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33]
+    swing_ratio: 0.5
+    syncopation_level: 0.2
+
+ornament_profile:
+  grace_note_probability: 0.08
+  trill_probability: 0.05
+  bend_probability: 0.10
+  slide_probability: 0.12
+  ghost_note_probability: 0.05
+  legato_ratio: 0.55
+  staccato_ratio: 0.10
+  accent_ratio: 0.20
+
+typical_ranges:
+  melody: ["C3", "C6"]
+
+motif_length_bars: 3.0
+motif_recurrence_rate: 0.35
+motif_transformations:
+  identity: 0.15
+  transposed: 0.20
+  inverted: 0.15
+  retrograde: 0.10
+  augmented: 0.15
+  diminished: 0.10
+  sequential: 0.15
+
+groove_profile_name: "straight"
+
+anti_patterns:
+  - name: "simple_4_4_only"
+    description: "Prog rock needs at least one section in an odd or compound meter"
+    severity: "major"
+    fix_suggestion: "Include a section in 7/8, 5/4, or 6/8"
+  - name: "verse_chorus_loop"
+    description: "Strict ABAB form is too simple for progressive rock"
+    severity: "major"
+    fix_suggestion: "Use through-composed or multi-section form (ABCDA, suite structure)"
+  - name: "short_piece"
+    description: "Progressive rock pieces are typically 5+ minutes"
+    severity: "minor"
+    fix_suggestion: "Extend composition to at least 5 minutes with development sections"
+  - name: "no_dynamic_contrast"
+    description: "Prog rock requires dramatic dynamic shifts between sections"
+    severity: "major"
+    fix_suggestion: "Alternate quiet introspective passages with loud climactic sections"

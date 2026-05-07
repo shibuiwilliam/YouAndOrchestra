@@ -1,0 +1,120 @@
+genre: classical_baroque
+description: >
+  Baroque era (1600–1750); contrapuntal, ornamented, rhythmically driven.
+  Characterized by sequence-based melodic development, terraced dynamics,
+  continuous motor rhythm, elaborate ornamentation (trills, mordents, turns),
+  and clear tonal harmony with strong bass lines. Fugal and imitative
+  textures are central to the style.
+
+scale_preferences:
+  major: 0.35
+  harmonic_minor: 0.25
+  natural_minor: 0.15
+  melodic_minor: 0.15
+  dorian: 0.05
+  chromatic: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.05
+    1: 0.10
+    2: 0.30
+    3: 0.20
+    4: 0.10
+    5: 0.08
+    7: 0.05
+    8: 0.05
+    12: 0.07
+
+chord_tone_targeting: 0.65
+chromaticism_level: 0.25
+syncopation_level: 0.15
+
+phrase_length_distribution:
+  distribution:
+    2: 0.15
+    4: 0.40
+    8: 0.35
+    16: 0.10
+
+cadence_patterns:
+  - name: "PAC"
+    chord_sequence: ["V7", "I"]
+    melodic_target: "1"
+  - name: "half_cadence"
+    chord_sequence: ["I", "V"]
+    melodic_target: "5"
+  - name: "phrygian_half"
+    chord_sequence: ["iv6", "V"]
+    melodic_target: "5"
+  - name: "deceptive"
+    chord_sequence: ["V", "vi"]
+    melodic_target: "1"
+  - name: "evaded_cadence"
+    chord_sequence: ["V7", "I6"]
+    melodic_target: "3"
+
+rhythm_templates:
+  - name: "motor_16ths"
+    pattern: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75]
+    durations: [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.05
+  - name: "baroque_8ths"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.1
+  - name: "dotted_french_overture"
+    pattern: [0.0, 0.75, 1.0, 1.75, 2.0, 2.75, 3.0, 3.75]
+    durations: [0.75, 0.25, 0.75, 0.25, 0.75, 0.25, 0.75, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.05
+
+ornament_profile:
+  grace_note_probability: 0.20
+  trill_probability: 0.20
+  bend_probability: 0.0
+  slide_probability: 0.0
+  ghost_note_probability: 0.0
+  legato_ratio: 0.50
+  staccato_ratio: 0.15
+  accent_ratio: 0.12
+
+typical_ranges:
+  melody: ["C4", "A5"]
+
+motif_length_bars: 1.0
+motif_recurrence_rate: 0.55
+motif_transformations:
+  identity: 0.15
+  transposed: 0.25
+  sequential: 0.25
+  inverted: 0.15
+  retrograde: 0.10
+  augmented: 0.05
+  diminished: 0.05
+
+groove_profile_name: "straight"
+
+anti_patterns:
+  - name: "swing_feel"
+    description: "Baroque music uses strict straight rhythm"
+    severity: "critical"
+    fix_suggestion: "Set swing_ratio to 0.5"
+  - name: "no_sequences"
+    description: "Baroque melodic development relies heavily on sequential patterns"
+    severity: "major"
+    fix_suggestion: "Use transposed and sequential motif transformations prominently"
+  - name: "no_ornamentation"
+    description: "Baroque melodies require trills, mordents, and grace notes"
+    severity: "major"
+    fix_suggestion: "Set trill_probability and grace_note_probability to at least 0.15"
+  - name: "gradual_dynamics"
+    description: "Baroque uses terraced (stepped) dynamics, not gradual crescendo"
+    severity: "minor"
+    fix_suggestion: "Use discrete dynamic levels (p, f) rather than continuous curves"
+  - name: "homophonic_only"
+    description: "Baroque style requires contrapuntal or imitative textures"
+    severity: "major"
+    fix_suggestion: "Include at least one section with imitative entries or fugal texture"

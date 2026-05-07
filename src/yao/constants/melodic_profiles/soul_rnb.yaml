@@ -1,0 +1,112 @@
+genre: soul_rnb
+description: >
+  Soul and R&B (1960s–present); emotive, vocal-virtuosic, groove-based.
+  Characterized by melismatic vocal ornamentation, gospel-influenced
+  harmony with secondary dominants and borrowed chords, pentatonic
+  and blues-inflected melodies, syncopated rhythms with a deep pocket
+  feel, and dynamic vocal phrasing that ranges from whisper to shout.
+
+scale_preferences:
+  pentatonic_minor: 0.25
+  dorian: 0.20
+  natural_minor: 0.15
+  blues: 0.15
+  major: 0.15
+  mixolydian: 0.10
+
+interval_distribution:
+  distribution:
+    0: 0.08
+    1: 0.08
+    2: 0.22
+    3: 0.20
+    4: 0.12
+    5: 0.10
+    7: 0.10
+    12: 0.10
+
+chord_tone_targeting: 0.55
+chromaticism_level: 0.25
+syncopation_level: 0.60
+
+phrase_length_distribution:
+  distribution:
+    2: 0.15
+    4: 0.45
+    8: 0.30
+    16: 0.10
+
+cadence_patterns:
+  - name: "soul_ii_V_I"
+    chord_sequence: ["ii7", "V7", "Imaj7"]
+    melodic_target: "3"
+  - name: "gospel_plagal"
+    chord_sequence: ["IV", "iv", "I"]
+    melodic_target: "1"
+  - name: "rnb_deceptive"
+    chord_sequence: ["V7", "vi7"]
+    melodic_target: "1"
+  - name: "borrowed_chord"
+    chord_sequence: ["bVI", "bVII", "I"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "soul_groove"
+    pattern: [0.0, 0.25, 0.75, 1.0, 1.5, 2.0, 2.25, 2.75, 3.0, 3.5]
+    durations: [0.25, 0.5, 0.25, 0.5, 0.5, 0.25, 0.5, 0.25, 0.5, 0.5]
+    swing_ratio: 0.55
+    syncopation_level: 0.6
+  - name: "rnb_16ths"
+    pattern: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75]
+    durations: [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+    swing_ratio: 0.52
+    syncopation_level: 0.5
+  - name: "slow_ballad"
+    pattern: [0.0, 0.5, 1.5, 2.0, 3.0]
+    durations: [0.5, 1.0, 0.5, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.3
+
+ornament_profile:
+  grace_note_probability: 0.15
+  trill_probability: 0.05
+  bend_probability: 0.15
+  slide_probability: 0.12
+  ghost_note_probability: 0.10
+  legato_ratio: 0.65
+  staccato_ratio: 0.05
+  accent_ratio: 0.15
+
+typical_ranges:
+  melody: ["G3", "G5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.55
+motif_transformations:
+  identity: 0.30
+  transposed: 0.25
+  fragmented: 0.15
+  sequential: 0.10
+  chromatic_decoration: 0.10
+  inverted: 0.05
+  augmented: 0.05
+
+groove_profile_name: "soul_pocket"
+
+anti_patterns:
+  - name: "no_melisma"
+    description: "Soul/R&B vocals require melismatic ornamentation"
+    severity: "major"
+    fix_suggestion: "Increase grace_note and bend probabilities for vocal embellishment"
+  - name: "simple_triads_only"
+    description: "Soul harmony needs 7ths, 9ths, and borrowed chords"
+    severity: "major"
+    fix_suggestion: "Use maj7, min7, dom9 and include modal interchange chords"
+  - name: "mechanical_rhythm"
+    description: "Soul requires human feel with pocket groove"
+    severity: "major"
+    fix_suggestion: "Apply micro-timing variation; avoid quantized 8th/16th patterns"
+  - name: "no_dynamic_range"
+    description: "Soul vocals span from whisper to belt; dynamics must reflect this"
+    severity: "major"
+    fix_suggestion: "Use full dynamic range from pp to ff within a single section"

@@ -1,0 +1,114 @@
+genre: funk
+description: >
+  Funk (1960s–present); groove-centric, syncopated, rhythm-first music.
+  Characterized by heavy emphasis on beat one, intricate 16th-note
+  subdivisions, pentatonic and Mixolydian melodies, tight rhythmic
+  interplay between instruments, ghost notes, and short repeating
+  melodic/rhythmic riffs that prioritize groove over harmonic complexity.
+
+scale_preferences:
+  mixolydian: 0.30
+  pentatonic_minor: 0.25
+  dorian: 0.20
+  blues: 0.15
+  natural_minor: 0.05
+  chromatic: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.12
+    1: 0.05
+    2: 0.15
+    3: 0.20
+    4: 0.10
+    5: 0.12
+    7: 0.15
+    12: 0.11
+
+chord_tone_targeting: 0.55
+chromaticism_level: 0.15
+syncopation_level: 0.80
+
+phrase_length_distribution:
+  distribution:
+    1: 0.20
+    2: 0.40
+    4: 0.30
+    8: 0.10
+
+cadence_patterns:
+  - name: "one_chord_vamp"
+    chord_sequence: ["I7", "I7"]
+    melodic_target: "1"
+  - name: "funk_two_chord"
+    chord_sequence: ["I7", "IV7"]
+    melodic_target: "b7"
+  - name: "dorian_funk"
+    chord_sequence: ["i7", "IV7"]
+    melodic_target: "4"
+  - name: "chromatic_approach"
+    chord_sequence: ["bII7", "I7"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "funk_16ths"
+    pattern: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75]
+    durations: [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.8
+  - name: "the_one"
+    pattern: [0.0, 0.75, 1.5, 2.0, 2.75, 3.5]
+    durations: [0.75, 0.75, 0.5, 0.75, 0.75, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.7
+  - name: "funk_dotted"
+    pattern: [0.0, 0.75, 1.5, 2.25, 3.0, 3.75]
+    durations: [0.75, 0.75, 0.75, 0.75, 0.75, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.75
+
+ornament_profile:
+  grace_note_probability: 0.08
+  trill_probability: 0.0
+  bend_probability: 0.10
+  slide_probability: 0.08
+  ghost_note_probability: 0.25
+  legato_ratio: 0.30
+  staccato_ratio: 0.25
+  accent_ratio: 0.30
+
+typical_ranges:
+  melody: ["E3", "D5"]
+
+motif_length_bars: 1.0
+motif_recurrence_rate: 0.80
+motif_transformations:
+  identity: 0.50
+  transposed: 0.20
+  fragmented: 0.15
+  sequential: 0.10
+  inverted: 0.05
+
+groove_profile_name: "funk_pocket"
+
+anti_patterns:
+  - name: "no_syncopation"
+    description: "Funk is defined by syncopation; straight rhythms kill the groove"
+    severity: "critical"
+    fix_suggestion: "Ensure syncopation_level >= 0.6 with emphasis on offbeats"
+  - name: "weak_beat_one"
+    description: "The ONE is sacred in funk; it must be strongly accented"
+    severity: "critical"
+    fix_suggestion: "Place strong accent on beat 1 of every bar"
+  - name: "too_legato"
+    description: "Funk requires tight, clipped articulations mixed with legato"
+    severity: "major"
+    fix_suggestion: "Balance staccato and legato; keep staccato_ratio above 0.15"
+  - name: "no_ghost_notes"
+    description: "Ghost notes are essential to funk groove"
+    severity: "major"
+    fix_suggestion: "Set ghost_note_probability to at least 0.15"
+  - name: "too_many_chords"
+    description: "Funk often sits on one or two chords; harmonic movement is minimal"
+    severity: "minor"
+    fix_suggestion: "Reduce to 1-2 chord vamps per section"

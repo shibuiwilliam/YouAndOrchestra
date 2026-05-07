@@ -1,0 +1,101 @@
+genre: rock_classic
+description: >
+  Classic rock (1960s–80s); driving rhythm, guitar-centric, strong hooks.
+  Characterized by pentatonic and blues-scale melodies, power chord
+  progressions, 8-bar phrase units, and memorable riff-based motifs.
+  Moderate chromaticism, strong downbeat emphasis, and clear song form.
+
+scale_preferences:
+  pentatonic_minor: 0.30
+  blues: 0.20
+  natural_minor: 0.20
+  mixolydian: 0.15
+  major: 0.10
+  dorian: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.08
+    1: 0.05
+    2: 0.20
+    3: 0.25
+    4: 0.12
+    5: 0.10
+    7: 0.10
+    12: 0.10
+
+chord_tone_targeting: 0.65
+chromaticism_level: 0.20
+syncopation_level: 0.35
+
+phrase_length_distribution:
+  distribution:
+    4: 0.30
+    8: 0.55
+    16: 0.15
+
+cadence_patterns:
+  - name: "rock_authentic"
+    chord_sequence: ["V", "I"]
+    melodic_target: "1"
+  - name: "plagal_rock"
+    chord_sequence: ["IV", "I"]
+    melodic_target: "1"
+  - name: "bVII_I"
+    chord_sequence: ["bVII", "I"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "rock_8ths"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.2
+  - name: "driving_quarter"
+    pattern: [0.0, 1.0, 2.0, 3.0]
+    durations: [1.0, 1.0, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+
+ornament_profile:
+  grace_note_probability: 0.05
+  trill_probability: 0.0
+  bend_probability: 0.15
+  slide_probability: 0.10
+  ghost_note_probability: 0.05
+  legato_ratio: 0.40
+  staccato_ratio: 0.10
+  accent_ratio: 0.25
+
+typical_ranges:
+  melody: ["E3", "A5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.65
+motif_transformations:
+  identity: 0.35
+  transposed: 0.30
+  fragmented: 0.15
+  sequential: 0.10
+  inverted: 0.05
+  augmented: 0.05
+
+groove_profile_name: "straight"
+
+anti_patterns:
+  - name: "swing_feel"
+    description: "Classic rock uses straight 8ths, not swing"
+    severity: "critical"
+    fix_suggestion: "Set swing_ratio to 0.5"
+  - name: "too_chromatic"
+    description: "Classic rock relies on pentatonic/blues, not chromatic lines"
+    severity: "major"
+    fix_suggestion: "Reduce chromaticism_level below 0.35"
+  - name: "weak_downbeats"
+    description: "Rock melodies need strong downbeat emphasis"
+    severity: "major"
+    fix_suggestion: "Place chord tones on beats 1 and 3"
+  - name: "no_riff"
+    description: "Classic rock needs a memorable riff or hook"
+    severity: "minor"
+    fix_suggestion: "Increase motif_recurrence_rate above 0.5"

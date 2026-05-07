@@ -17,6 +17,7 @@ import structlog
 # Import generators to trigger @register_generator decorators
 import yao.generators.constraint_solver as _cs  # noqa: F401
 import yao.generators.markov as _mk  # noqa: F401
+import yao.generators.melody.phrase_aware as _pa  # noqa: F401
 import yao.generators.process_music as _pm  # noqa: F401
 import yao.generators.rule_based as _rb  # noqa: F401
 import yao.generators.stochastic as _st  # noqa: F401

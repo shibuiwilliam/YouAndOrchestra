@@ -176,8 +176,17 @@ class Conductor:
             output_dir = next_iteration_dir(project_dir)
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            # Generate via v2 pipeline (Spec → MPIR → ScoreIR)
-            if n_candidates > 1:
+            # Generate via phrase-first pipeline or v2 pipeline
+            if current_spec.generation.strategy == "phrase_aware":
+                from yao.generators.registry import get_generator
+
+                pa_gen = get_generator("phrase_aware")
+                score, gen_provenance = pa_gen.generate(current_spec, trajectory)
+                plan = None  # phrase_aware has no MusicalPlan
+
+                for record in gen_provenance.records:
+                    combined_provenance.add(record)
+            elif n_candidates > 1:
                 from yao.conductor.multi_candidate import MultiCandidateOrchestrator
 
                 mco = MultiCandidateOrchestrator()
@@ -225,8 +234,11 @@ class Conductor:
                     combined_provenance.record_recoverable(dec)
 
             # Adversarial Critic Gate (CLAUDE.md Rule B)
-            spec_v2 = _v1_to_v2_for_critic(current_spec)
-            critic_findings = CRITIQUE_RULES.run_all(plan, spec_v2)
+            # Skip critic when plan is None (phrase_aware bypasses v2 pipeline)
+            critic_findings = []
+            if plan is not None:
+                spec_v2 = _v1_to_v2_for_critic(current_spec)
+                critic_findings = CRITIQUE_RULES.run_all(plan, spec_v2)
             if critic_findings:
                 combined_provenance.record(
                     layer="conductor",

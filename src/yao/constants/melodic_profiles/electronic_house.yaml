@@ -1,0 +1,110 @@
+genre: electronic_house
+description: >
+  House music (deep house, classic house, tech house); repetitive,
+  groove-driven, four-on-the-floor. Characterized by short looping
+  melodic phrases over steady kick patterns, minor-key or modal
+  tonality, heavy use of syncopated synth stabs, filter sweeps as
+  melodic evolution, and high motif recurrence within a hypnotic structure.
+
+scale_preferences:
+  natural_minor: 0.30
+  dorian: 0.25
+  pentatonic_minor: 0.20
+  phrygian: 0.10
+  major: 0.10
+  chromatic: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.10
+    1: 0.05
+    2: 0.20
+    3: 0.20
+    4: 0.10
+    5: 0.12
+    7: 0.13
+    12: 0.10
+
+chord_tone_targeting: 0.60
+chromaticism_level: 0.15
+syncopation_level: 0.65
+
+phrase_length_distribution:
+  distribution:
+    1: 0.15
+    2: 0.35
+    4: 0.40
+    8: 0.10
+
+cadence_patterns:
+  - name: "loop_reset"
+    chord_sequence: ["i", "i"]
+    melodic_target: "1"
+  - name: "minor_shuttle"
+    chord_sequence: ["i", "bVII"]
+    melodic_target: "b7"
+  - name: "dorian_vamp"
+    chord_sequence: ["i7", "IV7"]
+    melodic_target: "5"
+  - name: "deep_house_progression"
+    chord_sequence: ["i", "bVI", "bVII", "i"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "house_offbeat"
+    pattern: [0.0, 0.25, 0.75, 1.0, 1.25, 1.75, 2.0, 2.25, 2.75, 3.0, 3.25, 3.75]
+    durations: [0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.7
+  - name: "four_on_floor_stab"
+    pattern: [0.0, 1.0, 2.0, 3.0]
+    durations: [0.25, 0.25, 0.25, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+  - name: "syncopated_16ths"
+    pattern: [0.0, 0.25, 0.75, 1.25, 1.75, 2.0, 2.75, 3.25, 3.75]
+    durations: [0.25, 0.5, 0.5, 0.5, 0.25, 0.75, 0.5, 0.5, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.8
+
+ornament_profile:
+  grace_note_probability: 0.03
+  trill_probability: 0.0
+  bend_probability: 0.02
+  slide_probability: 0.05
+  ghost_note_probability: 0.10
+  legato_ratio: 0.40
+  staccato_ratio: 0.25
+  accent_ratio: 0.18
+
+typical_ranges:
+  melody: ["C3", "C5"]
+
+motif_length_bars: 1.0
+motif_recurrence_rate: 0.85
+motif_transformations:
+  identity: 0.55
+  transposed: 0.20
+  fragmented: 0.15
+  sequential: 0.05
+  inverted: 0.05
+
+groove_profile_name: "four_on_floor"
+
+anti_patterns:
+  - name: "no_groove"
+    description: "House music requires a steady four-on-the-floor kick pattern"
+    severity: "critical"
+    fix_suggestion: "Ensure kick drum on every beat with hi-hat offbeats"
+  - name: "too_melodic"
+    description: "House melodies are short loops, not elaborate melodic lines"
+    severity: "major"
+    fix_suggestion: "Keep phrases to 1-4 bars with high recurrence rate"
+  - name: "tempo_out_of_range"
+    description: "House tempo should be 118-132 BPM"
+    severity: "major"
+    fix_suggestion: "Set tempo_bpm between 118 and 132"
+  - name: "no_syncopation"
+    description: "House depends on syncopated elements against the steady kick"
+    severity: "major"
+    fix_suggestion: "Increase syncopation_level to at least 0.5 for melodic elements"

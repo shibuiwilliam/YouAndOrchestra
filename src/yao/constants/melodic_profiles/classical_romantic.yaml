@@ -1,0 +1,113 @@
+genre: classical_romantic
+description: >
+  19th-century European art music; expressive, harmonically rich.
+  Characterized by long singing melodic lines, chromaticism for
+  emotional intensity, strong cadential punctuation, and extensive
+  motivic development. Phrase structures follow classical 4+4 or
+  extended 4+4+4 patterns with clear antecedent-consequent pairing.
+
+scale_preferences:
+  major: 0.30
+  harmonic_minor: 0.25
+  melodic_minor: 0.15
+  natural_minor: 0.15
+  chromatic: 0.10
+  dorian: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.05
+    1: 0.10
+    2: 0.30
+    3: 0.20
+    4: 0.10
+    5: 0.05
+    7: 0.05
+    8: 0.05
+    12: 0.10
+
+chord_tone_targeting: 0.55
+chromaticism_level: 0.40
+syncopation_level: 0.20
+
+phrase_length_distribution:
+  distribution:
+    4: 0.30
+    8: 0.50
+    12: 0.15
+    16: 0.05
+
+cadence_patterns:
+  - name: "PAC"
+    chord_sequence: ["V7", "I"]
+    melodic_target: "1"
+  - name: "IAC"
+    chord_sequence: ["V", "I"]
+    melodic_target: "3"
+  - name: "half_cadence"
+    chord_sequence: ["I", "V"]
+    melodic_target: "5"
+  - name: "phrygian_half"
+    chord_sequence: ["iv6", "V"]
+    melodic_target: "5"
+  - name: "plagal"
+    chord_sequence: ["IV", "I"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "classical_8th"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+  - name: "dotted_rhythm"
+    pattern: [0.0, 0.75, 1.0, 1.75, 2.0, 2.75, 3.0, 3.75]
+    durations: [0.75, 0.25, 0.75, 0.25, 0.75, 0.25, 0.75, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.1
+
+ornament_profile:
+  trill_probability: 0.15
+  grace_note_probability: 0.20
+  mordent_probability: 0.08
+  turn_probability: 0.05
+  bend_probability: 0.0
+  slide_probability: 0.0
+  ghost_note_probability: 0.0
+  legato_ratio: 0.80
+  staccato_ratio: 0.05
+  accent_ratio: 0.10
+
+typical_ranges:
+  melody: ["C4", "A5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.60
+motif_transformations:
+  identity: 0.20
+  transposed: 0.25
+  inverted: 0.15
+  retrograde: 0.05
+  augmented: 0.10
+  diminished: 0.05
+  sequential: 0.20
+
+groove_profile_name: "straight"
+
+anti_patterns:
+  - name: "swing_feel"
+    description: "Classical Romantic does not use swing rhythm"
+    severity: "critical"
+    fix_suggestion: "Set swing_ratio to 0.5 (straight)"
+  - name: "no_cadences"
+    description: "Phrases lack clear cadential resolution"
+    severity: "critical"
+    fix_suggestion: "Ensure each phrase ends with a proper cadence (PAC, HC, etc.)"
+  - name: "monotone_dynamics"
+    description: "Romantic music requires dynamic shaping within phrases"
+    severity: "major"
+    fix_suggestion: "Apply crescendo/decrescendo dynamics curves to phrases"
+  - name: "short_phrases_only"
+    description: "All phrases 2 bars or shorter — too fragmented"
+    severity: "major"
+    fix_suggestion: "Use phrase lengths of 4–8 bars as standard"

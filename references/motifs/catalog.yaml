@@ -1,0 +1,9 @@
+# Motif Library Catalog
+# Each entry references a JSON file containing a reusable motif.
+# Motifs can be referenced in composition specs via:
+#   motifs:
+#     primary:
+#       source: library
+#       id: ascending_fifth
+#
+motifs: []

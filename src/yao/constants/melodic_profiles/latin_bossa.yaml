@@ -1,0 +1,111 @@
+genre: latin_bossa
+description: >
+  Bossa nova (late 1950s–present); intimate, sophisticated, Brazilian.
+  Characterized by gentle syncopated rhythm patterns derived from samba,
+  rich extended jazz harmonies (maj7, min9, dom7#11), chromatic bass
+  movement, and understated vocal melodies that float over the rhythmic
+  pulse. Melodies are typically conjunct with subtle chromaticism.
+
+scale_preferences:
+  major: 0.30
+  dorian: 0.20
+  lydian: 0.15
+  mixolydian: 0.15
+  natural_minor: 0.10
+  chromatic: 0.10
+
+interval_distribution:
+  distribution:
+    0: 0.10
+    1: 0.15
+    2: 0.30
+    3: 0.15
+    4: 0.10
+    5: 0.08
+    7: 0.05
+    12: 0.07
+
+chord_tone_targeting: 0.60
+chromaticism_level: 0.40
+syncopation_level: 0.60
+
+phrase_length_distribution:
+  distribution:
+    2: 0.10
+    4: 0.40
+    8: 0.40
+    16: 0.10
+
+cadence_patterns:
+  - name: "bossa_ii_V_I"
+    chord_sequence: ["ii9", "V7b9", "Imaj7"]
+    melodic_target: "9"
+  - name: "chromatic_ii_V"
+    chord_sequence: ["bii9", "bV7", "Imaj7"]
+    melodic_target: "3"
+  - name: "jobim_turnaround"
+    chord_sequence: ["Imaj7", "bIImaj7", "ii7", "V7"]
+    melodic_target: "1"
+  - name: "deceptive_bossa"
+    chord_sequence: ["V7b9", "bVImaj7"]
+    melodic_target: "5"
+
+rhythm_templates:
+  - name: "bossa_nova_pattern"
+    pattern: [0.0, 0.5, 1.25, 2.0, 2.5, 3.25]
+    durations: [0.5, 0.75, 0.75, 0.5, 0.75, 0.75]
+    swing_ratio: 0.5
+    syncopation_level: 0.6
+  - name: "bossa_vocal"
+    pattern: [0.0, 0.75, 1.5, 2.0, 3.0, 3.5]
+    durations: [0.75, 0.75, 0.5, 1.0, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.5
+  - name: "bossa_sparse"
+    pattern: [0.0, 1.5, 2.0, 3.5]
+    durations: [1.0, 0.5, 1.0, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.4
+
+ornament_profile:
+  grace_note_probability: 0.08
+  trill_probability: 0.0
+  bend_probability: 0.02
+  slide_probability: 0.06
+  ghost_note_probability: 0.05
+  legato_ratio: 0.80
+  staccato_ratio: 0.02
+  accent_ratio: 0.05
+
+typical_ranges:
+  melody: ["A3", "D5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.55
+motif_transformations:
+  identity: 0.30
+  transposed: 0.30
+  sequential: 0.15
+  chromatic_decoration: 0.10
+  fragmented: 0.10
+  inverted: 0.05
+
+groove_profile_name: "bossa_nova"
+
+anti_patterns:
+  - name: "too_loud"
+    description: "Bossa nova is intimate and quiet; dynamics should be pp to mf"
+    severity: "critical"
+    fix_suggestion: "Cap velocity at mezzo-forte; use subtle dynamic variation"
+  - name: "simple_triads"
+    description: "Bossa nova harmony requires extensions (7ths, 9ths, 11ths)"
+    severity: "major"
+    fix_suggestion: "Use maj7, min9, dom7#11 as standard chord vocabulary"
+  - name: "no_syncopation"
+    description: "The bossa rhythm pattern is inherently syncopated"
+    severity: "critical"
+    fix_suggestion: "Apply the characteristic bossa nova rhythmic cell"
+  - name: "heavy_attack"
+    description: "Bossa nova requires gentle, legato articulation"
+    severity: "major"
+    fix_suggestion: "Increase legato_ratio; reduce accent_ratio below 0.10"

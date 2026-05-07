@@ -1,0 +1,8 @@
+name: jazz_ballad_rubato
+genre: jazz
+beat_positions: [0.0, 2.0, 3.0]
+duration_pattern: [2.0, 1.0, 1.0]
+swing_ratio: 0.6
+velocity_pattern: [0.8, 0.6, 0.7]
+syncopation_level: 0.2
+applies_to: ["melody", "comping"]

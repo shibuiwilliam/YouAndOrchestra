@@ -1,0 +1,8 @@
+name: electronic_ambient
+genre: electronic
+beat_positions: [0.0, 2.5]
+duration_pattern: [2.5, 1.5]
+swing_ratio: 0.5
+velocity_pattern: [0.6, 0.4]
+syncopation_level: 0.1
+applies_to: ["melody", "comping"]

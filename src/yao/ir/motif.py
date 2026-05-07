@@ -169,6 +169,256 @@ def diminish(motif: Motif, factor: float = 2.0) -> Motif:
     return augment(motif, 1.0 / factor)
 
 
+def sequence(motif: Motif, semitones: int, repetitions: int = 2) -> Motif:
+    """Create a sequential repetition by repeating with transposition.
+
+    Each repetition is transposed by the given interval, producing a
+    chain of the motif at successive pitch levels.
+
+    Args:
+        motif: The motif to sequence.
+        semitones: Transposition per repetition.
+        repetitions: Number of times to repeat (total copies = repetitions + 1).
+
+    Returns:
+        A new Motif containing the original followed by transposed copies.
+    """
+    if not motif.notes:
+        return motif
+
+    all_notes: list[Note] = list(motif.notes)
+    motif_duration = motif.duration_beats
+
+    for rep in range(1, repetitions + 1):
+        time_offset = motif_duration * rep
+        pitch_offset = semitones * rep
+        for note in motif.notes:
+            all_notes.append(
+                replace(
+                    note,
+                    pitch=note.pitch + pitch_offset,
+                    start_beat=note.start_beat + time_offset,
+                )
+            )
+
+    return Motif(
+        notes=tuple(all_notes),
+        label=motif.label,
+        transformations_applied=(*motif.transformations_applied, f"sequence({semitones}x{repetitions})"),
+    )
+
+
+def fragment(motif: Motif, start_idx: int = 0, length: int = 2) -> Motif:
+    """Extract a fragment (subset) of the motif.
+
+    Args:
+        motif: The motif to fragment.
+        start_idx: Starting note index.
+        length: Number of notes to extract.
+
+    Returns:
+        A new Motif containing the fragment.
+    """
+    if not motif.notes:
+        return motif
+
+    end_idx = min(start_idx + length, len(motif.notes))
+    fragment_notes = motif.notes[start_idx:end_idx]
+
+    if not fragment_notes:
+        return motif
+
+    # Normalize start_beat to 0
+    base = fragment_notes[0].start_beat
+    normalized = tuple(replace(n, start_beat=n.start_beat - base) for n in fragment_notes)
+
+    return Motif(
+        notes=normalized,
+        label=motif.label,
+        transformations_applied=(*motif.transformations_applied, f"fragment({start_idx}:{end_idx})"),
+    )
+
+
+def extend(motif: Motif, extra_notes: int = 2) -> Motif:
+    """Extend the motif by repeating its last notes.
+
+    Args:
+        motif: The motif to extend.
+        extra_notes: Number of notes to add by continuing the pattern.
+
+    Returns:
+        A new Motif with extra notes appended.
+    """
+    if len(motif.notes) < 2:  # noqa: PLR2004
+        return motif
+
+    last = motif.notes[-1]
+    prev = motif.notes[-2]
+    interval = last.pitch - prev.pitch
+    duration = last.duration_beats
+    current_beat = last.start_beat + duration
+
+    extra: list[Note] = []
+    current_pitch = last.pitch
+    for _ in range(extra_notes):
+        current_pitch += interval
+        extra.append(replace(last, pitch=current_pitch, start_beat=current_beat))
+        current_beat += duration
+
+    return Motif(
+        notes=(*motif.notes, *extra),
+        label=motif.label,
+        transformations_applied=(*motif.transformations_applied, f"extend({extra_notes})"),
+    )
+
+
+def truncate(motif: Motif, keep: int = 2) -> Motif:
+    """Truncate the motif to its first N notes.
+
+    Args:
+        motif: The motif to truncate.
+        keep: Number of notes to keep from the beginning.
+
+    Returns:
+        A new Motif with only the first N notes.
+    """
+    if not motif.notes or keep >= len(motif.notes):
+        return motif
+
+    return Motif(
+        notes=motif.notes[:keep],
+        label=motif.label,
+        transformations_applied=(*motif.transformations_applied, f"truncate({keep})"),
+    )
+
+
+def chromatic_decoration(motif: Motif) -> Motif:
+    """Add chromatic neighbor notes before each note.
+
+    Inserts a half-step approach tone before each note (from below),
+    halving the original note's duration to make room.
+
+    Args:
+        motif: The motif to decorate.
+
+    Returns:
+        A new Motif with chromatic approaches inserted.
+    """
+    if not motif.notes:
+        return motif
+
+    decorated: list[Note] = []
+    for note in motif.notes:
+        approach_dur = note.duration_beats * 0.25
+        main_dur = note.duration_beats * 0.75
+        # Chromatic approach from below
+        decorated.append(
+            replace(
+                note,
+                pitch=note.pitch - 1,
+                start_beat=note.start_beat,
+                duration_beats=approach_dur,
+            )
+        )
+        decorated.append(
+            replace(
+                note,
+                start_beat=note.start_beat + approach_dur,
+                duration_beats=main_dur,
+            )
+        )
+
+    return Motif(
+        notes=tuple(decorated),
+        label=motif.label,
+        transformations_applied=(*motif.transformations_applied, "chromatic_decoration"),
+    )
+
+
+def rhythmic_displacement(motif: Motif, offset_beats: float = 0.5) -> Motif:
+    """Shift the motif in time (rhythmic displacement / hemiola).
+
+    Args:
+        motif: The motif to displace.
+        offset_beats: How many beats to shift forward.
+
+    Returns:
+        A new Motif shifted in time.
+    """
+    if not motif.notes:
+        return motif
+
+    shifted = tuple(replace(note, start_beat=note.start_beat + offset_beats) for note in motif.notes)
+    return Motif(
+        notes=shifted,
+        label=motif.label,
+        transformations_applied=(*motif.transformations_applied, f"rhythmic_displacement({offset_beats})"),
+    )
+
+
+def interpolate(motif: Motif) -> Motif:
+    """Insert interpolated notes between existing notes.
+
+    Adds a note at the midpoint (pitch and time) between each pair
+    of consecutive notes, creating a smoother line.
+
+    Args:
+        motif: The motif to interpolate.
+
+    Returns:
+        A new Motif with interpolated notes inserted.
+    """
+    if len(motif.notes) < 2:  # noqa: PLR2004
+        return motif
+
+    result: list[Note] = []
+    for i in range(len(motif.notes) - 1):
+        curr = motif.notes[i]
+        nxt = motif.notes[i + 1]
+        result.append(curr)
+
+        # Interpolated note at midpoint
+        mid_beat = (curr.start_beat + nxt.start_beat) / 2
+        mid_pitch = (curr.pitch + nxt.pitch) // 2
+        mid_dur = nxt.start_beat - mid_beat
+        # Shorten current note to make room
+        result[-1] = replace(curr, duration_beats=mid_beat - curr.start_beat)
+        result.append(
+            replace(
+                curr,
+                pitch=mid_pitch,
+                start_beat=mid_beat,
+                duration_beats=max(0.1, mid_dur),
+            )
+        )
+
+    result.append(motif.notes[-1])
+
+    return Motif(
+        notes=tuple(result),
+        label=motif.label,
+        transformations_applied=(*motif.transformations_applied, "interpolate"),
+    )
+
+
+# All available transformations as a registry
+TRANSFORMATION_REGISTRY: dict[str, object] = {
+    "identity": lambda m: m,
+    "transposed": transpose,
+    "inverted": invert,
+    "retrograde": retrograde,
+    "augmented": augment,
+    "diminished": diminish,
+    "sequential": sequence,
+    "fragmented": fragment,
+    "extension": extend,
+    "truncation": truncate,
+    "chromatic_decoration": chromatic_decoration,
+    "rhythmic_displacement": rhythmic_displacement,
+    "interpolation": interpolate,
+}
+
+
 # ---------------------------------------------------------------------------
 # Motif Network (A2)
 # ---------------------------------------------------------------------------

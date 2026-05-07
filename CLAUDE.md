@@ -1,739 +1,598 @@
-# CLAUDE.md — YaO Core Rules (v2.0)
+# CLAUDE.md — YaO Core Rules
 
 > *Read this file at session start. Detailed guides are in `.claude/guides/`.*
-> *In case of conflict: CLAUDE.md > PROJECT.md > guides > other docs.*
-> *This is the v2.0 development guide, incorporating Phase 1.5 multi-genre foundation.*
+> *In case of conflict: CLAUDE.md > PROJECT.md > other docs.*
 
 ---
 
-## 0. What Changed in v2.0
-
-This file extends the v1.0 CLAUDE.md to support development of the multi-genre, multi-layer YaO described in PROJECT.md v2.0. The v1.0 invariants — strict layer boundaries, append-only provenance, no silent fallbacks, range violations as errors — all remain. The additions are:
-
-- **Layer 3.5 (Sound Design)** is added between IR and Render. New layer-import rules apply.
-- **Layer 4 (Perception)** is now real, not "planned". Its module exists and is imported by Conductor.
-- **Five new subagents** (Sound Designer, Sample Curator, Texture Composer, Beatmaker, Loop Architect) join the seven existing ones.
-- **`tonal_system` replaces flat `key`** in the schema; harmony realization dispatches on tonal kind.
-- **Six-phase cognitive protocol is enforced in code**, not merely documented.
-- **Genre Skills follow a standard template** with frontmatter, evaluator weights, and default sound design.
-- **Inter-subagent message protocol** is specified in `.claude/agents/_protocol.md`.
-
-When in doubt about a v2.0-specific detail, consult PROJECT.md §3 (architecture), §5 (subagents), §6 (six phases), §7 (specs), and §10 (genre skill template).
-
----
-
-## 1. Quick Reference
+## Quick Reference
 
 ```
 make test           # Run all tests
-make lint           # ruff + mypy
-make arch-lint      # Layer boundary check (now includes layer 3.5)
+make lint           # ruff + mypy strict
+make arch-lint      # Layer boundary check (AST-based)
 make all-checks     # lint + arch-lint + test
 make format         # Auto-format code
-make test-genre     # NEW v2.0 — genre-specific scenario tests
-make test-tonal     # NEW v2.0 — tonal system tests across kinds
-make test-perception # NEW v2.0 — perception layer tests
+make test-melody    # Unit tests for the phrase-first melody pipeline
+make test-genres    # Genre-specific scenario tests
+make test-golden    # Snapshot tests of canonical outputs
+make profile-perf   # Verify generation stays within performance budget
 ```
 
-**Key directories (v2.0):**
+**Key directories:**
 
 ```
-src/yao/constants/      → Layer 0: hardcoded values (ranges, scales, MIDI mappings)
-src/yao/schema/         → Layer 1: Pydantic models for YAML specs
-                          (composition, tonal_system, duration, sound_design, references, ensemble)
-src/yao/ir/             → Layer 3: core data types (Note, ScoreIR, harmony, motif, voicing)
-src/yao/generators/     → Layer 2: composition algorithms (rule_based, stochastic, loop_evolution)
-src/yao/sound_design/   → Layer 3.5 (NEW): patches, effects, samples
-src/yao/perception/     → Layer 4 (NEW): reference matcher, psych mapper, surprise model
-src/yao/render/         → Layer 5: output (MIDI, audio, stems)
-src/yao/verify/         → Layer 6: analysis, linting, evaluation, idiomaticity, singability, seamlessness
-src/yao/reflect/        → Provenance tracking (cross-cutting)
-src/yao/conductor/      → Orchestration; protocol.py enforces 6 phases; adaptations/ library
-src/yao/errors.py       → All custom exceptions
+src/yao/constants/       → Hardcoded values (ranges, scales, MIDI mappings)
+src/yao/constants/melodic_profiles/  → 30+ genre profile YAMLs
+src/yao/constants/rhythms/           → 30+ rhythm template YAMLs
+src/yao/constants/grooves.py         → GrooveProfile presets
+src/yao/schema/          → Pydantic models for YAML specs
+src/yao/schema/melodic_profile.py    → MelodicProfile schema
+src/yao/ir/              → Core data types
+src/yao/ir/phrase.py     → Phrase, PhrasePlan, Cadence
+src/yao/ir/skeleton.py   → Skeleton, SkeletonNote
+src/yao/ir/melody_line.py → MelodyLine, MelodyNote, OrnamentedNote
+src/yao/ir/harmonic_context.py → HarmonicContext
+src/yao/generators/      → Composition algorithms
+src/yao/generators/melody/ → 4-layer phrase-first pipeline (M1–M4)
+src/yao/conductor/       → Orchestration + intent parsing
+src/yao/render/          → Output (MIDI, audio, stems, score)
+src/yao/verify/          → Analysis, lint, evaluation, diff
+src/yao/verify/genre_critic.py → Genre-specific anti-pattern checker
+src/yao/verify/conformity.py   → KL divergence, motif coherence
+src/yao/reflect/         → Provenance tracking
+src/yao/errors.py        → Custom exception hierarchy
+.claude/skills/genres/   → 30+ paired md/yaml genre Skills
+.claude/guides/          → Developer guides (architecture, melody-pipeline, etc.)
+references/motifs/       → Reusable motif library
 ```
 
-**Key types (v2.0 additions in bold):**
+**Key types:**
 
 ```
-Note                  → src/yao/ir/note.py
-ScoreIR               → src/yao/ir/score_ir.py
-CompositionSpec       → src/yao/schema/composition.py
-TonalSystem           → src/yao/schema/tonal_system.py        ← NEW
-Duration              → src/yao/schema/duration.py            ← NEW (Bars | Beats | Seconds | Loops | Free)
-SoundDesignSpec       → src/yao/schema/sound_design.py        ← NEW
-ReferencesSpec        → src/yao/schema/references.py          ← NEW
-EnsembleTemplate      → src/yao/schema/ensemble.py            ← NEW
-ProvenanceLog         → src/yao/reflect/provenance.py
-GeneratorBase         → src/yao/generators/base.py
-SubagentMessage       → src/yao/conductor/subagent_message.py ← NEW
-Phase                 → src/yao/conductor/protocol.py         ← NEW
-AdaptationStrategy    → src/yao/conductor/adaptations/base.py ← NEW
+Note                 → src/yao/ir/note.py
+ScoreIR              → src/yao/ir/score_ir.py
+CompositionSpec      → src/yao/schema/composition.py
+ProvenanceLog        → src/yao/reflect/provenance.py
+GeneratorBase        → src/yao/generators/base.py
+Phrase, PhrasePlan   → src/yao/ir/phrase.py
+Skeleton             → src/yao/ir/skeleton.py
+MelodyLine           → src/yao/ir/melody_line.py
+HarmonicContext      → src/yao/ir/harmonic_context.py
+MelodicProfile       → src/yao/schema/melodic_profile.py
+GrooveProfile        → src/yao/constants/grooves.py
+StructuredIntent     → src/yao/conductor/intent_parser.py
+GenreCritic          → src/yao/verify/genre_critic.py
 ```
 
 ---
 
-## 2. Your Role
+## Your Role
 
-You are a **co-developer of YaO**, not YaO itself. You build the infrastructure that the Orchestra of subagents will use. Your code enables reproducible, auditable, iterable music creation across many genres.
+You are a **co-developer of YaO**, not YaO itself. You build the infrastructure that subagents will use. Your code enables reproducible, auditable, iterable music creation.
 
-This v2.0 work is fundamentally about **removing assumptions** that biased YaO toward Western tonal pop music. Every change you make should be evaluated against the question: *"Does this work for blues, modal jazz, ambient drone, deep house, lo-fi hip-hop, J-pop, prog rock, microtonal contemporary, and Indian classical music — or just for major/minor pop?"* If the answer is "just for pop", the change is incomplete.
-
----
-
-## 3. 7 Non-Negotiable Rules (v2.0 — extends v1.0)
-
-The original five rules remain. Two are added in v2.0.
-
-1. **Never break layer boundaries** — including the new Layer 3.5 and Layer 4. See `.claude/guides/architecture.md`.
-2. **Every generation function returns `(ScoreIR, ProvenanceLog)`** — and every Provenance entry must include `agent`, `phase`, `confidence`.
-3. **No silent fallbacks** — constraint violations must be explicit errors.
-4. **No hardcoded musical values** — use `src/yao/constants/`.
-5. **No public function without type hints and docstring**.
-6. **NEW v2.0** — **No Western tonality assumption**. Code that handles harmony, scales, or pitch must dispatch on `TonalSystem.kind`. A function that "just assumes major/minor" is broken.
-7. **NEW v2.0** — **Subagent decisions must be recorded in Provenance with the subagent identifier**. A decision attributed to "the system" or "the generator" with no subagent name is incomplete.
+The current development effort centers on the **phrase-first melody pipeline** and the **30+ genre profile system**. These are not future additions—they are the present reality YaO is being built into. Treat them as core, not optional.
 
 ---
 
-## 4. MUSTs (v2.0 additions in bold)
+## 7 Non-Negotiable Rules
 
-- Read existing code before writing new code.
-- Write tests before or alongside implementation.
-- Keep YAML schemas and Pydantic models in sync.
-- Use `yao.ir.timing` for all tick/beat/second conversions.
-- Use `yao.ir.notation` for all note name/MIDI conversions; note that v2.0 `Pitch` is `(midi_int, cents_offset)`.
-- Derive velocity from dynamics curves (never hardcode).
-- Register generators via `@register_generator("name")`.
-- **NEW v2.0** — When adding a Genre Skill, follow the template in PROJECT.md §10. A Skill missing the YAML frontmatter is unloadable.
-- **NEW v2.0** — When adding a subagent, comply with the message format in `.claude/agents/_protocol.md`. A subagent that does not emit `SubagentMessage` is a v1.0-style stub.
-- **NEW v2.0** — When changing the evaluator, ensure each metric declares whether it is `tonal_system_aware`. Untagged metrics are run for all systems by default; tagged metrics are conditionally enabled.
-- **NEW v2.0** — When adding an adaptation strategy, register it in `conductor/adaptations/` with `applies()`, `apply()`, `cost`, and `expected_metric_delta`. Strategies must be discoverable by the Conductor.
-- **NEW v2.0** — When touching Layer 3.5 (Sound Design), ensure the `pedalboard` import is **lazy**. Sound Design is an optional dependency; missing it must degrade gracefully, not crash.
-- **NEW v2.0** — When phase logic changes, update `PHASE_REQUIRED_ARTIFACTS` in `conductor/protocol.py` so phase completion is verifiable.
+The first five are foundational. The last two were added when the phrase-first pipeline became core.
+
+1. **Never break layer boundaries** — see `.claude/guides/architecture.md`
+2. **Every generation function returns `(ScoreIR, ProvenanceLog)`**
+3. **No silent fallbacks** — constraint violations must be explicit errors
+4. **No hardcoded musical values** — use `src/yao/constants/`
+5. **No public function without type hints and docstring**
+6. **The melody pipeline is monolithically four-layer** — never bypass M1–M4 ordering, never let M3 run without M2's skeleton, never call M2 without M1's phrase plan
+7. **Genre is a `MelodicProfile`, not a string** — never hard-code genre-specific logic in generators; always parameterize via the loaded profile
 
 ---
 
-## 5. MUST NOTs (v2.0 additions in bold)
+## MUSTs
 
-- Import `pretty_midi`/`music21`/`librosa` outside designated layers.
-- **NEW v2.0** — Import `pedalboard` outside `src/yao/sound_design/` or `src/yao/render/audio_renderer.py`.
-- **NEW v2.0** — Import `numpy` heavily inside Layer 1 (schema). Schemas are validation-only; computation belongs in IR or above.
-- Create functions with vague names (`make_it_sound_good`).
-- Skip provenance recording for any generation step.
-- Use bare `ValueError` (use `YaOError` subclasses).
-- Silently clamp notes to range (raise `RangeViolationError`).
-- Leave `TODO`/`FIXME` uncommitted.
-- **NEW v2.0** — Hardcode major/minor as the only tonal system. If you write `if mode == 'major'`, ask whether `if tonal_system.kind == 'tonal_major_minor'` is what you mean.
-- **NEW v2.0** — Generate music in a phase before the previous phase's required artifact exists. Phase ordering is enforced; bypassing it requires `--force-phase` and is for debug only.
-- **NEW v2.0** — Mark a Skill or subagent as "Genre X compatible" without an integration test that proves it. A Skill without a test is documentation, not a feature.
-- **NEW v2.0** — Add a reference piece to `references/midi/` without a corresponding entry in `references/catalog.yaml` declaring rights status. Files without rights metadata fail loading and break tests.
+### Foundational
+- Read existing code before writing new code
+- Write tests before or alongside implementation
+- Keep YAML schemas and Pydantic models in sync
+- Use `yao.ir.timing` for all tick/beat/second conversions
+- Use `yao.ir.notation` for all note name/MIDI conversions
+- Derive velocity from dynamics curves (never hardcode)
+- Register generators via `@register_generator("name")`
+
+### Phrase-First Pipeline
+- The `phrase_aware` generator must invoke layers in order: M1 → M2 → M3 → M4
+- Each layer records provenance with its specific layer tag (`M1_phrase_plan`, `M2_skeleton`, `M3_surface`, `M4_ornament`)
+- Layer M2 must consult `HarmonicContext` for every skeleton note placement
+- Layer M3 may only place pitches that connect existing skeleton notes
+- Layer M4 microtiming offsets must come from a registered `GrooveProfile`, never hardcoded
+- All four layers must be unit-tested independently before testing the full pipeline
+
+### Genre Profiles
+- Adding a new genre Skill requires four artifacts:
+  1. Markdown file (`.claude/skills/genres/<name>.md`) with required sections
+  2. YAML companion (`.claude/skills/genres/<name>.yaml`) producing a valid `MelodicProfile`
+  3. Reference catalog entry (`references/catalog.yaml`) with verified license status
+  4. Scenario test (`tests/scenarios/test_<genre>.py`)
+- Genre Skill Markdown must cite music-theoretical sources for the characterization
+- Genre profiles use the `MelodicProfile` Pydantic schema — never define ad-hoc genre dicts in code
+- Anti-patterns in a genre Skill must specify severity (`critical` / `major` / `minor` / `hint`) and a fix recipe
+
+### Provenance
+- Every generation step records provenance — no exceptions
+- Provenance entries are append-only — never delete or modify
+- Each provenance entry includes: timestamp, layer, decision, input, output, rationale, agent
+- The `update-provenance` hook must run on every change
+- Use `provenance.record(layer, decision, input, output, rationale, agent)` consistently
+
+### Intent Parsing
+- The intent parser produces a `StructuredIntent` with all 5 emotional dimensions populated
+- `IntentToSpec` builds a complete `CompositionSpec` from a `StructuredIntent` — never a partial spec
+- Mode selection (Dorian, Phrygian, Lydian, etc.) must come from the genre's `scale_preferences` weighted by emotional vector
+- Genre candidates from the parser are ranked with confidence scores
 
 ---
 
-## 6. 5 Design Principles
+## MUST NOTs
 
-1. **Agent = environment, not composer** — we accelerate human creativity.
-2. **Explain everything** — every note has a provenance record.
-3. **Constraints liberate** — specs and rules are scaffolds, not cages.
-4. **Time-axis first** — design trajectory curves before notes.
-5. **Human ear is truth** — automated scores inform, humans decide.
+### Foundational
+- Import `pretty_midi` / `music21` / `librosa` outside designated layers
+- Create functions with vague names (e.g., `make_it_sound_good`)
+- Skip provenance recording for any generation step
+- Use bare `ValueError` (use `YaOError` subclasses)
+- Silently clamp notes to range (raise `RangeViolationError`)
+- Leave `TODO` / `FIXME` uncommitted
 
-These are repeated from PROJECT.md to ensure they are present at the start of every session.
+### Phrase-First Pipeline
+- Bypass any of M1–M4 — even when "the simple case" would seem to allow it
+- Call M3 without an M2 skeleton, or M2 without an M1 phrase plan
+- Mix concrete pitches and Roman numerals in the same context
+- Hardcode swing ratios, microtiming offsets, or ornament probabilities
+- Replace the existing `rule_based` or `stochastic` generators when adding `phrase_aware`
+
+### Genre Profiles
+- Define a genre by fiat without citing sources
+- Add a genre Skill without all four required artifacts
+- Specify "in the style of [active artist]" — use abstract feature descriptions
+- Add reference works of unknown licensing to `references/`
+
+### Adversarial Critic
+- Make the Critic praise — its job is to find weaknesses
+- Hide critical issues from the Conductor
+- Skip genre-specific critique when a genre is set
+- Allow Critic outputs to depend on randomness
+
+### Conductor
+- Run a Conductor adaptation that violates `CLAUDE.md` rules
+- Loop forever — cap iterations, escalate to human after 5 attempts
+- Adapt the spec by hardcoding values; always go through the spec schema
 
 ---
 
-## 7. Current Phase
+## 7 Design Principles
 
-**Phase 1.5** — Multi-Genre Foundation (in progress)
+1. **Agent = environment, not composer** — we accelerate human creativity
+2. **Explain everything** — every note has a provenance record
+3. **Constraints liberate** — specs and rules are scaffolds, not cages
+4. **Time-axis first** — design trajectory curves before notes
+5. **Human ear is truth** — automated scores inform; humans decide
+6. **Phrase before notes** — phrases have function, target pitch, and cadence; notes are derived
+7. **Genre is a constellation** — `MelodicProfile`, not a label
 
-**What EXISTS (carried over from Phase 1):**
+---
+
+## Current Phase
+
+**Phase 3** — Motif development + harmonic coupling
+
+**What EXISTS (from Phase 0–2):**
 
 - Spec loading + validation (YAML → Pydantic) ✅
 - ScoreIR (Note, Part, Section, Motif, Voicing, Harmony) ✅
 - Rule-based generator (deterministic) ✅
 - Stochastic generator (seed + temperature) ✅
-- Generator registry (strategy selection via spec) ✅
+- Generator registry ✅
 - Constraint system (must / must_not / prefer / avoid with scoped rules) ✅
 - MIDI rendering + stems ✅
-- MIDI reader (load existing MIDI back to ScoreIR for analysis) ✅
+- MIDI reader ✅
 - Music linting, analysis, evaluation ✅
-- Score diff with modified note tracking ✅
+- Evaluation report persistence (`evaluation.json`) ✅
+- Score diff with modified-note tracking ✅
 - Provenance logging (append-only, queryable) ✅
-- Conductor feedback loop (generate → evaluate → adapt → regenerate) ✅
+- Conductor feedback loop ✅
 - Section-level regeneration ✅
 - CLI (compose, conduct, render, validate, evaluate, diff, explain, new-project, regenerate-section) ✅
 - Architecture lint tool ✅
-- 7 Claude Code commands and 7 v1.0 subagent definitions ✅
-- 4 Skills populated (cinematic, voice-leading, piano, tension-resolution) ✅
+- 7 Claude Code commands ✅
+- 7 Subagent definitions ✅
+- 4 Skills populated (cinematic genre, voice-leading, piano, tension-resolution) ✅
+- **`MelodicProfile` Pydantic schema** (`src/yao/schema/melodic_profile.py`) ✅ — Phase 2
+- **5 Tier-1 genre profiles** (`src/yao/constants/melodic_profiles/`) ✅ — Phase 2
+  - `bebop_jazz`, `j_pop_ballad`, `classical_romantic`, `lofi_hiphop`, `rock_classic`
+- **Phrase IR types** (`Phrase`, `PhrasePlan`, `PhraseFunction`, `CadenceType`) ✅ — Phase 2
+- **Skeleton IR types** (`Skeleton`, `SkeletonNote`) ✅ — Phase 2
+- **MelodyLine IR types** (`MelodyNote`, `MelodyLine`, `OrnamentedNote`, `OrnamentedMelodyLine`) ✅ — Phase 2
+- **HarmonicContext** (`src/yao/ir/harmonic_context.py`) ✅ — Phase 2
+- **Layer M1** — `MotifDevelopmentPlanner` (phrase planning + motif generation) ✅ — Phase 2
+- **Layer M2** — `SkeletonGenerator` (chord-tone skeleton with harmonic context) ✅ — Phase 2
+- **Layer M3** — `SurfaceRealizer` (passing/neighbor tones, rhythm application) ✅ — Phase 2
+- **Layer M4** — `OrnamentEngine` (ornaments, articulation, groove microtiming) ✅ — Phase 2
+- **`phrase_aware` generator** registered via `@register_generator("phrase_aware")` ✅ — Phase 2
+- **176 new tests** for phrase-first pipeline (2978 total) ✅ — Phase 2
+- **Profile blending** (`blend_profiles()`) ✅ — Phase 2
+- **Profile loading** (`load_melodic_profile()`) ✅ — Phase 2
 
-**What is being added in Phase 1.5:**
+**What is being BUILT NOW (Phase 3):**
 
-- `tonal_system` schema and harmony dispatch (PR-2)
-- Genre Skill template + 6 Tier-1 Skills (PR-1)
-- Subagent message protocol (`.claude/agents/_protocol.md`) (PR-5)
-- Six-phase enforcement (`conductor/protocol.py`) (PR-6)
+- `HarmonicMelodicSelector` — pitch selection deeply coupled with harmonic context
+- `OutlineGenerator` — chord-progression-outlining skeleton strategy
+- Enhanced motif development — all 13 motif transformations wired into generation
+- Motif library persistence at `references/motifs/`
+- Motif coherence scoring integration
+- Integration test: `motif_coherence_score >= 0.5` on 32-bar pieces
 
-**What is queued for Phase 2:**
+**What does NOT exist yet (Phase 4 onward):**
 
-- Sound Design Layer (Layer 3.5)
-- Perception Layer (Layer 4): reference matcher, psych mapper, surprise model
-- Five new subagents (Sound Designer, Sample Curator, Texture Composer, Beatmaker, Loop Architect)
-
-**What is queued for Phase 3:**
-
-- Loop-First generator + modular arrangement
-- Vocal Track support
-- Arrangement Engine (reharmonization, regrooving, reorchestration)
-
-**What does NOT exist yet (later phases):**
-
-- Markov / constraint-solver / AI-bridge generators
-- DAW integration (MCP)
-- Live improvisation mode
-- Continuous Conductor TUI
+- 30+ rhythm templates and `GrooveProfile` engine (Phase 4)
+- Tier 2 + Tier 3 genre profiles (Phase 5)
+- `GenreCritic` (Phase 5)
+- Genre conformity, motif coherence, memorability proxy (Phase 5)
+- `IntentParser` and `IntentToSpec` (Phase 6)
+- Perception layer (Phase 7)
+- Arrangement engine (Phase 8)
+- DAW integration via MCP (Phase 8)
+- Live improvisation mode (Phase 8)
 
 ---
 
-## 8. Layer Architecture (v2.0 — 8 layers)
+## Phase 2 Implementation Plan — COMPLETE ✅
 
-The architecture lint enforces these import rules. Read `.claude/guides/architecture.md` for the full table.
+Phase 2 was completed on 2026-05-07. All deliverables landed:
 
-```
-Layer 0  constants/         → (nothing)
-Layer 1  schema/            → constants
-Layer 1  ir/                → constants
-Layer 1  reflect/           → constants (cross-cutting)
-Layer 2  generators/        → constants, schema, ir, reflect
-Layer 3.5 sound_design/     → constants, schema, ir                 ← NEW
-Layer 4  perception/        → constants, schema, ir, generators     ← NEW (real)
-Layer 5  render/            → constants, schema, ir, generators, sound_design, perception
-Layer 6  verify/            → constants, schema, ir, generators, sound_design, perception, render
-         conductor/         → all of the above
-```
-
-**Library restrictions (v2.0 additions):**
-
-| Library | Allowed In | Purpose |
+| Deliverable | Status | Files |
 |---|---|---|
-| `pretty_midi` | ir/, render/ | MIDI creation and editing |
-| `music21` | ir/, verify/ | Music theory analysis, MusicXML |
-| `librosa` | verify/ only | Audio feature analysis |
-| `pyloudnorm` | verify/ only | LUFS loudness measurement |
-| `pedalboard` | sound_design/, render/audio_renderer.py only | VST chain hosting (NEW v2.0) |
-| `pydantic` | schema/ | YAML spec validation |
-| `structlog` | anywhere | Structured logging |
-| `click` | cli/ only | CLI framework |
-| `numpy/scipy` | ir/, generators/, sound_design/, perception/, render/, verify/ | Numerical computation |
+| MelodicProfile schema | ✅ | `src/yao/schema/melodic_profile.py` |
+| Phrase IR types | ✅ | `src/yao/ir/phrase.py`, `skeleton.py`, `melody_line.py`, `harmonic_context.py` |
+| 5 Tier-1 profiles | ✅ | `src/yao/constants/melodic_profiles/*.yaml` |
+| Layer M1 (MotifDevelopmentPlanner) | ✅ | `src/yao/generators/melody/motif_developer.py` |
+| Layer M2 (SkeletonGenerator) | ✅ | `src/yao/generators/melody/skeleton.py` |
+| Layer M3 (SurfaceRealizer) | ✅ | `src/yao/generators/melody/surface.py` |
+| Layer M4 (OrnamentEngine) | ✅ | `src/yao/generators/melody/ornament.py` |
+| PhraseAwareGenerator | ✅ | `src/yao/generators/melody/phrase_aware.py` |
+| 176 new tests | ✅ | `tests/unit/generators/melody/`, `tests/unit/schema/`, `tests/unit/ir/` |
+| All 2978 tests green | ✅ | `make all-checks` passes |
 
 ---
 
-## 9. Genre-Aware Development
+## Phase 3 Implementation Plan
 
-This is the most important new section in v2.0. Every change to generation, IR, or evaluation must be evaluated for **genre universality**.
+When working on Phase 3, follow this order. Each step builds on Phase 2.
 
-### 9.1 The Genre Universality Test
+### Step 1: HarmonicMelodicSelector
+1. `src/yao/generators/melody/selector.py`
+2. Pitch selection deeply coupled with `HarmonicContext` — chord-tone scoring, avoid-note penalty, voice-leading bonus, metric-strength weighting
+3. Integrate into `SkeletonGenerator` to replace simple pitch selection
+4. Unit tests verifying pitch choices respect harmonic context
 
-Before merging a PR, ask:
+### Step 2: OutlineGenerator
+1. `src/yao/generators/melody/outline.py`
+2. Generates skeleton by "outlining" the chord progression — chord tones on downbeats, voice-leading at boundaries
+3. Alternative skeleton strategy for genres with strong harmonic outlining (bebop, classical)
+4. Unit tests verifying chord-tone ratio ≥ profile.chord_tone_targeting
 
-1. Does this change work for tonal major/minor? (the v1.0 baseline)
-2. Does it work for modal music (Dorian, Mixolydian, Phrygian)?
-3. Does it work for blues (where ♭3 is a feature)?
-4. Does it work for atonal music (where consonance ratio is meaningless)?
-5. Does it work for drone music (where pitch class variety is meaningless)?
-6. Does it work for music with mid-section meter changes (prog rock)?
-7. Does it work for music with no meter at all (free jazz, ambient)?
-8. Does it work for music where melody is absent (deep house, dark ambient)?
-9. Does it work for music where timbre defines the genre (lo-fi, dnb)?
-10. Does it work for music with microtonal pitches (Indian classical, contemporary)?
+### Step 3: Enhanced Motif Development
+1. Wire all 13 motif transformations (identity, transposed, inverted, retrograde, augmented, diminished, sequential, fragmented, extension, truncation, chromatic_decoration, rhythmic_displacement, interpolation) into `MotifDevelopmentPlanner`
+2. Motif assignment strategy driven by `MelodicProfile.motif_transformations` weights
+3. Track motif derivation using `MotifNetwork`
+4. Unit tests verifying transformation diversity
 
-If the answer to any of (2)–(10) is "no", document why in the PR description. If multiple are "no", reconsider the design.
+### Step 4: Motif Library Persistence
+1. `references/motifs/catalog.yaml` — motif index with metadata
+2. JSON format for individual motifs
+3. Loader/saver for motif library
+4. Spec support: `motifs.primary.source: library` / `motifs.primary.source: generate`
 
-### 9.2 Genre-Conditional Code Patterns
+### Step 5: Motif Coherence Scoring
+1. `src/yao/verify/conformity.py` — `motif_coherence_score()` implementation
+2. Measures motif recurrence and variation balance across sections
+3. Genre-specific target ranges (from `MelodicProfile`)
+4. Integration test: `motif_coherence_score >= 0.5` on 32-bar pieces
 
-```python
-# WRONG (v1.0 pattern that fails for non-tonal genres)
-def evaluate_consonance(score: ScoreIR) -> float:
-    return count_consonant_intervals(score) / total_intervals(score)
-
-# RIGHT (v2.0 pattern)
-def evaluate_consonance(score: ScoreIR, tonal_system: TonalSystem) -> float | None:
-    if tonal_system.kind in {"atonal", "drone", "microtonal"}:
-        return None  # not applicable
-    if tonal_system.kind == "blues":
-        return count_consonant_intervals_blues_aware(score) / total_intervals(score)
-    return count_consonant_intervals(score) / total_intervals(score)
-```
-
-```python
-# WRONG (assumes melody exists)
-def generate_section(spec: SectionSpec) -> Section:
-    melody = compose_melody(spec)
-    chords = harmonize(melody)
-    bass = bass_from_chords(chords)
-    return Section(parts=[melody, chords, bass])
-
-# RIGHT (delegates to ensemble template)
-def generate_section(spec: SectionSpec, ensemble: EnsembleTemplate) -> Section:
-    parts: list[Part] = []
-    for subagent in ensemble.active_subagents:
-        parts.extend(subagent.generate_for_section(spec))
-    return Section(parts=parts)
-```
-
-### 9.3 Genre Skill Authoring
-
-When adding or editing a Skill, follow PROJECT.md §10. A skeleton:
-
-```markdown
----
-genre_id: <id>
-display_name: "<name>"
-parent_genres: [...]
-related_genres: [...]
-typical_use_cases: [...]
-ensemble_template: <template>
-default_subagents:
-  active: [...]
-  inactive: [...]
----
-
-## Defining Characteristics
-## Required Spec Patterns
-## Idiomatic Chord Progressions
-## Idiomatic Rhythms
-## Anti-Patterns
-## Reference Tracks
-## Default Sound Design
-## Evaluation Weight Adjustments
-## Default Trajectories
-```
-
-A Skill that lacks the YAML frontmatter is rejected at load time. A Skill that lacks `Anti-Patterns` cannot be used by the Adversarial Critic. A Skill that lacks `Reference Tracks` cannot drive Reference-Driven Evaluation.
+### Step 6: Integration + Acceptance
+- All existing tests still green
+- `phrase_aware` generator uses `HarmonicMelodicSelector` for pitch decisions
+- Cadences clearly resolve at phrase boundaries
+- Motivic connection between sections measurable
+- `make all-checks` passes
 
 ---
 
-## 10. Subagent Development
+## Automated Failure Prevention
 
-### 10.1 Subagent File Structure
-
-`.claude/agents/<name>.md` for every subagent. Required sections:
-
-```markdown
----
-agent_id: sound_designer
-role: subagent
-active_for_genres: [electronic, ambient, lo_fi_hiphop, ...]
-inactive_for_genres: [classical_chamber, baroque, ...]
-forbidden_actions: [pitch_choice, chord_choice]
----
-
-## Responsibility
-## Inputs
-## Outputs (must conform to .claude/agents/_protocol.md)
-## Decision Domains
-## Forbidden Actions
-## Evaluation Criterion
-## Skill References
-```
-
-### 10.2 Subagent Message Protocol
-
-Every subagent invocation produces a `SubagentMessage`:
-
-```python
-# src/yao/conductor/subagent_message.py
-@dataclass(frozen=True)
-class SubagentMessage:
-    agent: str
-    phase: Phase
-    input_hash: str
-    decisions: list[Decision]
-    questions_to_other_agents: list[Question]
-    flags: list[str]
-    artifacts: list[Path]
-```
-
-These are recorded in Provenance verbatim.
-
-### 10.3 Producer Arbitration
-
-When subagent outputs conflict, Producer arbitrates by this priority:
-
-1. `intent.md` alignment (highest)
-2. Hard constraints (`must` / `must_not`)
-3. Active genre Skill recommendations
-4. Expected evaluator score improvement
-5. Subagent default preference (Composer or replacement is the default tiebreaker)
-
-If you write code that lets a non-Producer subagent override another, that is a bug.
-
----
-
-## 11. Six-Phase Enforcement
-
-`conductor/protocol.py`:
-
-```python
-class Phase(IntEnum):
-    INTENT_CRYSTALLIZATION = 1
-    ARCHITECTURAL_SKETCH = 2
-    SKELETAL_GENERATION = 3
-    CRITIC_COMPOSER_DIALOGUE = 4
-    DETAILED_FILLING = 5
-    LISTENING_SIMULATION = 6
-
-PHASE_REQUIRED_ARTIFACTS: dict[Phase, list[str]] = {
-    Phase.INTENT_CRYSTALLIZATION:    ["intent.md"],
-    Phase.ARCHITECTURAL_SKETCH:      ["trajectory.yaml"],
-    Phase.SKELETAL_GENERATION:       ["score_skeleton.json"],
-    Phase.CRITIC_COMPOSER_DIALOGUE:  ["critique_round_1.md", "selected_skeleton.json"],
-    Phase.DETAILED_FILLING:          ["full.mid", "stems/"],
-    Phase.LISTENING_SIMULATION:      ["analysis.json", "evaluation.json", "critique.md"],
-}
-```
-
-**When developing**:
-
-- Production code must walk phases in order; check artifacts before advancing.
-- The CLI flag `--force-phase <PHASE>` is for debugging only and emits a warning.
-- Tests should verify that bypassing a phase raises `PhaseIncompleteError`.
-
-**When debugging**:
-
-- If a piece looks "structurally directionless", the most likely cause is that Phase 2 (trajectory) was skipped or generated trivially. Check `trajectory.yaml`.
-- If a piece sounds "technically correct but soulless", Phase 6 (listening simulation) most likely returned no perception feedback. Check Layer 4 is initialized.
-
----
-
-## 12. Sound Design Layer (3.5) — Development Notes
-
-### 12.1 Optional Dependency
-`pedalboard` is not a hard dependency. Code paths that use it must:
-
-```python
-try:
-    import pedalboard
-    SOUND_DESIGN_AVAILABLE = True
-except ImportError:
-    SOUND_DESIGN_AVAILABLE = False
-
-def render_audio_with_sound_design(...):
-    if not SOUND_DESIGN_AVAILABLE:
-        log.info("pedalboard not installed; falling back to MIDI-only output")
-        return None
-    ...
-```
-
-### 12.2 Two-Stage Rendering
-
-```
-spec → MIDI per stem → audio per stem (with sound design) → mixdown
-```
-
-- Stage 1 (MIDI) is fast, mandatory.
-- Stage 2 (audio per stem) is slow, optional, requires `pedalboard` + soundfont.
-- Stage 3 (mixdown) requires Stage 2.
-
-When tests run in CI without `pedalboard`, Stage 2/3 tests are skipped with `@pytest.mark.requires_pedalboard`. They are not failures.
-
-### 12.3 Sound Design Specs
-
-`SoundDesignSpec` validates the YAML fragment from PROJECT.md §7.7. Synthesis kinds: `sample_based`, `subtractive`, `fm`, `wavetable`, `physical`. Effect types: `eq`, `compressor`, `limiter`, `reverb`, `convolution_reverb`, `delay`, `tape_saturation`, `bitcrusher`, `chorus`, `phaser`, `flanger`. Add new kinds by extending the union and writing a renderer.
-
----
-
-## 13. Perception Layer (4) — Development Notes
-
-### 13.1 Three Submodules
-
-- `reference_matcher.py` — extract feature vectors from reference and generated pieces; compute weighted Euclidean distance.
-- `psych_mapper.py` — map symbolic and acoustic features to predicted arousal/valence/genre coherence.
-- `surprise_model.py` — n-gram or Markov model of the piece's own opening; measure entropy of subsequent events.
-
-### 13.2 Feature Extraction
-
-A feature extractor takes a `ScoreIR` and returns a `FeatureVector`:
-
-```python
-class FeatureExtractor(Protocol):
-    name: str
-    feature_dim: int
-    def extract(self, score: ScoreIR) -> np.ndarray: ...
-```
-
-Initial feature set (must be implemented in PR-4):
-
-- `voice_leading_smoothness`
-- `motivic_density`
-- `surprise_index`
-- `register_distribution`
-- `temporal_centroid`
-- `groove_pocket`
-- `chord_complexity`
-
-### 13.3 Reference Library
-
-References are loaded from `references/midi/` and `references/musicxml/`. Each entry has metadata in `references/catalog.yaml`:
-
-```yaml
-- id: jazz_invention_001
-  file: midi/jazz_invention_001.mid
-  rights_status: cc0
-  license_url: https://creativecommons.org/publicdomain/zero/1.0/
-  attribution: "Original work by [author], dedicated to the public domain"
-  features_extracted: true
-  feature_cache: extracted_features/jazz_invention_001.npz
-```
-
-A reference without complete metadata is **not loaded**. Loading-time validation is strict.
-
-### 13.4 Conductor Integration
-
-The Conductor calls Perception during Phase 6 (Listening Simulation). The output is a set of perception scores that feed into the adaptation decision:
-
-```python
-perception_report = perception_layer.evaluate(
-    score=generated_score,
-    references=spec.references,
-    intent=spec.intent,
-    target_surprise_band=genre_skill.target_surprise_band,
-)
-adapted_spec = conductor.adapt(spec, perception_report, evaluation_report)
-```
-
----
-
-## 14. Adaptation Strategies (v2.0)
-
-The Conductor selects adaptation strategies from `src/yao/conductor/adaptations/`. Each strategy:
-
-```python
-class AdaptationStrategy(Protocol):
-    name: str
-    cost: float
-    expected_metric_delta: dict[str, float]
-    def applies(self, report: EvaluationReport, spec: CompositionSpec) -> bool: ...
-    def apply(self, spec: CompositionSpec) -> CompositionSpec: ...
-    def explain(self) -> str: ...
-```
-
-Initial strategies (must be implemented):
-
-| Strategy | Triggers When | Effect |
-|---|---|---|
-| `transpose_section` | Section contrast < 0.4 | Add `transpose_semitones` to bridge |
-| `swap_instrument` | Frequency clash detected | Substitute one instrument in section |
-| `change_texture` | Density curve flat | Switch homophonic ↔ polyphonic |
-| `change_meter_in_section` | Predictability too high | Add 6/8 or 5/4 in a section |
-| `redistribute_density` | Climax not at golden ratio | Move climax to bar 0.61 of total |
-| `add_counter_melody` | Texture density < target | Add countermelody to chosen voice |
-| `drop_layers_for_impact` | Build-up needed | Drop drums/bass for 4 bars before climax |
-| `reharmonize_with_secondary_dominant` | Harmonic predictability high | Insert V/V, V/vi |
-| `insert_modal_interchange` | Genre allows, palette too small | Borrow from parallel mode |
-| `humanize_micro_timing` | Groove too rigid | Add ±10ms timing offsets |
-| `simplify_overcrowded_section` | Texture density > 0.95 | Reduce instrument count |
-| `add_negative_space` | Continuous activity > target | Insert deliberate silence at phrase boundaries |
-
-Strategies are selected by `(expected_improvement / cost)` with a stochastic exploration component. The selection is logged in Provenance.
-
----
-
-## 15. Automated Failure Prevention (v2.0 additions in bold)
+These common failure patterns are caught by tooling — not memorization:
 
 | Pattern | What catches it | Command |
 |---|---|---|
 | Tick calculation error | Unit tests in `test_ir.py` | `make test-unit` |
-| Range violation silence | `RangeViolationError` | `make test` |
-| Velocity hardcode | Code review pattern | `make lint` |
-| Missing provenance | `GeneratorBase` enforces return | `mypy` |
+| Range violation silence | `RangeViolationError` (no silent clamp) | `make test` |
+| Velocity hardcode | Code-review pattern | `make lint` |
+| Missing provenance | `GeneratorBase` enforces return type | `mypy` |
 | Layer boundary breach | AST-based import checker | `make arch-lint` |
 | Schema/model mismatch | Integration test loads all templates | `make test` |
 | Parallel fifths | Constraint checker + voicing module | `make test` |
-| **Tonal system assumption (v2.0)** | **`test_tonal_system_dispatch.py`** | **`make test-tonal`** |
-| **Phase ordering bypass (v2.0)** | **`test_phase_protocol.py`** | **`make test`** |
-| **Subagent without provenance ID (v2.0)** | **Provenance schema validation** | **`make test`** |
-| **Skill without frontmatter (v2.0)** | **Skill loader rejects** | **`make test-skills`** |
-| **Reference without rights metadata (v2.0)** | **Reference loader rejects** | **`make test`** |
+| Phrase pipeline order violation | Pipeline runtime asserts M1 before M2 before M3 before M4 | `make test-melody` |
+| MelodicProfile schema drift | Pydantic validates every profile YAML at startup | `make test` |
+| Missing genre artifacts | `genre-skill-validate` hook + CI check | git hook |
+| Microtiming hardcode in M4 | Code-review pattern (no literal in `timing_offset_ms=`) | `make lint` |
+| Genre-specific logic in generators | Code-review pattern (no `if genre == ...` in `src/yao/generators/`) | `make lint` |
 
 ---
 
-## 16. Performance Expectations (v2.0 — updated)
+## Performance Expectations
 
 | Operation | Target | Notes |
 |---|---|---|
-| Load YAML spec (incl. tonal_system) | <100ms | Pydantic validation |
-| Generate 8-bar piece | <1s | Both generators |
-| Generate 64-bar piece | <5s | Stochastic may vary |
-| **Loop_evolution 64-bar piece (v2.0)** | <8s | New strategy; layer-by-layer construction |
+| Load YAML spec | <100ms | Pydantic validation |
+| Load MelodicProfile | <50ms | Cached after first load |
+| Generate 8-bar piece (rule_based) | <1s | |
+| Generate 8-bar piece (stochastic) | <1s | |
+| Generate 8-bar piece (phrase_aware) | <2s | Multi-layer overhead acceptable |
+| Generate 64-bar piece (any) | <5s | |
+| Phrase plan only (M1) | <300ms | Lightweight |
+| Skeleton generation (M2) | <1s | Most expensive layer |
+| Surface realization (M3) | <500ms | |
+| Ornament + groove (M4) | <300ms | |
 | Write MIDI file | <200ms | pretty_midi |
-| **Render audio with Sound Design (v2.0)** | <30s for 90s piece | pedalboard + VST chain |
-| **Reference distance computation (v2.0)** | <500ms per reference | Feature extraction + Euclidean |
-| **Perception layer full pass (v2.0)** | <2s | All three submodules |
-| Run full lint | <500ms | All lint rules |
-| Run all unit tests | <10s | Phase 1.5 grew the test count |
+| Run full lint | <500ms | |
+| Run all tests | <8s | ~400 tests after Phase 5 |
 | Architecture lint | <1s | AST parsing |
+| Genre conformity score | <500ms | KL divergence over 32 bars |
+| Motif coherence score | <300ms | |
 
-Do not introduce changes that exceed these budgets without discussion. If Sound Design rendering drives audio time over 30s for 90s pieces, profile and optimize.
+Do not introduce changes that exceed these budgets without discussion. The phrase-first pipeline budget is intentionally generous; do not exceed it through carelessness.
 
 ---
 
-## 17. Testing (v2.0 additions)
+## Provenance Discipline
 
-### 17.1 New Test Categories
+Every generation step records provenance. This is not optional and not "do at the end."
 
-- `tests/genres/` — one test file per Tier-1 genre, verifying the Skill's evaluation weights and default trajectories produce a recognizable output.
-- `tests/tonal_systems/` — for each tonal system kind, a fixture spec and an evaluation that confirms genre-appropriate scoring.
-- `tests/perception/` — feature extractor unit tests + reference distance integration tests.
-- `tests/sound_design/` — synthesis patch and effect chain rendering tests, gated on `pedalboard` availability.
-- `tests/phase_protocol/` — phase ordering enforcement tests.
-- `tests/subagent_protocol/` — subagent message format and Producer arbitration tests.
+```python
+# Correct
+provenance.record(
+    layer="M2_skeleton",
+    decision="select_target_pitch",
+    input={"phrase_id": phrase.id, "current_chord": str(chord), "metric_position": 0.0},
+    output={"target_pitch": 67, "chord_relation": "5th"},
+    rationale=f"phrase function {phrase.function.value} + chord_tone_targeting={profile.chord_tone_targeting} + voice_leading_target",
+    agent="composer-subagent",
+)
 
-### 17.2 Test Helpers (v2.0 additions)
+# Wrong: missing rationale
+provenance.record(layer="M2_skeleton", output={"target_pitch": 67})
 
+# Wrong: defer to end
+notes = []
+for ...:
+    notes.append(...)
+# no provenance written until end — DO NOT DO THIS
+```
+
+`provenance.json` is **append-only**. Never delete or modify existing entries.
+
+---
+
+## Music Engineering Discipline
+
+When writing code that touches music:
+
+- Use `yao.ir.timing` for **all** tick/beat/second conversions
+- Use `yao.ir.notation` for **all** MIDI note ↔ note name conversions
+- Use scientific pitch notation (`C4`, `F#3`, `Bb5`)
+- Functional harmony in Roman numerals (`I`, `ii`, `V7/V`); concrete pitches only via `yao.ir.harmony.realize()`
+- Velocity is **derived** from dynamics curves and trajectory, never hardcoded
+- Range violations raise `RangeViolationError` with a helpful suggestion. Never silently clamp.
+- New rhythm templates and genre profiles are static data files (YAML), not Python literals
+- Microtiming offsets come from `GrooveProfile`, not from inline numbers
+- Ornament rates come from `OrnamentProfile.<event>_probability`, not from inline literals
+
+---
+
+## Testing Discipline
+
+For every new module or feature:
+
+- **Unit tests** in `tests/unit/` covering normal cases, edge cases, error cases
+- **Integration tests** in `tests/integration/` for any new generation strategy or pipeline
+- **Scenario tests** in `tests/scenarios/` for genre-specific behaviors
+- **Music constraint tests** in `tests/music_constraints/` for new constraints
+- **Golden tests** in `tests/golden/` for stable canonical outputs
+
+Use existing test helpers:
 ```python
 from tests.helpers import (
     assert_in_range,
     assert_no_parallel_fifths,
     assert_trajectory_match,
-    assert_phase_complete,           # NEW v2.0
-    assert_subagent_in_provenance,   # NEW v2.0
-    assert_tonal_system_appropriate, # NEW v2.0
-    assert_seamless_loop,            # NEW v2.0
-    assert_singable,                 # NEW v2.0
+    assert_phrase_plan_valid,           # NEW
+    assert_skeleton_outlines_harmony,    # NEW
+    assert_genre_conformity,             # NEW
+    assert_motif_coherence_above,        # NEW
 )
 ```
 
-### 17.3 Genre Scenario Test Skeleton
+For genre-specific tests, use **golden tests**: generate output with a fixed seed, snapshot relevant musical features (interval distribution, phrase length distribution, chord-tone ratio), assert future outputs match within tolerance.
+
+---
+
+## Phrase-First Pipeline Patterns
+
+When implementing the melody pipeline, follow these patterns.
+
+### Pattern: Layer dispatch
 
 ```python
-# tests/genres/test_lo_fi_hiphop.py
-def test_lo_fi_hiphop_basic_generation(tmp_output_dir):
-    spec = load_template("lofi-loop-2min.yaml")
-    spec.tonal_system = TonalSystem(kind="tonal_major_minor", key="C", mode="major")
-    result = compose(spec, output_dir=tmp_output_dir)
+class PhraseAwareGenerator(GeneratorBase):
+    def generate(self, spec: CompositionSpec) -> tuple[ScoreIR, ProvenanceLog]:
+        profile = load_melodic_profile(spec.genre.primary)
+        if spec.genre.secondary:
+            secondary = load_melodic_profile(spec.genre.secondary)
+            profile = blend_profiles(profile, secondary, spec.genre.blend_ratio)
 
-    assert result.evaluation.acoustics.tempo_bpm in range(80, 96)
-    assert "tape_saturation" in result.sound_design.effect_chains["piano"]
-    assert result.score.has_idiomatic_pattern("boom_bap_drums")
-    assert result.evaluation.harmony.has_jazz_chord_extensions
-    assert_seamless_loop(result.score, tolerance=0.05)
+        prov = ProvenanceLog()
+
+        plan = MotifDevelopmentPlanner().plan(spec, profile, prov)
+        skel = SkeletonGenerator().generate(plan, spec.harmony, profile, prov)
+        surf = SurfaceRealizer().realize(skel, profile, prov)
+        orn  = OrnamentEngine().apply(surf, profile.ornament_profile,
+                                       load_groove(profile.groove_profile_name), prov)
+
+        return self._to_score_ir(orn, spec), prov
+```
+
+### Pattern: Profile-parameterized choice
+
+```python
+# Wrong
+def select_pitch(prev_pitch: int, scale: list[int]) -> int:
+    return random.choice(scale)  # not parameterized by genre
+
+# Right
+def select_pitch(prev_pitch: int, scale: list[int], profile: MelodicProfile) -> int:
+    candidates_with_weights = [
+        (p, profile.interval_distribution.get(abs(p - prev_pitch), 0.01))
+        for p in scale
+    ]
+    return weighted_sample(candidates_with_weights)
+```
+
+### Pattern: Profile-parameterized error
+
+```python
+# Wrong: silent clamp
+if pitch > range_max:
+    pitch = range_max
+
+# Right: explicit error with suggestion
+if pitch > range_max:
+    raise RangeViolationError(
+        instrument=instrument,
+        attempted_pitch=pitch,
+        max=range_max,
+        suggestion=f"reduce melody contour amplitude or transpose section down an octave",
+    )
 ```
 
 ---
 
-## 18. Code Standards (v2.0 — extends v1.0)
+## Genre Skill Addition Protocol
 
-- Python 3.11+ with `from __future__ import annotations`.
-- `mypy --strict` for all public API.
-- `ruff` for linting and formatting (line length 99).
-- Pydantic for external data (YAML specs); frozen dataclasses for internal domain objects.
-- Custom exceptions only — no bare `ValueError`; use `YaOError` subclasses.
-- Conventional Commits — `feat(harmony): add secondary dominant insertion`.
-- **NEW v2.0** — Subagent files use `<role>-<noun>.md` format: `sound-designer.md`, `loop-architect.md`, etc.
-- **NEW v2.0** — When adding a tonal system, add (a) Pydantic enum entry, (b) `harmony.realize_<kind>()` function, (c) evaluator dispatch case, (d) test fixture, (e) example template — in the same PR.
-- **NEW v2.0** — When adding a feature extractor, add (a) class implementing `FeatureExtractor`, (b) registration in `feature_extractors/__init__.py`, (c) at least one reference using it, (d) round-trip test (extract from MIDI → MIDI → extract again should give equivalent vector).
+When adding a genre Skill (Phase 5 and beyond):
 
----
-
-## 19. Recent Changes
-
-- **2026-05-05**: PROJECT.md and CLAUDE.md updated to v2.0. IMPROVEMENT.md findings C1–C6, Q1–Q5, A1–A3 incorporated. Phase 1.5 introduced.
-- **2026-04-29**: MIDI reader, section regeneration, evaluation.json persistence, richer feedback adaptations, Claude Code command upgrades, 4 skills populated, mypy fixes (140→0 errors).
-- **2026-04-29**: Constraint system, CLI diff/explain commands, stochastic unit tests, modified_notes in ScoreDiff, documentation completions.
-- **2026-04-28**: Stochastic generator, generator registry, musical error messages, queryable provenance, CLAUDE.md restructured into tiered guides.
-- **2026-04-28**: Phase 0+1 complete: 7-layer architecture, rule-based generator, MIDI/stems, evaluation, provenance, CLI, Claude Code commands/agents.
-- **2026-04-27**: Project initialized with PROJECT.md and CLAUDE.md.
+1. **Cite sources** for the characterization. If you cannot cite, escalate.
+2. **Create paired files**:
+   - `.claude/skills/genres/<name>.md` (human-readable)
+   - `.claude/skills/genres/<name>.yaml` (machine-readable `MelodicProfile`)
+3. **Add reference works** to `references/catalog.yaml` with verified license. Do not add works of unknown licensing.
+4. **Add scenario test** at `tests/scenarios/test_<genre>.py` verifying conformity metrics.
+5. **Add anti-pattern checklist** to the Skill with severity levels and fix recipes.
+6. **For world music traditions**, flag in the PR description that human review by someone familiar with the tradition is requested.
 
 ---
 
-## 20. Escalation
+## Recent Changes
+
+- **2026-05-07**: Phase 2 COMPLETE — phrase-first pipeline fully implemented: MelodicProfile schema, 5 Tier-1 genre profiles (bebop_jazz, j_pop_ballad, classical_romantic, lofi_hiphop, rock_classic), all 4 melody pipeline layers (M1–M4), PhraseAwareGenerator registered, 176 new tests (2978 total), all checks green. Phase 3 (motif development + harmonic coupling) begins.
+- **2026-05-07**: Phase 2 launched — phrase-first pipeline foundation, MelodicProfile schema, 5 Tier-1 genre profiles in progress; CLAUDE.md updated to v2.0 with phrase-pipeline rules and genre Skill protocol
+- **2026-04-29**: MIDI reader, section regeneration, evaluation.json persistence, richer feedback adaptations, Claude Code command upgrades, 4 skills populated, mypy fixes (140 → 0 errors)
+- **2026-04-29**: Constraint system, CLI diff/explain commands, stochastic unit tests, modified_notes in ScoreDiff
+- **2026-04-28**: Stochastic generator, generator registry, musical error messages, queryable provenance, CLAUDE.md restructured into tiered guides
+- **2026-04-28**: Phase 0+1 complete: 7-layer architecture, rule-based generator, MIDI/stems, evaluation, provenance, CLI, Claude Code commands/agents
+- **2026-04-27**: Project initialized with PROJECT.md and CLAUDE.md
+
+---
+
+## Escalation
 
 Stop and ask the human when:
 
-- Changing architectural boundaries or layer rules (especially the new layers 3.5 and 4).
-- Adding new external dependencies.
-- Making music theory judgment calls you're unsure about — **especially in non-Western or non-tonal contexts**.
-- Deleting files or rewriting git history.
-- Any change touching 5+ files.
-- **NEW v2.0** — Adding a Genre Skill where you do not have personal listening experience in the genre. The maintainer should commission a musician's review before merging.
-- **NEW v2.0** — Modifying the subagent arbitration priority. This affects every Producer decision.
-- **NEW v2.0** — Adding a Tonal System kind. This affects evaluator dispatch, harmony realization, MIDI rendering, and tests across all phases.
-- **NEW v2.0** — Adding a reference piece whose rights status is uncertain.
+- Changing architectural boundaries or layer rules
+- Adding new external dependencies
+- Making music theory judgment calls you're unsure about (especially for cultural traditions outside your knowledge)
+- Deleting files or rewriting git history
+- Any change touching 5+ files
+- Defining a new genre by fiat without sources
+- A test fails after 3 fix attempts
+- The acceptance criteria for a phase are ambiguous
+- IMPROVEMENT.md, PROJECT.md, or CLAUDE.md disagree about something
+- Performance budgets are exceeded by more than 20%
+- A change would require modifying existing `rule_based` or `stochastic` generators (they must remain stable)
+
+Asking is not weakness. It is correct behavior under uncertainty.
 
 ---
 
-## 21. Common Anti-Patterns (v2.0 — examples to avoid)
+## Sound-First Culture
 
-```python
-# ANTI-PATTERN 1: hardcoded major/minor
-if spec.key.endswith("major"):
-    progression = ["I", "IV", "V"]
-else:
-    progression = ["i", "iv", "V"]
-# Fix: dispatch on tonal_system.kind, consult genre Skill
+For changes that affect generated music (new generators, new profiles, modified rhythm logic):
 
-# ANTI-PATTERN 2: silent skip of phase
-if not (project_dir / "trajectory.yaml").exists():
-    trajectory = default_trajectory()  # silent fallback
-# Fix: raise PhaseIncompleteError; phase 2 must complete first
+- Generate sample outputs with the existing templates before and after the change
+- If FluidSynth is available, render to WAV and note any audible differences
+- Include in commit message: musical impact note (e.g., "swing ratio measured at 0.67, was 0.50; phrase length distribution shifted toward 8-bar")
+- For changes that subjectively improve quality, save sample MIDI/WAV files for the human
 
-# ANTI-PATTERN 3: one-size-fits-all evaluator
-def score_harmony(score):
-    return consonance_ratio(score) * 0.5 + tension_resolution(score) * 0.5
-# Fix: weights must come from active genre Skill
-
-# ANTI-PATTERN 4: melody assumed to exist
-def generate_full_score(spec):
-    melody = composer.generate(spec)
-    return arrange_around(melody)
-# Fix: dispatch on ensemble_template; deep_house has no melody
-
-# ANTI-PATTERN 5: provenance entry without subagent
-provenance.add(decision="chose D7 chord", rationale="modal interchange")
-# Fix: must include agent="harmony_theorist", phase=DETAILED_FILLING, confidence=0.78
-
-# ANTI-PATTERN 6: bypassing arch-lint
-# from yao.render.audio_renderer import render  # in a generators/ file
-# Fix: this violates layer boundary; if you genuinely need rendering, refactor
-
-# ANTI-PATTERN 7: pedalboard as hard dependency
-import pedalboard  # at module level in sound_design/__init__.py
-# Fix: lazy import; degrade gracefully if missing
-```
+You cannot truly "hear" the music yourself, but you can measure features that are proxies for what humans will hear. Use those measurements liberally.
 
 ---
 
-## 22. Guides (read when relevant)
+## Backward Compatibility
+
+The phrase-first pipeline is added alongside the existing generators, never replacing them.
+
+- The existing `rule_based` and `stochastic` generators continue to work without modification
+- All existing tests (226+) must remain green throughout Phase 2 and beyond
+- Existing CLI commands behave identically by default
+- Users opt into the new pipeline via `generation.strategy: phrase_aware` in their YAML spec
+- The default strategy in templates does not change until `phrase_aware` reaches feature parity and the human approves the cutover
+
+If a refactor would touch the existing generators, stop and propose a specific plan to the human before proceeding.
+
+---
+
+## Guides (read when relevant)
 
 | Guide | When to read |
 |---|---|
-| `.claude/guides/architecture.md` | Working across layers, adding modules |
-| `.claude/guides/coding-conventions.md` | Writing any code |
-| `.claude/guides/music-engineering.md` | Generating/modifying notes |
-| `.claude/guides/testing.md` | Writing or running tests |
-| `.claude/guides/workflow.md` | Planning a change |
-| `.claude/agents/_protocol.md` (NEW v2.0) | Writing a subagent or modifying its messages |
+| Architecture | Working across layers, adding modules |
+| Coding Conventions | Writing any code |
+| Music Engineering | Generating/modifying notes |
+| Melody Pipeline (NEW) | Anything in `src/yao/generators/melody/` |
+| Genre Profiles (NEW) | Adding or modifying a genre Skill |
+| Testing | Writing or running tests |
+| Workflow | Planning a change |
 
-Full design documentation: `PROJECT.md`.
-Improvement findings and PR plan: `IMPROVEMENT.md`.
-
----
-
-## 23. Closing Reminder
-
-YaO v2.0 is about **removing assumptions** without breaking what already works. The 7-layer architecture, append-only provenance, and frozen dataclasses are load-bearing. The new layers (3.5 and 4) and new subagents extend the system; they do not replace it.
-
-When in doubt:
-
-- Read PROJECT.md for design rationale.
-- Read IMPROVEMENT.md for the why behind v2.0 changes.
-- Read the relevant `.claude/guides/*.md` for tactical detail.
-- Ask the human conductor when music theory or cultural authenticity is at stake.
-
-Build the orchestra well, so the conductor can lead it freely — across every genre.
+Full design documentation: [PROJECT.md](./PROJECT.md)
 
 ---
 
-**Project: You and Orchestra (YaO)**
-*CLAUDE.md version: 2.0*
-*Incorporates IMPROVEMENT.md findings C1–C6, Q1–Q5, A1–A3*
-*Last updated: 2026-05-05*
+## Operating Constants — Pinned Reminders
+
+- **Layer rule**: lower layers never depend on higher layers
+- **Generators return**: `(ScoreIR, ProvenanceLog)` — always
+- **Errors**: typed `YaOError` subclasses; never bare `ValueError`; never silent fallback
+- **Constants**: lookups via `src/yao/constants/`; never literals in logic
+- **Pipeline order**: M1 → M2 → M3 → M4 — strict, monolithic
+- **Genre = MelodicProfile**: never strings in logic, never `if genre == "..."`
+- **Provenance**: append-only, recorded for every generation step
+- **Tests**: written before or alongside; never skipped without justification
+- **Commits**: Conventional Commits, one logical change each
+- **Performance**: budgets in this file are not aspirational
+- **Migration**: additive, never replacing existing generators
+- **Escalation**: when in doubt, stop and ask
+
+---
+
+*CLAUDE.md version: 2.1*
+*Last updated: 2026-05-07*
+*v2.1: Phase 2 complete — updated Current Phase to Phase 3, added Phase 3 implementation plan, marked Phase 2 deliverables as complete with file locations.*
+*v2.0: Added phrase-first pipeline rules (Rules 6, 7), genre Skill protocol, layer M1–M4 patterns, performance budgets for new layers, Phase 2 implementation plan, and 4 new failure-prevention patterns.*

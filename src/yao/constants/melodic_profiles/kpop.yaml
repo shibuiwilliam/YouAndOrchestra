@@ -1,0 +1,112 @@
+genre: kpop
+description: >
+  Korean pop (2010s–present); high-energy, production-heavy, hook-driven.
+  Characterized by frequent key changes and section contrasts, mix of
+  rap and sung sections, pentatonic hooks with chromatic pre-chorus
+  build-ups, EDM-influenced drops, and a wide dynamic range between
+  verse intimacy and chorus explosiveness.
+
+scale_preferences:
+  major: 0.30
+  natural_minor: 0.25
+  pentatonic_minor: 0.15
+  dorian: 0.10
+  pentatonic_major: 0.10
+  phrygian: 0.05
+  chromatic: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.10
+    1: 0.10
+    2: 0.25
+    3: 0.18
+    4: 0.10
+    5: 0.10
+    7: 0.07
+    12: 0.10
+
+chord_tone_targeting: 0.70
+chromaticism_level: 0.25
+syncopation_level: 0.50
+
+phrase_length_distribution:
+  distribution:
+    2: 0.15
+    4: 0.50
+    8: 0.30
+    16: 0.05
+
+cadence_patterns:
+  - name: "kpop_deceptive"
+    chord_sequence: ["IV", "V", "vi"]
+    melodic_target: "1"
+  - name: "edm_drop"
+    chord_sequence: ["vi", "IV", "I", "V"]
+    melodic_target: "5"
+  - name: "minor_hook"
+    chord_sequence: ["i", "bVI", "bVII", "i"]
+    melodic_target: "1"
+  - name: "key_change_lift"
+    chord_sequence: ["V/II", "II"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "kpop_verse"
+    pattern: [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 2.25, 2.5, 3.0, 3.5]
+    durations: [0.25, 0.25, 0.5, 0.5, 0.5, 0.25, 0.25, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.5
+  - name: "kpop_chorus"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.3
+  - name: "rap_16ths"
+    pattern: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75]
+    durations: [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.6
+
+ornament_profile:
+  grace_note_probability: 0.08
+  trill_probability: 0.0
+  bend_probability: 0.03
+  slide_probability: 0.05
+  ghost_note_probability: 0.05
+  legato_ratio: 0.65
+  staccato_ratio: 0.10
+  accent_ratio: 0.15
+
+typical_ranges:
+  melody: ["A3", "A5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.70
+motif_transformations:
+  identity: 0.40
+  transposed: 0.25
+  fragmented: 0.15
+  sequential: 0.10
+  inverted: 0.05
+  augmented: 0.05
+
+groove_profile_name: "pop_electronic"
+
+anti_patterns:
+  - name: "no_hook"
+    description: "K-pop requires an instantly memorable chorus hook"
+    severity: "critical"
+    fix_suggestion: "Create a 2-4 bar hook motif with high recurrence in chorus"
+  - name: "monotone_sections"
+    description: "K-pop thrives on dramatic contrast between sections"
+    severity: "major"
+    fix_suggestion: "Differentiate verse, pre-chorus, chorus in energy, range, and rhythm"
+  - name: "no_dynamic_build"
+    description: "K-pop pre-chorus must build tension toward the chorus drop"
+    severity: "major"
+    fix_suggestion: "Add ascending pitch and increasing rhythmic density in pre-chorus"
+  - name: "too_slow"
+    description: "K-pop is typically up-tempo (100-140 BPM)"
+    severity: "minor"
+    fix_suggestion: "Set tempo_bpm between 100 and 140"

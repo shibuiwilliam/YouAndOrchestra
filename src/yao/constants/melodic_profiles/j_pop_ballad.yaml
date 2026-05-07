@@ -1,0 +1,99 @@
+genre: j_pop_ballad
+description: >
+  Japanese pop ballad; emotional, vocal-centric, accessible harmony.
+  Characterized by singable melodies in a moderate range, frequent use
+  of the IV-V-vi deceptive cadence, pentatonic inflections, and high
+  motif recurrence for memorability. Phrases tend toward 4-bar units.
+
+scale_preferences:
+  major: 0.50
+  natural_minor: 0.25
+  pentatonic_major: 0.15
+  dorian: 0.05
+  pentatonic_minor: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.10
+    1: 0.10
+    2: 0.30
+    3: 0.20
+    4: 0.10
+    5: 0.10
+    7: 0.05
+    12: 0.05
+
+chord_tone_targeting: 0.75
+chromaticism_level: 0.15
+syncopation_level: 0.30
+
+phrase_length_distribution:
+  distribution:
+    4: 0.50
+    8: 0.40
+    16: 0.10
+
+cadence_patterns:
+  - name: "deceptive_jpop"
+    chord_sequence: ["IV", "V", "vi"]
+    melodic_target: "1"
+  - name: "authentic"
+    chord_sequence: ["V", "I"]
+    melodic_target: "1"
+  - name: "royal_road"
+    chord_sequence: ["IV", "V", "iii", "vi"]
+    melodic_target: "3"
+
+rhythm_templates:
+  - name: "pop_16ths"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.4
+  - name: "quarter_feel"
+    pattern: [0.0, 1.0, 2.0, 3.0]
+    durations: [1.0, 1.0, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.1
+
+ornament_profile:
+  grace_note_probability: 0.10
+  trill_probability: 0.0
+  bend_probability: 0.02
+  slide_probability: 0.05
+  ghost_note_probability: 0.0
+  legato_ratio: 0.85
+  staccato_ratio: 0.02
+  accent_ratio: 0.08
+
+typical_ranges:
+  melody: ["A3", "G5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.70
+motif_transformations:
+  identity: 0.40
+  transposed: 0.30
+  augmented: 0.10
+  inverted: 0.05
+  fragmented: 0.15
+
+groove_profile_name: "straight"
+
+anti_patterns:
+  - name: "too_wide_range"
+    description: "Melody exceeds a comfortable singable range (> 1.5 octaves)"
+    severity: "major"
+    fix_suggestion: "Constrain melody to typical_ranges.melody or reduce contour amplitude"
+  - name: "excessive_chromaticism"
+    description: "J-pop ballad should be predominantly diatonic"
+    severity: "major"
+    fix_suggestion: "Reduce chromaticism_level below 0.3"
+  - name: "no_repetition"
+    description: "Motif recurrence rate too low — melody sounds incoherent"
+    severity: "major"
+    fix_suggestion: "Increase motif_recurrence_rate above 0.5"
+  - name: "too_fast"
+    description: "Ballad tempo should not exceed 100 BPM"
+    severity: "minor"
+    fix_suggestion: "Set tempo_bpm to 60–95 range"

@@ -1,0 +1,108 @@
+genre: folk_traditional
+description: >
+  Traditional folk music (Anglo-American and European); acoustic, story-driven.
+  Characterized by simple diatonic melodies, stepwise motion with occasional
+  fourths and fifths, strophic song forms, and natural vocal ranges. Modal
+  inflections (Dorian, Mixolydian) are common alongside major and minor keys.
+
+scale_preferences:
+  major: 0.30
+  dorian: 0.20
+  mixolydian: 0.20
+  natural_minor: 0.15
+  pentatonic_major: 0.10
+  aeolian: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.08
+    1: 0.05
+    2: 0.35
+    3: 0.20
+    4: 0.08
+    5: 0.12
+    7: 0.07
+    12: 0.05
+
+chord_tone_targeting: 0.70
+chromaticism_level: 0.05
+syncopation_level: 0.15
+
+phrase_length_distribution:
+  distribution:
+    4: 0.50
+    8: 0.40
+    16: 0.10
+
+cadence_patterns:
+  - name: "authentic"
+    chord_sequence: ["V", "I"]
+    melodic_target: "1"
+  - name: "plagal"
+    chord_sequence: ["IV", "I"]
+    melodic_target: "1"
+  - name: "modal_dorian"
+    chord_sequence: ["bVII", "I"]
+    melodic_target: "1"
+  - name: "half_cadence"
+    chord_sequence: ["I", "V"]
+    melodic_target: "5"
+
+rhythm_templates:
+  - name: "folk_4_4"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.1
+  - name: "folk_3_4"
+    pattern: [0.0, 1.0, 2.0]
+    durations: [1.0, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+  - name: "folk_6_8"
+    pattern: [0.0, 0.33, 0.67, 1.0, 1.33, 1.67]
+    durations: [0.33, 0.33, 0.33, 0.33, 0.33, 0.33]
+    swing_ratio: 0.5
+    syncopation_level: 0.1
+
+ornament_profile:
+  grace_note_probability: 0.12
+  trill_probability: 0.05
+  bend_probability: 0.02
+  slide_probability: 0.08
+  ghost_note_probability: 0.02
+  legato_ratio: 0.65
+  staccato_ratio: 0.05
+  accent_ratio: 0.12
+
+typical_ranges:
+  melody: ["C4", "D5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.70
+motif_transformations:
+  identity: 0.45
+  transposed: 0.25
+  sequential: 0.15
+  fragmented: 0.10
+  inverted: 0.05
+
+groove_profile_name: "straight"
+
+anti_patterns:
+  - name: "too_chromatic"
+    description: "Folk melodies are diatonic or modal, rarely chromatic"
+    severity: "critical"
+    fix_suggestion: "Reduce chromaticism_level below 0.15"
+  - name: "too_wide_range"
+    description: "Folk melodies stay within a singable octave-and-a-half range"
+    severity: "major"
+    fix_suggestion: "Constrain melody to a 10th or less"
+  - name: "complex_harmony"
+    description: "Folk uses simple triads (I, IV, V, vi), not extended chords"
+    severity: "major"
+    fix_suggestion: "Avoid 7ths, 9ths, and altered chords"
+  - name: "excessive_ornamentation"
+    description: "Folk ornamentation is subtle, not virtuosic"
+    severity: "minor"
+    fix_suggestion: "Keep ornament probabilities modest; grace notes over trills"

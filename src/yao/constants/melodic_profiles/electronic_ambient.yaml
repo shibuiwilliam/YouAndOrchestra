@@ -1,0 +1,108 @@
+genre: electronic_ambient
+description: >
+  Ambient electronic music; textural, atmospheric, non-rhythmic or
+  minimally rhythmic. Characterized by sustained tones, slow harmonic
+  movement, wide open intervals, drone-based foundations, and emphasis
+  on timbre over melody. Pitch events are sparse and serve texture
+  rather than melodic narrative.
+
+scale_preferences:
+  lydian: 0.20
+  major: 0.15
+  dorian: 0.15
+  pentatonic_major: 0.15
+  whole_tone: 0.10
+  natural_minor: 0.10
+  mixolydian: 0.10
+  chromatic: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.15
+    2: 0.10
+    3: 0.08
+    4: 0.08
+    5: 0.12
+    7: 0.20
+    9: 0.07
+    12: 0.15
+    16: 0.05
+
+chord_tone_targeting: 0.40
+chromaticism_level: 0.10
+syncopation_level: 0.10
+
+phrase_length_distribution:
+  distribution:
+    4: 0.15
+    8: 0.30
+    16: 0.35
+    32: 0.20
+
+cadence_patterns:
+  - name: "drone_resolve"
+    chord_sequence: ["I", "I"]
+    melodic_target: "1"
+  - name: "plagal_drift"
+    chord_sequence: ["IV", "I"]
+    melodic_target: "5"
+  - name: "sus_resolve"
+    chord_sequence: ["Isus4", "I"]
+    melodic_target: "3"
+  - name: "modal_shift"
+    chord_sequence: ["I", "bVII"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "free_pulse"
+    pattern: [0.0, 2.0, 4.0, 7.0]
+    durations: [2.0, 2.0, 3.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+  - name: "slow_evolve"
+    pattern: [0.0, 4.0, 8.0]
+    durations: [4.0, 4.0, 4.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+
+ornament_profile:
+  grace_note_probability: 0.02
+  trill_probability: 0.0
+  bend_probability: 0.0
+  slide_probability: 0.03
+  ghost_note_probability: 0.0
+  legato_ratio: 0.95
+  staccato_ratio: 0.0
+  accent_ratio: 0.02
+
+typical_ranges:
+  melody: ["C2", "G5"]
+
+motif_length_bars: 4.0
+motif_recurrence_rate: 0.30
+motif_transformations:
+  identity: 0.25
+  transposed: 0.30
+  augmented: 0.25
+  inverted: 0.10
+  fragmented: 0.10
+
+groove_profile_name: "freeform"
+
+anti_patterns:
+  - name: "too_busy"
+    description: "Ambient music requires space and sparse note density"
+    severity: "critical"
+    fix_suggestion: "Reduce note density; use long sustained tones"
+  - name: "strong_beat_emphasis"
+    description: "Ambient avoids metronomic rhythmic patterns"
+    severity: "major"
+    fix_suggestion: "Use free or very slow pulse; avoid accented downbeats"
+  - name: "short_notes"
+    description: "Ambient relies on sustained, evolving tones"
+    severity: "major"
+    fix_suggestion: "Use note durations of 1 beat or longer; favor whole notes and ties"
+  - name: "fast_tempo"
+    description: "Ambient tempo is typically very slow or undefined"
+    severity: "minor"
+    fix_suggestion: "Set tempo_bpm below 80, or use free tempo"

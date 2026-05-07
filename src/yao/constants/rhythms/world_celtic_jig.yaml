@@ -1,0 +1,8 @@
+name: world_celtic_jig
+genre: world
+beat_positions: [0.0, 0.333, 0.667, 1.0, 1.333, 1.667]
+duration_pattern: [0.333, 0.333, 0.333, 0.333, 0.333, 0.333]
+swing_ratio: 0.5
+velocity_pattern: [1.0, 0.6, 0.7, 0.9, 0.6, 0.7]
+syncopation_level: 0.15
+applies_to: ["melody", "rhythm"]

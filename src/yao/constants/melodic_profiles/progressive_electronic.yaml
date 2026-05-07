@@ -1,0 +1,110 @@
+genre: progressive_electronic
+description: >
+  Progressive electronic (trance, progressive house, melodic techno);
+  evolving, layered, build-and-release. Characterized by long gradual
+  builds toward climactic drops, arpeggiated synth patterns, minor-key
+  and modal melodies, filter-sweep-driven textural evolution, and
+  hypnotic repetition with subtle variation over 8-16 bar cycles.
+
+scale_preferences:
+  natural_minor: 0.30
+  dorian: 0.20
+  phrygian: 0.15
+  harmonic_minor: 0.15
+  pentatonic_minor: 0.10
+  lydian: 0.10
+
+interval_distribution:
+  distribution:
+    0: 0.10
+    1: 0.05
+    2: 0.18
+    3: 0.18
+    4: 0.12
+    5: 0.12
+    7: 0.15
+    12: 0.10
+
+chord_tone_targeting: 0.60
+chromaticism_level: 0.15
+syncopation_level: 0.40
+
+phrase_length_distribution:
+  distribution:
+    4: 0.20
+    8: 0.40
+    16: 0.30
+    32: 0.10
+
+cadence_patterns:
+  - name: "minor_build"
+    chord_sequence: ["i", "bVI", "bVII", "i"]
+    melodic_target: "1"
+  - name: "trance_gate"
+    chord_sequence: ["i", "bIII", "bVII", "iv"]
+    melodic_target: "5"
+  - name: "melodic_drop"
+    chord_sequence: ["bVI", "bVII", "i"]
+    melodic_target: "1"
+  - name: "arpeggio_loop"
+    chord_sequence: ["i", "v"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "arpeggio_16ths"
+    pattern: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75]
+    durations: [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.3
+  - name: "trance_melody"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 3.0]
+    durations: [0.5, 0.5, 0.5, 0.5, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.2
+  - name: "pad_sustained"
+    pattern: [0.0, 2.0]
+    durations: [2.0, 2.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+
+ornament_profile:
+  grace_note_probability: 0.03
+  trill_probability: 0.0
+  bend_probability: 0.02
+  slide_probability: 0.05
+  ghost_note_probability: 0.05
+  legato_ratio: 0.60
+  staccato_ratio: 0.15
+  accent_ratio: 0.12
+
+typical_ranges:
+  melody: ["C3", "C6"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.75
+motif_transformations:
+  identity: 0.45
+  transposed: 0.25
+  fragmented: 0.15
+  sequential: 0.10
+  inverted: 0.05
+
+groove_profile_name: "four_on_floor"
+
+anti_patterns:
+  - name: "no_build"
+    description: "Progressive electronic requires gradual builds toward a climax"
+    severity: "critical"
+    fix_suggestion: "Structure 16-32 bar builds with increasing layers, filter sweeps, rising pitch"
+  - name: "too_short"
+    description: "Progressive electronic pieces need time to develop (5+ minutes typical)"
+    severity: "major"
+    fix_suggestion: "Extend to at least 5 minutes with intro, build, drop, breakdown, drop structure"
+  - name: "no_repetition"
+    description: "Hypnotic repetition with subtle variation is core to the genre"
+    severity: "major"
+    fix_suggestion: "Use high motif_recurrence_rate with gradual filter and layer evolution"
+  - name: "tempo_out_of_range"
+    description: "Progressive electronic is typically 120-140 BPM"
+    severity: "minor"
+    fix_suggestion: "Set tempo_bpm between 120 and 140"

@@ -1,0 +1,112 @@
+genre: blues
+description: >
+  Blues (Delta, Chicago, electric); raw, expressive, call-and-response.
+  Characterized by the blues scale with prominent flat-3rd, flat-5th,
+  and flat-7th, 12-bar and 8-bar forms, shuffle feel, string bends
+  and slides as core expressive devices, and melody tightly coupled
+  to the I-IV-V dominant-7th chord progression.
+
+scale_preferences:
+  blues: 0.40
+  pentatonic_minor: 0.25
+  mixolydian: 0.15
+  dorian: 0.10
+  natural_minor: 0.05
+  chromatic: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.08
+    1: 0.08
+    2: 0.15
+    3: 0.25
+    4: 0.10
+    5: 0.10
+    6: 0.05
+    7: 0.10
+    12: 0.09
+
+chord_tone_targeting: 0.55
+chromaticism_level: 0.30
+syncopation_level: 0.50
+
+phrase_length_distribution:
+  distribution:
+    2: 0.20
+    4: 0.50
+    8: 0.20
+    12: 0.10
+
+cadence_patterns:
+  - name: "12_bar_turnaround"
+    chord_sequence: ["V7", "IV7", "I7"]
+    melodic_target: "1"
+  - name: "blues_V_IV_I"
+    chord_sequence: ["V7", "IV7", "I7"]
+    melodic_target: "b7"
+  - name: "quick_change"
+    chord_sequence: ["I7", "IV7", "I7"]
+    melodic_target: "b3"
+  - name: "call_response"
+    chord_sequence: ["I7", "I7"]
+    melodic_target: "5"
+
+rhythm_templates:
+  - name: "blues_shuffle"
+    pattern: [0.0, 0.67, 1.0, 1.67, 2.0, 2.67, 3.0, 3.67]
+    durations: [0.67, 0.33, 0.67, 0.33, 0.67, 0.33, 0.67, 0.33]
+    swing_ratio: 0.67
+    syncopation_level: 0.4
+  - name: "slow_blues"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.6
+    syncopation_level: 0.5
+  - name: "blues_triplet"
+    pattern: [0.0, 0.33, 0.67, 1.0, 1.33, 1.67, 2.0, 2.33, 2.67, 3.0, 3.33, 3.67]
+    durations: [0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33]
+    swing_ratio: 0.5
+    syncopation_level: 0.35
+
+ornament_profile:
+  grace_note_probability: 0.10
+  trill_probability: 0.02
+  bend_probability: 0.30
+  slide_probability: 0.20
+  ghost_note_probability: 0.08
+  legato_ratio: 0.50
+  staccato_ratio: 0.05
+  accent_ratio: 0.20
+
+typical_ranges:
+  melody: ["E3", "E5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.60
+motif_transformations:
+  identity: 0.35
+  transposed: 0.30
+  fragmented: 0.15
+  sequential: 0.10
+  inverted: 0.05
+  chromatic_decoration: 0.05
+
+groove_profile_name: "blues_shuffle"
+
+anti_patterns:
+  - name: "no_blue_notes"
+    description: "Blues requires flat-3rd, flat-5th, or flat-7th coloring"
+    severity: "critical"
+    fix_suggestion: "Use blues scale as primary; ensure b3, b5, b7 appear in melody"
+  - name: "straight_8ths"
+    description: "Blues typically uses shuffle or swing feel"
+    severity: "major"
+    fix_suggestion: "Set swing_ratio >= 0.6 for shuffle feel"
+  - name: "no_bends"
+    description: "String bends are a defining blues technique"
+    severity: "major"
+    fix_suggestion: "Set bend_probability >= 0.15"
+  - name: "complex_harmony"
+    description: "Blues harmony is rooted in dominant 7th chords on I, IV, V"
+    severity: "minor"
+    fix_suggestion: "Use dom7 chords as primary vocabulary; add 9ths sparingly"

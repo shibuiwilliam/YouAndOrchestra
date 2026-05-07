@@ -1,0 +1,8 @@
+name: jpop_16th_syncopated
+genre: jpop
+beat_positions: [0.0, 0.25, 0.75, 1.0, 1.5, 1.75, 2.0, 2.25, 2.75, 3.0, 3.5, 3.75]
+duration_pattern: [0.25, 0.5, 0.25, 0.5, 0.25, 0.25, 0.25, 0.5, 0.25, 0.5, 0.25, 0.25]
+swing_ratio: 0.5
+velocity_pattern: [1.0, 0.6, 0.8, 0.9, 0.7, 0.6, 1.0, 0.6, 0.8, 0.9, 0.7, 0.6]
+syncopation_level: 0.65
+applies_to: ["melody", "comping"]

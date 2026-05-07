@@ -1,0 +1,108 @@
+genre: bebop_jazz
+description: >
+  1940s–50s American jazz; fast, virtuosic, harmonically complex.
+  Characterized by rapid ii-V-I movement, bebop scales, swing 8ths,
+  and chromatic approach tones. Phrase structures tend toward longer
+  lines (8–16 bars) with strong motivic development through sequences.
+
+scale_preferences:
+  bebop_dominant: 0.30
+  bebop_major: 0.20
+  mixolydian: 0.15
+  dorian: 0.15
+  harmonic_minor: 0.10
+  chromatic: 0.10
+
+interval_distribution:
+  distribution:
+    0: 0.05
+    1: 0.20
+    2: 0.25
+    3: 0.15
+    4: 0.10
+    5: 0.05
+    6: 0.05
+    7: 0.05
+    8: 0.03
+    12: 0.07
+
+chord_tone_targeting: 0.60
+chromaticism_level: 0.70
+syncopation_level: 0.60
+
+phrase_length_distribution:
+  distribution:
+    4: 0.10
+    8: 0.40
+    12: 0.20
+    16: 0.30
+
+cadence_patterns:
+  - name: "ii-V-I"
+    chord_sequence: ["ii7", "V7b9", "Imaj7"]
+    melodic_target: "3"
+  - name: "tritone_sub"
+    chord_sequence: ["bII7", "Imaj7"]
+    melodic_target: "9"
+  - name: "turnaround"
+    chord_sequence: ["I", "vi", "ii", "V"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "swing_8ths"
+    pattern: [0.0, 0.67, 1.0, 1.67, 2.0, 2.67, 3.0, 3.67]
+    durations: [0.67, 0.33, 0.67, 0.33, 0.67, 0.33, 0.67, 0.33]
+    swing_ratio: 0.67
+    syncopation_level: 0.0
+  - name: "triplet_flow"
+    pattern: [0.0, 0.33, 0.67, 1.0, 1.33, 1.67, 2.0, 2.33, 2.67, 3.0, 3.33, 3.67]
+    durations: [0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33]
+    swing_ratio: 0.5
+    syncopation_level: 0.3
+
+ornament_profile:
+  grace_note_probability: 0.15
+  trill_probability: 0.02
+  bend_probability: 0.05
+  slide_probability: 0.10
+  ghost_note_probability: 0.08
+  legato_ratio: 0.70
+  staccato_ratio: 0.05
+  accent_ratio: 0.15
+
+typical_ranges:
+  melody: ["C4", "Bb5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.40
+motif_transformations:
+  identity: 0.10
+  transposed: 0.30
+  sequential: 0.25
+  fragmented: 0.20
+  inverted: 0.10
+  chromatic_decoration: 0.05
+
+groove_profile_name: "jazz_swing"
+
+anti_patterns:
+  - name: "straight_8ths"
+    description: "Bebop must use swing 8ths, not straight 8ths"
+    severity: "critical"
+    fix_suggestion: "Apply swing_ratio >= 0.6 to the rhythm template"
+  - name: "no_ii_V_I"
+    description: "No ii-V-I progression anywhere in the piece"
+    severity: "critical"
+    fix_suggestion: "Ensure at least one ii-V-I cadential motion"
+  - name: "no_extensions"
+    description: "All chords are plain triads with no 7ths, 9ths, or 13ths"
+    severity: "major"
+    fix_suggestion: "Use maj7, min7, dom7 chords as standard vocabulary"
+  - name: "low_chromaticism"
+    description: "Chromaticism level below 0.4 — too diatonic for bebop"
+    severity: "major"
+    fix_suggestion: "Increase chromaticism_level to at least 0.5"
+  - name: "no_enclosure"
+    description: "Target tones never approached from both chromatic sides"
+    severity: "minor"
+    fix_suggestion: "Add chromatic approach patterns around chord tones"

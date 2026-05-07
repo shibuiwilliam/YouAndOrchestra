@@ -1,0 +1,110 @@
+genre: reggae
+description: >
+  Reggae (1960s–present, Jamaican); laid-back, offbeat-driven, message-oriented.
+  Characterized by the signature offbeat rhythm guitar skank, bass-heavy
+  groove with melodic bass lines, pentatonic and minor-key vocal melodies,
+  one-drop drum pattern, and a relaxed tempo feel. Harmony is simple with
+  I-IV-V progressions in major or i-iv-V in minor.
+
+scale_preferences:
+  natural_minor: 0.30
+  pentatonic_minor: 0.20
+  major: 0.20
+  dorian: 0.15
+  pentatonic_major: 0.10
+  mixolydian: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.10
+    1: 0.05
+    2: 0.25
+    3: 0.22
+    4: 0.10
+    5: 0.10
+    7: 0.10
+    12: 0.08
+
+chord_tone_targeting: 0.65
+chromaticism_level: 0.08
+syncopation_level: 0.55
+
+phrase_length_distribution:
+  distribution:
+    2: 0.20
+    4: 0.50
+    8: 0.25
+    16: 0.05
+
+cadence_patterns:
+  - name: "reggae_major"
+    chord_sequence: ["IV", "I"]
+    melodic_target: "1"
+  - name: "reggae_minor"
+    chord_sequence: ["iv", "i"]
+    melodic_target: "1"
+  - name: "one_drop_vamp"
+    chord_sequence: ["I", "IV"]
+    melodic_target: "5"
+  - name: "roots_progression"
+    chord_sequence: ["i", "bVII", "bVI", "V"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "skank_offbeat"
+    pattern: [0.5, 1.5, 2.5, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.7
+  - name: "vocal_phrase"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 1.0, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.4
+  - name: "one_drop"
+    pattern: [0.0, 1.5, 2.0, 3.0]
+    durations: [1.0, 0.5, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.5
+
+ornament_profile:
+  grace_note_probability: 0.05
+  trill_probability: 0.0
+  bend_probability: 0.08
+  slide_probability: 0.10
+  ghost_note_probability: 0.08
+  legato_ratio: 0.60
+  staccato_ratio: 0.10
+  accent_ratio: 0.12
+
+typical_ranges:
+  melody: ["A3", "E5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.70
+motif_transformations:
+  identity: 0.45
+  transposed: 0.25
+  fragmented: 0.15
+  sequential: 0.10
+  inverted: 0.05
+
+groove_profile_name: "reggae_one_drop"
+
+anti_patterns:
+  - name: "no_offbeat"
+    description: "Reggae is defined by the offbeat skank rhythm"
+    severity: "critical"
+    fix_suggestion: "Ensure chordal rhythm emphasizes beats 2 and 4 (or offbeat 8ths)"
+  - name: "too_fast"
+    description: "Reggae is laid-back; tempo is typically 65-95 BPM"
+    severity: "major"
+    fix_suggestion: "Set tempo_bpm between 65 and 95"
+  - name: "too_chromatic"
+    description: "Reggae melodies are diatonic or pentatonic"
+    severity: "major"
+    fix_suggestion: "Reduce chromaticism_level below 0.15"
+  - name: "weak_bass"
+    description: "Reggae bass lines are melodically prominent, not just roots"
+    severity: "major"
+    fix_suggestion: "Give bass line melodic independence with pentatonic movement"

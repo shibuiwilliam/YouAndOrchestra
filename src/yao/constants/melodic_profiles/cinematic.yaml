@@ -1,0 +1,130 @@
+genre: cinematic
+description: >
+  Cinematic/film score music; dramatic, orchestral, emotionally narrative.
+  Characterized by wide melodic intervals for grandeur, rich chromatic
+  harmony with modal interchange, dynamic extremes from pianissimo to
+  fortissimo, use of ostinato patterns for tension, and long-arc
+  structural development that follows dramatic narrative. Combines
+  tonal foundations with modern dissonance for emotional impact.
+
+scale_preferences:
+  natural_minor: 0.25
+  major: 0.20
+  harmonic_minor: 0.15
+  dorian: 0.10
+  lydian: 0.10
+  phrygian: 0.08
+  chromatic: 0.07
+  whole_tone: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.05
+    1: 0.08
+    2: 0.15
+    3: 0.12
+    4: 0.10
+    5: 0.12
+    7: 0.15
+    8: 0.05
+    9: 0.03
+    12: 0.15
+
+chord_tone_targeting: 0.55
+chromaticism_level: 0.40
+syncopation_level: 0.20
+
+phrase_length_distribution:
+  distribution:
+    4: 0.25
+    8: 0.40
+    16: 0.25
+    32: 0.10
+
+cadence_patterns:
+  - name: "epic_resolve"
+    chord_sequence: ["V", "I"]
+    melodic_target: "1"
+  - name: "deceptive_drama"
+    chord_sequence: ["V", "bVI"]
+    melodic_target: "b6"
+  - name: "modal_interchange"
+    chord_sequence: ["iv", "I"]
+    melodic_target: "1"
+  - name: "ostinato_climax"
+    chord_sequence: ["i", "bVII", "bVI", "V"]
+    melodic_target: "1"
+  - name: "unresolved_tension"
+    chord_sequence: ["i", "V"]
+    melodic_target: "5"
+
+rhythm_templates:
+  - name: "epic_quarter"
+    pattern: [0.0, 1.0, 2.0, 3.0]
+    durations: [1.0, 1.0, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+  - name: "ostinato_8ths"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.1
+  - name: "sustained_melody"
+    pattern: [0.0, 2.0]
+    durations: [2.0, 2.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+  - name: "action_16ths"
+    pattern: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75]
+    durations: [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+    swing_ratio: 0.5
+    syncopation_level: 0.15
+
+ornament_profile:
+  grace_note_probability: 0.10
+  trill_probability: 0.08
+  bend_probability: 0.02
+  slide_probability: 0.05
+  ghost_note_probability: 0.0
+  legato_ratio: 0.75
+  staccato_ratio: 0.05
+  accent_ratio: 0.15
+
+typical_ranges:
+  melody: ["C3", "C6"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.55
+motif_transformations:
+  identity: 0.20
+  transposed: 0.20
+  inverted: 0.15
+  augmented: 0.15
+  sequential: 0.15
+  retrograde: 0.05
+  diminished: 0.05
+  fragmented: 0.05
+
+groove_profile_name: "straight"
+
+anti_patterns:
+  - name: "no_dynamic_range"
+    description: "Cinematic music requires extreme dynamic contrast"
+    severity: "critical"
+    fix_suggestion: "Use full pp to ff range; structure dramatic crescendos and sudden drops"
+  - name: "repetitive_structure"
+    description: "Cinematic music follows narrative arc, not verse-chorus loops"
+    severity: "major"
+    fix_suggestion: "Use through-composed or A-B-A' structure with clear dramatic development"
+  - name: "narrow_range"
+    description: "Cinematic melodies use wide intervals for grandeur"
+    severity: "major"
+    fix_suggestion: "Include octave leaps and fifths; use full orchestral range"
+  - name: "thin_orchestration"
+    description: "Cinematic pieces need layered orchestral texture"
+    severity: "major"
+    fix_suggestion: "Layer strings, brass, woodwinds, and percussion for full orchestral sound"
+  - name: "no_motif_development"
+    description: "Film scores develop leitmotifs across the piece"
+    severity: "minor"
+    fix_suggestion: "Establish a core motif and apply transformations (inversion, augmentation)"

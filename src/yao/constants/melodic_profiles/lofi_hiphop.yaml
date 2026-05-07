@@ -1,0 +1,99 @@
+genre: lofi_hiphop
+description: >
+  Mellow, jazz-influenced beat music; warm and nostalgic.
+  Characterized by short looping phrases (2–4 bars), jazz-derived
+  chord extensions (7ths, 9ths), laid-back groove with deliberate
+  timing imperfection, and high motif recurrence for hypnotic feel.
+
+scale_preferences:
+  dorian: 0.35
+  natural_minor: 0.25
+  major: 0.15
+  pentatonic_minor: 0.15
+  blues: 0.10
+
+interval_distribution:
+  distribution:
+    0: 0.08
+    1: 0.08
+    2: 0.25
+    3: 0.20
+    4: 0.12
+    5: 0.10
+    7: 0.10
+    12: 0.07
+
+chord_tone_targeting: 0.50
+chromaticism_level: 0.25
+syncopation_level: 0.55
+
+phrase_length_distribution:
+  distribution:
+    2: 0.30
+    4: 0.50
+    8: 0.20
+
+cadence_patterns:
+  - name: "ii-V_loop"
+    chord_sequence: ["ii7", "V7"]
+    melodic_target: "3"
+  - name: "i-iv_loop"
+    chord_sequence: ["i", "iv"]
+    melodic_target: "5"
+  - name: "plagal_loop"
+    chord_sequence: ["IV", "I"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "lofi_swung_16ths"
+    pattern: [0.0, 0.27, 0.5, 0.77, 1.0, 1.27, 1.5, 1.77, 2.0, 2.27, 2.5, 2.77, 3.0, 3.27, 3.5, 3.77]
+    durations: [0.27, 0.23, 0.27, 0.23, 0.27, 0.23, 0.27, 0.23, 0.27, 0.23, 0.27, 0.23, 0.27, 0.23, 0.27, 0.23]
+    swing_ratio: 0.54
+    syncopation_level: 0.5
+  - name: "sparse_quarter"
+    pattern: [0.0, 1.0, 2.5]
+    durations: [0.75, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.3
+
+ornament_profile:
+  grace_note_probability: 0.10
+  trill_probability: 0.0
+  bend_probability: 0.05
+  slide_probability: 0.05
+  ghost_note_probability: 0.12
+  legato_ratio: 0.60
+  staccato_ratio: 0.05
+  accent_ratio: 0.10
+
+typical_ranges:
+  melody: ["E3", "E5"]
+
+motif_length_bars: 1.0
+motif_recurrence_rate: 0.85
+motif_transformations:
+  identity: 0.50
+  transposed: 0.25
+  fragmented: 0.15
+  inverted: 0.05
+  sequential: 0.05
+
+groove_profile_name: "hiphop_laid_back"
+
+anti_patterns:
+  - name: "too_busy"
+    description: "Lo-fi thrives on simplicity — too many notes per bar"
+    severity: "major"
+    fix_suggestion: "Reduce note density; use longer note durations"
+  - name: "too_loud"
+    description: "Lo-fi should have restrained dynamics (pp–mf)"
+    severity: "major"
+    fix_suggestion: "Cap velocity at mf level, reduce dynamic range"
+  - name: "no_jazz_chords"
+    description: "Lo-fi requires jazz-derived chord extensions (7ths, 9ths)"
+    severity: "major"
+    fix_suggestion: "Use min7, maj7, dom9 chords as basic vocabulary"
+  - name: "high_energy"
+    description: "Lo-fi is mellow — tempo should be 70–95 BPM"
+    severity: "minor"
+    fix_suggestion: "Set tempo_bpm between 70 and 95"

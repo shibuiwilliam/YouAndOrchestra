@@ -1,0 +1,112 @@
+genre: jazz_modal
+description: >
+  Modal jazz (late 1950s–present); spacious, contemplative, mode-driven.
+  Characterized by slow harmonic rhythm with chords sustained for multiple
+  bars, melodies built on modes (Dorian, Mixolydian, Aeolian, Lydian)
+  rather than chord changes, quartal voicings, and exploratory improvisation
+  that emphasizes intervallic variety over chord-tone targeting.
+
+scale_preferences:
+  dorian: 0.30
+  mixolydian: 0.20
+  aeolian: 0.15
+  lydian: 0.15
+  phrygian: 0.10
+  pentatonic_minor: 0.10
+
+interval_distribution:
+  distribution:
+    0: 0.05
+    1: 0.05
+    2: 0.20
+    3: 0.15
+    4: 0.12
+    5: 0.15
+    7: 0.12
+    9: 0.06
+    12: 0.10
+
+chord_tone_targeting: 0.45
+chromaticism_level: 0.20
+syncopation_level: 0.50
+
+phrase_length_distribution:
+  distribution:
+    4: 0.20
+    8: 0.40
+    16: 0.30
+    32: 0.10
+
+cadence_patterns:
+  - name: "modal_vamp"
+    chord_sequence: ["i7", "i7"]
+    melodic_target: "1"
+  - name: "dorian_shuttle"
+    chord_sequence: ["i7", "IV7"]
+    melodic_target: "4"
+  - name: "quartal_shift"
+    chord_sequence: ["Isus4", "bVIIsus4"]
+    melodic_target: "1"
+  - name: "pedal_point"
+    chord_sequence: ["i", "bVII/1", "bVI/1", "i"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "modal_swing"
+    pattern: [0.0, 0.67, 1.0, 1.67, 2.0, 2.67, 3.0, 3.67]
+    durations: [0.67, 0.33, 0.67, 0.33, 0.67, 0.33, 0.67, 0.33]
+    swing_ratio: 0.67
+    syncopation_level: 0.4
+  - name: "spacious_quarter"
+    pattern: [0.0, 1.0, 2.5]
+    durations: [1.0, 1.0, 1.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.3
+  - name: "floating_rubato"
+    pattern: [0.0, 0.5, 1.5, 2.0, 3.0, 3.5]
+    durations: [0.5, 1.0, 0.5, 1.0, 0.5, 0.5]
+    swing_ratio: 0.55
+    syncopation_level: 0.5
+
+ornament_profile:
+  grace_note_probability: 0.08
+  trill_probability: 0.02
+  bend_probability: 0.05
+  slide_probability: 0.08
+  ghost_note_probability: 0.10
+  legato_ratio: 0.75
+  staccato_ratio: 0.03
+  accent_ratio: 0.10
+
+typical_ranges:
+  melody: ["Bb3", "F5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.35
+motif_transformations:
+  identity: 0.15
+  transposed: 0.30
+  inverted: 0.15
+  sequential: 0.15
+  augmented: 0.15
+  fragmented: 0.10
+
+groove_profile_name: "jazz_swing"
+
+anti_patterns:
+  - name: "fast_chord_changes"
+    description: "Modal jazz sustains one mode/chord for 4-16 bars at a time"
+    severity: "critical"
+    fix_suggestion: "Reduce harmonic rhythm; hold chords for at least 4 bars"
+  - name: "ii_V_I_heavy"
+    description: "Modal jazz avoids functional ii-V-I progressions"
+    severity: "major"
+    fix_suggestion: "Replace ii-V-I with modal vamps or pedal point harmony"
+  - name: "too_diatonic_simple"
+    description: "Modal jazz explores intervals beyond simple stepwise motion"
+    severity: "major"
+    fix_suggestion: "Increase fourths and fifths in interval distribution"
+  - name: "no_space"
+    description: "Modal jazz requires breathing room between phrases"
+    severity: "major"
+    fix_suggestion: "Leave rests between phrases; avoid continuous 8th-note lines"

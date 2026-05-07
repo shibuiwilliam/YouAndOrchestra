@@ -1,0 +1,114 @@
+genre: gospel
+description: >
+  Gospel music (African-American church tradition); uplifting, harmonically
+  rich, call-and-response. Characterized by major-key tonality with
+  chromatic passing chords, plagal cadences, secondary dominants, parallel
+  chord movement, vocal melisma, and a blend of jubilant energy with
+  spiritual intensity. Extended chord voicings and modulations are common.
+
+scale_preferences:
+  major: 0.35
+  pentatonic_major: 0.20
+  mixolydian: 0.15
+  blues: 0.10
+  dorian: 0.10
+  chromatic: 0.10
+
+interval_distribution:
+  distribution:
+    0: 0.08
+    1: 0.08
+    2: 0.22
+    3: 0.18
+    4: 0.12
+    5: 0.12
+    7: 0.10
+    12: 0.10
+
+chord_tone_targeting: 0.60
+chromaticism_level: 0.35
+syncopation_level: 0.50
+
+phrase_length_distribution:
+  distribution:
+    2: 0.15
+    4: 0.40
+    8: 0.35
+    16: 0.10
+
+cadence_patterns:
+  - name: "gospel_plagal"
+    chord_sequence: ["IV", "iv", "I"]
+    melodic_target: "1"
+  - name: "gospel_turnaround"
+    chord_sequence: ["I", "I7", "IV", "iv", "I"]
+    melodic_target: "1"
+  - name: "shout_cadence"
+    chord_sequence: ["bVII", "I"]
+    melodic_target: "1"
+  - name: "secondary_dominant_chain"
+    chord_sequence: ["V/V", "V7", "I"]
+    melodic_target: "1"
+  - name: "truck_driver_modulation"
+    chord_sequence: ["V7/bII", "bII"]
+    melodic_target: "1"
+
+rhythm_templates:
+  - name: "gospel_shuffle"
+    pattern: [0.0, 0.67, 1.0, 1.67, 2.0, 2.67, 3.0, 3.67]
+    durations: [0.67, 0.33, 0.67, 0.33, 0.67, 0.33, 0.67, 0.33]
+    swing_ratio: 0.67
+    syncopation_level: 0.4
+  - name: "shout_straight"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.5
+  - name: "gospel_waltz"
+    pattern: [0.0, 0.67, 1.0, 1.67, 2.0, 2.67]
+    durations: [0.67, 0.33, 0.67, 0.33, 0.67, 0.33]
+    swing_ratio: 0.67
+    syncopation_level: 0.3
+
+ornament_profile:
+  grace_note_probability: 0.18
+  trill_probability: 0.05
+  bend_probability: 0.15
+  slide_probability: 0.10
+  ghost_note_probability: 0.05
+  legato_ratio: 0.65
+  staccato_ratio: 0.05
+  accent_ratio: 0.20
+
+typical_ranges:
+  melody: ["G3", "A5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.60
+motif_transformations:
+  identity: 0.30
+  transposed: 0.25
+  sequential: 0.15
+  augmented: 0.10
+  fragmented: 0.10
+  chromatic_decoration: 0.10
+
+groove_profile_name: "gospel_shuffle"
+
+anti_patterns:
+  - name: "no_plagal_cadence"
+    description: "Gospel music requires plagal (IV-I) or extended plagal cadences"
+    severity: "critical"
+    fix_suggestion: "Include at least one IV-iv-I or IV-I cadence"
+  - name: "no_modulation"
+    description: "Gospel songs typically modulate up at least once for climax"
+    severity: "major"
+    fix_suggestion: "Add a half-step or whole-step upward modulation in final section"
+  - name: "thin_harmony"
+    description: "Gospel harmony is thick with extensions and chromatic passing chords"
+    severity: "major"
+    fix_suggestion: "Use 7ths, 9ths, and chromatic passing chords between diatonic chords"
+  - name: "no_call_response"
+    description: "Gospel is rooted in call-and-response between soloist and choir"
+    severity: "major"
+    fix_suggestion: "Structure phrases with alternating solo and group response sections"

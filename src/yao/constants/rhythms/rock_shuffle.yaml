@@ -1,0 +1,8 @@
+name: rock_shuffle
+genre: rock
+beat_positions: [0.0, 0.67, 1.0, 1.67, 2.0, 2.67, 3.0, 3.67]
+duration_pattern: [0.67, 0.33, 0.67, 0.33, 0.67, 0.33, 0.67, 0.33]
+swing_ratio: 0.67
+velocity_pattern: [1.0, 0.7, 0.95, 0.7, 1.0, 0.7, 0.95, 0.7]
+syncopation_level: 0.3
+applies_to: ["rhythm", "comping", "bass"]

@@ -1,0 +1,8 @@
+name: rock_half_time
+genre: rock
+beat_positions: [0.0, 2.0, 3.0]
+duration_pattern: [2.0, 1.0, 1.0]
+swing_ratio: 0.5
+velocity_pattern: [1.0, 0.9, 0.7]
+syncopation_level: 0.1
+applies_to: ["rhythm", "comping"]

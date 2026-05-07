@@ -1,0 +1,109 @@
+genre: country
+description: >
+  Country music (traditional and modern); storytelling, vocal-driven,
+  guitar and fiddle prominent. Characterized by major-key tonality with
+  pentatonic inflections, clear phrase structures, prominent use of
+  I-IV-V harmony, train-beat rhythms, and a singable range with
+  occasional blue notes for emotional coloring.
+
+scale_preferences:
+  major: 0.40
+  pentatonic_major: 0.20
+  mixolydian: 0.15
+  pentatonic_minor: 0.10
+  blues: 0.10
+  dorian: 0.05
+
+interval_distribution:
+  distribution:
+    0: 0.08
+    1: 0.05
+    2: 0.30
+    3: 0.20
+    4: 0.12
+    5: 0.10
+    7: 0.08
+    12: 0.07
+
+chord_tone_targeting: 0.70
+chromaticism_level: 0.10
+syncopation_level: 0.25
+
+phrase_length_distribution:
+  distribution:
+    4: 0.45
+    8: 0.45
+    16: 0.10
+
+cadence_patterns:
+  - name: "country_authentic"
+    chord_sequence: ["V", "I"]
+    melodic_target: "1"
+  - name: "country_plagal"
+    chord_sequence: ["IV", "I"]
+    melodic_target: "1"
+  - name: "train_turnaround"
+    chord_sequence: ["I", "IV", "V", "I"]
+    melodic_target: "1"
+  - name: "walkdown"
+    chord_sequence: ["I", "I/7", "IV", "iv"]
+    melodic_target: "5"
+
+rhythm_templates:
+  - name: "train_beat"
+    pattern: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    durations: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    swing_ratio: 0.5
+    syncopation_level: 0.15
+  - name: "country_shuffle"
+    pattern: [0.0, 0.67, 1.0, 1.67, 2.0, 2.67, 3.0, 3.67]
+    durations: [0.67, 0.33, 0.67, 0.33, 0.67, 0.33, 0.67, 0.33]
+    swing_ratio: 0.67
+    syncopation_level: 0.2
+  - name: "waltz_3_4"
+    pattern: [0.0, 1.0, 2.0]
+    durations: [1.0, 1.0, 1.0]
+    swing_ratio: 0.5
+    syncopation_level: 0.0
+
+ornament_profile:
+  grace_note_probability: 0.10
+  trill_probability: 0.02
+  bend_probability: 0.15
+  slide_probability: 0.12
+  ghost_note_probability: 0.03
+  legato_ratio: 0.55
+  staccato_ratio: 0.08
+  accent_ratio: 0.15
+
+typical_ranges:
+  melody: ["A3", "E5"]
+
+motif_length_bars: 2.0
+motif_recurrence_rate: 0.65
+motif_transformations:
+  identity: 0.40
+  transposed: 0.30
+  fragmented: 0.15
+  sequential: 0.10
+  inverted: 0.05
+
+groove_profile_name: "country_two_step"
+
+anti_patterns:
+  - name: "too_chromatic"
+    description: "Country melodies are diatonic with occasional blue notes"
+    severity: "major"
+    fix_suggestion: "Reduce chromaticism_level below 0.20"
+  - name: "complex_chords"
+    description: "Country uses simple triads and occasional 7ths, not jazz extensions"
+    severity: "major"
+    fix_suggestion: "Limit chord vocabulary to I, IV, V, ii, vi with optional dom7"
+  - name: "no_vocal_range"
+    description: "Melody exceeds comfortable vocal range for storytelling"
+    severity: "major"
+    fix_suggestion: "Keep melody within a 12th (octave + fifth)"
+  - name: "mechanical_rhythm"
+    description: "Country needs human feel, especially in shuffle patterns"
+    severity: "minor"
+    fix_suggestion: "Apply slight timing variation to eighth-note patterns"

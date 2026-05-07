@@ -1,0 +1,8 @@
+name: jazz_bebop_triplet
+genre: jazz
+beat_positions: [0.0, 0.333, 0.667, 1.0, 1.333, 1.667, 2.0, 2.333, 2.667, 3.0, 3.333, 3.667]
+duration_pattern: [0.333, 0.333, 0.333, 0.333, 0.333, 0.333, 0.333, 0.333, 0.333, 0.333, 0.333, 0.333]
+swing_ratio: 0.5
+velocity_pattern: [1.0, 0.6, 0.7, 0.95, 0.6, 0.7, 1.0, 0.6, 0.7, 0.95, 0.6, 0.7]
+syncopation_level: 0.5
+applies_to: ["melody"]
