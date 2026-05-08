@@ -1,0 +1,15 @@
+metadata:
+  name: "reggae_offbeat"
+  description: "Reggae offbeat rhythm model. Off-beat emphasis on beats 1 and 3, creating the characteristic skank pattern. Beat 0 is deliberately weak."
+  source: "Hand-derived from reggae rhythmic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+  resolution: beat
+
+# State: beat position (0-3 in 4/4)
+# Reggae: offbeat emphasis (1 and 3 strong), beat 0 weak, beat 2 moderate
+transitions:
+  0: {0: 0.05, 1: 0.45, 2: 0.15, 3: 0.35}
+  1: {0: 0.15, 1: 0.05, 2: 0.35, 3: 0.45}
+  2: {0: 0.10, 1: 0.45, 2: 0.05, 3: 0.40}
+  3: {0: 0.20, 1: 0.40, 2: 0.35, 3: 0.05}

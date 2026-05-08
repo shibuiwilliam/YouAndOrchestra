@@ -1,0 +1,19 @@
+metadata:
+  name: "modal_dorian_bigram"
+  description: "Bigram pitch transition probabilities for dorian mode melody. The characteristic natural 6th (degree 5) is emphasized. Leading-tone resolution (degree 6→0) is weakened to preserve modal flavor. Stepwise motion dominates with occasional 3rd leaps."
+  source: "Hand-derived from dorian modal melodic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+
+# Scale degree transitions: current_degree → {next_degree: probability}
+# Degrees 0-6 map to dorian scale steps. Degree 5 (natural 6th) is the
+# characteristic tone and receives extra weight. Degree 6→0 (subtonic→tonic)
+# is weaker than in major since dorian has a whole step below tonic.
+transitions:
+  0: {0: 0.05, 1: 0.28, 2: 0.15, 3: 0.10, 4: 0.18, 5: 0.14, 6: 0.10}
+  1: {0: 0.25, 1: 0.05, 2: 0.30, 3: 0.12, 4: 0.08, 5: 0.12, 6: 0.08}
+  2: {0: 0.12, 1: 0.25, 2: 0.05, 3: 0.28, 4: 0.12, 5: 0.10, 6: 0.08}
+  3: {0: 0.10, 1: 0.10, 2: 0.25, 3: 0.05, 4: 0.28, 5: 0.14, 6: 0.08}
+  4: {0: 0.15, 1: 0.08, 2: 0.10, 3: 0.15, 4: 0.05, 5: 0.32, 6: 0.15}
+  5: {0: 0.12, 1: 0.10, 2: 0.10, 3: 0.15, 4: 0.28, 5: 0.05, 6: 0.20}
+  6: {0: 0.22, 1: 0.12, 2: 0.10, 3: 0.10, 4: 0.15, 5: 0.20, 6: 0.11}

@@ -1,0 +1,19 @@
+metadata:
+  name: "jpop_bigram"
+  description: "Bigram pitch transition probabilities for J-Pop melody. Strong tonic return (degree 0), emphasis on tonic-mediant-dominant axis (degrees 0, 2, 4). Predominantly smooth stepwise motion with occasional expressive leaps of a 4th or 5th. Pentatonic tendencies with degree 6 used for leading-tone resolution at phrase ends."
+  source: "Hand-derived from J-Pop melodic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+
+# Scale degree transitions: current_degree → {next_degree: probability}
+# Degrees 0-6 map to diatonic scale steps. J-Pop melodies favor the I-iii-V
+# axis (degrees 0, 2, 4), smooth stepwise, and strong tonic return.
+# Degree 3 (subdominant) acts as a passing tone. Degree 6 mainly resolves to 0.
+transitions:
+  0: {0: 0.06, 1: 0.25, 2: 0.22, 3: 0.08, 4: 0.22, 5: 0.10, 6: 0.07}
+  1: {0: 0.28, 1: 0.05, 2: 0.30, 3: 0.12, 4: 0.10, 5: 0.10, 6: 0.05}
+  2: {0: 0.15, 1: 0.22, 2: 0.05, 3: 0.25, 4: 0.18, 5: 0.08, 6: 0.07}
+  3: {0: 0.10, 1: 0.10, 2: 0.25, 3: 0.05, 4: 0.30, 5: 0.12, 6: 0.08}
+  4: {0: 0.25, 1: 0.10, 2: 0.15, 3: 0.15, 4: 0.05, 5: 0.20, 6: 0.10}
+  5: {0: 0.12, 1: 0.08, 2: 0.10, 3: 0.12, 4: 0.25, 5: 0.05, 6: 0.28}
+  6: {0: 0.40, 1: 0.10, 2: 0.10, 3: 0.08, 4: 0.12, 5: 0.15, 6: 0.05}

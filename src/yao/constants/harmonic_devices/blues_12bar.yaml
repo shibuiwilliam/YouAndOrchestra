@@ -1,0 +1,7 @@
+name: "blues_12bar"
+description: "Standard 12-bar blues form. All chords are dominant sevenths, reflecting the blues tonality where dominant quality is stable rather than tension-seeking. The form divides into three 4-bar phrases: tonic statement, subdominant departure and return, dominant tension and resolution."
+chord_pattern: ["I7", "I7", "I7", "I7", "IV7", "IV7", "I7", "I7", "V7", "IV7", "I7", "V7"]
+placement: "anywhere"
+genres: [blues, chicago_blues, delta_blues, jazz_blues, rock_and_roll]
+source: "Standard blues form — universal foundation of blues and derivative genres"
+license: "CC0 — original work by YaO project"

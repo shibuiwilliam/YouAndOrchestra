@@ -1,0 +1,15 @@
+metadata:
+  name: "bossa_clave"
+  description: "Bossa nova clave rhythm model. Syncopated feel emphasizing beats 0 and 3, creating the characteristic anticipated bass pattern of bossa nova."
+  source: "Hand-derived from bossa nova rhythmic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+  resolution: beat
+
+# State: beat position (0-3 in 4/4)
+# Bossa clave: syncopated, beats 0 and 3 emphasized, beat 2 weaker, beat 1 weakest
+transitions:
+  0: {0: 0.05, 1: 0.15, 2: 0.30, 3: 0.50}
+  1: {0: 0.20, 1: 0.05, 2: 0.30, 3: 0.45}
+  2: {0: 0.35, 1: 0.15, 2: 0.05, 3: 0.45}
+  3: {0: 0.50, 1: 0.20, 2: 0.25, 3: 0.05}

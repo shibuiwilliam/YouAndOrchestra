@@ -1,0 +1,7 @@
+name: "circle_of_fifths"
+description: "Four-chord segment of the diatonic circle of fifths: vi-ii-V-I. Each chord's root falls a fifth (or rises a fourth) to the next, creating the strongest possible root motion in tonal harmony. This segment begins on the submediant and cascades through pre-dominant and dominant function to reach the tonic."
+chord_pattern: ["vi", "ii", "V", "I"]
+placement: "section_end"
+genres: [classical, baroque, jazz_ballad, pop, bossa_nova]
+source: "Diatonic circle-of-fifths sequence — fundamental voice-leading pattern in common-practice harmony"
+license: "CC0 — original work by YaO project"

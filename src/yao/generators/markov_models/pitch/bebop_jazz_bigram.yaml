@@ -1,0 +1,19 @@
+metadata:
+  name: "bebop_jazz_bigram"
+  description: "Bigram pitch transition probabilities for bebop jazz melody. Emphasizes chromatic approach tones, mix of stepwise motion and wide leaps (6ths, 7ths), and strong leading-tone resolution to tonic."
+  source: "Hand-derived from bebop jazz melodic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+
+# Scale degree transitions: current_degree → {next_degree: probability}
+# Degrees 0-6 map to scale steps (0=tonic, 1=supertonic, ..., 6=leading tone).
+# Bebop conventions: chromatic approach (degree 6→0 very strong), large leaps
+# from stable tones (0→4, 4→0), stepwise runs through unstable degrees.
+transitions:
+  0: {0: 0.03, 1: 0.20, 2: 0.10, 3: 0.07, 4: 0.25, 5: 0.15, 6: 0.20}
+  1: {0: 0.22, 1: 0.03, 2: 0.28, 3: 0.12, 4: 0.08, 5: 0.15, 6: 0.12}
+  2: {0: 0.08, 1: 0.22, 2: 0.03, 3: 0.30, 4: 0.15, 5: 0.07, 6: 0.15}
+  3: {0: 0.10, 1: 0.08, 2: 0.20, 3: 0.03, 4: 0.32, 5: 0.12, 6: 0.15}
+  4: {0: 0.25, 1: 0.12, 2: 0.08, 3: 0.15, 4: 0.03, 5: 0.22, 6: 0.15}
+  5: {0: 0.08, 1: 0.10, 2: 0.12, 3: 0.08, 4: 0.20, 5: 0.03, 6: 0.39}
+  6: {0: 0.48, 1: 0.08, 2: 0.07, 3: 0.10, 4: 0.12, 5: 0.10, 6: 0.05}

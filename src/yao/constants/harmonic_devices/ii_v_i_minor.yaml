@@ -1,0 +1,7 @@
+name: "ii_v_i_minor"
+description: "Minor-key cadential progression where the supertonic is half-diminished (ii half-dim 7) and the dominant retains its major quality (V7) to provide the leading tone. The raised seventh degree in V7 creates the characteristic tension-to-minor-resolution sound."
+chord_pattern: ["ii\u00b07", "V7", "i"]
+placement: "section_end"
+genres: [jazz_ballad, bebop, classical, latin_jazz, bossa_nova]
+source: "Standard minor-key cadence — common-practice and jazz minor harmony"
+license: "CC0 — original work by YaO project"

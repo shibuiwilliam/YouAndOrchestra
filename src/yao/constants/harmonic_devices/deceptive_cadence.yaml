@@ -1,0 +1,7 @@
+name: "deceptive_cadence"
+description: "The dominant resolves to vi instead of the expected I, creating a deceptive or interrupted cadence. The vi chord shares two common tones with I (scale degrees 1 and 3), making the substitution smooth yet surprising. Used to extend phrases, avoid closure, and create emotional ambiguity."
+chord_pattern: ["V", "vi"]
+placement: "section_end"
+genres: [classical, romantic, pop, film_score, musical_theater]
+source: "Standard deceptive cadence — documented in all common-practice harmony treatises"
+license: "CC0 — original work by YaO project"

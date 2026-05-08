@@ -1,0 +1,15 @@
+metadata:
+  name: "flamenco_compas"
+  description: "Flamenco compas rhythm model. Syncopated with emphasis on beats 0, 2, and 3. The anticipation of beat 3 creates the characteristic drive toward the downbeat."
+  source: "Hand-derived from flamenco rhythmic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+  resolution: beat
+
+# State: beat position (0-3 in 4/4)
+# Flamenco compas: emphasis on 0, 2, 3; beat 1 is weak; beat 3 drives to 0
+transitions:
+  0: {0: 0.05, 1: 0.15, 2: 0.40, 3: 0.40}
+  1: {0: 0.25, 1: 0.05, 2: 0.40, 3: 0.30}
+  2: {0: 0.30, 1: 0.10, 2: 0.05, 3: 0.55}
+  3: {0: 0.50, 1: 0.15, 2: 0.30, 3: 0.05}

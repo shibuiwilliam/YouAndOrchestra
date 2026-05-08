@@ -1,0 +1,7 @@
+name: "tritone_sub_approach"
+description: "The dominant V7 is replaced by bII7, its tritone substitution. Both chords share the same tritone interval (between their 3rd and 7th), making them functionally interchangeable. The bII7 resolves to I by half-step root motion (descending), creating a smooth chromatic bass approach to the tonic that contrasts with the ascending-fifth resolution of V7."
+chord_pattern: ["bII7", "I"]
+placement: "section_end"
+genres: [bebop, cool_jazz, jazz_ballad, latin_jazz, neo_soul]
+source: "Tritone substitution cadence — standard jazz reharmonization device"
+license: "CC0 — original work by YaO project"

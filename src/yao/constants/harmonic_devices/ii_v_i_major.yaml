@@ -1,0 +1,7 @@
+name: "ii_v_i_major"
+description: "The foundational cadential progression in tonal harmony. The supertonic ii provides pre-dominant function with smooth voice leading to V, which resolves to I. In jazz contexts, seventh chords are standard (ii7-V7-Imaj7). The strongest and most common cadential gesture in Western tonal music."
+chord_pattern: ["ii", "V", "I"]
+placement: "section_end"
+genres: [jazz_ballad, bebop, classical, pop, bossa_nova]
+source: "Standard tonal cadence — fundamental to common-practice and jazz harmony"
+license: "CC0 — original work by YaO project"

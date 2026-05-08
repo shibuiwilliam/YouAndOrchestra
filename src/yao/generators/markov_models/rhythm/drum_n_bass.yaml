@@ -1,0 +1,15 @@
+metadata:
+  name: "drum_n_bass"
+  description: "Drum and bass rhythm model. Fast tempo patterns with emphasis on beats 0 and 2, syncopated fills across all positions. High energy with broken-beat feel."
+  source: "Hand-derived from drum and bass rhythmic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+  resolution: beat
+
+# State: beat position (0-3 in 4/4)
+# DnB: beats 0 and 2 strong, syncopated fills, broken-beat character
+transitions:
+  0: {0: 0.10, 1: 0.25, 2: 0.40, 3: 0.25}
+  1: {0: 0.20, 1: 0.10, 2: 0.45, 3: 0.25}
+  2: {0: 0.35, 1: 0.30, 2: 0.10, 3: 0.25}
+  3: {0: 0.40, 1: 0.20, 2: 0.30, 3: 0.10}

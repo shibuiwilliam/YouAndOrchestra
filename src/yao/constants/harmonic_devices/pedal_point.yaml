@@ -1,0 +1,7 @@
+name: "pedal_point"
+description: "Dominant pedal point where the fifth scale degree is sustained in the bass while chords change above it. The static bass creates tension against non-tonic harmonies (IV and V in second inversion over the pedal), building anticipation for eventual tonic resolution. Common in introductions, retransitions, and climactic build-ups."
+chord_pattern: ["I/5", "IV/5", "V/5", "I"]
+placement: "intro"
+genres: [classical, film_score, orchestral, baroque, romantic]
+source: "Dominant pedal point — standard prolongation device in common-practice and orchestral music"
+license: "CC0 — original work by YaO project"

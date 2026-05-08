@@ -1,0 +1,7 @@
+name: "modal_vamp"
+description: "Two-chord oscillation between i and bVII in a modal (typically Mixolydian or Dorian) context. The absence of a leading tone removes dominant-function pull, creating a static, grounded harmonic field. The bVII provides contrast without creating resolution pressure, making this device ideal for extended vamps and groove-based sections."
+chord_pattern: ["i", "bVII"]
+placement: "anywhere"
+genres: [modal_jazz, funk, rock, psychedelic, ambient]
+source: "Modal vamp — standard device in modal jazz and rock traditions"
+license: "CC0 — original work by YaO project"

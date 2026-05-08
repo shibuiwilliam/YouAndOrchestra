@@ -1,0 +1,15 @@
+metadata:
+  name: "hiphop_boom_bap"
+  description: "Hip-hop boom bap rhythm model. Classic kick-snare pattern with beats 0 and 2 strong (boom-bap), beats 1 and 3 lighter for ghost notes and hi-hat fills."
+  source: "Hand-derived from hip-hop boom bap rhythmic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+  resolution: beat
+
+# State: beat position (0-3 in 4/4)
+# Boom bap: beats 0 and 2 strong (kick/snare), beats 1 and 3 lighter
+transitions:
+  0: {0: 0.10, 1: 0.15, 2: 0.50, 3: 0.25}
+  1: {0: 0.25, 1: 0.10, 2: 0.45, 3: 0.20}
+  2: {0: 0.40, 1: 0.20, 2: 0.10, 3: 0.30}
+  3: {0: 0.45, 1: 0.20, 2: 0.25, 3: 0.10}

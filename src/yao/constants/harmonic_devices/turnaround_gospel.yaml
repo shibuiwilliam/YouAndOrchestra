@@ -1,0 +1,7 @@
+name: "turnaround_gospel"
+description: "Gospel walkdown cadence moving from IV to iv (minor plagal) resolving to I. The chromatic descent of the third (major to minor) over the subdominant creates the characteristic gospel 'amen' color before final resolution."
+chord_pattern: ["IV", "iv", "I"]
+placement: "section_end"
+genres: [gospel, soul, r_and_b, contemporary_christian, neo_soul]
+source: "Standard gospel harmonic convention — plagal cadence with minor-subdominant inflection"
+license: "CC0 — original work by YaO project"

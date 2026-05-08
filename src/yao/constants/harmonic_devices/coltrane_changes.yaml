@@ -1,0 +1,7 @@
+name: "coltrane_changes"
+description: "Harmonic substitution cycle dividing the octave into three equal major-third intervals, each preceded by its dominant. The progression moves through three tonal centers a major third apart, creating symmetric harmonic motion. Named after John Coltrane's 'Giant Steps' (1960)."
+chord_pattern: ["Imaj7", "V7/bVI", "bVImaj7", "V7/bIII", "bIIImaj7", "V7/I", "Imaj7"]
+placement: "anywhere"
+genres: [bebop, post_bop, avant_garde_jazz, hard_bop]
+source: "Coltrane changes — symmetric major-third cycle, as analyzed in David Demsey, 'Chromatic Third Relations in the Music of John Coltrane' (1991)"
+license: "CC0 — original work by YaO project"

@@ -1,0 +1,15 @@
+metadata:
+  name: "ambient_sparse"
+  description: "Ambient sparse rhythm model. Very low onset density with strong preference for beat 0. Long rests between onsets, creating spacious textures."
+  source: "Hand-derived from ambient rhythmic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+  resolution: beat
+
+# State: beat position (0-3 in 4/4)
+# Ambient: very sparse, beat 0 dominates, other beats rarely trigger onsets
+transitions:
+  0: {0: 0.55, 1: 0.10, 2: 0.25, 3: 0.10}
+  1: {0: 0.50, 1: 0.05, 2: 0.35, 3: 0.10}
+  2: {0: 0.60, 1: 0.10, 2: 0.20, 3: 0.10}
+  3: {0: 0.65, 1: 0.10, 2: 0.20, 3: 0.05}

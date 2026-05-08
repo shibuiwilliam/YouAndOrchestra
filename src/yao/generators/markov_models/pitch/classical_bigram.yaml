@@ -1,0 +1,20 @@
+metadata:
+  name: "classical_bigram"
+  description: "Bigram pitch transition probabilities for Classical period melody. Strong functional harmony drive: leading-tone resolves to tonic (degree 6→0), dominant axis (degree 4) is gravitational. Stepwise motion dominates with prepared leaps. Balanced ascending/descending contour."
+  source: "Hand-derived from Classical period melodic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+
+# Scale degree transitions: current_degree → {next_degree: probability}
+# Degrees 0-6 map to diatonic scale steps (major). Classical period melodies
+# have very strong leading-tone→tonic (6→0), dominant pull (4→0, 4→3),
+# and balanced stepwise motion. Leaps are typically followed by step in
+# opposite direction (not captured in bigram but weights reflect tendency).
+transitions:
+  0: {0: 0.04, 1: 0.28, 2: 0.12, 3: 0.10, 4: 0.28, 5: 0.08, 6: 0.10}
+  1: {0: 0.28, 1: 0.04, 2: 0.32, 3: 0.12, 4: 0.10, 5: 0.08, 6: 0.06}
+  2: {0: 0.10, 1: 0.28, 2: 0.04, 3: 0.32, 4: 0.12, 5: 0.08, 6: 0.06}
+  3: {0: 0.10, 1: 0.08, 2: 0.28, 3: 0.04, 4: 0.32, 5: 0.10, 6: 0.08}
+  4: {0: 0.30, 1: 0.08, 2: 0.10, 3: 0.18, 4: 0.04, 5: 0.22, 6: 0.08}
+  5: {0: 0.08, 1: 0.08, 2: 0.07, 3: 0.10, 4: 0.25, 5: 0.04, 6: 0.38}
+  6: {0: 0.50, 1: 0.08, 2: 0.07, 3: 0.07, 4: 0.12, 5: 0.10, 6: 0.06}

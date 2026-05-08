@@ -1,0 +1,15 @@
+metadata:
+  name: "trap_hihat"
+  description: "Trap hi-hat rhythm model. High onset density across all positions with rapid-fire patterns. All beats are active with slight emphasis on beat 0."
+  source: "Hand-derived from trap rhythmic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+  resolution: beat
+
+# State: beat position (0-3 in 4/4)
+# Trap hi-hat: very high density, all positions active, near-uniform distribution
+transitions:
+  0: {0: 0.15, 1: 0.30, 2: 0.25, 3: 0.30}
+  1: {0: 0.25, 1: 0.15, 2: 0.30, 3: 0.30}
+  2: {0: 0.25, 1: 0.30, 2: 0.15, 3: 0.30}
+  3: {0: 0.30, 1: 0.25, 2: 0.30, 3: 0.15}

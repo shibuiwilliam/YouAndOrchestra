@@ -1,0 +1,19 @@
+metadata:
+  name: "flamenco_phrygian_bigram"
+  description: "Bigram pitch transition probabilities for flamenco melody in phrygian mode. Very strong pull to degree 0 (tonic) from degree 1 (phrygian cadence b2→1). Degree 2 (b3) is a gravitational center. Ornamental stepwise runs with strong descending tendency."
+  source: "Hand-derived from flamenco phrygian melodic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+
+# Scale degree transitions: current_degree → {next_degree: probability}
+# Degrees 0-6 map to phrygian scale steps. The b2→1 (degree 1→0) cadential
+# motion is the defining gesture. Descending stepwise runs are very common.
+# Degree 0 has strong gravitational pull from all degrees.
+transitions:
+  0: {0: 0.08, 1: 0.18, 2: 0.25, 3: 0.15, 4: 0.18, 5: 0.10, 6: 0.06}
+  1: {0: 0.50, 1: 0.05, 2: 0.22, 3: 0.08, 4: 0.05, 5: 0.05, 6: 0.05}
+  2: {0: 0.15, 1: 0.25, 2: 0.05, 3: 0.28, 4: 0.12, 5: 0.10, 6: 0.05}
+  3: {0: 0.10, 1: 0.08, 2: 0.30, 3: 0.05, 4: 0.28, 5: 0.12, 6: 0.07}
+  4: {0: 0.12, 1: 0.05, 2: 0.12, 3: 0.25, 4: 0.06, 5: 0.28, 6: 0.12}
+  5: {0: 0.10, 1: 0.05, 2: 0.10, 3: 0.12, 4: 0.28, 5: 0.05, 6: 0.30}
+  6: {0: 0.20, 1: 0.08, 2: 0.08, 3: 0.07, 4: 0.12, 5: 0.35, 6: 0.10}

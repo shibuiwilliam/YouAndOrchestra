@@ -1,0 +1,17 @@
+metadata:
+  name: "japanese_in_bigram"
+  description: "Bigram pitch transition probabilities for the Japanese in-scale (miyakobushi). A 5-note scale with characteristic half-step descents (degree 1→0, degree 3→2). The scale creates a melancholic, descending quality with strong gravitational pull to degrees 0 and 2."
+  source: "Hand-derived from Japanese in-scale (miyakobushi) melodic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+
+# Scale degree transitions: current_degree → {next_degree: probability}
+# Degrees 0-4 map to in-scale (miyakobushi) steps: tonic, b2, b3, 4th, b6.
+# The half-step pairs (0-1 and 2-3) create strong neighbor-tone motion.
+# Descending motion is characteristic. Degree 0 and degree 2 are resting tones.
+transitions:
+  0: {0: 0.08, 1: 0.30, 2: 0.20, 3: 0.15, 4: 0.27}
+  1: {0: 0.48, 1: 0.07, 2: 0.22, 3: 0.13, 4: 0.10}
+  2: {0: 0.18, 1: 0.15, 2: 0.07, 3: 0.35, 4: 0.25}
+  3: {0: 0.12, 1: 0.10, 2: 0.45, 3: 0.08, 4: 0.25}
+  4: {0: 0.30, 1: 0.10, 2: 0.20, 3: 0.30, 4: 0.10}

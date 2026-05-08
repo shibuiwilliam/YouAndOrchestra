@@ -1,0 +1,7 @@
+name: "plagal_cadence"
+description: "Subdominant IV resolves directly to tonic I without passing through the dominant, creating the 'amen' cadence. Provides a gentler, less tension-driven sense of closure compared to the authentic cadence. Common as a final gesture after an authentic cadence has already established closure."
+chord_pattern: ["IV", "I"]
+placement: "section_end"
+genres: [gospel, hymn, classical, folk, pop]
+source: "Standard plagal cadence — fundamental cadence type in Western tonal music"
+license: "CC0 — original work by YaO project"

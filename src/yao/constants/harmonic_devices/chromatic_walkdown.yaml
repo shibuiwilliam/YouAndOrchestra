@@ -1,0 +1,7 @@
+name: "chromatic_walkdown"
+description: "Chromatic bass descent from the tonic root through the major seventh, major sixth (as IV in first inversion), to the minor sixth (as iv in first inversion). The bass line walks down chromatically (1 - 7 - b7 - 6) while upper voices shift smoothly, creating a descending line cliche. Common in ballads and dramatic passages."
+chord_pattern: ["I", "I/7", "IV/6", "iv/6"]
+placement: "verse"
+genres: [pop, rock_ballad, jazz_ballad, film_score, soul]
+source: "Chromatic bass descent (line cliche) — widespread in popular and film music"
+license: "CC0 — original work by YaO project"

@@ -1,0 +1,16 @@
+metadata:
+  name: "pop_straight_8th"
+  description: "Pop straight 8ths rhythm model. Strong beats 0 and 2 emphasized, creating a steady driving pulse typical of pop music."
+  source: "Hand-derived from pop rhythmic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+  resolution: beat
+
+# State: beat position (0-3 in 4/4)
+# Values: probability of onset at that beat given previous beat had onset/rest
+# Pop straight 8ths: strong downbeat (0), secondary accent on 2, lighter 1 and 3
+transitions:
+  0: {0: 0.10, 1: 0.20, 2: 0.40, 3: 0.30}
+  1: {0: 0.30, 1: 0.10, 2: 0.40, 3: 0.20}
+  2: {0: 0.35, 1: 0.25, 2: 0.10, 3: 0.30}
+  3: {0: 0.45, 1: 0.20, 2: 0.25, 3: 0.10}

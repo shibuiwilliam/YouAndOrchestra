@@ -1,0 +1,14 @@
+metadata:
+  name: "classical_waltz"
+  description: "Classical waltz rhythm model in 3/4 time. 3 states (beats 0-2). Strong downbeat on 0, lighter accompaniment on beats 1 and 2."
+  source: "Hand-derived from classical waltz rhythmic conventions (no copyrighted corpus)"
+  license: "CC0 — original work by YaO project"
+  n_gram_order: 2
+  resolution: beat
+
+# State: beat position (0-2 in 3/4)
+# Waltz: strong beat 0, lighter 1 and 2, oom-pah-pah pattern
+transitions:
+  0: {0: 0.10, 1: 0.50, 2: 0.40}
+  1: {0: 0.35, 1: 0.10, 2: 0.55}
+  2: {0: 0.60, 1: 0.30, 2: 0.10}

@@ -1,0 +1,7 @@
+name: "neapolitan_approach"
+description: "The Neapolitan sixth (bII in first inversion) moves to V and then resolves to I. The bII chord introduces a chromatic pitch (lowered second degree) that intensifies the approach to the dominant. The dramatic half-step motion from bII to V creates powerful harmonic tension, favored in minor keys and dramatic contexts."
+chord_pattern: ["bII6", "V", "I"]
+placement: "climax"
+genres: [classical, romantic, film_score, opera, musical_theater]
+source: "Neapolitan sixth approach — Baroque and Classical convention, named for association with Neapolitan opera school"
+license: "CC0 — original work by YaO project"

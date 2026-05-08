@@ -1,0 +1,7 @@
+name: "blues_quick_change"
+description: "Quick-change variant of the 12-bar blues where the IV7 arrives in bar 2 instead of bar 5, returning to I7 in bar 3. This early subdominant motion creates harmonic urgency in the opening phrase and is standard in jazz-blues and swing-blues contexts."
+chord_pattern: ["I7", "IV7", "I7", "I7", "IV7", "IV7", "I7", "I7", "V7", "IV7", "I7", "V7"]
+placement: "anywhere"
+genres: [jazz_blues, swing, bebop, chicago_blues, jump_blues]
+source: "Quick-change blues variant — common in post-swing-era blues performance"
+license: "CC0 — original work by YaO project"
