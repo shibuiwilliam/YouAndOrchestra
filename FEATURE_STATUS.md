@@ -102,6 +102,15 @@
 | Voice-Leading Optimizer (§5.4) | ✅ | tests/unit/coupling/test_voice_leading.py (13 tests), tests/scenarios/test_voice_leading_quality.py (4 tests) | optimal_voicing_transition() with constraint filtering; deterministic tie-breaking |
 | Reharmonization Engine (§5.1) | ✅ | tests/unit/coupling/test_reharmonization.py (14 tests), tests/scenarios/test_reharmonization_diversity.py (5 tests) | 12 ReharmonizationOperation types; ReharmonizationConstraints; melody compatibility check; feature-flag gated (reharmonization=false default) |
 | Feature Flags (v3.0) | ✅ | — | FeatureFlags Pydantic model; chord_aware_melody (default true), voice_leading_optimization (default true), reharmonization (default false) |
+| Rhythm Markov Generator (§3.1) | ✅ | tests/unit/coupling/test_rhythm_markov.py (7 tests) | RhythmMarkovModel with load/generate/list API; 12 genre-specific rhythm models |
+| Modulation Planner (§5.2) | ✅ | tests/unit/coupling/test_modulation.py (9 tests) | 7 ModulationStrategy types; genre-aware strategy weighting; ModulationPlan IR |
+| Harmonic Devices Library (§5.6) | ✅ | tests/unit/coupling/test_harmonic_devices.py (7 tests) | 15 device YAMLs; genre/placement filtering; HarmonicDevice loader |
+| Genre-Specific Markov Models (§4.2) | ✅ | tests/unit/coupling/test_markov_models_load.py (62 tests) | 15 pitch models + 12 rhythm models; all CC0; row sums verified |
+| Phrase-Shape Generator (§4.3) | ✅ | tests/unit/coupling/test_phrase_shape.py (10 tests) | period/sentence/blues/ballad templates; contour points; cadence-tension mapping |
+| Theme Recurrence Graph (§6.4) | ✅ | tests/unit/coupling/test_theme_recurrence.py (9 tests) | Form-aware theme planning (AABA, verse-chorus, rondo, sonata); 8 transformation types |
+| Genre Vector Space (§6.1) | ✅ | tests/unit/coupling/test_genre_vector.py (9 tests) | 12-dimension embedding; n-way blending; distance; nearest-neighbor queries |
+| Polyrhythm Engine (§3.2) | ✅ | tests/unit/coupling/test_polyrhythm.py (9 tests) | compose_polyrhythm(); phase_shift(); coprime check; multi-layer onset generation |
+| Listening-Agent Dialog (§6.3) | ✅ | tests/unit/coupling/test_listening_dialog.py (12 tests) | EnsembleRole (6); RhythmicDialogGraph; topological generation ordering; default OFF |
 
 ## Verification — v3.0 Metrics
 
@@ -356,9 +365,9 @@
 
 | Category | Count |
 |---|---|
-| Source files (src/yao/) | 215 |
-| Test files | 219 |
-| Test functions | ~2400 |
+| Source files (src/yao/) | 222 |
+| Test files | 227 |
+| Test functions | ~2550 |
 | Genre Skills (.md) | 29 |
 | Culture/Theory/Other Skills | 14 |
 | Subagent definitions | 9 + protocol |
