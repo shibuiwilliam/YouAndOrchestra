@@ -62,9 +62,20 @@ class TestNormalizeLoudness:
         assert result.dtype == audio.dtype
 
 
-_sd = pytest.importorskip("sounddevice", reason="sounddevice requires PortAudio")
+try:
+    import sounddevice as _sd  # noqa: F401
+
+    _has_sounddevice = True
+except (ImportError, OSError):
+    _has_sounddevice = False
+
+_skip_no_sounddevice = pytest.mark.skipif(
+    not _has_sounddevice,
+    reason="sounddevice requires PortAudio (not available in CI)",
+)
 
 
+@_skip_no_sounddevice
 class TestPlayWavInline:
     """Tests for inline playback via sounddevice."""
 
