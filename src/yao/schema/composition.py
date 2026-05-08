@@ -14,6 +14,7 @@ from pydantic import BaseModel, field_validator
 
 from yao.constants.music import DYNAMICS_TO_VELOCITY, SCALE_INTERVALS
 from yao.errors import SpecValidationError
+from yao.schema.features import FeatureFlags
 from yao.schema.tonal_system import TonalSystem, promote_legacy_key
 
 
@@ -149,6 +150,7 @@ class CompositionSpec(BaseModel):
     sections: list[SectionSpec]
     drums: DrumsSpec | None = None
     generation: GenerationConfig = GenerationConfig()
+    features: FeatureFlags = FeatureFlags()
     use_style_profile: bool = True
 
     @field_validator("title")

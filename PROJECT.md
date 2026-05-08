@@ -3,6 +3,8 @@
 > *An agentic music production environment built on Claude Code*
 > *— where you are the conductor, and the AI is your orchestra.*
 
+> **Version 3.0** integrates the diversity improvements specified in `IMPROVEMENT.md`. The seven core bottlenecks identified in the audit (B1–B7) drive a new architectural pillar called the **Combination Stack**, which sits inside Layer 2 and turns YaO's already-rich vocabulary of materials into genuinely diverse output.
+
 ---
 
 ## 0. The Essence of the Project
@@ -15,7 +17,9 @@ Every design decision in YaO is subordinate to one proposition:
 
 For this reason, YaO treats music as **code, specifications, tests, diffs, and provenance** before treating it as audio files. We call this the **Music-as-Code** philosophy.
 
-YaO does not aim to be the cheapest or fastest music generator. It aims to be the **most musical, most explainable, and most genre-faithful** open music production environment available — the one a serious composer, sound designer, or game audio team would actually use day-to-day.
+YaO does not aim to be the cheapest or fastest music generator. It aims to be the **most musical, most explainable, most genre-faithful, and most genuinely diverse** open music production environment available — the one a serious composer, sound designer, or game audio team would actually use day-to-day.
+
+The v3.0 redesign adds a deliberate emphasis on the last word — *diverse*. The phrase-first pipeline (introduced in v2.0) gave YaO genre-faithful melodies. The Combination Stack (introduced in v3.0) ensures those melodies are not merely faithful but also varied, harmonically coupled, and structurally distinct across runs and across genres.
 
 ---
 
@@ -36,6 +40,8 @@ Every concept in YaO maps onto an orchestral metaphor. Internalizing these corre
 | **Critic** | Critic | Adversarial Critic subagent |
 | **Style Encyclopedia** | Encyclopedia of styles | The 30+ genre Skills in `.claude/skills/genres/` |
 | **Players' Schooling** | Conservatory training | The `MelodicProfile` registry |
+| **Rehearsal Conversations** | Players cueing each other | The Listening-Agent Dialog Graph (v3.0) |
+| **Genre Atlas** | Map of stylistic territories | The Genre Vector Space (v3.0) |
 
 The conductor (You) does not write every note. The conductor's job is to **clarify intent, give direction to the players, make decisions during rehearsal, and ensure the quality of the performance**. YaO brings this division of labor to AI, while leaving every meaningful judgment in the hands of the human.
 
@@ -43,7 +49,7 @@ The conductor (You) does not write every note. The conductor's job is to **clari
 
 ## 2. Design Principles
 
-Every implementation decision in YaO is evaluated against the following **seven non-negotiable principles**. The first five were established at project inception; the last two were added to make reliable melody generation and genre diversity architecturally necessary, not optional.
+Every implementation decision in YaO is evaluated against the following **eight non-negotiable principles**. The first five were established at project inception. Principles 6 and 7 were added in v2.0 to make reliable melody generation and genre faithfulness architecturally necessary. Principle 8 is added in v3.0 to make output diversity a first-class concern, not a side effect.
 
 ### Principle 1: The Agent Is an Environment, Not a Composer
 
@@ -67,70 +73,101 @@ No matter how refined the automated metrics, the human listening experience is t
 
 ### Principle 6: Phrase Structure Precedes Note Selection
 
-A melody is not a sequence of notes. It is a sequence of **phrases**, each of which has a function (statement, question, answer), a target pitch, and a cadence. Notes are derived from phrase structure, not the reverse. The Phrase-First Pipeline (Section 3.2) is the architectural enforcement of this principle.
+A melody is not a sequence of notes. It is a sequence of **phrases**, each of which has a function (statement, question, answer), a target pitch, and a cadence. Notes are derived from phrase structure, not the reverse.
 
 ### Principle 7: Genre Is a Constellation, Not a Label
 
-A genre is not "scale + chord palette + tempo." It is a **multi-dimensional constellation** of interval distributions, rhythmic patterns, ornament profiles, phrase length conventions, cadence preferences, and idiomatic motif transformations. The `MelodicProfile` (Section 3.3) is the structural representation of this constellation.
+A genre is not "scale + chord palette + tempo." It is a **multi-dimensional constellation** of interval distributions, rhythmic patterns, ornament profiles, phrase length conventions, cadence preferences, and idiomatic motif transformations. The `MelodicProfile` is the structural representation of this constellation.
+
+### Principle 8: Diversity Through Combination, Not Just Material *(NEW in v3.0)*
+
+A diverse output is not produced by enlarging the material library; it is produced by **dynamically combining, interpolating, dialoguing, and developing** the materials already present. The Combination Stack (Section 3.4) is the architectural enforcement of this principle. Adding a new genre profile or rhythm template is helpful; building a new mechanism that recombines all existing materials is multiplicatively more helpful.
+
+This principle has three operational consequences:
+
+1. **Melody, harmony, and rhythm cannot be generated independently.** They must be coupled through shared intermediate representations. The Harmonic-Melodic Coupling Layer (Section 3.4.1) makes melody choices conditional on the active harmony at every metric position.
+2. **A genre is a position in a continuous space, not an enum value.** Two genres can be blended, interpolated, or contrasted. The Genre Vector Space (Section 3.4.4) provides the geometry.
+3. **Long-form pieces require thematic recurrence with transformation.** Recurring without transformation is repetition; transforming without recurring is wandering. The Theme Recurrence Graph (Section 3.4.6) plans both.
 
 ---
 
 ## 3. Architecture
 
-YaO has three nested architectural levels. Each has independent input/output contracts and is interchangeable and testable.
+YaO has four nested architectural levels in v3.0. Each has independent input/output contracts and is interchangeable and testable.
 
-1. The **7-Layer Macro Architecture** (Section 3.1) governs the entire codebase
+1. The **8-Layer Macro Architecture** (Section 3.1) governs the entire codebase
 2. The **4-Layer Melody Pipeline** (Section 3.2) lives inside Layer 2, structuring how melodies are generated
 3. The **MelodicProfile-Driven Genre System** (Section 3.3) parameterizes genre at every layer
+4. The **Combination Stack** (Section 3.4) — *new in v3.0* — sits between the Melody Pipeline and the surrounding Layer 2 generators, ensuring that materials combine into diverse, coherent, and harmonically coupled output
 
-### 3.1 The 7-Layer Macro Architecture
+### 3.1 The 8-Layer Macro Architecture
+
+v3.0 inserts an explicit **Layer 2.5: Combination & Coupling** between Layer 2 (raw generation) and Layer 3 (IR). This formalizes the new dependencies introduced by chord-aware melody, voice-leading optimization, reharmonization, and inter-instrument dialog.
 
 ```
 ┌───────────────────────────────────────────────────────────┐
 │ Layer 7: Reflection & Learning                            │
-│   Learning from production history; user preferences;     │
-│   style profiles; community-shared profile updates        │
+│   Production history, user style profiles, community-     │
+│   shared profile updates, corpus-learned model registry   │
 ├───────────────────────────────────────────────────────────┤
 │ Layer 6: Verification & Critique                          │
 │   Music lint, structural/melodic/harmonic/acoustic        │
 │   evaluation, score diff, genre-specific adversarial      │
-│   critique, motif coherence and genre conformity scoring  │
+│   critique, conformity & coherence scores, NEW:           │
+│   melody–harmony alignment score, voice-leading-          │
+│   smoothness score, polyrhythmic-coherence score          │
 ├───────────────────────────────────────────────────────────┤
 │ Layer 5: Rendering                                        │
-│   MIDI writing, stem export, audio rendering (FluidSynth),│
-│   score notation (MusicXML, LilyPond, PDF), live-code     │
-│   emission (Strudel)                                      │
+│   MIDI writing (with microtonal pitch-bend), stem export, │
+│   audio rendering (FluidSynth), score notation, live-     │
+│   code emission                                           │
 ├───────────────────────────────────────────────────────────┤
 │ Layer 4: Perception Substitute                            │
-│   Aesthetic judgment substitutes: reference matching,     │
-│   psychology-grounded mappings, style-vector arithmetic   │
+│   Reference matching, psychology-grounded mappings,       │
+│   style-vector arithmetic                                 │
 ├───────────────────────────────────────────────────────────┤
 │ Layer 3: Intermediate Representation (IR)                 │
 │   ScoreIR, Phrase, Skeleton, MelodyLine, Motif, Voicing,  │
-│   Harmony, HarmonicContext, Trajectory                    │
+│   Harmony, HarmonicContext, Trajectory, NEW:              │
+│   PhraseShape, ThemeRecurrence, GenreVector,              │
+│   PolyrhythmTexture, HarmonicMelodyConstraints,           │
+│   RhythmEvent (with functional labels), MotifNetwork      │
+├───────────────────────────────────────────────────────────┤
+│ Layer 2.5: Combination & Coupling           ← NEW in v3.0 │
+│   Harmonic-Melodic Coupling, Voice-Leading Optimizer,     │
+│   Reharmonization Engine, Modulation Planner, Genre-      │
+│   Vector Blender, Listening-Agent Dialog, Theme           │
+│   Recurrence Planner, Variable Harmonic Rhythm            │
 ├───────────────────────────────────────────────────────────┤
 │ Layer 2: Generation Strategy                              │
 │   Pluggable generators (rule_based, stochastic,           │
-│   phrase_aware); contains the 4-Layer Melody Pipeline     │
+│   phrase_aware, markov_v2, rhythm_markov, polyrhythm);    │
+│   contains the 4-Layer Melody Pipeline                    │
 ├───────────────────────────────────────────────────────────┤
 │ Layer 1: Specification                                    │
 │   YAML specs, dialogue input, sketch input, intent        │
-│   parsing into StructuredIntent, intent-to-spec building  │
+│   parsing into StructuredIntent, intent-to-spec building, │
+│   NEW: genre_blend spec, harmonic_devices override,       │
+│   features feature-flag block                             │
 ├───────────────────────────────────────────────────────────┤
 │ Layer 0: Constants                                        │
-│   Instrument ranges, MIDI mappings, scales, chord types,  │
-│   dynamics, MelodicProfile registry, RhythmTemplate       │
-│   registry, GrooveProfile registry                        │
+│   Instrument ranges, MIDI mappings, scales (28),          │
+│   chord types, dynamics, MelodicProfile registry,         │
+│   RhythmTemplate registry, GrooveProfile registry,        │
+│   NEW: HarmonicDevice library, IdiomaticGesture           │
+│   library, MarkovModel YAML registry (pitch + rhythm +    │
+│   contour)                                                │
 └───────────────────────────────────────────────────────────┘
 ```
 
-Layer dependencies flow strictly from bottom to top. Lower layers cannot import from higher ones. This is mechanically enforced by `make arch-lint`, an AST-based import checker.
+Layer dependencies flow strictly from bottom to top. Lower layers cannot import from higher ones. This is mechanically enforced by `make arch-lint`, an AST-based import checker. Layer 2.5 sits between Layer 2 and Layer 3 and may import only from Layers 0–2.
 
 When you add a new module, the first decision is **which layer does it belong to**. Use these questions:
 
 - Does it only define values? → Layer 0
 - Does it parse user input or build a spec from intent? → Layer 1
-- Does it generate notes? → Layer 2
+- Does it generate raw notes from scratch? → Layer 2
+- Does it transform, couple, blend, or optimize already-generated material? → Layer 2.5
 - Does it represent musical structure? → Layer 3
 - Does it substitute for aesthetic perception? → Layer 4
 - Does it produce a consumable output (MIDI, audio, score)? → Layer 5
@@ -139,13 +176,14 @@ When you add a new module, the first decision is **which layer does it belong to
 
 ### 3.2 The 4-Layer Melody Pipeline (within Layer 2)
 
-The single most consequential architectural decision in YaO is the separation of **what a melody is** from **how the notes that realize it are chosen**. This is implemented as a four-layer sub-pipeline within Layer 2.
+The single most consequential architectural decision in v2.0 was the separation of **what a melody is** from **how the notes that realize it are chosen**. This is implemented as a four-layer sub-pipeline within Layer 2 and remains the core of melody generation in v3.0.
 
 ```
 ┌─────────────────────────────────────────────────┐
 │  Layer M4: Ornament & Articulation              │
 │  Grace notes, trills, slides, bends, legato/    │
 │  staccato, microtiming offsets, ghost notes     │
+│  Idiomatic gestures applied per instrument      │
 ├─────────────────────────────────────────────────┤
 │  Layer M3: Surface Realization                  │
 │  Passing tones, neighbor tones, anticipations,  │
@@ -155,6 +193,8 @@ The single most consequential architectural decision in YaO is the separation of
 │  Layer M2: Skeleton Generation                  │
 │  Chord-tone targets, voice-leading paths,       │
 │  phrase-contour realization, harmonic outlining │
+│  Now consumes HarmonicMelodyConstraints from    │
+│  the Coupling Layer                             │
 ├─────────────────────────────────────────────────┤
 │  Layer M1: Phrase & Motif Plan                  │
 │  Phrase boundaries, cadence types, motif        │
@@ -162,138 +202,14 @@ The single most consequential architectural decision in YaO is the separation of
 └─────────────────────────────────────────────────┘
 ```
 
-#### Layer M1: Phrase & Motif Plan
+The four layers are unchanged in their **shape** between v2.0 and v3.0. What changes is what they consume:
 
-**Purpose**: Define the logical structure of the melody before any pitches are chosen.
+- **M2** now consumes `HarmonicMelodyConstraints` from the new Coupling Layer (Section 3.4.1) instead of operating chord-blindly
+- **M3** now uses genre-conditioned rhythm Markov models (Section 3.4.5) when selected via `MelodicProfile.rhythm_strategy: markov`
+- **M4** now applies the `IdiomaticGesture` library (Section 3.4.7) per instrument
+- **M1** now consumes `PhraseShape` plans from the long-form coherence layer (Section 3.4.6) when the spec calls for explicit phrase shaping
 
-**Inputs**: `CompositionSpec`, `Trajectory`, `MelodicProfile`
-
-**Output**: `PhrasePlan`
-
-**Key types** (in `src/yao/ir/phrase.py`):
-
-```python
-class PhraseFunction(Enum):
-    STATEMENT = "statement"
-    QUESTION = "question"
-    ANSWER = "answer"
-    DEVELOPMENT = "development"
-    RECAPITULATION = "recapitulation"
-    CODA = "coda"
-
-class CadenceType(Enum):
-    AUTHENTIC = "authentic"
-    HALF = "half"
-    PLAGAL = "plagal"
-    DECEPTIVE = "deceptive"
-    PHRYGIAN = "phrygian"
-    NONE = "none"
-
-@dataclass(frozen=True)
-class Phrase:
-    start_bar: int
-    end_bar: int
-    function: PhraseFunction
-    cadence: CadenceType
-    motif_id: str | None
-    motif_transformation: str | None
-    target_pitch: int | None
-    contour_archetype: str  # 'arch', 'descending', 'wave', 'ascending'
-
-@dataclass(frozen=True)
-class PhrasePlan:
-    phrases: tuple[Phrase, ...]
-    motif_library: dict[str, Motif]
-```
-
-**Algorithm**:
-
-1. Determine phrase boundaries from section length and trajectory (genre-typical: classical 4+4, jazz 4+4+4+4, rock 8-bar)
-2. Assign each phrase a function (typical A-section: STATEMENT + QUESTION + STATEMENT + ANSWER)
-3. Generate 1–3 germ motifs for the entire piece
-4. For each phrase, select which motif to use and which transformation to apply
-5. Plan cadence locations (major cadences at section boundaries, sub-cadences within sections)
-
-#### Layer M2: Skeleton Generation
-
-**Purpose**: Generate the structural pitches that anchor the melody to the harmony.
-
-**Inputs**: `PhrasePlan`, `HarmonyProgression`, `MelodicProfile`
-
-**Output**: `Skeleton`
-
-**Algorithm**:
-
-1. Fix phrase target pitches first (where each phrase "aims")
-2. Working backward from each target, place skeleton notes every beat or two
-3. Each skeleton note prefers chord tones of the current chord
-4. At chord boundaries, prefer voice-leading-friendly pitches (smooth half-step or whole-step motion to the next chord's tones)
-5. Skeleton notes are placed such that the motif contour emerges naturally
-
-This step is responsible for ensuring melody and harmony are **deeply coupled**, not merely co-existing. It is the architectural answer to the question "why does this melody fit these chords?"
-
-#### Layer M3: Surface Realization
-
-**Purpose**: Fill in the surface notes that decorate the skeleton.
-
-**Inputs**: `Skeleton`, `RhythmTemplate`, `MelodicProfile`
-
-**Output**: `MelodyLine`
-
-**Algorithm**:
-
-1. Connect skeleton notes with passing tones (stepwise motion through the genre's preferred scale)
-2. Place neighbor tones for embellishment
-3. Insert appoggiaturas before strong beats per genre profile
-4. Apply the rhythm template for attack positions
-5. Use the genre's interval distribution to choose final pitches
-
-#### Layer M4: Ornament & Articulation
-
-**Purpose**: Add the expressive surface that makes a melody feel alive.
-
-**Inputs**: `MelodyLine`, `OrnamentProfile`, `GrooveProfile`
-
-**Output**: `OrnamentedMelodyLine`
-
-**Algorithm**:
-
-1. Apply genre-specific ornaments (grace notes, trills, slides, bends) per the ornament profile
-2. Distribute articulations (legato vs. staccato vs. accent) per genre conventions
-3. Apply microtiming offsets to create groove (jazz swing, hip-hop laid-back, Latin clave displacement)
-4. Add ghost notes around strong-beat targets where appropriate
-
-#### Generator Implementation
-
-The four layers are orchestrated by `PhraseAwareGenerator`, registered alongside the existing generators:
-
-```python
-# src/yao/generators/melody/phrase_aware.py
-
-@register_generator("phrase_aware")
-class PhraseAwareGenerator(GeneratorBase):
-    def generate(self, spec: CompositionSpec) -> tuple[ScoreIR, ProvenanceLog]:
-        profile = self._load_melodic_profile(spec.genre)
-
-        phrase_plan = self._plan_phrases(spec, profile)
-        provenance.record("M1_phrase_plan", phrase_plan, ...)
-
-        skeleton = self._generate_skeleton(phrase_plan, spec.harmony, profile)
-        provenance.record("M2_skeleton", skeleton, ...)
-
-        melody = self._realize_surface(skeleton, profile)
-        provenance.record("M3_surface", melody, ...)
-
-        ornamented = self._add_ornaments(melody, profile)
-        provenance.record("M4_ornament", ornamented, ...)
-
-        score = self._to_score_ir(ornamented, spec)
-        return score, provenance
-```
-
-Each layer records its decisions in provenance, enabling the `/explain` command to trace any musical element back to its origin.
-
-The existing `rule_based` and `stochastic` generators remain available unchanged. Migration to `phrase_aware` is opt-in via the spec's `generation.strategy` field.
+The existing `phrase_aware` generator continues to orchestrate M1→M2→M3→M4. The Coupling Layer adds inputs but does not change the layer ordering.
 
 ### 3.3 The MelodicProfile-Driven Genre System
 
@@ -321,13 +237,21 @@ class MelodicProfile(BaseModel):
     motif_transformations: dict[str, float]
     groove_profile_name: str
     anti_patterns: list[AntiPattern]
+
+    # NEW in v3.0
+    melody_markov_model: str | None        # e.g. "bebop_3gram"
+    melody_markov_temperature: float = 0.7
+    melody_markov_stickiness: float = 0.6
+    rhythm_markov_model: str | None        # e.g. "jazz_swing_8th"
+    harmonic_system: HarmonicSystem = HarmonicSystem.FUNCTIONAL
+    reharmonization_intensity: float = 0.0
+    modulation_preferences: ModulationPreferences | None = None
+    polyrhythm_default: PolyrhythmConfig | None = None
+    idiomatic_gesture_intensity: float = 0.5
+    coupling_style: CouplingStyle = CouplingStyle.COMMON_PRACTICE
 ```
 
-YaO ships with **30+ genre profiles** organized in three tiers:
-
-- **Tier 1**: Western art music (Baroque, Classical, Romantic, Modern), Jazz (Bebop, Modal, Fusion), Pop (Ballad, Dance), Lo-Fi Hip-Hop
-- **Tier 2**: Rock (Classic, Progressive), Metal (Traditional, Djent), Folk, Country, Blues, Bluegrass, Electronic (House, Ambient)
-- **Tier 3**: J-Pop subgenres, K-Pop, Latin (Bossa, Salsa), Indian Classical, Celtic, Middle Eastern, Chinese Traditional, Japanese Traditional
+YaO ships with **30+ genre profiles** organized in three tiers (Tier 1 complete; Tiers 2 and 3 staged across the v3.0 phase plan).
 
 Profiles are **composable**. A user can specify:
 
@@ -338,23 +262,329 @@ genre:
   blend_ratio: 0.7
 ```
 
-`blend_profiles(primary, secondary, ratio)` produces a weighted average of all distributions and scalar parameters. This enables compositions that cross genre boundaries.
+`blend_profiles(primary, secondary, ratio)` produces a weighted average of all distributions and scalar parameters. v3.0 generalizes this to **n-way blending** through the Genre Vector Space (Section 3.4.4).
+
+### 3.4 The Combination Stack *(NEW in v3.0)*
+
+The Combination Stack is the architectural answer to the seven bottlenecks identified in `IMPROVEMENT.md`. It is a set of seven cooperating modules in Layer 2.5 that turn YaO's rich material library into deeply diverse output.
+
+```
+                      ┌──────────────────────────────────────┐
+                      │   Composer / Harmony Theorist /      │
+                      │   Rhythm Architect (Subagents)       │
+                      └──────────────────────────────────────┘
+                                       │
+            ┌──────────────────────────┴──────────────────────────┐
+            ▼                                                     ▼
+  ┌─────────────────────┐                            ┌─────────────────────┐
+  │ Phrase Plan (M1)    │                            │ Chord Progression   │
+  │ Motif Library       │                            │ + Cadences          │
+  └─────────────────────┘                            └─────────────────────┘
+            │                                                     │
+            ▼                                                     ▼
+  ┌────────────────────────────────────────────────────────────────────┐
+  │                   LAYER 2.5: COMBINATION STACK                     │
+  │                                                                    │
+  │  3.4.1  Harmonic-Melodic Coupling   ◄──────  3.4.2  Voice Leading │
+  │         (HarmonicMelodyConstraints)                Optimizer       │
+  │                                                                    │
+  │  3.4.3  Reharmonization & Modulation Engine                        │
+  │                                                                    │
+  │  3.4.4  Genre Vector Space (blending, interpolation)               │
+  │                                                                    │
+  │  3.4.5  Rhythm Markov Pipeline (parallel to M2-M3)                 │
+  │                                                                    │
+  │  3.4.6  Theme Recurrence Graph (long-form coherence)               │
+  │                                                                    │
+  │  3.4.7  Listening-Agent Dialog (turn-based generation)             │
+  └────────────────────────────────────────────────────────────────────┘
+            │
+            ▼
+  ┌─────────────────────┐
+  │ Skeleton (M2) →     │ ──► Melody Line (M3) ──► Ornamented (M4) ──► ScoreIR
+  │ Voice-Led Voicings  │
+  └─────────────────────┘
+```
+
+#### 3.4.1 Harmonic-Melodic Coupling (`yao.coupling.harmonic_melody`)
+
+**Purpose**: Resolve bottleneck B2 (melody–harmony decoupling). Make every melody-pitch decision conditional on the chord active at that metric position.
+
+**Inputs**: A `ChordProgression` with `ChordEvent`s, a `MelodicProfile`, the active `CouplingStyle`.
+
+**Output**: A `HarmonicMelodyConstraints` object per metric position.
+
+```python
+# src/yao/ir/harmonic_melody_constraints.py
+
+@dataclass(frozen=True)
+class HarmonicMelodyConstraints:
+    chord_tones: tuple[MidiNote, ...]
+    available_extensions: tuple[MidiNote, ...]
+    avoid_notes: tuple[MidiNote, ...]
+    target_resolutions: dict[MidiNote, MidiNote]
+    style: CouplingStyle
+
+    def score_pitch(self, pitch: MidiNote, position: PositionLabel) -> float:
+        """0.0 = serious clash; 1.0 = excellent fit."""
+        ...
+```
+
+`CouplingStyle` enumerates how strictly the coupling is enforced and which avoidance rules apply:
+
+- `COMMON_PRACTICE` — classical voice leading, P4-over-major-triad penalized on strong beats
+- `JAZZ` — extensions favored, 11-over-V7 penalized, blue notes neutral
+- `BLUES` — b3, b5, b7 are blue notes, not avoid notes
+- `MODAL` — no avoid notes; all scale tones equal
+- `RAGA` / `MAQAM` — pitch hierarchy from `TonalSystem.cadence_strength`
+
+Layer M2 of the melody pipeline now calls `derive_constraints(chord, key, profile, style)` for every skeleton-note candidate and combines the score with the existing `chord_tone_targeting` weight.
+
+This single change is, per `IMPROVEMENT.md`, the **largest single quality win** available to YaO. It is the highest priority of v3.0.
+
+#### 3.4.2 Voice-Leading Optimizer (`yao.coupling.voice_leading`)
+
+**Purpose**: Resolve the half-implementation noted in B4. Voice-leading **detection** existed in v2.x; v3.0 adds **optimization** during chord realization.
+
+**Inputs**: A previous voicing, a target `ChordFunction`, voice count, `VoicingConstraints`.
+
+**Output**: An optimized voicing that minimizes total voice motion subject to constraints (no parallel 5ths/8ves, no voice crossing, range-respecting, octave-leap-avoiding).
+
+**Algorithm**: Hungarian assignment over inversions for small voice counts; dynamic programming over consecutive chords for full progressions.
+
+```python
+def optimal_voicing_transition(
+    prev_voicing: list[MidiNote],
+    next_chord: ChordFunction,
+    voice_count: int = 4,
+    constraints: VoicingConstraints = ...,
+) -> list[MidiNote]: ...
+```
+
+The Orchestrator subagent calls this for every harmonic instrument. The result is Bach-chorale-grade voicings rather than naive root-position chords.
+
+#### 3.4.3 Reharmonization & Modulation Engine (`yao.coupling.reharmonization`, `yao.coupling.modulation`)
+
+**Purpose**: Resolve B4 fully. The base chord cycling becomes one starting point; reharmonization and modulation produce harmonic motion that does not exist in the v2.x stochastic generator.
+
+**Reharmonization operations** (12 in total):
+
+```python
+class ReharmonizationOperation(StrEnum):
+    SECONDARY_DOMINANT = "secondary_dominant"       # I → V/ii → ii
+    TRITONE_SUBSTITUTION = "tritone_substitution"   # V7 → bII7
+    DIATONIC_SUBSTITUTION = "diatonic_substitution" # I → iii
+    MODAL_INTERCHANGE = "modal_interchange"         # IV → iv
+    EXTENSION_ADD = "extension_add"
+    SUS_CHORD = "sus_chord"
+    CHROMATIC_APPROACH = "chromatic_approach"
+    II_V_INSERTION = "ii_V_insertion"
+    BACKDOOR_PROGRESSION = "backdoor"
+    NEAPOLITAN = "neapolitan"
+    AUGMENTED_SIXTH = "augmented_sixth"
+    COLTRANE_CHANGES = "coltrane_changes"
+```
+
+Each operation is a function `(progression, position) → progression` with style-specific applicability rules. A `ReharmonizationConstraints` object protects the existing melody — operations that would introduce intolerable melody-chord clashes are filtered out before application.
+
+**Modulation strategies** (7 in total):
+
+```python
+class ModulationStrategy(StrEnum):
+    PIVOT_CHORD = "pivot_chord"
+    DIRECT = "direct"
+    CHROMATIC = "chromatic"
+    SEQUENTIAL = "sequential"
+    ENHARMONIC = "enharmonic"
+    COMMON_TONE = "common_tone"
+    THIRD_RELATION = "third_relation"
+```
+
+The `ModulationPlanner` subagent runs in Phase 5 of the cognitive protocol; the result populates the previously empty `HarmonyPlan.modulations` field.
+
+Genre-specific preferences (for example, cinematic music heavily uses `THIRD_RELATION` per Wagner/Williams convention) live in each genre profile under `modulation_preferences`.
+
+#### 3.4.4 Genre Vector Space (`yao.coupling.genre_vector`)
+
+**Purpose**: Resolve B5 (genre as exclusive label). Embed each genre profile as a point in a 12–16 dimensional feature space so that genres can be **blended, interpolated, contrasted, and queried by neighbors**.
+
+```python
+@dataclass(frozen=True)
+class GenreVector:
+    coordinates: tuple[float, ...]    # 12–16 dims
+    component_genres: dict[str, float] = field(default_factory=dict)
+
+    @classmethod
+    def blend(cls, *weighted: tuple[GenreProfile, float]) -> GenreVector: ...
+
+    def nearest_neighbors(self, registry: GenreRegistry, k: int = 3) -> list[GenreProfile]: ...
+
+    def to_melodic_profile(self) -> MelodicProfile: ...
+```
+
+Dimensions include `swing_ratio`, `syncopation_density`, `chord_complexity`, `chord_extension_avg`, `rhythmic_subdivision`, `dynamic_range`, `timbral_brightness`, `instrumental_density`, `melodic_chromaticism`, `phrase_length_avg`, `tempo_typical`, `structural_repetition`, `microtonality`, `polyrhythm_intensity`.
+
+Specs may now use:
+
+```yaml
+genre_blend:
+  - {profile: bossa_nova, weight: 0.6}
+  - {profile: drum_n_bass, weight: 0.3}
+  - {profile: cinematic, weight: 0.1}
+```
+
+The result is a single synthesized `MelodicProfile`. Discrete fields (instruments, chord palette) use weighted random selection; numeric fields interpolate linearly. The original 2-way `blend_profiles()` from v2.0 becomes a special case.
+
+#### 3.4.5 Rhythm Markov Pipeline (`yao.coupling.rhythm_markov`)
+
+**Purpose**: Resolve B1 and B7 (static rhythm pools, shallow rhythm structure). Run n-gram Markov models over a 16th-note grid alongside the existing template-based rhythm system, with the model selected via the active `MelodicProfile.rhythm_markov_model`.
+
+The state space is small enough (`2^N positions × bar position`) that 4-gram smoothed models are practical:
+
+```yaml
+# src/yao/generators/markov_models/rhythm/jazz_swing_8th.yaml
+metadata:
+  name: jazz_swing_8th
+  n_gram_order: 4
+  resolution: 16th
+  swing_ratio: 0.67
+  source: "Hand-derived from common bebop figures (Levine 1995)"
+transitions:
+  "0,000": {onset: 0.92, rest: 0.08}
+  "2,100": {onset: 0.40, rest: 0.60}
+  ...
+```
+
+The `RhythmMarkovGenerator` is registered alongside `phrase_aware` and is used by Layer M3 when the active profile selects it. The existing static template path remains valid; both coexist.
+
+A parallel **Polyrhythm Engine** (`yao.coupling.polyrhythm`) generates polyrhythmic textures (3:4, 4:5, 7:5, hemiola, Yoruba phase-shifts, Afrobeat interlock) when `polyrhythm_default` is enabled in the genre profile.
+
+#### 3.4.6 Theme Recurrence Graph (`yao.coupling.theme_recurrence`)
+
+**Purpose**: Resolve B3 partially. Long-form pieces require thematic returns with transformation; without this, a 2-minute piece sounds like four separate 30-second pieces glued together.
+
+```python
+@dataclass(frozen=True)
+class ThemeRecurrence:
+    source_section: str
+    source_bars: tuple[int, int]
+    target_section: str
+    target_bars: tuple[int, int]
+    transformation: MotifTransformation
+    transformation_params: dict[str, Any]
+
+@dataclass(frozen=True)
+class ThemeRecurrenceGraph:
+    edges: tuple[ThemeRecurrence, ...]
+```
+
+Auto-generated by `plan_theme_recurrences(form, motifs)` according to song-form conventions:
+
+- **AABA** — A theme appears 3 times (identity, identity, ornamented variation)
+- **Sonata** — exposition → fragmentation/sequence in development → transposed recapitulation
+- **Rondo** — A returns multiple times, each slightly varied
+- **Through-composed** — themes only transform, never literally recur
+
+The existing `recall_melody_from` field in `SectionSpec` becomes one edge type within this richer graph.
+
+The companion **PhraseShape Generator** (`yao.coupling.phrase_shape`) handles intra-section structure (8-bar period, 8-bar sentence, 12-bar blues, 16-bar ballad).
+
+#### 3.4.7 Listening-Agent Dialog (`yao.coupling.listening_dialog`)
+
+**Purpose**: Resolve B6 (independent per-instrument generation). Replace parallel per-instrument generation with **turn-based generation**, where later instruments respond to what earlier instruments have already played.
+
+```python
+class ListeningGenerator(ABC):
+    def generate_next_phrase(
+        self,
+        own_history: list[Note],
+        ensemble_history: dict[str, list[Note]],
+        current_chord: ChordFunction,
+        section: SectionSpec,
+    ) -> list[Note]: ...
+```
+
+The role-priority order for generation:
+
+```
+bass → drums → harmony → melody_primary → melody_secondary → fills
+```
+
+Each follower agent receives the leader's notes as input and may react: *complement*, *echo*, *syncopate against*, *fill the gap*. The `RhythmicDialogGraph` (in IR) records the causal edges.
+
+This is the most architecturally invasive change in v3.0 and is gated behind a feature flag (`features.listening_agents: true`). The parallel-generation path remains valid for users who do not enable it.
+
+A companion `IdiomaticGesture` library (in `src/yao/constants/idiomatic_gestures/*.yaml`) provides per-instrument body-language patterns (violin trills, sax altissimo, sitar meend, shakuhachi mura-iki) that the M4 ornament layer applies based on instrument and genre.
+
+### 3.5 Layer Interaction Diagram
+
+To make the relationships explicit, here is how the layers interact during a single `compose` call in v3.0:
+
+```
+[ Layer 1: spec parsing ]
+         │
+         ▼
+[ Layer 2: phrase_aware generator initialized ]
+         │
+         ├─► Layer 0: load MelodicProfile, GenreVector, MarkovModels, Devices
+         │
+         ▼
+[ M1: Phrase plan + motif germs ]                    (existing)
+         │
+         ▼
+[ Harmony Theorist generates ChordProgression ]
+         │
+         ▼
+[ 3.4.6 Theme Recurrence Graph ]                     (NEW)
+         │
+         ▼
+[ 3.4.3 Reharmonization & Modulation Engine ]        (NEW; opt-in)
+         │
+         ▼
+[ 3.4.1 Harmonic-Melodic Coupling ─► Constraints ]   (NEW)
+         │
+         ▼
+[ M2: Skeleton — now constrained by 3.4.1 ]          (modified)
+         │
+         ▼
+[ 3.4.2 Voice-Leading Optimizer ─► voicings ]        (NEW)
+         │
+         ▼
+[ 3.4.5 Rhythm Markov / 3.4.6 PhraseShape ]          (NEW; opt-in)
+         │
+         ▼
+[ M3: Surface realization ]                           (existing, profile-aware)
+         │
+         ▼
+[ 3.4.7 Listening-Agent Dialog reorders generation ]  (NEW; opt-in)
+         │
+         ▼
+[ M4: Ornament + IdiomaticGestures ]                  (existing + NEW gestures)
+         │
+         ▼
+[ Layer 6: evaluate, including new metrics ]
+```
+
+Every Combination-Stack module is **opt-in via feature flag or genre profile setting**. The default v3.0 configuration enables Sections 3.4.1, 3.4.2, and 3.4.6 (the P0/P1 wins) and leaves the others off until they are validated.
 
 ---
 
 ## 4. Directory Structure
 
+The directory layout extends v2.1 with the Combination Stack and its supporting data files. New paths are marked with `← NEW`.
+
 ```
 yao/
-├── CLAUDE.md                      # Operational contract for Claude Code
-├── PROJECT.md                     # This file (full project design)
-├── README.md                      # User-facing quick start
-├── pyproject.toml                 # Python deps
-├── Makefile                       # Main commands
+├── CLAUDE.md
+├── PROJECT.md
+├── IMPROVEMENT.md                                     ← NEW (v3.0 roadmap)
+├── README.md
+├── pyproject.toml
+├── Makefile
 ├── uv.lock
 │
 ├── .claude/
-│   ├── commands/                  # Slash commands
+│   ├── commands/
 │   │   ├── compose.md
 │   │   ├── arrange.md
 │   │   ├── critique.md
@@ -363,74 +593,84 @@ yao/
 │   │   ├── explain.md
 │   │   ├── regenerate-section.md
 │   │   ├── sketch.md
+│   │   ├── reharmonize.md                             ← NEW
+│   │   ├── modulate.md                                ← NEW
+│   │   ├── blend-genres.md                            ← NEW
 │   │   └── render.md
-│   ├── agents/                    # Subagent definitions
+│   ├── agents/
 │   │   ├── composer.md
 │   │   ├── harmony-theorist.md
 │   │   ├── rhythm-architect.md
 │   │   ├── orchestrator.md
 │   │   ├── adversarial-critic.md
 │   │   ├── mix-engineer.md
+│   │   ├── modulation-planner.md                      ← NEW
 │   │   └── producer.md
-│   ├── skills/                    # Knowledge modules
-│   │   ├── genres/                # 30+ paired md/yaml files
-│   │   │   ├── bebop-jazz.md
-│   │   │   ├── bebop-jazz.yaml
-│   │   │   ├── jpop-ballad.md
-│   │   │   ├── jpop-ballad.yaml
-│   │   │   ├── classical-romantic.md
-│   │   │   ├── classical-romantic.yaml
-│   │   │   ├── lofi-hiphop.md
-│   │   │   ├── lofi-hiphop.yaml
-│   │   │   ├── ... (26+ more)
-│   │   │   └── japanese-traditional.yaml
+│   ├── skills/
+│   │   ├── genres/                                    # 30+ paired md/yaml files
 │   │   ├── theory/
 │   │   │   ├── voice-leading.md
-│   │   │   ├── reharmonization.md
+│   │   │   ├── reharmonization.md                     ← NEW
+│   │   │   ├── modulation.md                          ← NEW
 │   │   │   ├── counterpoint.md
 │   │   │   ├── modal-interchange.md
 │   │   │   ├── phrase-structure.md
 │   │   │   └── cadence-design.md
 │   │   ├── instruments/
+│   │   │   └── idiomatic-gestures.md                  ← NEW
 │   │   └── psychology/
-│   ├── guides/                    # Developer guides
+│   ├── guides/
 │   │   ├── architecture.md
 │   │   ├── coding-conventions.md
 │   │   ├── music-engineering.md
 │   │   ├── melody-pipeline.md
 │   │   ├── genre-profiles.md
+│   │   ├── combination-stack.md                       ← NEW
+│   │   ├── chord-aware-melody.md                      ← NEW
+│   │   ├── voice-leading-optimizer.md                 ← NEW
+│   │   ├── reharmonization-engine.md                  ← NEW
+│   │   ├── genre-vector-space.md                      ← NEW
+│   │   ├── rhythm-markov.md                           ← NEW
+│   │   ├── listening-agents.md                        ← NEW
 │   │   ├── testing.md
 │   │   └── workflow.md
-│   └── hooks/                     # Auto-execution hooks
+│   └── hooks/
 │
 ├── specs/
-│   ├── projects/                  # User compositions
-│   ├── templates/                 # Spec templates
-│   └── fragments/                 # Reusable spec fragments
+│   ├── projects/
+│   ├── templates/
+│   │   ├── ...
+│   │   ├── jazz-blend-cinematic.yaml                  ← NEW (genre blending)
+│   │   └── reharmonization-demo.yaml                  ← NEW
+│   └── fragments/
 │
 ├── src/
 │   ├── yao/
 │   │   ├── __init__.py
-│   │   ├── errors.py              # Custom exception hierarchy
-│   │   ├── types.py               # Domain type aliases
-│   │   ├── constants/             # Layer 0
+│   │   ├── errors.py
+│   │   ├── types.py
+│   │   ├── constants/
 │   │   │   ├── instruments.py
 │   │   │   ├── scales.py
 │   │   │   ├── chords.py
 │   │   │   ├── dynamics.py
 │   │   │   ├── midi.py
-│   │   │   ├── melodic_profiles/  # 30+ YAML files
-│   │   │   ├── rhythms/           # 30+ rhythm templates
-│   │   │   └── grooves.py         # GrooveProfile presets
-│   │   ├── schema/                # Layer 1
+│   │   │   ├── melodic_profiles/
+│   │   │   ├── rhythms/
+│   │   │   ├── grooves.py
+│   │   │   ├── harmonic_devices/                      ← NEW (15+ YAMLs)
+│   │   │   └── idiomatic_gestures/                    ← NEW (15+ YAMLs)
+│   │   ├── schema/
 │   │   │   ├── composition.py
 │   │   │   ├── trajectory.py
 │   │   │   ├── constraints.py
 │   │   │   ├── negative_space.py
 │   │   │   ├── references.py
 │   │   │   ├── production.py
-│   │   │   └── melodic_profile.py
-│   │   ├── ir/                    # Layer 3
+│   │   │   ├── melodic_profile.py
+│   │   │   ├── genre_blend.py                         ← NEW
+│   │   │   └── features.py                            ← NEW (feature flags)
+│   │   ├── ir/
 │   │   │   ├── score_ir.py
 │   │   │   ├── note.py
 │   │   │   ├── motif.py
@@ -441,70 +681,102 @@ yao/
 │   │   │   ├── phrase.py
 │   │   │   ├── skeleton.py
 │   │   │   ├── melody_line.py
-│   │   │   └── harmonic_context.py
-│   │   ├── generators/            # Layer 2
+│   │   │   ├── harmonic_context.py
+│   │   │   ├── harmonic_melody_constraints.py         ← NEW
+│   │   │   ├── phrase_shape.py                        ← NEW
+│   │   │   ├── theme_recurrence.py                    ← NEW
+│   │   │   ├── genre_vector.py                        ← NEW
+│   │   │   ├── polyrhythm.py                          ← NEW
+│   │   │   ├── rhythm_event.py                        ← NEW (functional labels)
+│   │   │   └── motif_network.py
+│   │   ├── coupling/                                  ← NEW (Layer 2.5)
+│   │   │   ├── __init__.py
+│   │   │   ├── harmonic_melody.py
+│   │   │   ├── voice_leading.py
+│   │   │   ├── reharmonization.py
+│   │   │   ├── modulation.py
+│   │   │   ├── genre_vector.py
+│   │   │   ├── rhythm_markov.py
+│   │   │   ├── polyrhythm.py
+│   │   │   ├── theme_recurrence.py
+│   │   │   ├── phrase_shape.py
+│   │   │   ├── listening_dialog.py
+│   │   │   └── idiomatic_gestures.py
+│   │   ├── generators/
 │   │   │   ├── base.py
 │   │   │   ├── registry.py
 │   │   │   ├── rule_based.py
 │   │   │   ├── stochastic.py
-│   │   │   └── melody/            # 4-layer pipeline
-│   │   │       ├── __init__.py
-│   │   │       ├── phrase_aware.py
-│   │   │       ├── motif_developer.py     # M1
-│   │   │       ├── skeleton.py             # M2
-│   │   │       ├── selector.py             # HarmonicMelodicSelector
-│   │   │       ├── outline.py              # OutlineGenerator
-│   │   │       ├── surface.py              # M3
-│   │   │       ├── ornament.py             # M4
-│   │   │       └── groove.py               # GrooveProfile application
-│   │   ├── perception/            # Layer 4
-│   │   ├── render/                # Layer 5
-│   │   ├── verify/                # Layer 6
+│   │   │   ├── markov_v2.py                           ← NEW (n-gram lift)
+│   │   │   ├── rhythm_markov.py                       ← NEW
+│   │   │   ├── polyrhythm.py                          ← NEW
+│   │   │   ├── markov_models/
+│   │   │   │   ├── pitch/                             ← grows from 2 → 15+
+│   │   │   │   ├── rhythm/                            ← NEW (12+)
+│   │   │   │   └── contour/                           ← NEW (3+)
+│   │   │   └── melody/
+│   │   ├── perception/
+│   │   ├── render/
+│   │   ├── verify/
 │   │   │   ├── music_lint.py
 │   │   │   ├── analyzer.py
 │   │   │   ├── evaluator.py
 │   │   │   ├── diff.py
 │   │   │   ├── constraints.py
 │   │   │   ├── genre_critic.py
-│   │   │   ├── conformity.py     # KL divergence, motif coherence
-│   │   │   └── memorability.py
-│   │   ├── reflect/               # Layer 7
+│   │   │   ├── conformity.py
+│   │   │   ├── memorability.py
+│   │   │   ├── melody_harmony_alignment.py            ← NEW
+│   │   │   ├── voice_leading_smoothness.py            ← NEW
+│   │   │   └── polyrhythm_coherence.py                ← NEW
+│   │   ├── reflect/
 │   │   └── conductor/
-│   │       ├── conductor.py
-│   │       ├── feedback.py
-│   │       ├── result.py
-│   │       ├── intent_parser.py
-│   │       └── intent_to_spec.py
 │   └── cli/
 │
 ├── references/
-│   ├── catalog.yaml
-│   ├── midi/
-│   ├── musicxml/
-│   ├── motifs/                    # Reusable motif library
-│   │   ├── catalog.yaml
-│   │   └── *.json
-│   └── extracted_features/
-│
-├── outputs/                       # Generated artifacts (git-ignored)
-├── soundfonts/                    # Audio rendering (git-ignored)
+├── outputs/
+├── soundfonts/
 ├── tests/
 │   ├── unit/
-│   │   ├── generators/
-│   │   │   └── melody/
-│   │   ├── schema/
+│   │   ├── coupling/                                  ← NEW
+│   │   │   ├── test_harmonic_melody.py
+│   │   │   ├── test_voice_leading.py
+│   │   │   ├── test_reharmonization.py
+│   │   │   ├── test_modulation.py
+│   │   │   ├── test_genre_vector.py
+│   │   │   ├── test_rhythm_markov.py
+│   │   │   ├── test_theme_recurrence.py
+│   │   │   ├── test_phrase_shape.py
+│   │   │   └── test_listening_dialog.py
 │   │   ├── ir/
+│   │   ├── generators/
+│   │   ├── schema/
 │   │   ├── verify/
 │   │   ├── conductor/
 │   │   └── reflect/
 │   ├── integration/
 │   ├── music_constraints/
-│   ├── scenarios/                 # Genre-specific scenario tests
-│   ├── golden/                    # Snapshot tests
+│   ├── scenarios/
+│   │   ├── test_chord_aware_melody.py                 ← NEW
+│   │   ├── test_voice_leading_quality.py              ← NEW
+│   │   ├── test_reharmonization_diversity.py          ← NEW
+│   │   ├── test_genre_blend_output.py                 ← NEW
+│   │   └── test_listening_agent_dialog.py             ← NEW
+│   ├── golden/
 │   └── helpers.py
-├── tools/                         # Architecture lint, dev tools
+├── tools/
+│   ├── architecture_lint.py
+│   ├── extract_groove.py                              ← NEW
+│   └── learn_markov_from_corpus.py                    ← NEW
 └── docs/
-    ├── design/                    # ADR-style decision records
+    ├── design/
+    │   ├── 0010-chord-aware-melody.md                 ← NEW (ADR)
+    │   ├── 0011-voice-leading-optimizer.md            ← NEW
+    │   ├── 0012-reharmonization-engine.md             ← NEW
+    │   ├── 0013-genre-vector-space.md                 ← NEW
+    │   ├── 0014-rhythm-markov-pipeline.md             ← NEW
+    │   ├── 0015-listening-agents.md                   ← NEW
+    │   └── 0016-theme-recurrence.md                   ← NEW
     ├── tutorials/
     ├── reference/
     └── glossary.md
@@ -514,101 +786,108 @@ yao/
 
 ## 5. The Orchestra: Subagent Design
 
-Each subagent has its own context, tool permissions, and evaluation axes. They operate independently and are integrated by the Producer.
+Subagent responsibilities are extended in v3.0 to consume Combination-Stack outputs. The set of subagents and their high-level roles are unchanged; the inputs and outputs are richer.
 
 ### 5.1 Composer
 
 - **Responsibility**: Generate the phrase plan, motifs, and primary melodic line via the 4-layer melody pipeline
-- **Inputs**: `intent.md`, `composition.yaml`, `trajectory.yaml`, `references.yaml`, the active `MelodicProfile`
-- **Outputs**: A populated Score IR containing `PhrasePlan`, `Skeleton`, `MelodyLine`, `OrnamentedMelodyLine`, and motif assignments
+- **Inputs (v3.0)**: `intent.md`, `composition.yaml`, `trajectory.yaml`, `references.yaml`, the active `MelodicProfile` *(possibly a blended `GenreVector`)*, the `ThemeRecurrenceGraph`, and `HarmonicMelodyConstraints` from the Coupling Layer
+- **Outputs**: Score IR containing `PhrasePlan`, `Skeleton` (now constrained), `MelodyLine`, `OrnamentedMelodyLine`
 - **Forbidden**: Instrument selection and final voicing (Orchestrator's domain)
-- **Pipeline ownership**: Owns Layer M1 (phrase planning) and orchestrates calls to M2–M4
-- **Evaluation axes**: Motif memorability, balance of repetition and variation, fidelity to the trajectory, motif coherence score ≥ 0.5
+- **Pipeline ownership**: Owns Layer M1 and orchestrates calls to M2–M4
+- **Evaluation axes**: Motif memorability, balance of repetition and variation, fidelity to the trajectory, motif coherence ≥ 0.5, **NEW: melody–harmony alignment ≥ 0.7**
 
 ### 5.2 Harmony Theorist
 
 - **Responsibility**: Design chord progressions, modulations, secondary chords, cadences; supply `HarmonicContext` for each metric position
-- **Inputs**: Composer's phrase plan, `composition.yaml` harmony section, the genre's `cadence_patterns`
-- **Outputs**: A complete chord progression IR with functional notation and concrete voicing candidates; a per-beat `HarmonicContext` series
-- **Critical role for the melody pipeline**: The Composer's Layer M2 cannot run without the Harmony Theorist's `HarmonicContext`
-- **Evaluation axes**: Functional consistency, tension resolution, genre fit, voice-leading smoothness
+- **Inputs**: Composer's phrase plan, `composition.yaml` harmony section, the genre's `cadence_patterns`, and *(NEW)* `modulation_preferences`
+- **Outputs**: A complete chord progression IR; per-beat `HarmonicContext`; **NEW: a populated `HarmonyPlan.modulations`**
+- **Critical role for v3.0**: The Composer's M2 cannot run without `HarmonicContext`, AND the Coupling Layer's `derive_constraints()` cannot run without it
+- **Evaluation axes**: Functional consistency, tension resolution, genre fit, voice-leading smoothness, **NEW: modulation appropriateness**
 
 ### 5.3 Rhythm Architect
 
-- **Responsibility**: Design drum patterns, grooves, syncopation, fills; provide `GrooveProfile` for the piece
-- **Inputs**: `composition.yaml` rhythm section, the genre's `rhythm_templates` and `groove_profile`
-- **Outputs**: Rhythm IR (rhythmic placement for all instruments), the active `GrooveProfile`
-- **Evaluation axes**: Groove, human feel, contrast between sections, swing-ratio fidelity to genre
+- **Responsibility**: Design drum patterns, grooves, syncopation, fills; provide `GrooveProfile`
+- **Inputs**: `composition.yaml` rhythm section, the genre's `rhythm_templates`, `groove_profile`, *(NEW)* `rhythm_markov_model`, *(NEW)* `polyrhythm_default`
+- **Outputs**: Rhythm IR (placement for all instruments), the active `GrooveProfile`, *(NEW)* `PolyrhythmTexture` when enabled
+- **Evaluation axes**: Groove, human feel, contrast between sections, swing-ratio fidelity, **NEW: polyrhythm coherence when enabled**
 
 ### 5.4 Orchestrator
 
 - **Responsibility**: Assign instruments, decide voicings, manage range placement, design countermelodies
 - **Inputs**: Outputs from Composer, Harmony, and Rhythm
-- **Outputs**: Complete Score IR with all parts assigned to instruments
-- **Evaluation axes**: Frequency-space collision avoidance, idiomatic instrument use, textural density, countermelody quality
+- **Outputs**: Complete Score IR with all parts assigned; **NEW: voicings produced by the Voice-Leading Optimizer**
+- **Evaluation axes**: Frequency-space collision avoidance, idiomatic instrument use, textural density, **NEW: voice-leading smoothness ≥ 0.75**
 
 ### 5.5 Adversarial Critic
 
 - **Responsibility**: Discover and report every weakness — never praises
-- **Inputs**: Any generated artifact at any stage; the genre's `anti_patterns` list
-- **Outputs**: `critique.md` with severity-rated issues (`critical`, `major`, `minor`, `hint`); structured fix suggestions
-- **Genre specialization**: Each genre Skill provides anti-pattern definitions specific to that genre. The Critic loads these via `GenreCritic` and applies them in addition to universal critiques.
-- **Evaluation axes**: Comprehensiveness and specificity of issue detection
+- **Inputs**: Any generated artifact; the genre's `anti_patterns` list; **NEW: the active `CouplingStyle` for context-appropriate critique**
+- **Outputs**: `critique.md` with severity-rated issues; structured fix suggestions
+- **Genre specialization**: Each genre Skill provides anti-pattern definitions; the Critic loads via `GenreCritic`
+- **NEW v3.0 critique categories**: melody–harmony alignment, voice-leading violations, reharmonization-melody clashes, genre-blend incoherence, listening-dialog conversational flow
 
 ### 5.6 Mix Engineer
 
-- **Responsibility**: Stereo placement, dynamics, frequency-masking resolution, loudness management
+- **Responsibility**: Stereo placement, dynamics, frequency masking, loudness
 - **Inputs**: Orchestrator's output + production parameters
-- **Outputs**: Mix instructions (per-track EQ/compression/reverb/pan settings)
-- **Evaluation axes**: LUFS target compliance, frequency balance, stereo width
+- **Outputs**: Mix instructions
+- **Evaluation axes**: LUFS target, frequency balance, stereo width
 
-### 5.7 Producer
+### 5.7 Modulation Planner *(NEW in v3.0)*
 
-- **Responsibility**: Overall integration, prioritization, dialogue with the conductor (human), final decisions
+- **Responsibility**: Plan key modulations across the piece per the trajectory, song form, and genre preferences
+- **Inputs**: `composition.yaml`, `trajectory.yaml`, active `MelodicProfile.modulation_preferences`
+- **Outputs**: A `ModulationPlan` consumed by the Harmony Theorist when populating `HarmonyPlan.modulations`
+- **Evaluation axes**: Voice leading at modulation points, distance-from-tonic appropriateness, conventional vs. distant modulation per genre
+
+### 5.8 Producer
+
+- **Responsibility**: Overall integration, prioritization, dialogue with the human, final decisions
 - **Inputs**: All subagent outputs + human feedback + Critic's reports
 - **Outputs**: Final production decisions, instructions for the next iteration
-- **Privilege**: The only subagent that can reject or send back another subagent's output
-- **Evaluation axes**: Fidelity to `intent.md`, balanced integration of all subagents' work
+- **Privilege**: The only subagent that can reject or send back another's output
+- **Evaluation axes**: Fidelity to `intent.md`, balanced integration
 
 ---
 
 ## 6. The 6-Phase Compositional Cognitive Protocol
 
-The `/compose` and `/arrange` commands force Claude Code to execute the following six phases **in order**.
+The `/compose` and `/arrange` commands force Claude Code to execute six phases **in order**. v3.0 inserts Combination-Stack steps into Phases 3 and 5; the high-level structure is unchanged.
 
 ### Phase 1: Intent Crystallization
 
-From user input (dialogue, YAML, sketch, or natural-language description), parse into a `StructuredIntent` and articulate the essence of the piece in 1–3 sentences. Commit to `intent.md`. The intent parser handles complex descriptions and produces multi-dimensional emotional and stylistic vectors (Section 11.3).
+Parse user input into a `StructuredIntent` and articulate the essence of the piece in 1–3 sentences. Commit to `intent.md`. The intent parser produces multi-dimensional emotional and stylistic vectors.
 
 ### Phase 2: Architectural Sketch
 
-Draw the time-axis trajectories (tension / density / valence / predictability) **first**. Select or blend the appropriate `MelodicProfile` for the genre. Complete `trajectory.yaml`. No notes yet.
+Draw the time-axis trajectories first. Select or blend the appropriate `MelodicProfile`. Complete `trajectory.yaml`. **NEW**: when `genre_blend` is specified, compute the blended `GenreVector` and project to a synthesized profile.
 
 ### Phase 3: Skeletal Generation
 
-The Composer produces 5–10 candidate phrase plans + motif germs. Each candidate is run through Layer M1 only (no skeleton or surface yet). Variation comes from different seed values and motif choices.
+The Composer produces 5–10 candidate phrase plans + motif germs. **NEW**: simultaneously, the Modulation Planner drafts a `ModulationPlan`, the Theme Recurrence Graph is computed, and the Harmony Theorist drafts the chord progression. The Coupling Layer derives `HarmonicMelodyConstraints` for each candidate.
 
 ### Phase 4: Critic-Composer Dialogue
 
-The Adversarial Critic attacks all candidates with both universal and genre-specific anti-patterns. The Producer judges and selects the strongest candidate, or commissions a hybrid that synthesizes strengths.
+The Adversarial Critic attacks all candidates with universal and genre-specific anti-patterns *(NEW: including melody–harmony alignment violations and reharmonization clashes)*. The Producer judges and selects the strongest candidate, or commissions a hybrid.
 
 ### Phase 5: Detailed Filling
 
-The chosen phrase plan flows through Layers M2 → M3 → M4. The Harmony Theorist supplies harmonic context. The Rhythm Architect supplies rhythm and groove templates. The Orchestrator assigns instruments. Every decision is recorded in provenance.
+The chosen phrase plan flows through M2 → M3 → M4. **NEW**: M2 consumes `HarmonicMelodyConstraints`, the Voice-Leading Optimizer produces voicings, the Rhythm Markov pipeline (or static templates) realizes rhythm, the Reharmonization Engine optionally enriches harmony, and Listening-Agent Dialog (when enabled) runs in turn-based order.
 
 ### Phase 6: Listening Simulation
 
-The Perception Substitute Layer "listens" to the finished piece, computing genre conformity score, motif coherence score, and memorability proxy. Deviation from `intent.md` is measured. If deviation exceeds threshold, the Conductor identifies the offending section and triggers regeneration of just that section. Final outputs: `critique.md`, `analysis.json`, `evaluation.json`, `provenance.json`.
+The Perception Substitute Layer "listens" to the finished piece. **NEW**: in addition to the existing scores, it computes melody–harmony alignment, voice-leading smoothness, and polyrhythm coherence. Out-of-range scores trigger targeted regeneration.
 
 ---
 
 ## 7. Parameter Specifications
 
-YaO fully describes a piece using **9 files**. All are version-controlled.
+YaO fully describes a piece using **11 files** in v3.0 (was 9 in v2.x). All are version-controlled.
 
 ### 7.1 `intent.md` — Natural-language intent
 
-Free-form prose stating the essence of the piece in 1–3 sentences.
+Free-form prose stating the essence in 1–3 sentences.
 
 ### 7.2 `composition.yaml` — Composition parameters
 
@@ -621,10 +900,11 @@ mode: "natural_minor"
 tempo_bpm: 90
 time_signature: "4/4"
 
-genre:
-  primary: lofi_hiphop
-  secondary: jazz_modal
-  blend_ratio: 0.7
+# v3.0: either genre.primary/secondary/blend_ratio, OR genre_blend list
+genre_blend:
+  - {profile: lofi_hiphop, weight: 0.6}
+  - {profile: jazz_modal, weight: 0.3}
+  - {profile: cinematic, weight: 0.1}
 
 instruments:
   - {name: piano, role: melody}
@@ -641,6 +921,18 @@ generation:
   strategy: phrase_aware
   seed: 42
   temperature: 0.5
+
+# NEW v3.0: feature flags
+features:
+  chord_aware_melody: true
+  voice_leading_optimization: true
+  reharmonization: false
+  modulation_planner: false
+  listening_agents: false
+  genre_blend: true
+  rhythm_markov: false
+  polyrhythm: false
+  theme_recurrence: true
 ```
 
 ### 7.3 `trajectory.yaml` — Time-axis trajectories
@@ -661,17 +953,41 @@ What is *not* played.
 
 ### 7.8 `melodic-profile.override.yaml` — Optional profile overrides
 
+### 7.9 `harmonic-devices.yaml` *(NEW in v3.0)* — Harmonic device selection
+
 ```yaml
-override:
-  base: bebop_jazz
-  modifications:
-    chromaticism_level: 0.85
-    motif_recurrence_rate: 0.6
+devices:
+  - {name: jazz_turnaround_I_VI_II_V, placement: section_end, sections: [verse, chorus]}
+  - {name: gospel_walkup, placement: intro_to_verse, sections: [intro]}
+  - {name: coltrane_giant_steps_cycle, placement: bridge, sections: [bridge]}
+
+reharmonization:
+  intensity: 0.4
+  preserve_melody: true
+  operations:
+    - secondary_dominant
+    - tritone_substitution
+    - ii_V_insertion
 ```
 
-### 7.9 `provenance.json` — Append-only generation history
+### 7.10 `modulation-plan.yaml` *(NEW in v3.0)* — Modulation specifications
 
-Auto-generated. Records every decision at every layer (M1–M4 for melody, plus harmony, rhythm, orchestration). Queryable via `/explain`.
+```yaml
+modulations:
+  - bar: 32
+    from_key: "D minor"
+    to_key: "F major"
+    strategy: pivot_chord
+    pivot_chord: "F"
+  - bar: 48
+    from_key: "F major"
+    to_key: "D minor"
+    strategy: direct
+```
+
+### 7.11 `provenance.json` — Append-only generation history
+
+Auto-generated. Records every decision at every layer (M1–M4 + Coupling Layer modules). Queryable via `/explain`.
 
 ---
 
@@ -681,15 +997,18 @@ Auto-generated. Records every decision at every layer (M1–M4 for melody, plus 
 |---|---|---|
 | `/compose <project>` | Generate a new piece | Composer → all |
 | `/arrange <project>` | Arrange an existing piece | Orchestrator + Critic |
-| `/critique <iteration>` | Critique an artifact | Adversarial Critic with genre specialization |
+| `/critique <iteration>` | Critique an artifact | Adversarial Critic |
 | `/regenerate-section <project> <section>` | Regenerate one section | Composer + Producer |
 | `/morph <from> <to> <bars>` | Interpolate two musical states | Composer + Orchestrator |
 | `/improvise <input>` | Real-time accompaniment | Composer + Rhythm |
-| `/explain <element>` | Trace generation decisions | Producer (provenance lookup) |
+| `/explain <element>` | Trace generation decisions | Producer (provenance) |
 | `/diff <iter_a> <iter_b>` | Show musical diff | Verifier |
 | `/render <iteration>` | MIDI to audio + score | Mix Engineer |
-| `/sketch` | Sketch-to-spec dialogue mode | Producer + intent parser |
+| `/sketch` | Sketch-to-spec dialogue | Producer + intent parser |
 | `/conduct "<description>"` | Full agentic pipeline from natural language | All |
+| `/reharmonize <iteration> <intensity>` *(NEW)* | Apply reharmonization to existing piece | Harmony Theorist + Critic |
+| `/modulate <iteration> <bar> <to_key>` *(NEW)* | Add a modulation | Modulation Planner + Harmony |
+| `/blend-genres <genres...>` *(NEW)* | Generate using a genre blend | Composer (with `GenreVector`) |
 
 ---
 
@@ -699,24 +1018,24 @@ Auto-generated. Records every decision at every layer (M1–M4 for melody, plus 
 
 Each genre Skill consists of:
 
-- A **Markdown file** with: overview, historical context, characteristic features (form, tempo, harmony, melody, rhythm, instrumentation, production), anti-patterns, required reference works, implementation hints, related genres, sub-style notes, and music-theoretical citations
-- A **YAML companion** containing the complete `MelodicProfile`
-- A **reference catalog entry** in `references/catalog.yaml`
-- A **scenario test** in `tests/scenarios/test_<genre>.py`
+- A Markdown file with overview, historical context, characteristic features (form, tempo, harmony, melody, rhythm, instrumentation, production), anti-patterns, required reference works, implementation hints, related genres, sub-style notes, and music-theoretical citations
+- A YAML companion with a complete `MelodicProfile` *(now including v3.0 fields: `melody_markov_model`, `rhythm_markov_model`, `harmonic_system`, `modulation_preferences`, `polyrhythm_default`, `idiomatic_gesture_intensity`, `coupling_style`)*
+- A reference catalog entry in `references/catalog.yaml`
+- A scenario test in `tests/scenarios/test_<genre>.py`
 
 Adding a new genre requires all four artifacts.
 
 ### 9.2 Theory Skills
 
-Harmony, counterpoint, reharmonization, modal interchange, phrase structure, cadence design.
+Harmony, counterpoint, **reharmonization** *(NEW)*, **modulation** *(NEW)*, modal interchange, phrase structure, cadence design.
 
 ### 9.3 Instrument Skills
 
-Per-instrument range, idiomatic playing techniques, timbre, physical constraints, characteristic phrase patterns.
+Per-instrument range, idiomatic playing techniques, timbre, physical constraints, characteristic phrase patterns. **NEW**: `idiomatic-gestures.md` documents the `IdiomaticGesture` library and how the M4 layer applies it.
 
 ### 9.4 Psychology Skills
 
-Empirical mappings from music psychology (Juslin, Huron, Krumhansl). Includes `intent-parsing.md` documenting how natural-language descriptions map to `StructuredIntent`.
+Empirical mappings from music psychology (Juslin, Huron, Krumhansl). Includes `intent-parsing.md`.
 
 ---
 
@@ -725,10 +1044,12 @@ Empirical mappings from music psychology (Juslin, Huron, Krumhansl). Includes `i
 | Hook | Timing | Action |
 |---|---|---|
 | `pre-commit-lint` | Before `git commit` | Music21 lint, YAML schema validation, melodic profile validation, architecture lint |
-| `post-generate-render` | After generation completes | Auto-render MIDI to audio and score |
-| `post-generate-critique` | After generation completes | Always invoke Adversarial Critic with genre specialization |
+| `post-generate-render` | After generation | Auto-render MIDI to audio and score |
+| `post-generate-critique` | After generation | Always invoke Adversarial Critic with genre specialization |
 | `update-provenance` | After any change | Update Provenance Graph |
-| `genre-skill-validate` | When `.claude/skills/genres/*.md` changes | Verify paired YAML exists, schema validates, anti-patterns are well-formed |
+| `genre-skill-validate` | When `.claude/skills/genres/*.md` changes | Verify paired YAML, schema, anti-patterns |
+| `coupling-stack-validate` *(NEW)* | When `src/yao/coupling/*.py` changes | Layer 2.5 import-direction lint, feature-flag presence check |
+| `markov-model-validate` *(NEW)* | When `markov_models/**/*.yaml` changes | Schema validation, license attribution check, distribution sanity check |
 
 ---
 
@@ -745,34 +1066,20 @@ constraints:
   - {type: prefer, rule: "max_density:4", scope: "section:intro", severity: hint}
 ```
 
-The constraint checker runs at Layer 6 and reports violations to the Conductor.
-
 ### 11.2 The Provenance Graph
 
-`provenance.json` is append-only. Every entry records timestamp, layer, decision, input, output, rationale, and agent.
-
-```json
-{
-  "timestamp": "2026-05-07T10:23:11Z",
-  "layer": "M2_skeleton",
-  "decision": "select_target_pitch",
-  "input": {"phrase_id": "p3", "current_chord": "Cmaj7"},
-  "output": {"target_pitch": 67, "chord_relation": "5th"},
-  "rationale": "phrase function ANSWER + chord_tone_targeting=0.75 + voice_leading_target",
-  "agent": "composer-subagent"
-}
-```
+`provenance.json` is append-only. Every entry records timestamp, layer, decision, input, output, rationale, agent. **NEW**: `caused_by` edges form a causal DAG queryable via `get_causes`/`get_effects`/`trace_ancestry` (already shipped in v2.x; expanded coverage in v3.0 to all Coupling-Stack decisions).
 
 ### 11.3 The Intent Parser
 
 ```python
 @dataclass(frozen=True)
 class StructuredIntent:
-    valence: float        # -1.0 to +1.0
-    arousal: float        # 0.0 to 1.0
-    tension: float        # 0.0 to 1.0
-    warmth: float         # -1.0 to +1.0
-    nostalgia: float      # 0.0 to 1.0
+    valence: float
+    arousal: float
+    tension: float
+    warmth: float
+    nostalgia: float
     genre_candidates: list[tuple[str, float]]
     use_case: str
     duration_seconds: float
@@ -783,38 +1090,34 @@ class StructuredIntent:
     raw_description: str
 ```
 
-The parser uses a hybrid approach: rule-based keyword extraction first, then Claude API call for nuanced interpretation, with confidence-weighted merge. Output flows through `IntentToSpec` to produce a complete `CompositionSpec`.
-
-The intent parser also performs **mode selection** by mapping `valence + warmth + nostalgia` to the appropriate scale (Dorian, Phrygian, Lydian, Mixolydian, etc.) per the genre's `scale_preferences`.
+The parser uses a hybrid approach: rule-based keyword extraction first, then Claude API call for nuanced interpretation, with confidence-weighted merge.
 
 ### 11.4 The Genre Critic
 
+Each genre Skill provides `anti_patterns`; the Critic loads and applies them.
+
 ```python
 class GenreCritic:
-    def critique(self, score: ScoreIR, genre: str) -> CritiqueReport:
-        skill = self.skills.load(genre)
-        anti_patterns = skill.parse_anti_patterns()
-        issues = []
-        for pattern in anti_patterns:
-            check = self._check_pattern(score, pattern)
-            if check.violated:
-                issues.append(Issue(
-                    severity=pattern.severity,
-                    category=pattern.category,
-                    description=pattern.description,
-                    location=check.location,
-                    suggestion=pattern.fix_suggestion,
-                ))
-        return CritiqueReport(genre=genre, issues=issues)
+    def critique(self, score: ScoreIR, genre: str) -> CritiqueReport: ...
 ```
 
 When the Critic flags `critical` issues, the Conductor consults the Skill's fix recipes and adapts the spec before regenerating.
+
+### 11.5 The Combination Stack *(NEW in v3.0)*
+
+The Combination Stack (Section 3.4) is a coordinated set of seven modules in Layer 2.5. They share three architectural conventions:
+
+1. **All inputs are immutable IR objects.** A coupling module never mutates its inputs.
+2. **All outputs are new IR objects with full provenance.** Every decision is recorded with `caused_by` linking back to the input decisions.
+3. **All modules are feature-flagged.** Each module checks `composition.features.<flag>` and falls through silently when disabled. The default flags are conservative (only the P0 wins enabled); users opt into experimental modules.
+
+A Coupling-Stack module's import surface is restricted by `arch-lint`: it may import from Layers 0, 1, 2, and other Coupling modules, but not from Layers 3+.
 
 ---
 
 ## 12. Quality Assurance: Evaluation Metrics
 
-YaO evaluates artifacts across **eight dimensions**. Scores are saved to `evaluation.json`.
+YaO evaluates artifacts across **eleven dimensions** in v3.0 (was eight in v2.x). Scores are saved to `evaluation.json`.
 
 ### 12.1 Structural Evaluation
 Section contrast, climax position, density-curve fidelity, repetition balance, loopability.
@@ -825,20 +1128,29 @@ Range fit, motif memorability, singability, phrase-ending closure, contour varia
 ### 12.3 Harmonic Evaluation
 Chord function consistency, tension resolution, harmonic complexity vs. parameters, cadence strength.
 
-### 12.4 Arrangement Evaluation (when applicable)
+### 12.4 Arrangement Evaluation
 Instrument-role clarity, frequency-collision risk, original-preservation rate (arrangement mode), transformation strength.
 
 ### 12.5 Acoustic Evaluation
 BPM match, beat stability, LUFS target, spectral balance, onset density.
 
-### 12.6 Genre Conformity (NEW)
-KL divergence between actual and target distributions for: interval distribution, phrase length distribution, chord-tone targeting rate, syncopation level. Aggregated as `overall_genre_conformity` (target ≥ 0.7).
+### 12.6 Genre Conformity
+KL divergence vs. target distributions for interval distribution, phrase length, chord-tone targeting, syncopation. Aggregated as `overall_genre_conformity` ≥ 0.7.
 
-### 12.7 Motif Coherence (NEW)
-Quantifies thematic unity through motif recurrence and variation balance. Each genre has a target range (lo-fi: 0.7–0.9; bebop: 0.3–0.5; classical: 0.5–0.7).
+### 12.7 Motif Coherence
+Quantifies thematic unity through motif recurrence and variation balance. Per-genre target ranges.
 
-### 12.8 Memorability Proxy (NEW)
-Combines pitch-sequence autocorrelation, contour predictability, and average cadence strength.
+### 12.8 Memorability Proxy
+Pitch-sequence autocorrelation, contour predictability, average cadence strength.
+
+### 12.9 Melody–Harmony Alignment *(NEW)*
+For each note, compute the `score_pitch()` of its current chord constraints. Aggregate across the piece. Target: ≥ 0.7 average, ≥ 0.85 on downbeats. This is the metric most closely correlated with subjective "musicality" and is the primary signal that chord-aware melody is working.
+
+### 12.10 Voice-Leading Smoothness *(NEW)*
+Total voice motion across consecutive chords / theoretical minimum (Hungarian-optimal). Target: ≤ 1.5× minimum for `COMMON_PRACTICE`, ≤ 2.0× for `JAZZ`, ≤ 3.0× for `MODAL`.
+
+### 12.11 Polyrhythm Coherence *(NEW)*
+When polyrhythm is enabled: each layer's accent pattern should be detectable independently while the ensemble retains a meta-pulse. Computed via cross-correlation of layer accent series. Target: ≥ 0.6.
 
 Each metric has a numeric target and tolerance. Out-of-range values trigger Adversarial Critic intervention.
 
@@ -849,66 +1161,86 @@ Each metric has a numeric target and tolerance. Out-of-range values trigger Adve
 ### Past Phases (complete)
 
 - **Phase 0** (2 weeks): Project structure, MVP skeleton, basic MIDI generation, SoundFont rendering
-- **Phase 1** (1 month): Parameter-driven symbolic composition; rule_based + stochastic generators; Conductor feedback loop; provenance; CLI; Claude Code commands and agent definitions; constraint system; section regeneration; 226+ tests
-- **Phase 2** (completed 2026-05-07): Phrase-first generation foundation — `MelodicProfile` schema + 5 Tier-1 genre profiles (bebop_jazz, j_pop_ballad, classical_romantic, lofi_hiphop, rock_classic); `Phrase`, `PhrasePlan`, `Skeleton`, `MelodyLine`, `HarmonicContext` IR types; 4-layer melody pipeline (M1: MotifDevelopmentPlanner, M2: SkeletonGenerator, M3: SurfaceRealizer, M4: OrnamentEngine); `phrase_aware` generator registered; profile blending; 176 new tests (2978 total)
+- **Phase 1** (1 month): Parameter-driven symbolic composition; rule_based + stochastic generators; Conductor feedback loop; provenance; CLI; constraint system; section regeneration
+- **Phase 2** (completed 2026-05-07): Phrase-first generation foundation — `MelodicProfile` schema + 5 Tier-1 genre profiles; Phrase/Skeleton/MelodyLine/HarmonicContext IR; 4-layer melody pipeline (M1–M4); `phrase_aware` generator; profile blending; 2978 tests
+- **Phase 3** (completed): Motif development + harmonic coupling — `MotifDevelopmentPlanner`, `HarmonicMelodicSelector`, `OutlineGenerator`, all 13 motif transformations, motif library persistence
 
-### Active Phase
+### Active Phases — v3.0 Combination Stack
 
-- **Phase 3: Motif Development + Harmonic Coupling** (1 month)
-  - `MotifDevelopmentPlanner`, `HarmonicMelodicSelector`, `OutlineGenerator`
-  - All 13 motif transformations wired into generation
-  - Motif library persistence
-  - Acceptance: `motif_coherence_score >= 0.5` on 32-bar pieces
+The v3.0 work is a sequence of phased introductions of the Combination Stack. Each phase is independently mergeable, gated by feature flags, and validated by both quantitative and subjective tests.
 
-- **Phase 4: Rhythm and Microtiming** (1 month)
-  - 30+ rhythm templates organized by genre
-  - `GrooveProfile` engine
-  - Microtiming application in M4
-  - Ghost note system
-  - Acceptance: jazz pieces measure swing ratio 0.65 ± 0.02
+- **Phase 3.5: Diversity Foundation** *(active, 4–6 weeks)*
+  - **§4.1 Chord-Aware Melody Layer** (`src/yao/coupling/harmonic_melody.py`)
+    - Implement `HarmonicMelodyConstraints` IR
+    - Implement `derive_constraints()` with the 5 `CouplingStyle` profiles
+    - Wire into Layer M2 (`SkeletonGenerator` + `HarmonicMelodicSelector`)
+    - `feature.chord_aware_melody` flag (default ON)
+    - Acceptance: melody–harmony alignment ≥ 0.7 average across 32-bar pieces
+  - **§5.4 Voice-Leading Optimizer** (`src/yao/coupling/voice_leading.py`)
+    - Hungarian-assignment voicing transition
+    - `VoicingConstraints` schema
+    - Wired into Orchestrator subagent
+    - Acceptance: voice-leading smoothness ≤ 1.5× minimum for common-practice genres
+  - **§5.1 Reharmonization Engine** (`src/yao/coupling/reharmonization.py`)
+    - All 12 operations
+    - `ReharmonizationConstraints` (melody compatibility)
+    - `/reharmonize` slash command
+    - Acceptance: reharmonized output passes melody–harmony alignment threshold
 
-- **Phase 5: Genre Expansion + Critic Specialization** (2 months)
-  - 30+ genre profiles total (Tiers 2 and 3)
-  - `GenreCritic` with anti-pattern checks per genre
-  - Conductor uses genre-specific feedback recipes
-  - Genre conformity scoring integrated into evaluation
-  - Acceptance: 30+ genres generate; conformity ≥ 0.7
+- **Phase 4.0: Genre Diversification** (6–8 weeks)
+  - **§4.2 Genre-Specific Markov Models** — 15+ pitch models, 12+ rhythm models, smoothed back-off
+  - **§3.1 Rhythm Markov Generator** wired into Layer M3
+  - **§5.6 Harmonic Devices Library** — 15+ device YAMLs
+  - **§5.2 Modulation Generator** — `ModulationPlanner` subagent
+  - Acceptance: per-genre conformity ≥ 0.75 across all 30 profiles; 7+ device categories represented
 
-- **Phase 6: Intent Parsing + Blending** (1 month)
-  - `IntentParser` (rule-based + Claude API hybrid)
-  - `IntentToSpec` automatic spec construction
-  - Genre blending
-  - Mode selection via emotional vector
-  - Acceptance: complex descriptions produce appropriate specs
+- **Phase 4.5: Structural Diversity** (4–6 weeks)
+  - **§4.3 Phrase-Shape Generator** — antecedent/consequent, period, sentence, blues, ballad, through-composed
+  - **§6.4 Theme Recurrence Graph** — auto-generated from song form
+  - **§5.3 Variable Harmonic Rhythm** — per-bar chords-per-bar with trajectory derivation
+  - Acceptance: motif coherence in Tier 1 genres reaches profile targets; long-form (>120s) pieces show measurable theme-return structure
 
-- **Phase 7: Perception Substitute MVP** (1–2 months)
-  - Reference matcher (cosine similarity in feature space)
-  - Psychology mapper (Juslin/Huron-grounded)
-  - Style vector arithmetic
-  - Acceptance: Layer 4 returns non-trivial signals
+- **Phase 5.0: Cross-Cutting Diversity** (6–8 weeks)
+  - **§6.1 Genre Vector Space** — n-way blending, neighbor queries
+  - **§4.4 Idiomatic Gestures** — top-5 instruments (violin, piano, sax, trumpet, drums)
+  - **§3.2 Polyrhythm Engine** — 3:4, 4:5, 7:5, hemiola, interlock
+  - **§3.6 Phrase-Level Fill Arcs** — 7 fill strategies wired by song form
+  - Acceptance: genre blends produce profiles distinct from each component; polyrhythm coherence ≥ 0.6 when enabled
 
-- **Phase 8: Production Integration** (2–3 months)
-  - DAW integration (Reaper)
-  - Live improvisation mode
-  - User preference learning seeds
-  - AI music model bridges (Stable Audio, MusicGen)
+- **Phase 5.5: Advanced Ensemble** (ongoing)
+  - **§6.3 Listening Agents** — turn-based generation, opt-in via flag
+  - **§6.2 Corpus Learning Pipeline** — `tools/learn_markov_from_corpus.py`
+  - **§3.3 Metric Modulation** — ratio-based meter transitions
+  - **§4.7 Microtonal Melody** — `tuning_offset_cents` populated by generators, MIDI pitch-bend rendering
+  - **§5.5 Non-Functional Harmony** — quartal, quintal, polychord, drone-based
+  - **§5.7 Counterpoint Expansion** — 10 counterpoint styles
 
-- **Phase 9: Reflection and Learning** (ongoing)
-  - Layer 7 in operation
+- **Phase 6.0: Production Integration** (2–3 months)
+  - DAW integration (Reaper) — full
+  - Live improvisation mode — production-ready
+  - User preference learning — Layer 7
+  - AI music model bridges (Stable Audio, MusicGen) — neural-seed pipeline
+
+- **Phase 7.0: Reflection and Learning** (ongoing)
   - Per-user style profiles
   - Community profile sharing standards
+  - Adaptive genre profile evolution
 
 ### User-Value Milestones
 
-| Milestone | User value | Phases involved |
+| Milestone | User value | Phases |
 |---|---|---|
 | **1. Describe & Hear** | "Write a description and listen immediately" | Phase 1 ✅ |
-| **2. Iterate & Improve** | "Tell it what's wrong; it gets better" | Phase 1 + Phase 5 |
-| **3. Genre Faithful** | "Sounds like the genre I asked for" | Phase 2–5 |
-| **4. Coherent Piece** | "Has unity, not just notes" | Phase 3 |
-| **5. Real Groove** | "Feels alive, not robotic" | Phase 4 |
-| **6. My Style** | "Learns my preferences" | Phase 7 + Phase 9 |
-| **7. Production Ready** | "Output usable in real projects" | Phase 8 |
+| **2. Iterate & Improve** | "Tell it what's wrong; it gets better" | Phase 1 + Phase 4.0 |
+| **3. Genre Faithful** | "Sounds like the genre I asked for" | Phase 2 ✅ |
+| **4. Coherent Piece** | "Has unity, not just notes" | Phase 3 ✅ |
+| **5. Musically Right** | "Melody fits the chords" | **Phase 3.5 (active)** |
+| **6. Real Variety** | "Different seeds give genuinely different pieces" | Phase 4.0–5.0 |
+| **7. Genre Crossings** | "Bossa-meets-DnB-meets-cinematic actually sounds like that" | Phase 5.0 |
+| **8. Real Groove** | "Feels alive, not robotic" | Phase 4.0 + Phase 5.0 |
+| **9. Long-Form Coherence** | "A 3-minute piece feels unified" | Phase 4.5 |
+| **10. My Style** | "Learns my preferences" | Phase 7.0 |
+| **11. Production Ready** | "Output usable in real projects" | Phase 6.0 |
 
 ---
 
@@ -930,7 +1262,7 @@ make setup-soundfonts
 yao conduct "a calm 90-second piano piece for studying, slightly nostalgic"
 ```
 
-The intent parser builds a complete spec, the phrase-first pipeline generates, evaluation iterates until quality metrics pass.
+The intent parser builds a complete spec, the phrase-first pipeline generates with chord-aware melody and voice-leading optimization (Phase 3.5 defaults), evaluation iterates until quality metrics pass.
 
 ### 14.3 YAML Path
 
@@ -941,20 +1273,32 @@ yao compose specs/projects/my-first-song/composition.yaml --strategy phrase_awar
 yao render outputs/projects/my-first-song/iterations/v001/full.mid
 ```
 
-### 14.4 Interactive Path (Claude Code)
+### 14.4 Genre-Blend Path *(NEW)*
+
+```bash
+yao conduct "bossa-flavored chords with drum and bass rhythm" \
+  --blend bossa_nova:0.6,drum_n_bass:0.4
+```
+
+The `GenreVector` blender produces a synthesized profile and the resulting piece carries traces of both inputs.
+
+### 14.5 Reharmonization Path *(NEW)*
+
+```bash
+yao conduct "a simple ballad in C major"
+yao reharmonize outputs/projects/.../v001/full.mid --intensity 0.5 --style jazz
+```
+
+Reharmonized output preserves the melody and inserts secondary dominants, tritone subs, and ii–V insertions per the chosen intensity.
+
+### 14.6 Interactive Path (Claude Code)
 
 ```
 > /sketch a mysterious puzzle game BGM, minimal and looping
 > /compose my-puzzle-bgm
 > /critique my-puzzle-bgm
 > /regenerate-section my-puzzle-bgm chorus
-```
-
-### 14.5 Arrange an Existing Piece
-
-```bash
-cp my_song.mid specs/projects/my-arrangement/source.mid
-> /arrange my-arrangement --style "lo-fi hip-hop"
+> /reharmonize my-puzzle-bgm 0.3
 ```
 
 ---
@@ -971,6 +1315,9 @@ cp my_song.mid specs/projects/my-arrangement/source.mid
 | Audio | WAV (production), FLAC/MP3 (distribution) | Standard support |
 | Live code | Strudel patterns | Browser-playable |
 | Genre profiles | YAML | Composer-readable |
+| Markov models | YAML | Composer-auditable |
+| Idiomatic gestures | YAML | Composer-readable |
+| Harmonic devices | YAML | Composer-readable |
 | Motif library | JSON | Reusable, indexable |
 
 Custom formats are avoided. Only what cannot be represented in existing standards is defined minimally.
@@ -980,32 +1327,33 @@ Custom formats are avoided. Only what cannot be represented in existing standard
 ## 16. Ethics and Licensing
 
 ### 16.1 Reference Library Licensing
-Only rights-cleared works. License status recorded in `references/catalog.yaml`.
+Only rights-cleared works. License status recorded in `references/catalog.yaml`. **v3.0 extension**: corpus-trained Markov models record source, license, and training date.
 
 ### 16.2 Artist Imitation
-Specifying "in the style of [active artist]" is discouraged. Use abstract feature descriptions.
+Specifying "in the style of [active artist]" is discouraged. Use abstract feature descriptions or genre profiles.
 
 ### 16.3 Cultural Appropriation Protocols
-World music genres require source citations, practitioner review, explicit cultural context, and warnings against mass commercial generation when culturally inappropriate.
+World music genres require source citations, practitioner review, explicit cultural context, and warnings against mass commercial generation when culturally inappropriate. The microtonal pipeline (raga, maqam, gamelan) does not legitimize stripping cultural context.
 
 ### 16.4 Generated Work Rights
 Rights belong to the user by default. Warning emitted when reference influence is unusually high.
 
 ### 16.5 Transparency
-Every generated artifact records that it was produced by YaO and lists the aesthetic anchors and genre profiles in `provenance.json`.
+Every generated artifact records that it was produced by YaO and lists the aesthetic anchors and genre profiles in `provenance.json`. **v3.0**: also lists the active feature flags, the blended genre composition, and the corpus sources of any used Markov models.
 
 ---
 
-## 17. Relationship to CLAUDE.md
+## 17. Relationship to CLAUDE.md and IMPROVEMENT.md
 
-`CLAUDE.md` contains short, prescriptive operational rules. `PROJECT.md` (this file) contains the full design and philosophy. **Conflict resolution: CLAUDE.md > PROJECT.md > other docs.**
+`CLAUDE.md` contains short, prescriptive operational rules. `PROJECT.md` (this file) contains the full design and philosophy. `IMPROVEMENT.md` contains the audit-derived gap analysis that motivates the v3.0 redesign and the priority-ordered improvement list. **Conflict resolution: CLAUDE.md > PROJECT.md > IMPROVEMENT.md > other docs.**
 
 | File | Audience | Content |
 |---|---|---|
 | `PROJECT.md` (this file) | Humans + agents | Design, philosophy, architecture |
 | `CLAUDE.md` | Agents primarily | Invariant rules, current phase, escalation |
+| `IMPROVEMENT.md` | Humans + agents | Gap analysis and priority-ordered improvements |
 | `README.md` | Humans | Quick start |
-| `docs/design/*.md` | Humans + agents | ADR-style decision records |
+| `docs/design/*.md` | Humans + agents | ADR-style decision records (one per Combination-Stack module) |
 | `.claude/guides/*.md` | Agents primarily | Detailed how-to guides |
 
 ---
@@ -1030,6 +1378,12 @@ Layer 7 adapts each user's `MelodicProfile` based on their feedback over time.
 ### 18.6 Multimodal Input
 Hummed audio (transcribed via basic-pitch), uploaded reference MIDI, mood-board images.
 
+### 18.7 Beyond Listening Agents *(v3.0+)*
+Continuous Listening Agents — agents that re-evaluate their own decisions when other agents finish, allowing limited backtracking. This breaks current strict turn order; investigate after the basic Listening Agent path stabilizes.
+
+### 18.8 Harmonic Negotiation *(v3.0+)*
+A protocol where the Composer and Harmony Theorist iteratively negotiate the chord progression — Composer proposes a melody, Harmony rewrites the chords, Composer revises, etc. Currently the chord progression is fixed before the melody is generated; this opens that decision.
+
 ---
 
 ## 19. Glossary
@@ -1038,13 +1392,15 @@ Hummed audio (transcribed via basic-pitch), uploaded reference MIDI, mood-board 
 
 **Orchestra** — The collective of subagents.
 
-**Score** — The YAML files in `specs/`; complete description of a piece.
+**Score** — The YAML files in `specs/`.
 
 **Score IR** — Implementation-ready intermediate representation.
 
 **Trajectory** — Characteristic curve over time (tension, density, etc.).
 
 **Phrase** — A musical unit with function, target pitch, and cadence.
+
+**PhraseShape** *(v3.0)* — A planned phrase structure (antecedent/consequent/period/sentence/etc.).
 
 **Motif** — A short melodic-rhythmic idea developed across a piece.
 
@@ -1058,7 +1414,27 @@ Hummed audio (transcribed via basic-pitch), uploaded reference MIDI, mood-board 
 
 **HarmonicContext** — Harmonic state at a given metric position.
 
+**HarmonicMelodyConstraints** *(v3.0)* — Per-position chord-derived rules for melody pitch selection.
+
+**CouplingStyle** *(v3.0)* — How strict melody-harmony coupling is enforced (common-practice, jazz, blues, modal, raga, maqam).
+
 **GrooveProfile** — Microtiming and velocity offsets characterizing a feel.
+
+**GenreVector** *(v3.0)* — Multi-dimensional embedding of a genre profile.
+
+**ThemeRecurrenceGraph** *(v3.0)* — Plan for theme returns and transformations across a piece.
+
+**RhythmEvent** *(v3.0 extended)* — A rhythmic placement with functional label (downbeat, syncopation, anticipation, hemiola, etc.).
+
+**PolyrhythmTexture** *(v3.0)* — Multiple rhythmic cycles running simultaneously at different ratios.
+
+**HarmonicDevice** *(v3.0)* — A genre-typical harmonic gesture (jazz turnaround, gospel walk-up, Coltrane changes, etc.).
+
+**IdiomaticGesture** *(v3.0)* — An instrument-specific body-language pattern (violin trill, sax altissimo, sitar meend, etc.).
+
+**ListeningAgent** *(v3.0)* — A generator that produces notes based on what other instruments have already played.
+
+**Combination Stack** *(v3.0)* — Layer 2.5 modules that combine, couple, blend, and dialogue across the existing material library.
 
 **Aesthetic Reference Library** — Reference works as aesthetic anchors.
 
@@ -1088,6 +1464,12 @@ Hummed audio (transcribed via basic-pitch), uploaded reference MIDI, mood-board 
 
 **Memorability Proxy** — Estimated melodic memorability from acoustic features.
 
+**Melody–Harmony Alignment** *(v3.0)* — Average chord-conditioned pitch score across the piece.
+
+**Voice-Leading Smoothness** *(v3.0)* — Total voice motion / Hungarian-optimal minimum.
+
+**Polyrhythm Coherence** *(v3.0)* — Cross-correlation-based metric for polyrhythmic textures.
+
 ---
 
 ## 20. The World YaO Aims For
@@ -1098,7 +1480,11 @@ YaO is not a project where AI makes music. It is **infrastructure for humans and
 - AI contributes **theoretical knowledge, iteration speed, and exhaustive record-keeping**
 - YaO is **the place where these are made into a structured collaborative process**
 
-The phrase-first pipeline, the genre profile system, the intent parser, and the genre-specialized critic together aim for a single goal: **given any genre or mood, produce a piece that respects the genre, has internal coherence, expresses the user's intent, and varies meaningfully from one generation to the next**.
+The phrase-first pipeline gave YaO genre-faithful melodies. The Combination Stack now turns those melodies into genuinely diverse pieces — across genres (via the Genre Vector Space), across runs (via Markov diversification and listening-agent dialog), across forms (via theme recurrence), and across generations of the same spec (via reharmonization and modulation).
+
+The single goal that unifies every architectural decision in v3.0:
+
+> **Given any genre or mood, produce a piece that respects the genre, has internal coherence, expresses the user's intent, has melody coupled to harmony, has voice-leading the listener can follow, has thematic returns that feel inevitable rather than mechanical, and varies meaningfully and audibly from one generation to the next — even from the same seed plus a small spec change.**
 
 Great music remains, ultimately, **the expression of a human soul**. YaO aims to make that expression **faster, deeper, more diverse, and more reproducible**.
 
@@ -1108,7 +1494,8 @@ Great music remains, ultimately, **the expression of a human soul**. YaO aims to
 ---
 
 **Project: You and Orchestra (YaO)**
-*Document version: 2.1*
-*Last updated: 2026-05-07*
+*Document version: 3.0*
+*Last updated: 2026-05-08*
+*v3.0: Combination Stack introduced. Layer 2.5 added between Layer 2 and Layer 3. Eight-layer macro architecture. Eighth design principle: Diversity Through Combination, Not Just Material. Phase 3.5 (Diversity Foundation) becomes the active phase. Eleven evaluation dimensions. Eleven YAML files describe a piece. Three new slash commands. Two new subagents.*
 *v2.1: Phase 2 complete — phrase-first pipeline implemented, 5 Tier-1 profiles active, 2978 tests green. Phase 3 active.*
 *v2.0: Integrated phrase-first melody pipeline, MelodicProfile-driven genre system, intent parser, genre-specialized critic, and extended evaluation metrics into the core design.*

@@ -13,7 +13,9 @@ from __future__ import annotations
 import random
 
 from yao.constants.music import SCALE_INTERVALS
+from yao.coupling.harmonic_melody import derive_constraints
 from yao.ir.harmonic_context import HarmonicContext
+from yao.ir.harmonic_melody_constraints import CouplingStyle, PositionLabel
 from yao.ir.notation import note_name_to_midi
 from yao.ir.phrase import PhrasePlan
 from yao.ir.skeleton import Skeleton, SkeletonNote
@@ -70,6 +72,9 @@ class SkeletonGenerator:
         notes: list[SkeletonNote] = []
         target_pitches: dict[int, int] = {}
 
+        # Check feature flag for chord-aware melody (Phase 3.5 §4.1)
+        chord_aware = getattr(spec, "features", None) is not None and spec.features.chord_aware_melody
+
         for phrase_idx, phrase in enumerate(phrase_plan.phrases):
             phrase_notes = self._generate_phrase_skeleton(
                 phrase_idx=phrase_idx,
@@ -81,6 +86,9 @@ class SkeletonGenerator:
                 scale_intervals=scale_intervals,
                 harmonic_contexts=harmonic_contexts,
                 rng=rng,
+                chord_aware=chord_aware,
+                key_root=root_name,
+                scale_type=scale_type,
             )
             notes.extend(phrase_notes)
 
@@ -127,6 +135,9 @@ class SkeletonGenerator:
         scale_intervals: list[int],
         harmonic_contexts: list[HarmonicContext],
         rng: random.Random,
+        chord_aware: bool = False,
+        key_root: str = "C",
+        scale_type: str = "major",
     ) -> list[SkeletonNote]:
         """Generate skeleton notes for a single phrase.
 
@@ -177,6 +188,9 @@ class SkeletonGenerator:
                     ctx=ctx,
                     profile=profile,
                     rng=rng,
+                    chord_aware=chord_aware,
+                    key_root=key_root,
+                    scale_type=scale_type,
                 )
                 chord_relation = self._classify_chord_relation(pitch, ctx)
 
@@ -214,8 +228,16 @@ class SkeletonGenerator:
         ctx: HarmonicContext | None,
         profile: MelodicProfile,
         rng: random.Random,
+        chord_aware: bool = False,
+        key_root: str = "C",
+        scale_type: str = "major",
     ) -> int:
         """Select a pitch for a skeleton note considering harmony and contour.
+
+        When ``chord_aware`` is True (Phase 3.5 §4.1), candidates are
+        scored using ``HarmonicMelodyConstraints.score_pitch()`` combined
+        with the profile's ``chord_tone_targeting`` weight. This produces
+        harmonically functional melodies.
 
         Args:
             bar: Bar number.
@@ -226,12 +248,32 @@ class SkeletonGenerator:
             ctx: Harmonic context at this position.
             profile: MelodicProfile.
             rng: Random number generator.
+            chord_aware: Whether to use HarmonicMelodyConstraints (Phase 3.5).
+            key_root: Root note of the key (e.g., "C").
+            scale_type: Scale type (e.g., "major").
 
         Returns:
             MIDI pitch for this skeleton note.
         """
         # Base pitch from contour
         target_midi = root_midi + int(contour_offset * 2)  # 2 semitones per contour unit
+
+        # Determine position label for constraint scoring
+        position = (
+            PositionLabel.DOWNBEAT if beat == 0.0 else (PositionLabel.UPBEAT if beat == 2.0 else PositionLabel.OFFBEAT)
+        )
+
+        # Derive constraints if chord-aware mode is on and we have harmonic context
+        constraints = None
+        if chord_aware and ctx is not None:
+            coupling_style = CouplingStyle.COMMON_PRACTICE  # default; profile can override
+            constraints = derive_constraints(
+                chord_root=ctx.chord_root,
+                chord_quality=ctx.chord_quality,
+                key_root=key_root,
+                scale_type=scale_type,
+                style=coupling_style,
+            )
 
         # Find candidates near the target
         candidates: list[tuple[int, float]] = []
@@ -243,13 +285,22 @@ class SkeletonGenerator:
             # Proximity weight
             weight = max(0.01, 1.0 - distance / 12.0)
 
-            # Chord tone bonus
-            if ctx and ctx.is_chord_tone(pitch):
-                weight *= 1.0 + profile.chord_tone_targeting * 3.0
-
-            # Metric strength bonus for chord tones on downbeats
-            if beat == 0.0 and ctx and ctx.is_chord_tone(pitch):
-                weight *= 1.5
+            if constraints is not None:
+                # Phase 3.5: combine constraint score with profile targeting
+                # Formula from CLAUDE.md Phase 3.5 Step 3:
+                # combined = targeting * chord_score + (1 - targeting) * interval_score
+                chord_score = constraints.score_pitch(pitch, position)
+                interval_score = weight  # proximity acts as interval score proxy
+                combined = (
+                    profile.chord_tone_targeting * chord_score + (1.0 - profile.chord_tone_targeting) * interval_score
+                )
+                weight = max(0.01, combined)
+            else:
+                # v2.x path: simple chord-tone bonus
+                if ctx and ctx.is_chord_tone(pitch):
+                    weight *= 1.0 + profile.chord_tone_targeting * 3.0
+                if beat == 0.0 and ctx and ctx.is_chord_tone(pitch):
+                    weight *= 1.5
 
             candidates.append((pitch, weight))
 

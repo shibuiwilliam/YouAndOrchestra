@@ -33,6 +33,7 @@ LAYER_MAP: dict[str, int] = {
     "schema": 1,
     "ir": 1,  # IR data types (Score IR + Plan IR) shared across all layers
     "reflect": 1,  # provenance types are cross-cutting
+    "coupling": 2,  # Layer 2.5: Combination & Coupling (imports from 0-2 only)
     "generators": 2,
     "sound_design": 3,  # Layer 3.5: patches, effects, synthesis config
     "perception": 4,
