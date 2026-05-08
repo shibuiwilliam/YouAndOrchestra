@@ -8,11 +8,22 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 CATALOG_PATH = REPO_ROOT / "references" / "catalog.yaml"
 FEATURES_DIR = REPO_ROOT / "references" / "extracted_features"
+MIDI_DIR = REPO_ROOT / "references" / "midi"
+
+_skip_no_midi = pytest.mark.skipif(
+    not MIDI_DIR.exists(),
+    reason="references/midi/ not available (gitignored, generated locally)",
+)
+_skip_no_features = pytest.mark.skipif(
+    not FEATURES_DIR.exists(),
+    reason="references/extracted_features/ not available (gitignored, generated locally)",
+)
 
 
 class TestReferenceCatalog:
@@ -44,6 +55,7 @@ class TestReferenceCatalog:
         for ref in data["references"]:
             assert ref["license"] in valid, f"{ref['id']}: license '{ref['license']}' is not in {valid}"
 
+    @_skip_no_midi
     def test_synthetic_midi_files_exist(self) -> None:
         with open(CATALOG_PATH, encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -60,6 +72,7 @@ class TestReferenceCatalog:
             assert len(ref["genre_tags"]) >= 1, f"{ref['id']}: empty genre_tags"
 
 
+@_skip_no_features
 class TestExtractedFeatures:
     """Tests for pre-computed StyleVectors."""
 

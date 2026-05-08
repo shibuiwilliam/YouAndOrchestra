@@ -62,6 +62,9 @@ class TestNormalizeLoudness:
         assert result.dtype == audio.dtype
 
 
+_sd = pytest.importorskip("sounddevice", reason="sounddevice requires PortAudio")
+
+
 class TestPlayWavInline:
     """Tests for inline playback via sounddevice."""
 
