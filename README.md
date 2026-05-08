@@ -46,6 +46,43 @@ The `/sketch` command walks you through a 6-turn dialogue to refine your idea in
 
 The sketch dialogue supports both English and Japanese input.
 
+
+---
+
+## Example Prompts
+
+### Simple
+
+```
+/sketch a melancholic piano piece for studying on a rainy evening
+/sketch anime opening theme, energetic J-pop style, 90 BPM, full orchestra
+/sketch tense horror game BGM with dissonant strings and sparse percussion
+/sketch upbeat 8-bit chiptune for a retro platformer boss fight
+/sketch gentle jazz trio for a late-night cafe scene, brushed drums and walking bass
+/sketch epic orchestral trailer music building to a massive brass climax
+/sketch minimalist ambient piece with slow-evolving pad textures, 60 BPM
+/sketch funky slap bass groove with wah guitar and tight drums, 110 BPM
+/sketch classical string quartet in the style of late Romantic era, D minor
+/sketch Japanese festival matsuri music with taiko drums and shinobue flute
+/sketch smooth bossa nova for a sunset beach bar, nylon guitar and soft percussion
+```
+
+### Advanced
+
+```
+/sketch cinematic sci-fi soundtrack, 130 BPM, layered synth pads with orchestral strings, brass stabs on downbeats, sparse piano motif, 180 seconds, build from silence to wall of sound
+/sketch lo-fi hip-hop study beat, 75 BPM, detuned electric piano chords, vinyl crackle texture, side-chained kick with muted bass, jazzy 7th voicings, loopable 90 seconds
+/sketch Baroque fugue for harpsichord and string trio, 3 voices, subject-answer-countersubject structure, D minor, 100 BPM, strict voice leading, 120 seconds
+/sketch Indian classical fusion, sitar melody over tabla and tanpura drone, Raga Yaman ascending phrases, 90 BPM, gradually introduce cello and flute harmonizing, 180 seconds
+/sketch Studio Ghibli-inspired waltz, 3/4 time, 108 BPM, piano lead with accordion counter-melody, pizzicato strings, glockenspiel accents, warm and nostalgic, 150 seconds
+/sketch high-energy drum and bass track, 174 BPM, breakbeat drums with heavy sub-bass reese, staccato string stabs, atmospheric pads, tension ramp in the last 16 bars, 150 seconds
+/sketch Flamenco bulerias for nylon guitar, cajon, and handclaps, 12-beat compas cycle, rasgueado strumming, falsetas over Am-G-F-E progression, 100 seconds
+/sketch ambient generative soundscape for planetarium, 50 BPM, granular-style evolving textures with oboe and cello drones, no percussion, very slow harmonic motion, 240 seconds
+/sketch aggressive industrial metal, 140 BPM, drop-tuned palm-muted guitar riff in 7/8, double kick drums, distorted bass following guitar, dissonant brass hits on accents, 90 seconds
+/sketch big band swing, 160 BPM, walking bass, ride cymbal, trumpet section melody in unison then harmony soli, trombone counter-melody, piano comping, saxophone shout chorus at climax, 120 seconds
+```
+
+
 ### 2. Natural language (one-shot)
 
 ```
@@ -84,33 +121,6 @@ outputs/projects/my-piece/iterations/v001/
   evaluation.json    # Quality scores (6 dimensions)
   perceptual.json    # Acoustic analysis (LUFS, spectral, temporal)
   provenance.json    # Causal graph of every decision
-```
-
----
-
-## Example Prompts
-
-**Simple:**
-
-```
-/sketch anime opening theme, energetic J-pop style, 90 BPM, full orchestra
-/sketch gentle jazz trio for a late-night cafe scene, brushed drums and walking bass
-/sketch minimalist ambient piece with slow-evolving pad textures, 60 BPM
-/sketch Japanese festival matsuri music with taiko drums and shinobue flute
-```
-
-**Advanced:**
-
-```
-/sketch cinematic sci-fi soundtrack, 130 BPM, layered synth pads with orchestral
-  strings, brass stabs on downbeats, sparse piano motif, 180 seconds, build from
-  silence to wall of sound
-/sketch lo-fi hip-hop study beat, 75 BPM, detuned electric piano chords, vinyl
-  crackle texture, side-chained kick with muted bass, jazzy 7th voicings, loopable
-/sketch Indian classical fusion, sitar melody over tabla and tanpura drone, Raga
-  Yaman ascending phrases, 90 BPM, gradually introduce cello and flute
-/sketch Flamenco bulerias for nylon guitar, cajon, and handclaps, 12-beat compas
-  cycle, rasgueado strumming, falsetas over Am-G-F-E progression
 ```
 
 ---
@@ -492,53 +502,6 @@ sudo apt-get install fluidsynth
 ```
 
 Place a `.sf2` file in `soundfonts/`, then use `/render` in Claude Code.
-
----
-
-## Project Structure
-
-```
-src/yao/               277 Python modules
-  constants/            Instruments (46), scales (28), forms (20), chords (14),
-                        melodic profiles (25), rhythms (31), grooves (20),
-                        harmonic devices (15)
-  schema/               Pydantic specs, feature flags, genre profiles
-  sketch/               NL -> spec compiler (EN + JP), 6-turn dialogue
-  ir/                   Score IR + Plan IR, phrase, skeleton, melody line,
-                        harmonic context, voicing, timing, hook, groove,
-                        harmonic melody constraints
-  coupling/             Combination Stack (11 modules): chord-aware melody,
-                        voice leading, reharmonization, rhythm Markov, modulation,
-                        harmonic devices, phrase shape, theme recurrence,
-                        genre vector, polyrhythm, listening dialog
-  generators/           Note realizers, plan generators, melody pipeline (M1-M4),
-                        9 generation strategies, 8 melodic strategies,
-                        15 pitch Markov models, 12 rhythm Markov models
-  perception/           Audio features, StyleVector, surprise scorer, use-case eval
-  verify/               Evaluator, 34 critique rules, aesthetic metrics,
-                        melody-harmony alignment, voice-leading smoothness
-  conductor/            Generate-evaluate-adapt loop, multi-candidate orchestration
-  subagents/            7 Python subagent implementations
-  render/               MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel
-  mix/                  EQ, compression, reverb, mastering (pedalboard-based)
-  arrange/              Style transfer, source extraction, preservation contracts
-  feedback/             Pin IR, NL translator, pin-aware regenerator
-  improvise/            Real-time improvisation engine
-  reflect/              Provenance (causal graph), style profiles, ratings
-
-tests/                  299 test files, 3,328 tests
-  unit/                 Core module tests + coupling/ (196 coupling tests)
-  integration/          End-to-end pipeline tests
-  scenarios/            Musical behavior tests (groove, genre, diversity)
-  golden/               MIDI regression baselines
-  genre_coverage/       Per-genre validation (22 genres)
-  music_constraints/    Theory constraint verification
-  audio_regression/     Acoustic feature regression
-
-tools/                  Architecture lint, genre calibration, honesty checks
-.claude/                Agent prompts (10), slash commands (10), genre skills (13), guides
-specs/                  138 example projects, 6 templates
-```
 
 ---
 
