@@ -3,7 +3,7 @@ test-acoustic test-genre-coverage test-coupling test-diversity test-melody test-
 lint format arch-lint meter-lint matrix-check feature-status markov-validate device-validate \
 validate-spec new-project compose render setup-soundfonts setup-references all-checks \
 honesty-check plan-consumption skill-grounding critic-coverage backend-honesty audit-monthly \
-profile-perf
+profile-perf audit-genres calibrate-genres
 
 install:
 	pip install -e ".[dev]"
@@ -57,6 +57,9 @@ test-genres:
 
 calibrate-genres:
 	python tools/calibrate_genres.py
+
+audit-genres:
+	python tools/audit_genres.py
 
 lint:
 	ruff check src/ tests/

@@ -1,0 +1,102 @@
+name: rock
+description: |
+  Modern rock: driving energy, guitar-centric, verse-chorus-solo form.
+  Power chords, straight 8th notes, drums with backbeat.
+
+typical_tempo_range: [110, 160]
+typical_keys: ["E", "A", "D", "G", "B", "F#m", "Bm"]
+typical_modes: ["major", "minor", "mixolydian"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["verse_chorus_bridge", "verse_chorus_solo"]
+typical_duration_seconds: [180, 270]
+
+core_instruments:
+  - name: distorted_electric_guitar_rhythm
+    role: harmony
+  - name: electric_bass_pick
+    role: bass
+  - name: drums_rock_kit
+    role: rhythm
+optional_instruments:
+  - name: distorted_electric_guitar_lead
+    role: melody
+  - name: acoustic_guitar_steel
+    role: harmony
+  - name: synth_pad_warm
+    role: pad
+  - name: hammond_organ
+    role: harmony
+forbidden_instruments:
+  - harpsichord
+  - sitar
+  - timpani
+
+chord_palette_extended:
+  - major
+  - minor
+  - sus2
+  - sus4
+  - "5"
+  - add9
+  - "7"
+progression_library_ids:
+  - rock_i_bVII_IV
+  - pop_punk_I_V_vi_IV
+  - rock_power_ballad
+harmonic_rhythm: [0.5, 1.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.2
+seventh_chord_probability: 0.15
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.15
+
+swing_8th: 0.5
+swing_16th: 0.5
+typical_grooves:
+  - rock_straight_8th
+  - rock_half_time
+drum_kit_preference: rock_kit
+drum_pattern_ids:
+  - rock_basic_4_4
+  - rock_half_time
+  - rock_punk
+syncopation_density: 0.2
+
+melodic_devices:
+  - pentatonic_lead
+  - blues_box
+  - anthemic_leaps
+phrase_length_beats: [4.0, 8.0]
+typical_scales:
+  - major
+  - pentatonic_major
+  - pentatonic_minor
+  - blues
+call_response_density: 0.15
+melodic_contour_weights:
+  ascending: 0.3
+  descending: 0.2
+  arch: 0.3
+  valley: 0.1
+  flat: 0.1
+leap_probability: 0.35
+blue_note_probability: 0.1
+
+voicing_density_target: 3
+bass_motion_style: root_fifth
+typical_dynamics_range: ["mf", "ff"]
+target_spectral_centroid: 0.6
+
+target_lufs: -10.0
+target_peak_db: -0.5
+typical_effects:
+  - tube_overdrive
+  - plate_reverb
+  - parallel_compression
+stereo_imaging: wide
+production_profile_id: modern_rock
+
+cliches_to_avoid:
+  - "Power chord progression in I-V-vi-IV without melodic variation"
+  - "Predictable verse/chorus dynamic without arrangement contrast"
+  - "Generic distortion tone with no character"

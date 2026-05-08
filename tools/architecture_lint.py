@@ -30,6 +30,7 @@ from pathlib import Path
 # cross-cutting concern that all layers must participate in.
 LAYER_MAP: dict[str, int] = {
     "constants": 0,  # available to all layers
+    "genre": 0,  # Genre System (Layer 0/1 boundary) — GenreProfile, registry, briefing
     "schema": 1,
     "ir": 1,  # IR data types (Score IR + Plan IR) shared across all layers
     "reflect": 1,  # provenance types are cross-cutting

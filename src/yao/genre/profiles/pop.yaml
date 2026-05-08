@@ -1,0 +1,101 @@
+name: pop
+description: |
+  Modern pop music: catchy melodies, verse-chorus form, clear production.
+  Emphasizes singability, hook-based writing, and accessible harmony.
+
+typical_tempo_range: [100, 130]
+typical_keys: ["C", "G", "D", "A", "F", "Bb"]
+typical_modes: ["major", "minor"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["verse_chorus_bridge", "verse_pre_chorus_chorus"]
+typical_duration_seconds: [180, 240]
+
+core_instruments:
+  - name: piano
+    role: harmony
+  - name: acoustic_guitar
+    role: harmony
+  - name: electric_bass
+    role: bass
+  - name: drums_pop_kit
+    role: rhythm
+optional_instruments:
+  - name: synth_pad_warm
+    role: pad
+  - name: strings_ensemble
+    role: pad
+  - name: electric_guitar_clean
+    role: melody
+forbidden_instruments:
+  - harpsichord
+  - sitar
+  - bagpipes
+
+chord_palette_extended:
+  - major
+  - minor
+  - sus2
+  - sus4
+  - add9
+  - maj7
+  - "7"
+progression_library_ids:
+  - pop_I_V_vi_IV
+  - pop_vi_IV_I_V
+  - pop_I_vi_IV_V
+harmonic_rhythm: [0.5, 1.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.15
+seventh_chord_probability: 0.2
+secondary_dominant_probability: 0.1
+modal_interchange_probability: 0.1
+
+swing_8th: 0.5
+swing_16th: 0.5
+typical_grooves:
+  - straight_8th
+  - pop_modern
+drum_kit_preference: pop_kit
+drum_pattern_ids:
+  - pop_basic_4_4
+  - pop_modern
+  - pop_half_time
+syncopation_density: 0.25
+
+melodic_devices:
+  - pentatonic_major
+  - step_wise_motion
+  - anthemic_leaps
+phrase_length_beats: [4.0, 8.0]
+typical_scales:
+  - major
+  - pentatonic_major
+  - mixolydian
+call_response_density: 0.1
+melodic_contour_weights:
+  ascending: 0.25
+  descending: 0.25
+  arch: 0.3
+  valley: 0.1
+  flat: 0.1
+leap_probability: 0.25
+blue_note_probability: 0.0
+
+voicing_density_target: 4
+bass_motion_style: root_fifth
+typical_dynamics_range: ["mp", "f"]
+target_spectral_centroid: 0.55
+
+target_lufs: -10.0
+target_peak_db: -0.5
+typical_effects:
+  - plate_reverb
+  - parallel_compression
+  - bright_eq
+stereo_imaging: wide
+production_profile_id: modern_pop
+
+cliches_to_avoid:
+  - "I-V-vi-IV used for the entire song without any variation"
+  - "Predictable verse/chorus dynamic without arrangement contrast"
+  - "Four-on-the-floor kick with no groove variation"

@@ -177,7 +177,7 @@ class TestIntentToSpec:
 
         spec = builder.build_spec(intent)
 
-        assert spec.genre == "bebop_jazz"
+        assert spec.genre in ("jazz", "bebop_jazz")
 
     def test_strategy_is_phrase_aware(self) -> None:
         """Strategy defaults to phrase_aware."""

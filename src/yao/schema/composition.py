@@ -74,6 +74,49 @@ class SectionSpec(BaseModel):
         return v
 
 
+class GenreFusionEntry(BaseModel):
+    """A secondary genre with its blend weight for genre fusion."""
+
+    genre: str
+    weight: float = 0.2
+
+    @field_validator("weight")
+    @classmethod
+    def weight_in_range(cls, v: float) -> float:
+        if not 0.0 <= v <= 1.0:
+            raise SpecValidationError(
+                f"Fusion weight must be 0.0–1.0, got {v}",
+                field="genre.fusion.weight",
+            )
+        return v
+
+
+class GenreBlock(BaseModel):
+    """Genre specification block (v2.0).
+
+    Supports single genre, genre fusion (blending multiple genres),
+    and user overrides of specific profile fields.
+    """
+
+    primary: str = "general"
+    fusion: list[GenreFusionEntry] = []
+    override_profile: dict[str, object] = {}
+
+
+class LoopsSpec(BaseModel):
+    """Loop configuration for loopable compositions."""
+
+    enabled: bool = False
+    loop_bars: int = 8
+
+    @field_validator("loop_bars")
+    @classmethod
+    def loop_bars_positive(cls, v: int) -> int:
+        if v <= 0:
+            raise SpecValidationError(f"loop_bars must be positive, got {v}", field="loops.loop_bars")
+        return v
+
+
 class GenerationConfig(BaseModel):
     """Configuration for the generation strategy.
 
@@ -141,6 +184,7 @@ class CompositionSpec(BaseModel):
 
     title: str
     genre: str = "general"
+    genre_block: GenreBlock | None = None
     key: str = "C major"
     tonal_system: TonalSystem | None = None
     tempo_bpm: float = 120.0
@@ -149,6 +193,7 @@ class CompositionSpec(BaseModel):
     instruments: list[InstrumentSpec]
     sections: list[SectionSpec]
     drums: DrumsSpec | None = None
+    loops: LoopsSpec | None = None
     generation: GenerationConfig = GenerationConfig()
     features: FeatureFlags = FeatureFlags()
     use_style_profile: bool = True
@@ -220,6 +265,12 @@ class CompositionSpec(BaseModel):
         if not v:
             raise SpecValidationError("At least one instrument is required", field="instruments")
         return v
+
+    def effective_genre(self) -> str:
+        """Return the effective genre name, preferring genre_block.primary over genre."""
+        if self.genre_block is not None:
+            return self.genre_block.primary
+        return self.genre
 
     def computed_total_bars(self) -> int:
         """Return total_bars if set, otherwise sum of section bars."""

@@ -1,0 +1,118 @@
+name: jazz
+description: |
+  Jazz: sophisticated harmony, swing feel, improvisation-ready structure.
+  Extended chords, ii-V-I progressions, walking bass, ride cymbal patterns.
+
+typical_tempo_range: [60, 240]
+typical_keys: ["F", "Bb", "Eb", "Ab", "C", "G"]
+typical_modes: ["major", "minor", "dorian", "mixolydian"]
+typical_time_signatures: ["4/4", "3/4"]
+typical_form_templates: ["aaba_32", "rhythm_changes", "blues_12_bar"]
+typical_duration_seconds: [180, 360]
+
+core_instruments:
+  - name: upright_bass
+    role: bass
+  - name: drums_jazz_kit
+    role: rhythm
+  - name: piano_acoustic
+    role: harmony
+optional_instruments:
+  - name: alto_sax
+    role: melody
+  - name: tenor_sax
+    role: melody
+  - name: trumpet
+    role: melody
+  - name: jazz_guitar_clean
+    role: harmony
+  - name: vibraphone
+    role: melody
+forbidden_instruments:
+  - distorted_electric_guitar
+  - synth_lead_saw
+  - synth_bass
+
+chord_palette_extended:
+  - maj7
+  - min7
+  - dom7
+  - m7b5
+  - dim7
+  - alt
+  - "13"
+  - "9"
+  - "#11"
+  - "6"
+  - m6
+  - m9
+progression_library_ids:
+  - jazz_ii_V_I
+  - jazz_ii_V_i_minor
+  - rhythm_changes_a
+  - bird_blues
+harmonic_rhythm: [1.0, 4.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.5
+seventh_chord_probability: 0.85
+secondary_dominant_probability: 0.3
+modal_interchange_probability: 0.2
+
+swing_8th: 0.67
+swing_16th: 0.5
+typical_grooves:
+  - jazz_swing_medium
+  - jazz_swing_fast
+  - jazz_ballad
+  - jazz_waltz
+drum_kit_preference: jazz_kit
+drum_pattern_ids:
+  - jazz_ride_swing
+  - jazz_brushes
+  - jazz_latin
+syncopation_density: 0.4
+polyrhythm_tolerance: 0.3
+
+melodic_devices:
+  - bebop_scale
+  - chromatic_passing
+  - enclosure
+  - approach_notes
+  - scalar_runs
+phrase_length_beats: [4.0, 16.0]
+typical_scales:
+  - major
+  - bebop_major
+  - bebop_dominant
+  - altered
+  - melodic_minor
+  - dorian
+  - mixolydian
+call_response_density: 0.4
+melodic_contour_weights:
+  ascending: 0.2
+  descending: 0.2
+  arch: 0.3
+  valley: 0.15
+  flat: 0.15
+leap_probability: 0.3
+blue_note_probability: 0.15
+
+voicing_density_target: 4
+bass_motion_style: walking
+typical_dynamics_range: ["p", "f"]
+target_spectral_centroid: 0.45
+
+target_lufs: -16.0
+target_peak_db: -1.0
+typical_effects:
+  - room_reverb_small
+  - gentle_compression
+stereo_imaging: narrow
+production_profile_id: jazz_intimate
+
+cliches_to_avoid:
+  - "Sequential ii-V chains with no rhythmic or melodic interest"
+  - "Mechanical eighth-note runs without articulation variation"
+  - "Solo with no dynamic shape"
+  - "Same voicing repeated identically across changes"

@@ -1,0 +1,120 @@
+name: cinematic
+description: |
+  Cinematic/film score: orchestral palette, wide dynamic range,
+  dramatic arcs, hybrid electronic-orchestral elements.
+  Emphasizes emotional impact and narrative structure.
+
+typical_tempo_range: [60, 160]
+typical_keys: ["Cm", "Dm", "Am", "Fm", "D", "Bb"]
+typical_modes: ["minor", "major", "dorian", "lydian"]
+typical_time_signatures: ["4/4", "3/4", "6/8"]
+typical_form_templates: ["through_composed", "theme_and_variations", "arc"]
+typical_duration_seconds: [60, 300]
+
+core_instruments:
+  - name: strings_ensemble
+    role: harmony
+  - name: piano_acoustic
+    role: melody
+  - name: timpani
+    role: rhythm
+optional_instruments:
+  - name: french_horn
+    role: melody
+  - name: trumpet
+    role: melody
+  - name: flute
+    role: melody
+  - name: oboe
+    role: melody
+  - name: choir_pad
+    role: pad
+  - name: celesta
+    role: melody
+  - name: harp
+    role: harmony
+  - name: synth_pad_atmospheric
+    role: pad
+  - name: taiko
+    role: rhythm
+forbidden_instruments:
+  - distorted_electric_guitar
+  - drums_808
+  - synth_bass_acid
+
+chord_palette_extended:
+  - major
+  - minor
+  - maj7
+  - min7
+  - aug
+  - dim
+  - sus2
+  - sus4
+  - add9
+  - m9
+  - "7"
+progression_library_ids:
+  - cinematic_epic
+  - cinematic_intimate
+  - cinematic_tension
+harmonic_rhythm: [0.25, 1.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.4
+seventh_chord_probability: 0.4
+secondary_dominant_probability: 0.2
+modal_interchange_probability: 0.25
+
+swing_8th: 0.5
+swing_16th: 0.5
+typical_grooves:
+  - cinematic_straight
+  - cinematic_waltz
+drum_kit_preference: orchestral_percussion
+drum_pattern_ids: []
+syncopation_density: 0.15
+polyrhythm_tolerance: 0.2
+
+melodic_devices:
+  - leitmotif
+  - sequence
+  - augmentation
+  - inversion
+  - counterpoint
+phrase_length_beats: [4.0, 16.0]
+typical_scales:
+  - major
+  - minor_natural
+  - minor_harmonic
+  - lydian
+  - dorian
+  - minor_melodic
+call_response_density: 0.3
+melodic_contour_weights:
+  ascending: 0.3
+  descending: 0.2
+  arch: 0.3
+  valley: 0.1
+  flat: 0.1
+leap_probability: 0.35
+blue_note_probability: 0.0
+
+voicing_density_target: 6
+bass_motion_style: arpeggiated
+typical_dynamics_range: ["pp", "fff"]
+target_spectral_centroid: 0.5
+
+target_lufs: -20.0
+target_peak_db: -1.0
+typical_effects:
+  - concert_hall_reverb
+  - gentle_compression
+  - warm_eq
+stereo_imaging: wide
+production_profile_id: cinematic
+
+cliches_to_avoid:
+  - "Constant fortissimo without dynamic contrast"
+  - "Hans Zimmer BWAAAM without narrative justification"
+  - "String ostinato that never develops"
+  - "Percussion hit on every bar downbeat without variation"

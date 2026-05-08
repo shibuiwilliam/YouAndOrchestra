@@ -1,0 +1,104 @@
+name: hip_hop
+description: |
+  Hip-hop: beat-driven, groove-centric, loop-based production.
+  808 kicks, punchy snares, syncopated patterns, sampled or
+  synthesized instrumentation.
+
+typical_tempo_range: [70, 110]
+typical_keys: ["Am", "Dm", "Em", "Cm", "Gm", "F#m"]
+typical_modes: ["minor", "dorian", "phrygian"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["hip_hop_verse_hook", "hip_hop_loop_8bar"]
+typical_duration_seconds: [120, 240]
+
+core_instruments:
+  - name: drums_808
+    role: rhythm
+  - name: synth_bass_sub
+    role: bass
+optional_instruments:
+  - name: electric_piano_rhodes
+    role: harmony
+  - name: synth_pad_warm
+    role: pad
+  - name: piano_acoustic
+    role: harmony
+  - name: pluck_synth
+    role: melody
+  - name: strings_ensemble
+    role: pad
+forbidden_instruments:
+  - harpsichord
+  - timpani
+  - french_horn
+
+chord_palette_extended:
+  - minor
+  - min7
+  - min9
+  - "7"
+  - sus2
+  - m6
+progression_library_ids:
+  - hip_hop_minor_loop
+  - neo_soul_loop
+  - trap_progression
+harmonic_rhythm: [0.25, 0.5]
+modal_interchange_allowed: true
+chromaticism_level: 0.15
+seventh_chord_probability: 0.3
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.1
+
+swing_8th: 0.52
+swing_16th: 0.55
+typical_grooves:
+  - hip_hop_boom_bap
+  - hip_hop_trap
+  - hip_hop_lazy_pocket
+drum_kit_preference: "808"
+drum_pattern_ids:
+  - boom_bap_classic
+  - trap_basic
+  - lofi_boom_bap
+syncopation_density: 0.4
+
+melodic_devices:
+  - pentatonic_minor
+  - blues_notes
+  - rhythmic_repetition
+phrase_length_beats: [4.0, 8.0]
+typical_scales:
+  - pentatonic_minor
+  - minor_natural
+  - blues
+  - dorian
+call_response_density: 0.2
+melodic_contour_weights:
+  ascending: 0.15
+  descending: 0.25
+  arch: 0.25
+  valley: 0.15
+  flat: 0.2
+leap_probability: 0.2
+blue_note_probability: 0.15
+
+voicing_density_target: 3
+bass_motion_style: pedal
+typical_dynamics_range: ["mp", "f"]
+target_spectral_centroid: 0.4
+
+target_lufs: -10.0
+target_peak_db: -0.3
+typical_effects:
+  - heavy_808_processing
+  - sidechain_compression
+  - vinyl_warmth
+  - parallel_compression
+stereo_imaging: moderate
+production_profile_id: hip_hop
+
+cliches_to_avoid:
+  - "Same 4-bar loop with zero variation across 2+ minutes"
+  - "808 kick with no sidechain or frequency space for bass"
+  - "Generic trap hi-hat pattern without groove variation"

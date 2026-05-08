@@ -203,11 +203,17 @@ _NOSTALGIA = {
 
 # Genre keyword mapping
 _GENRE_KEYWORDS: dict[str, list[str]] = {
-    "bebop_jazz": ["jazz", "bebop", "bop", "swing", "improvisation"],
-    "j_pop_ballad": ["jpop", "j-pop", "japanese", "ballad", "anime"],
+    # v2.0 canonical genre names (match GenreRegistry)
+    "pop": ["pop", "pop music", "radio pop"],
+    "rock": ["rock", "guitar", "riff", "classic rock"],
+    "jazz": ["jazz", "swing", "improvisation", "bebop", "bop"],
+    "hip_hop": ["hip hop", "hip-hop", "hiphop", "rap", "trap", "boom bap"],
+    "cinematic": ["cinematic", "film", "movie", "soundtrack", "score", "epic"],
+    # Extended genre keywords
+    "bebop_jazz": ["bebop", "bop", "charlie parker", "bird"],
+    "j_pop_ballad": ["jpop", "j-pop", "japanese", "anime"],
     "classical_romantic": ["classical", "romantic", "orchestral", "symphony", "concerto"],
-    "lofi_hiphop": ["lofi", "lo-fi", "chillhop", "study", "chill", "beats"],
-    "rock_classic": ["rock", "guitar", "riff", "classic rock"],
+    "lofi_hiphop": ["lofi", "lo-fi", "chillhop", "study beats"],
     "blues": ["blues", "bluesy", "12-bar"],
     "electronic_ambient": ["ambient", "atmospheric", "drone", "soundscape"],
     "electronic_house": ["house", "dance", "edm", "club", "techno"],
@@ -219,7 +225,6 @@ _GENRE_KEYWORDS: dict[str, list[str]] = {
     "latin_salsa": ["salsa", "latin", "mambo", "son"],
     "soul_rnb": ["soul", "r&b", "rnb", "motown"],
     "gospel": ["gospel", "spiritual", "church"],
-    "cinematic": ["cinematic", "film", "movie", "soundtrack", "score", "epic"],
     "metal_traditional": ["metal", "heavy", "shred"],
     "celtic": ["celtic", "irish", "scottish"],
     "jazz_modal": ["modal", "miles davis", "kind of blue"],
@@ -384,12 +389,31 @@ class IntentParser:
         return hi / total
 
     def _detect_genres(self, text: str) -> list[tuple[str, float]]:
-        """Detect genre candidates from text."""
+        """Detect genre candidates from text.
+
+        Uses keyword matching against _GENRE_KEYWORDS and also checks
+        the GenreRegistry for direct name matches.
+        """
         scores: dict[str, float] = {}
+
+        # Keyword-based matching
         for genre, keywords in _GENRE_KEYWORDS.items():
             match_count = sum(1 for kw in keywords if kw in text)
             if match_count > 0:
                 scores[genre] = min(1.0, match_count * 0.4)
+
+        # Direct registry name matching (higher confidence)
+        try:
+            from yao.genre.registry import GenreRegistry
+
+            for name in GenreRegistry.available():
+                # Check for genre name as a word in the text
+                name_variants = [name, name.replace("_", " "), name.replace("_", "-")]
+                for variant in name_variants:
+                    if variant.lower() in text:
+                        scores[name] = max(scores.get(name, 0.0), 0.8)
+        except Exception:
+            pass  # Registry not available — use keyword matches only
 
         if not scores:
             scores["lofi_hiphop"] = 0.3  # default fallback
