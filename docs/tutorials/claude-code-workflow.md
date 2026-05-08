@@ -190,7 +190,7 @@ Behind the scenes, Claude Code can invoke specialized subagents:
 | **Orchestrator** | Assigns instruments, voicings, frequency spacing |
 | **Mix Engineer** | Manages stereo placement, dynamics, frequency balance |
 | **Adversarial Critic** | Finds weaknesses — never praises |
-| **Modulation Planner** *(v3.0)* | Plans key modulations per trajectory and genre preferences |
+| **Modulation Planner** | Plans key modulations per trajectory and genre preferences |
 
 ---
 
@@ -202,8 +202,8 @@ YaO includes 44 domain knowledge skills that Claude Code can draw on:
 |---|---|
 | Genres (29) | cinematic, jazz_swing, jazz_ballad, rock_classic, pop, pop_western, pop_japan, electronic (edm_house, synthwave), ambient, deep_house, lo_fi_hiphop, funk, blues, hiphop, baroque, romantic, orchestral_classical, neoclassical, acoustic_folk, game_8bit_chiptune, game_bgm_rpg, film_score_dramatic, bossa_nova, celtic_traditional, arab_maqam, indian_classical_hindustani, j_pop |
 | Cultures (3) | Japanese, Middle Eastern, Indian Classical |
-| Theory (6) | Voice leading, Microtonal, Process music, Twelve-tone, Reharmonization *(v3.0)*, Modulation *(v3.0)* |
-| Instruments (2) | Piano, Idiomatic gestures *(v3.0)* |
+| Theory (6) | Voice leading, Microtonal, Process music, Twelve-tone, Reharmonization, Modulation |
+| Instruments (2) | Piano, Idiomatic gestures |
 | Psychology (2) | Tension-resolution, Emotion mapping |
 | Articulation (4) | Jazz microtiming, Piano pedaling, Strings articulation, Winds articulation |
 

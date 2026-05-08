@@ -8,7 +8,7 @@
 
 - **Multi-turn sketches** — describe a piece in plain language (English or Japanese), refine through dialogue
 - **Full composition pipeline** — 9-step plan-based generation from intent to rendered audio
-- **Combination Stack (v3.0)** — Layer 2.5 coupling modules: chord-aware melody, voice-leading optimization, reharmonization, genre blending, and more
+- **Combination Stack** — Coupling layer modules: chord-aware melody, voice-leading optimization, reharmonization, genre blending, and more
 - **Genre-aware** — 29+ genre skills shape every decision from chord palette to groove feel
 - **Adversarial critique** — 35 rules catch structural, harmonic, melodic, and rhythmic issues
 - **Pin-based feedback** — point at a specific bar and say what's wrong in natural language
@@ -22,7 +22,7 @@
 CompositionSpec
     → PlanOrchestrator (9 steps)
         → MusicalPlan (form + harmony + motif + phrase + drums + arrangement + hooks + conversation)
-    → Combination Stack / Layer 2.5 (chord-aware melody, voice leading, reharmonization...)
+    → Combination Stack (chord-aware melody, voice leading, reharmonization...)
     → Critic Gate (35 rules)
     → NoteRealizer (rule-based or stochastic)
     → GrooveApplicator (20 profiles)
@@ -53,7 +53,7 @@ CompositionSpec
 | Tonal Systems | 10 kinds (major/minor, modal, blues, pentatonic, atonal, drone, raga, maqam, microtonal, custom) |
 | Trajectory Dims | 5 (tension, density, register_height, variation, instrumentation) |
 | Evaluation | 6-dimension scoring + melody-harmony alignment + voice-leading smoothness + 7 use-case evaluators |
-| Coupling (v3.0) | 13 modules: chord-aware melody, voice leading, reharmonization, genre blending, and more |
+| Coupling | 13 modules: chord-aware melody, voice leading, reharmonization, genre blending, and more |
 | Perception | Audio features, surprise scoring, mood classification, reference matching |
 
 ---

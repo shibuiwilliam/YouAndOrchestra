@@ -2,7 +2,7 @@
 
 ## How Generation Works
 
-YaO uses a two-stage generation architecture (v2.0):
+YaO uses a two-stage generation architecture:
 
 1. **Plan Generators** take a `CompositionSpec` and produce a `MusicalPlan` (MPIR) -- structural and harmonic decisions *before* any notes are placed.
 2. **Note Realizers** take a `MusicalPlan` and produce a `ScoreIR` -- concrete notes faithfully realizing the plan.
@@ -13,9 +13,9 @@ CompositionSpec -> PlanGenerator -> MusicalPlan -> NoteRealizer -> ScoreIR
 
 Every step returns a `ProvenanceLog` recording every decision.
 
-## Legacy Generators (v1, deprecated)
+## Legacy Generators (deprecated)
 
-The v1 generators still work but are deprecated in favor of v2 plan+realize architecture. They take a spec directly and produce notes.
+The legacy generators still work but are deprecated in favor of the plan+realize architecture. They take a spec directly and produce notes.
 
 ```python
 class GeneratorBase(ABC):
@@ -31,7 +31,7 @@ Register with `@register_generator("name")`. Select at runtime with `get_generat
 
 Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `process_music`, `constraint_solver`, `rule_based_v2`, `stochastic_v2`.
 
-## Creating a Plan Generator (v2.0)
+## Creating a Plan Generator
 
 Plan generators decide *what* to play -- form, harmony, motifs -- without placing any concrete notes.
 
@@ -76,7 +76,7 @@ Add to the appropriate `__init__.py` or `cli/main.py`:
 import yao.generators.plan.my_planner as _mp  # noqa: F401
 ```
 
-## Creating a Note Realizer (v2.0)
+## Creating a Note Realizer
 
 Note realizers turn a `MusicalPlan` into concrete notes. They must faithfully realize the plan, not make structural decisions.
 
@@ -164,9 +164,9 @@ def test_trajectory_compliance():
 5. **Use `yao.ir.timing`** for all beat/tick/second conversions.
 6. **Use `yao.ir.notation`** for all note name/MIDI conversions.
 7. **Respect `GenerationConfig`** -- use `spec.generation.seed` and `spec.generation.temperature`.
-8. **Plans before notes** (v2.0) -- structural decisions belong in plan generators, not note realizers.
-9. **Trajectory is a control signal** (v2.0) -- when trajectory values change, your generator output must change measurably.
-10. **Consult GenreProfile** (v2.0) -- defaults for tempo, contour, harmonic extensions come from the active genre profile, not from code constants.
+8. **Plans before notes** -- structural decisions belong in plan generators, not note realizers.
+9. **Trajectory is a control signal** -- when trajectory values change, your generator output must change measurably.
+10. **Consult GenreProfile** -- defaults for tempo, contour, harmonic extensions come from the active genre profile, not from code constants.
 
 ## Existing Generators
 
@@ -192,7 +192,7 @@ def test_trajectory_compliance():
 - **Per-instrument deterministic RNG** -- master_seed:instrument:section for reproducibility
 - **Temperature semantics**: 0.0 = conservative (mostly steps, basic chords), 1.0 = adventurous (leaps, 7th chords, complex rhythms)
 
-### v2.0 Plan Generators
+### Plan Generators
 - **FormPlanner** -- Generates `SongFormPlan` from spec sections (consumes 20-form library)
 - **HarmonyPlanner** -- Generates `HarmonyPlan` with chord events per section (genre-aware, uses genre skill chord palettes)
 - **Composer (Subagent)** -- Generates `MotifPlan` + `PhrasePlan` + `HookPlan` (Markov bigram + intent-driven, guaranteed motif recurrence >= 3)
@@ -200,7 +200,7 @@ def test_trajectory_compliance():
 - **Orchestrator** -- Generates `ArrangementPlan` with register separation
 - **ConversationDirector** -- Generates `ConversationPlan` (Step 5.5, inter-instrument dialogue)
 
-### v2.0 Note Realizers
+### Note Realizers
 - **rule_based_v2** -- Deterministic, 100% plan consumption, chord-aware voicing
 - **stochastic_v2** -- Seeded randomness, 100% plan consumption, temperature control
 
@@ -224,9 +224,9 @@ Available in the stochastic generator via `MelodicGenerationStrategy`:
 
 Each strategy produces distinct melodic character, verified by tests.
 
-## Combination Stack Modules (v3.0, Layer 2.5)
+## Combination Stack Modules
 
-The Combination Stack (`src/yao/coupling/`) sits between generators and IR. These modules **transform, couple, blend, or optimize** already-generated material — they never generate raw notes from scratch.
+The Combination Stack (`src/yao/coupling/`) sits between generators and IR. These modules **transform, couple, blend, or optimize** already-generated material -- they never generate raw notes from scratch.
 
 ### Module Pattern
 
@@ -271,5 +271,5 @@ def couple(
 1. **Never mutate inputs** — always return new IR objects
 2. **Feature-flagged** — check `composition.features.<flag>`, return input unchanged when disabled
 3. **Full provenance** — every decision recorded with `caused_by` linking to input decisions
-4. **Layer 2.5 imports** — may import from Layers 0, 1, 2, and other coupling modules only
+4. **Coupling layer imports** -- may import from constants, schema, generation, and other coupling modules only
 5. **No raw note generation** — coupling transforms or constrains, not generates

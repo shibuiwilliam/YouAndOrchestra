@@ -181,7 +181,7 @@ yao validate my-spec.yaml
 
 All formats are validated at load time via Pydantic. Invalid specs produce clear error messages.
 
-## Feature Flags (v3.0)
+## Feature Flags
 
 Control Combination Stack modules via a `features:` block in any spec format:
 
@@ -200,7 +200,7 @@ features:
 
 When a flag is `false`, the corresponding coupling module returns input unchanged (identity function).
 
-## Genre Blending (v3.0)
+## Genre Blending
 
 Instead of a single genre, blend multiple genres with weighted profiles:
 
@@ -213,7 +213,7 @@ genre_blend:
 
 The result is a single synthesized `MelodicProfile`. Discrete fields use weighted random selection; numeric fields interpolate linearly.
 
-## Harmonic Devices (v3.0)
+## Harmonic Devices
 
 Specify genre-typical harmonic patterns via `harmonic-devices.yaml`:
 

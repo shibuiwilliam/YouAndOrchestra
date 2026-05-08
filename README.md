@@ -21,22 +21,14 @@ Requires **Python 3.11+**. Audio rendering (MIDI to WAV) requires [FluidSynth](#
 
 ### Your first piece
 
-The fastest path from idea to MIDI:
-
-```bash
-yao conduct "a calm piano piece in D minor, 90 seconds"
-```
-
-This generates MIDI, evaluates quality across 6 dimensions, and iterates automatically if metrics fall short. Output lands in `outputs/projects/`.
-
-For an interactive experience, launch Claude Code:
+Launch Claude Code in the project directory:
 
 ```bash
 claude
 > /sketch a melancholic piano piece for studying on a rainy evening
 ```
 
-The `/sketch` command walks you through a 6-turn dialogue to refine your idea. Then `/compose`, `/critique`, and `/render`.
+The `/sketch` command walks you through a 6-turn dialogue to refine your idea into a complete specification. Then `/compose`, `/critique`, and `/render` to generate, evaluate, and render audio.
 
 ---
 
@@ -56,25 +48,27 @@ The sketch dialogue supports both English and Japanese input.
 
 ### 2. Natural language (one-shot)
 
-```bash
-yao conduct "epic orchestral trailer music building to a massive brass climax"
+```
+/conduct epic orchestral trailer music building to a massive brass climax
 ```
 
 The Conductor generates, evaluates, adapts, and regenerates — up to 3 iterations — until quality thresholds pass.
 
 ### 3. YAML spec (full control)
 
-```bash
-yao new-project my-piece
-# Edit specs/projects/my-piece/composition.yaml
-yao compose specs/projects/my-piece/composition.yaml
+Create a project and edit the spec directly:
+
+```
+/sketch my-piece
+# Edit specs/projects/my-piece/composition.yaml to taste
+/compose my-piece
 ```
 
 Three spec formats are available:
 
-- **v1** — Simple flat YAML for quick experiments
-- **v2** — 11-section detailed spec with full control over melody, harmony, rhythm, arrangement, and production
-- **v3** — Composable specs with `extends`, `overrides`, and reusable `fragments`
+- **Simple** — Flat YAML for quick experiments
+- **Detailed** — 11-section spec with full control over melody, harmony, rhythm, arrangement, and production
+- **Composable** — Specs with `extends`, `overrides`, and reusable `fragments`
 
 ---
 
@@ -137,7 +131,7 @@ User Input (natural language or YAML)
   -> [Step 5]  Orchestrator    -> ArrangementPlan
   -> [Step 5.5] Conversation   -> ConversationPlan (inter-instrument dialogue)
   === Critic Gate (34 adversarial rules before any notes are placed) ===
-  -> [Step 6]  Note Realizer   -> ScoreIR (with v3.0 harmonic coupling)
+  -> [Step 6]  Note Realizer   -> ScoreIR (with harmonic coupling)
   -> [Step 6.5] Performance    -> Articulation, dynamics, microtiming
   -> [Step 7]  Renderer        -> MIDI / WAV / MusicXML / LilyPond / Score
   -> [Step 7.5] Listening Sim  -> PerceptualReport (LUFS, spectral, temporal)
@@ -160,9 +154,9 @@ YaO models the roles of a real music production team:
 
 Subagents run via **PythonOnlyBackend** (default, no API key needed) or **AnthropicAPIBackend** (real LLM calls with structured output).
 
-### The Combination Stack (v3.0)
+### The Combination Stack
 
-The v3.0 release adds **Layer 2.5: Combination & Coupling** — 11 modules that turn YaO's rich material library into genuinely diverse output. These modules sit between raw generation and the IR layer, coupling melody to harmony, optimizing voice leading, and enabling genre blending.
+The **Combination & Coupling** layer provides 11 modules that turn YaO's rich material library into genuinely diverse output. These modules sit between raw generation and the IR layer, coupling melody to harmony, optimizing voice leading, and enabling genre blending.
 
 | Module | What It Does |
 |---|---|
@@ -273,7 +267,7 @@ Every composition is automatically evaluated across 6 dimensions:
 | Arrangement | 10% | Texture variety, register separation |
 | Acoustics | 5% | Spectral balance, LUFS compliance |
 
-### v3.0 Metrics
+### Combination Stack Metrics
 
 The Combination Stack adds two additional evaluation metrics:
 
@@ -313,6 +307,8 @@ A panel of automated critics, each specialized to find specific weaknesses:
 ---
 
 ## Slash Commands
+
+All interaction happens through Claude Code slash commands:
 
 | Command | Purpose |
 |---|---|
@@ -363,7 +359,7 @@ Dimensions: **tension**, **density**, **predictability**, **brightness**, **regi
 
 Transform an existing piece into a new style while preserving what matters:
 
-```bash
+```
 /arrange my-song --target-genre lofi_hiphop --preserve melody,form
 ```
 
@@ -384,29 +380,6 @@ Operations: **regroove**, **reharmonize**, **reorchestrate**, **retempo**, **tra
 
 ---
 
-## CLI Reference
-
-| Command | Description |
-|---|---|
-| `yao conduct "<description>"` | Natural language to MIDI with auto-iteration |
-| `yao compose <spec>` | Generate from YAML spec (single pass) |
-| `yao regenerate-section <project> <section>` | Regenerate one section |
-| `yao render <midi>` | Render MIDI to WAV |
-| `yao validate <spec>` | Validate spec YAML |
-| `yao evaluate <project>` | Evaluate latest iteration |
-| `yao critique <project>` | Adversarial critique |
-| `yao diff <spec> --seed-a N --seed-b M` | Compare two stochastic generations |
-| `yao explain <spec>` | Query provenance decisions |
-| `yao new-project <name>` | Create project skeleton |
-| `yao preview <spec>` | In-memory generate + play (no file output) |
-| `yao watch <spec>` | Auto-regenerate on file change |
-| `yao arrange <project>` | Transform into another style |
-| `yao rate <project>` | Interactive 5-dimension rating |
-| `yao reflect ingest` | Aggregate ratings into UserStyleProfile |
-| `yao feedback <project> <text>` | Natural-language feedback |
-
----
-
 ## Architecture
 
 YaO uses an 8-layer architecture with strict downward-only dependency flow, enforced by an AST-based import checker in CI:
@@ -417,7 +390,7 @@ Layer 6: Verification & Critique     (verify/ — 34 rules, aesthetic metrics, a
 Layer 5: Rendering                   (render/ — MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel)
 Layer 4: Perception                  (perception/ — audio features, style vectors, surprise, use-case eval)
 Layer 3: Score IR                    (ir/ — note, part, section, voicing, timing, phrase, skeleton, melody)
-Layer 2.5: Combination & Coupling    (coupling/ — 11 modules, v3.0 Combination Stack)
+Coupling: Combination & Coupling     (coupling/ — 11 modules, Combination Stack)
 Layer 2: Generation Strategy         (generators/ — plan generators, note realizers, melody pipeline)
 Layer 1: Specification               (schema/, sketch/ — YAML specs, NL compiler, feature flags)
 Layer 0: Constants                   (constants/ — instruments, scales, forms, chords, profiles)
@@ -440,7 +413,7 @@ When `features.chord_aware_melody` is enabled (the default), M2 scores every can
 
 ---
 
-## Feature Flags (v3.0)
+## Feature Flags
 
 The Combination Stack is controlled by feature flags in the composition spec:
 
@@ -518,7 +491,7 @@ brew install fluid-synth
 sudo apt-get install fluidsynth
 ```
 
-Place a `.sf2` file in `soundfonts/`, then use `/render` or `yao render`.
+Place a `.sf2` file in `soundfonts/`, then use `/render` in Claude Code.
 
 ---
 
@@ -529,12 +502,12 @@ src/yao/               277 Python modules
   constants/            Instruments (46), scales (28), forms (20), chords (14),
                         melodic profiles (25), rhythms (31), grooves (20),
                         harmonic devices (15)
-  schema/               Pydantic specs (v1 + v2 + v3), feature flags, genre profiles
+  schema/               Pydantic specs, feature flags, genre profiles
   sketch/               NL -> spec compiler (EN + JP), 6-turn dialogue
   ir/                   Score IR + Plan IR, phrase, skeleton, melody line,
                         harmonic context, voicing, timing, hook, groove,
-                        harmonic melody constraints (v3.0)
-  coupling/             v3.0 Combination Stack (11 modules): chord-aware melody,
+                        harmonic melody constraints
+  coupling/             Combination Stack (11 modules): chord-aware melody,
                         voice leading, reharmonization, rhythm Markov, modulation,
                         harmonic devices, phrase shape, theme recurrence,
                         genre vector, polyrhythm, listening dialog
@@ -543,7 +516,7 @@ src/yao/               277 Python modules
                         15 pitch Markov models, 12 rhythm Markov models
   perception/           Audio features, StyleVector, surprise scorer, use-case eval
   verify/               Evaluator, 34 critique rules, aesthetic metrics,
-                        melody-harmony alignment (v3.0), voice-leading smoothness (v3.0)
+                        melody-harmony alignment, voice-leading smoothness
   conductor/            Generate-evaluate-adapt loop, multi-candidate orchestration
   subagents/            7 Python subagent implementations
   render/               MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel
@@ -554,7 +527,7 @@ src/yao/               277 Python modules
   reflect/              Provenance (causal graph), style profiles, ratings
 
 tests/                  299 test files, 3,328 tests
-  unit/                 Core module tests + coupling/ (196 v3.0 tests)
+  unit/                 Core module tests + coupling/ (196 coupling tests)
   integration/          End-to-end pipeline tests
   scenarios/            Musical behavior tests (groove, genre, diversity)
   golden/               MIDI regression baselines
@@ -576,7 +549,7 @@ make all-checks     # Full quality pipeline
 make test           # All 3,328 tests
 make lint           # ruff + mypy strict
 make arch-lint      # Layer boundary enforcement (AST-based)
-make test-coupling  # v3.0 Combination Stack tests (196 tests)
+make test-coupling  # Combination Stack tests (196 tests)
 make test-diversity # Diversity scenario tests
 make test-golden    # Golden MIDI regression tests
 make test-melody    # Melody pipeline tests
@@ -619,7 +592,7 @@ Five honesty tools run in CI to verify that features actually work, not just exi
 | Document | Purpose |
 |---|---|
 | [FEATURE_STATUS.md](FEATURE_STATUS.md) | Single source of truth for all capabilities |
-| [PROJECT.md](PROJECT.md) | Full architecture and design (v3.0) |
+| [PROJECT.md](PROJECT.md) | Full architecture and design |
 | [CLAUDE.md](CLAUDE.md) | Development rules, current phase, escalation guide |
 | [IMPROVEMENT.md](IMPROVEMENT.md) | Gap analysis and diversity improvement roadmap |
 

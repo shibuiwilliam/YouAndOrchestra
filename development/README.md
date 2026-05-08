@@ -6,19 +6,19 @@ Technical documentation for contributors and AI agents developing YaO.
 
 | Document | Purpose |
 |----------|---------|
-| [architecture.md](architecture.md) | Layer model, dependency rules, V2 pipeline, key types |
+| [architecture.md](architecture.md) | Layer model, dependency rules, pipeline, key types |
 | [api-reference.md](api-reference.md) | Public API surface, module-by-module reference |
 | [generator-guide.md](generator-guide.md) | How to build plan generators and note realizers |
-| [spec-system.md](spec-system.md) | YAML specification system (v1 + v2 + v3 composability) |
+| [spec-system.md](spec-system.md) | YAML specification system (simple, detailed, composable formats) |
 | [testing-strategy.md](testing-strategy.md) | Test categories, helpers, golden tests, audio regression |
 | [roadmap.md](roadmap.md) | Development roadmap with milestones |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Quick setup and contribution guide |
 
 ## See Also
 
-- [PROJECT.md](../PROJECT.md) -- Full project design (v3.0)
+- [PROJECT.md](../PROJECT.md) -- Full project design
 - [CLAUDE.md](../CLAUDE.md) -- Development rules and conventions
-- [IMPROVEMENT.md](../IMPROVEMENT.md) -- Gap analysis and v3.0 roadmap
+- [IMPROVEMENT.md](../IMPROVEMENT.md) -- Gap analysis and roadmap
 - [VISION.md](../VISION.md) -- Target architecture
 - [FEATURE_STATUS.md](../FEATURE_STATUS.md) -- Capability matrix (single source of truth)
 - [.claude/guides/](../.claude/guides/) -- Focused guides (architecture, coding, music engineering, testing, workflow)
@@ -26,7 +26,7 @@ Technical documentation for contributors and AI agents developing YaO.
 ## Current State
 
 - **Version:** 0.1.0
-- **Phase:** v3.0 -- Phase 3.5 (Diversity Foundation) active. Combination Stack (Layer 2.5) in development: chord-aware melody, voice-leading optimizer, reharmonization engine.
+- **Phase:** Diversity Foundation active. Combination & Coupling layer in development: chord-aware melody, voice-leading optimizer, reharmonization engine.
 - **Python:** 3.11+
 - **Source modules:** 277 Python modules in `src/yao/`
 - **Test files:** 299 test files, ~2,701 tests passing
@@ -34,9 +34,9 @@ Technical documentation for contributors and AI agents developing YaO.
 
 ### Generation
 
-- **V2 Pipeline:** Spec -> PlanOrchestrator (9 steps) -> MusicalPlan -> Critic Gate -> NoteRealizer V2 -> Performance -> Renderer
-- **Combination Stack (Layer 2.5):** 13 coupling modules (`src/yao/coupling/`) — harmonic-melody coupling, voice leading, reharmonization, modulation, genre vector, rhythm Markov, polyrhythm, theme recurrence, phrase shape, listening dialog, idiomatic gestures, harmonic devices
-- **Note Realizers:** 4 registered -- 2 V2 (rule_based_v2, stochastic_v2 with 100% plan consumption) + 2 legacy (deprecated)
+- **Pipeline:** Spec -> PlanOrchestrator (9 steps) -> MusicalPlan -> Critic Gate -> NoteRealizer -> Performance -> Renderer
+- **Combination & Coupling:** 13 coupling modules (`src/yao/coupling/`) -- harmonic-melody coupling, voice leading, reharmonization, modulation, genre vector, rhythm Markov, polyrhythm, theme recurrence, phrase shape, listening dialog, idiomatic gestures, harmonic devices
+- **Note Realizers:** 4 registered -- 2 current (rule_based_v2, stochastic_v2 with 100% plan consumption) + 2 legacy (deprecated)
 - **Additional generators:** markov, twelve_tone, process_music, constraint_solver
 - **Melodic strategies:** 8 distinct approaches (contour, motif development, linear voice, arpeggiated, scalar runs, call-response, pedal tone, hocketing)
 - **Plan generators:** FormPlanner, HarmonyPlanner, Composer, DrumPatterner, Orchestrator, ConversationDirector
@@ -62,7 +62,7 @@ Technical documentation for contributors and AI agents developing YaO.
 
 ### Infrastructure
 
-- **Spec formats:** v1 (flat YAML) + v2 (11-section) + v3 (composability with extends/overrides/fragments)
+- **Spec formats:** Simple (flat YAML), Detailed (11-section), and Composable (extends/overrides/fragments)
 - **Backends:** PythonOnlyBackend (CI default) + AnthropicAPIBackend (real LLM, structured output via tool use)
 - **Genre Skills:** 29+ genres integrated into HarmonyPlanner + SpecCompiler + genre_fitness critique
 - **Subagents:** 8 roles (Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Producer, Modulation Planner)

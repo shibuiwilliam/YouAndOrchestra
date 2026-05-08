@@ -2,9 +2,9 @@
 
 ## Overview
 
-YaO is a layered music production pipeline with 8 layers (0 through 7) plus intermediate layers 2.5, 3.5, and 4.5. Each layer has clear responsibilities and strict downward-only dependency flow. Layer boundaries are enforced by `tools/architecture_lint.py` using AST analysis.
+YaO is a layered music production pipeline with 8 layers (0 through 7) plus intermediate layers for Coupling, Musical Plan IR, and Performance Expression. Each layer has clear responsibilities and strict downward-only dependency flow. Layer boundaries are enforced by `tools/architecture_lint.py` using AST analysis.
 
-**v3.0** introduces **Layer 2.5: Combination & Coupling** (`src/yao/coupling/`) between Layer 2 (Generation) and Layer 3 (Score IR). This layer houses modules that transform, couple, blend, and optimize already-generated material — including chord-aware melody, voice-leading optimization, reharmonization, modulation planning, genre blending, rhythm Markov models, polyrhythm, theme recurrence, and listening-agent dialog.
+The **Combination & Coupling** layer (`src/yao/coupling/`) sits between the Generation and Score IR layers. This layer houses modules that transform, couple, blend, and optimize already-generated material -- including chord-aware melody, voice-leading optimization, reharmonization, modulation planning, genre blending, rhythm Markov models, polyrhythm, theme recurrence, and listening-agent dialog.
 
 ## Layer Model
 
@@ -38,20 +38,20 @@ YaO is a layered music production pipeline with 8 layers (0 through 7) plus inte
 |   Note, Part, Section, ScoreIR, harmony, motif, voicing,     |
 |   hook, dynamics_shape, groove, conversation, tension_arc,   |
 |   meter, tuning, expression,                                 |
-|   NEW: HarmonicMelodyConstraints, CouplingStyle              |
+|   HarmonicMelodyConstraints, CouplingStyle                   |
 +--------------------------------------------------------------+
-| Layer 2.5: Combination & Coupling (coupling/)    ← NEW v3.0 |
+| Combination & Coupling (coupling/)                           |
 |   Harmonic-melody coupling, voice-leading optimizer,         |
 |   reharmonization, modulation, genre vector, rhythm Markov,  |
 |   polyrhythm, theme recurrence, phrase shape, listening      |
 |   dialog, idiomatic gestures, harmonic devices               |
 +--------------------------------------------------------------+
 | Layer 2: Generation (generators/)                            |
-|   Plan generators, V2 note realizers, melodic strategies,    |
+|   Plan generators, note realizers, melodic strategies,       |
 |   reactive fills, frequency clearance, groove applicator     |
 +--------------------------------------------------------------+
 | Layer 1: Specification (schema/, sketch/)                    |
-|   Specs (v1+v2+v3), NL compiler (EN+JP), hooks, groove,     |
+|   Specs (simple+detailed+composable), NL compiler (EN+JP),  |
 |   conversation, tension_arcs, genre profiles, arrangement    |
 +--------------------------------------------------------------+
 | Layer 0: Constants (constants/)                              |
@@ -69,7 +69,7 @@ YaO is a layered music production pipeline with 8 layers (0 through 7) plus inte
 | ir (3, 3.5) | constants |
 | reflect (7) | constants, ir |
 | generators (2) | constants, schema, ir, reflect |
-| coupling (2.5) | constants, schema, ir, generators, other coupling modules |
+| coupling | constants, schema, ir, generators, other coupling modules |
 | perception (4) | constants, schema, ir |
 | render (5) | constants, schema, ir, perception |
 | verify (6) | constants, schema, ir, perception |
@@ -79,7 +79,7 @@ YaO is a layered music production pipeline with 8 layers (0 through 7) plus inte
 | conductor | all layers |
 | cli | everything in yao |
 
-## V2 Pipeline (Current Default -- 9 Steps)
+## Pipeline (Current Default -- 9 Steps)
 
 ```
 User Input (NL or YAML)
@@ -104,7 +104,7 @@ PlanOrchestrator (9 steps)
 Critic Gate (MPIR-level: 35 rules + ensemble constraints)
     |
     v
-NoteRealizer V2 (100% plan consumption -- no legacy adapter)
+NoteRealizer (100% plan consumption -- no legacy adapter)
     |
     v
 GrooveApplicator (ensemble-wide microtiming + velocity)
@@ -149,26 +149,26 @@ Conductor Feedback Loop (up to 3 iterations + audio loop)
 | `ProvenanceLog` | reflect/provenance.py | Append-only causal decision graph |
 | `AgentOutput` | subagents/base.py | Universal subagent output |
 | `GenreProfile` | schema/genre_profile.py | Genre-specific defaults (tempo, harmony, instruments, etc.) |
-| `HarmonicMelodyConstraints` | ir/harmonic_melody_constraints.py | Per-position chord-derived rules for melody pitch selection (v3.0) |
-| `CouplingStyle` | ir/harmonic_melody_constraints.py | Enum: COMMON_PRACTICE, JAZZ, BLUES, MODAL, RAGA, MAQAM (v3.0) |
-| `FeatureFlags` | schema/features.py | Feature flag schema for Combination Stack modules (v3.0) |
+| `HarmonicMelodyConstraints` | ir/harmonic_melody_constraints.py | Per-position chord-derived rules for melody pitch selection |
+| `CouplingStyle` | ir/harmonic_melody_constraints.py | Enum: COMMON_PRACTICE, JAZZ, BLUES, MODAL, RAGA, MAQAM |
+| `FeatureFlags` | schema/features.py | Feature flag schema for Combination Stack modules |
 
 ## Package Layout
 
 ```
 src/yao/           277 Python modules
   constants/       Layer 0: 46 instruments, 28 scales, 20 forms, 14 chords, 15 harmonic devices
-  schema/          Layer 1: Pydantic specs (v1 + v2 + v3), genre profiles, features.py (v3.0)
+  schema/          Layer 1: Pydantic specs (simple + detailed + composable), genre profiles, features.py
   sketch/          Layer 1.5: NL compiler (3-stage), emotion vocab, dialogue (5 files)
-  ir/              Layer 3: Score IR + Plan IR (34+ files), HarmonicMelodyConstraints (v3.0)
+  ir/              Layer 3: Score IR + Plan IR (34+ files), HarmonicMelodyConstraints
   generators/      Layer 2: 9 generators, 8 melodic strategies, performance, markov_models/ (pitch+rhythm+contour)
-  coupling/        Layer 2.5 (NEW v3.0): 13 coupling modules (harmonic_melody, voice_leading, reharmonization, modulation, genre_vector, rhythm_markov, polyrhythm, theme_recurrence, phrase_shape, listening_dialog, idiomatic_gestures, harmonic_devices)
+  coupling/        Combination & Coupling: 13 coupling modules (harmonic_melody, voice_leading, reharmonization, modulation, genre_vector, rhythm_markov, polyrhythm, theme_recurrence, phrase_shape, listening_dialog, idiomatic_gestures, harmonic_devices)
   perception/      Layer 4: Audio features, style vector, surprise, mood (9 files)
   render/          Layer 5: MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel (14 files)
-  verify/          Layer 6: Evaluator, 35 critique rules, constraints, melody_harmony_alignment (v3.0), voice_leading_smoothness (v3.0)
+  verify/          Layer 6: Evaluator, 35 critique rules, constraints, melody_harmony_alignment, voice_leading_smoothness
   reflect/         Layer 7: Provenance, style profile (6 files)
   conductor/       Orchestration: Generate-evaluate-adapt loop (8 files)
-  subagents/       8 subagent implementations (including Modulation Planner, v3.0)
+  subagents/       8 subagent implementations (including Modulation Planner)
   agents/          Backend protocol: PythonOnly, Anthropic API (6 files)
   arrange/         Arrangement: Style ops, extraction, diff (12 files)
   feedback/        Feedback: Pin, NL translator, regenerator (4 files)

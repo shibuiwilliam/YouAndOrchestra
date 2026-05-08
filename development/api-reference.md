@@ -12,7 +12,7 @@ class Note:
     velocity: Velocity       # 1-127
     instrument: str          # canonical instrument name
 
-    # v2.0 optional fields
+    # optional fields
     articulation: Articulation | None = None
     tuning_offset_cents: float = 0.0
     microtiming_offset_ms: float = 0.0
@@ -59,7 +59,7 @@ class CompositionSpec(BaseModel):
 
 ### `CompositionSpecV2` (`yao.schema.composition_v2`)
 
-The v2 spec format provides finer control over all aspects of a composition:
+The detailed spec format provides finer control over all aspects of a composition:
 
 ```python
 class CompositionSpecV2(BaseModel):
@@ -302,7 +302,7 @@ class Finding:
 
 ## Generator API
 
-### Legacy (v1, deprecated)
+### Legacy (deprecated)
 
 ```python
 class GeneratorBase(ABC):
@@ -318,7 +318,7 @@ Register with `@register_generator("name")`. Select at runtime with `get_generat
 
 Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `process_music`, `constraint_solver`.
 
-### v2.0: Plan Generators
+### Plan Generators
 
 ```python
 class PlanGeneratorBase(ABC):
@@ -335,7 +335,7 @@ Register with `@register_plan_generator("name")`.
 
 Implemented: FormPlanner, HarmonyPlanner, Composer, DrumPatterner, Orchestrator, ConversationDirector.
 
-### v2.0: Note Realizers
+### Note Realizers
 
 ```python
 class NoteRealizerBase(ABC):
@@ -504,7 +504,7 @@ YaOError (base)
 +-- IncompleteGenreProfileError
 ```
 
-## Combination Stack Types (v3.0)
+## Combination Stack Types
 
 ### `HarmonicMelodyConstraints` (`yao.ir.harmonic_melody_constraints`)
 ```python
@@ -554,7 +554,7 @@ optimal_voicing_transition(prev_voicing, next_chord, voice_count, constraints) -
 reharmonize(progression, operations, intensity, style, constraints, rng) -> ChordProgression
 ```
 
-### Verification Metrics (v3.0)
+### Verification Metrics
 
 ```python
 # yao.verify.melody_harmony_alignment

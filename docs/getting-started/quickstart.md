@@ -143,12 +143,12 @@ yao watch my-spec.yaml
 
 ---
 
-## v3.0: Combination Stack Features
+## Combination Stack Features
 
-The latest version adds the **Combination Stack** (Layer 2.5) with chord-aware melody generation, voice-leading optimization, and reharmonization. These are enabled by default via feature flags:
+The **Combination Stack** provides chord-aware melody generation, voice-leading optimization, and reharmonization. These are enabled by default via feature flags:
 
 ```yaml
-# Add to any spec to control v3.0 features
+# Add to any spec to control combination stack features
 features:
   chord_aware_melody: true          # Melody fits active chords (default ON)
   voice_leading_optimization: true  # Smooth chord transitions (default ON)
@@ -172,5 +172,5 @@ yao conduct "bossa-flavored chords with drum and bass rhythm" \
 - [Spec Templates](templates.md) — pre-built starting points for common genres
 - [Audio Setup](audio-setup.md) — render MIDI to WAV
 - [CLI Reference](../guide/cli-reference.md) — all commands and options
-- [Composition Specs](../guide/composition-spec.md) — full spec format reference (includes v3.0 feature flags)
+- [Composition Specs](../guide/composition-spec.md) — full spec format reference (includes feature flags)
 - [Claude Code Workflow](../tutorials/claude-code-workflow.md) — interactive session guide

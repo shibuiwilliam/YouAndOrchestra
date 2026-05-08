@@ -92,13 +92,13 @@ def test_my_feature() -> None:
 make all-checks        # Full pipeline (lint + arch-lint + tests + golden + honesty)
 make test              # All tests (~2,701)
 make lint              # ruff + mypy strict
-make arch-lint         # Layer boundary enforcement (now covers Layer 2.5)
+make arch-lint         # Layer boundary enforcement (covers Coupling layer)
 make test-golden       # Golden MIDI regression
-make test-coupling     # Combination Stack tests (v3.0)
-make test-diversity    # Diversity scenario tests (v3.0)
+make test-coupling     # Combination Stack tests
+make test-diversity    # Diversity scenario tests
 make test-acoustic     # Audio feature regression (weekly CI)
 make test-genre-coverage  # Per-genre validation (29+ genres)
-make markov-validate   # Validate Markov model YAMLs (v3.0)
+make markov-validate   # Validate Markov model YAMLs
 make calibrate-genres  # Genre profile parameter sweep
 pytest tests/unit/test_foo.py::test_bar -v   # One test
 ```

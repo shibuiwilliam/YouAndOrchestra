@@ -4,7 +4,7 @@ YaO ships with ready-to-use templates in `specs/templates/`.
 
 ## Available Templates
 
-### Simple Format
+### Simple (Flat YAML)
 
 | Template | Duration | Instruments | Sections |
 |----------|----------|-------------|----------|
@@ -14,7 +14,7 @@ YaO ships with ready-to-use templates in `specs/templates/`.
 | `trajectory-example.yaml` | -- | -- | Trajectory curves only |
 | `lofi-cafe.yaml` | -- | Piano, bass | Lo-fi cafe vibe |
 
-### Detailed Format (11-section spec)
+### Detailed (11-section spec)
 
 | Template | Duration | Description |
 |----------|----------|-------------|

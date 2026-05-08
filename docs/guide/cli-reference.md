@@ -108,7 +108,7 @@ Aggregates rating JSON files into a `UserStyleProfile` with preferred ranges and
 
 ---
 
-## v3.0 Commands (Combination Stack)
+## Combination Stack Commands
 
 ### `yao reharmonize <midi_path>`
 

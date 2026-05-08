@@ -131,7 +131,7 @@ class ArrangementPlan:
 
 @dataclass(frozen=True)
 class MusicalPlan:
-    """The integrated middle representation. The crown jewel of v2.0."""
+    """The integrated middle representation."""
     intent_normalized: NormalizedIntent
     form: SongFormPlan
     harmony: HarmonyPlan
@@ -168,7 +168,7 @@ The Score IR holds concrete notes; MPIR holds the rationale. Both are versioned;
 
 ## 8. Generation Pipeline (7 Steps)
 
-YaO v2.0 replaces the v1.0 "spec → notes" leap with a **7-step pipeline** that produces the MPIR before any note is written.
+YaO replaces a naive "spec → notes" leap with a **7-step pipeline** that produces the MPIR before any note is written.
 
 ```
 [Step 1: Form Planner]      Spec + Trajectory  →  SongFormPlan
@@ -396,7 +396,7 @@ Step 7 Renderer           ← Mix Engineer
 
 ## 14. Cognitive Protocol: 6 Phases x 7 Steps
 
-YaO v1.0 had a **6-phase cognitive protocol** (Intent → Architectural Sketch → Skeletal → Critic Dialogue → Filling → Listening). YaO v2.0 keeps this protocol and **maps it onto the 7-step pipeline**, resolving v1.0's ambiguity:
+YaO's **6-phase cognitive protocol** (Intent → Architectural Sketch → Skeletal → Critic Dialogue → Filling → Listening) is **mapped onto the 7-step pipeline**:
 
 | Cognitive Phase | Pipeline Steps |
 |---|---|
@@ -407,7 +407,7 @@ YaO v1.0 had a **6-phase cognitive protocol** (Intent → Architectural Sketch �
 | 5. Detailed Filling | Steps 6–7 realize and render |
 | 6. Listening Simulation | Perception Layer evaluates → divergence triggers replan |
 
-This eliminates the v1.0 ambiguity where Phase 4 ("dialogue") had no concrete pipeline mechanism.
+This ensures that Phase 4 ("dialogue") has a concrete pipeline mechanism.
 
 ### Multi-candidate generation
 

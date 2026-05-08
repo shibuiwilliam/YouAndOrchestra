@@ -110,9 +110,9 @@ Terms used throughout the YaO codebase and documentation.
 
 ---
 
-## v3.0 Terms (Combination Stack)
+## Combination Stack
 
-**Combination Stack** — Layer 2.5 modules that combine, couple, blend, and dialogue across the existing material library. Never replaces existing generators; always additive and feature-flagged. See `src/yao/coupling/`.
+**Combination Stack** — Coupling layer modules that combine, couple, blend, and dialogue across the existing material library. Never replaces existing generators; always additive and feature-flagged. See `src/yao/coupling/`.
 
 **Coupling Style** — How strictly melody-harmony coupling is enforced. One of: `COMMON_PRACTICE`, `JAZZ`, `BLUES`, `MODAL`, `RAGA`, `MAQAM`. See `CouplingStyle` in `yao.ir.harmonic_melody_constraints`.
 

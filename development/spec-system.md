@@ -2,9 +2,9 @@
 
 ## Overview
 
-YaO uses YAML-based specifications to define compositions. All specs are Pydantic-validated, git-diffable, and fully documented. YaO supports three spec formats: **v1** (simple, flat), **v2** (detailed, 11-section), and **v3** (composable with extends/overrides/fragments).
+YaO uses YAML-based specifications to define compositions. All specs are Pydantic-validated, git-diffable, and fully documented. YaO supports three spec formats: **Simple** (flat YAML), **Detailed** (11-section), and **Composable** (with extends/overrides/fragments).
 
-## v1 Spec Format
+## Simple Spec Format
 
 ### `composition.yaml` (required)
 
@@ -46,9 +46,9 @@ generation:
 
 Sections can also have per-section overrides for `tempo_bpm`, `time_signature`, and `key`.
 
-## v2 Spec Format
+## Detailed Spec Format
 
-The v2 format provides 11 dedicated sections for finer control. YaO auto-detects the format based on the presence of an `identity` key.
+The detailed format provides 11 dedicated sections for finer control. YaO auto-detects the format based on the presence of an `identity` key.
 
 ```yaml
 identity:
@@ -119,7 +119,7 @@ constraints:
     severity: error
 ```
 
-### v2 Sections
+### Detailed Spec Sections
 
 | Section | Purpose |
 |---------|---------|
@@ -135,9 +135,9 @@ constraints:
 | `production` | LUFS target, stereo width, effects |
 | `constraints` | Musical rules (must/must_not/prefer/avoid) |
 
-## v3 Spec Format (Composability)
+## Composable Spec Format
 
-The v3 format adds `extends` and `overrides` for spec composition and reuse:
+The composable format adds `extends` and `overrides` for spec composition and reuse:
 
 ```yaml
 extends: "specs/fragments/lofi_base.yaml"
@@ -194,8 +194,8 @@ Features:
 | `conversation.yaml` | `ConversationSpec` | Inter-instrument dialogue and voice focus |
 | `arrangement.yaml` | `ArrangementSpec` | Style transfer with preservation contracts |
 | `pins.yaml` | `PinsSpec` | Localized user feedback (auto-generated via CLI) |
-| `harmonic-devices.yaml` | `HarmonicDevicesSpec` | Harmonic device selection and reharmonization config (v3.0) |
-| `modulation-plan.yaml` | `ModulationPlanSpec` | Key modulation specifications (v3.0) |
+| `harmonic-devices.yaml` | `HarmonicDevicesSpec` | Harmonic device selection and reharmonization config |
+| `modulation-plan.yaml` | `ModulationPlanSpec` | Key modulation specifications |
 
 ### `trajectory.yaml` (optional)
 
@@ -232,7 +232,7 @@ Not sad -- more like comfortable loneliness.
 
 Located in `specs/templates/`:
 
-### v1 Templates
+### Simple Format Templates
 
 | Template | Description |
 |----------|-------------|
@@ -242,7 +242,7 @@ Located in `specs/templates/`:
 | `trajectory-example.yaml` | Trajectory curves demonstration (bezier, stepped, linear) |
 | `lofi-cafe.yaml` | Lo-fi cafe BGM |
 
-### v2 Templates
+### Detailed Format Templates
 
 | Template | Description |
 |----------|-------------|
@@ -258,7 +258,7 @@ YaO ships with 35+ example projects in `specs/projects/`, covering styles from c
 
 ```
 specs/projects/my-song/
-  +-- composition.yaml    # Required (v1, v2, or v3)
+  +-- composition.yaml    # Required (simple, detailed, or composable format)
   +-- intent.md           # Recommended
   +-- trajectory.yaml     # Optional
   +-- tension_arcs.yaml   # Optional
@@ -288,9 +288,9 @@ All specs are validated via Pydantic at load time:
 - `CompositionSpec.from_yaml(path)` -- validates all fields, key, tempo range (20-300 BPM), dynamics
 - `TrajectorySpec.from_yaml(path)` -- validates waypoint values in [0, 1]
 - Validation failures raise `SpecValidationError` with field name and actionable message
-- v1/v2/v3 format is auto-detected by `load_composition_spec_auto()`
+- Format is auto-detected by `load_composition_spec_auto()`
 
-### Feature Flags (v3.0)
+### Feature Flags
 
 Specs can include a `features:` block to control Combination Stack modules:
 
@@ -307,7 +307,7 @@ features:
   theme_recurrence: false           # Default OFF — long-form thematic returns
 ```
 
-### Genre Blend (v3.0)
+### Genre Blend
 
 Instead of a single genre, specs can blend multiple genres:
 
@@ -323,8 +323,8 @@ CLI validation: `yao validate specs/projects/my-song/composition.yaml`
 Loading helpers:
 ```python
 from yao.schema.loader import (
-    load_composition_spec,       # v1 only
-    load_composition_spec_auto,  # auto-detect v1/v2/v3
+    load_composition_spec,       # simple format only
+    load_composition_spec_auto,  # auto-detect format
     load_trajectory_spec,
     load_project_specs,
 )

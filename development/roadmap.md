@@ -15,13 +15,13 @@
 ### Milestone 3: "Richer Music" -- COMPLETE
 **User value:** Music sounds professional with proper harmony, rhythm, dynamics.
 
-**Delivered:** Harmony IR, motif transforms, voice leading, constraints, v2 spec format, CPIR foundation, MetricGoal, RecoverableDecision.
+**Delivered:** Harmony IR, motif transforms, voice leading, constraints, detailed spec format, CPIR foundation, MetricGoal, RecoverableDecision.
 
 ---
 
 ## Phase gamma: Eight Structural Improvements -- COMPLETE (2026-05-04)
 
-Delivered the eight improvements from PROJECT.md v2.0:
+Delivered the eight structural improvements from PROJECT.md:
 
 | Phase | Feature | Key Deliverable |
 |---|---|---|
@@ -42,19 +42,19 @@ Delivered the eight improvements from PROJECT.md v2.0:
 
 ---
 
-## v3.0 Waves -- COMPLETE
+## Honesty, Alignment, and Depth -- COMPLETE
 
-| Wave | Focus | Key Deliverable |
-|---|---|---|
-| Wave 1 | Honesty | Composer subagent, AnthropicAPIBackend, SpecCompiler 3-stage, NoteRealizer V2 (100% plan consumption), golden tests |
-| Wave 2 | Alignment | Genre skill integration (22 genres), aesthetic metrics (surprise, memorability, contrast, pacing), audio feedback loop |
-| Wave 3 | Depth | Performance expression pipeline (articulation, dynamics, microtiming, CC curves), ensemble constraints, causal provenance graph |
+| Focus | Key Deliverable |
+|---|---|
+| Honesty | Composer subagent, AnthropicAPIBackend, SpecCompiler 3-stage, NoteRealizer (100% plan consumption), golden tests |
+| Alignment | Genre skill integration (22 genres), aesthetic metrics (surprise, memorability, contrast, pacing), audio feedback loop |
+| Depth | Performance expression pipeline (articulation, dynamics, microtiming, CC curves), ensemble constraints, causal provenance graph |
 
 ---
 
-## Phase 3.5: Diversity Foundation -- ACTIVE (started 2026-05-08)
+## Diversity Foundation -- ACTIVE (started 2026-05-08)
 
-The highest-leverage phase in the v3.0 roadmap. Introduces the Combination Stack (Layer 2.5) with the three highest-impact modules:
+The highest-leverage current effort. Introduces the Combination & Coupling layer with the three highest-impact modules:
 
 | Module | Status | Key Deliverable |
 |---|---|---|
@@ -62,32 +62,32 @@ The highest-leverage phase in the v3.0 roadmap. Introduces the Combination Stack
 | §5.4 Voice-Leading Optimizer | In progress | `optimal_voicing_transition()` with Hungarian assignment, `VoicingConstraints` schema |
 | §5.1 Reharmonization Engine | In progress | 12 reharmonization operations, `ReharmonizationConstraints`, `/reharmonize` command |
 
-Layer 2.5 infrastructure is in place: `src/yao/coupling/` contains 13 modules, `src/yao/ir/harmonic_melody_constraints.py` defines core IR types, `src/yao/schema/features.py` provides feature flags, and `src/yao/verify/melody_harmony_alignment.py` + `voice_leading_smoothness.py` provide new evaluation metrics.
+Coupling infrastructure is in place: `src/yao/coupling/` contains 13 modules, `src/yao/ir/harmonic_melody_constraints.py` defines core IR types, `src/yao/schema/features.py` provides feature flags, and `src/yao/verify/melody_harmony_alignment.py` + `voice_leading_smoothness.py` provide evaluation metrics.
 
-### Upcoming Phases
+### Upcoming Work
 
-| Phase | Focus | Key Deliverables |
-|---|---|---|
-| 4.0 | Genre Diversification | 15+ pitch Markov models, rhythm Markov generator, harmonic devices library, modulation planner |
-| 4.5 | Structural Diversity | Phrase-shape generator, theme recurrence graph, variable harmonic rhythm |
-| 5.0 | Cross-Cutting Diversity | Genre vector n-way blending, idiomatic gestures, polyrhythm engine |
-| 5.5 | Advanced Ensemble | Listening agents, corpus learning, metric modulation, microtonal melody |
-| 6.0 | Production Integration | DAW integration, live improvisation, user preference learning |
+| Focus | Key Deliverables |
+|---|---|
+| Genre Diversification | 15+ pitch Markov models, rhythm Markov generator, harmonic devices library, modulation planner |
+| Structural Diversity | Phrase-shape generator, theme recurrence graph, variable harmonic rhythm |
+| Cross-Cutting Diversity | Genre vector n-way blending, idiomatic gestures, polyrhythm engine |
+| Advanced Ensemble | Listening agents, corpus learning, metric modulation, microtonal melody |
+| Production Integration | DAW integration, live improvisation, user preference learning |
 
 ---
 
 ## Test Coverage Growth
 
-| Phase | Tests |
+| Milestone | Tests |
 |---|---|
-| Milestone 1 | ~200 |
-| Milestone 2 | ~500 |
-| Milestone 3 | ~1,094 |
-| v3.0 Waves | ~1,150 |
-| Phase gamma complete | ~1,680 |
-| Phase delta complete | ~1,748 |
-| Phase 3 complete | ~2,157 |
-| Current (Phase 3.5 in progress) | **~2,701** |
+| Describe and Hear | ~200 |
+| Iterate and Improve | ~500 |
+| Richer Music | ~1,094 |
+| Honesty/Alignment/Depth | ~1,150 |
+| Structural Improvements | ~1,680 |
+| Production Features | ~1,748 |
+| Combination Stack Foundation | ~2,157 |
+| Current (Diversity Foundation in progress) | **~2,701** |
 
 ---
 

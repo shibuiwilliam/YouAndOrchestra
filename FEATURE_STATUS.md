@@ -3,7 +3,6 @@
 > Last verified: 2026-05-05 by full codebase audit (208 source files, 213 test files, 2285 test functions)
 > This file is the **single source of truth** for what YaO can do.
 > README.md, CLAUDE.md, and PROJECT.md link here instead of restating capabilities.
-> **v3.0 audit**: 8 items downgraded from ✅ to 🟡, 1 upgraded 🟡 → ✅ (see docs/audit/2026-05-status-reaudit.md)
 
 ## Status Legend
 
@@ -70,7 +69,7 @@
 
 | Feature | Status | Tests | Notes |
 |---|---|---|---|
-| ScoreIR (Note, Part, Section) | ✅ | tests/unit/test_ir.py (39 tests) | Frozen dataclasses; Note has optional v2.0 fields: articulation, tuning_offset_cents, microtiming_offset_ms |
+| ScoreIR (Note, Part, Section) | ✅ | tests/unit/test_ir.py (39 tests) | Frozen dataclasses; Note has optional fields: articulation, tuning_offset_cents, microtiming_offset_ms |
 | Motif IR | ✅ | tests/unit/test_motif.py (27 tests) | Motif, MotifNetwork, MotifNode; invert, retrograde, transpose |
 | Harmony IR | ✅ | tests/unit/test_harmony.py (15 tests) | diatonic_quality, chord functions, ChordProgression |
 | Voicing IR | ✅ | tests/unit/test_voicing.py (11 tests) | Voice-crossing detection |
@@ -92,16 +91,16 @@
 | Tonal System IR | ✅ | tests/unit/ir/test_tonal_system.py (23 tests) | CommonPracticeTonality, ModalSystem, MaqamSystem; cultural tuning systems |
 | Tuning IR (microtonal) | ✅ | tests/unit/ir/test_tuning.py (20 tests) | ScaleDefinition (cents-based); Tuning class; 28 scales (9 EDO + 6 Japanese + 5 maqam + 5 raga + 2 gamelan + 1 JI) |
 | Plan IRs (8 modules) | ✅ | tests/unit/ir/plan/ (55 tests) | ArrangementPlan, DrumPlan, HarmonyPlan, MotifPlan, MusicalPlan, PhrasePlan, SongFormPlan, GlobalContext |
-| HarmonicMelodyConstraints IR (v3.0) | ✅ | tests/unit/ir/test_harmonic_melody_constraints.py (30 tests) | CouplingStyle (6), PositionLabel (4), score_pitch() [0.0-1.0]; frozen dataclass |
+| HarmonicMelodyConstraints IR | ✅ | tests/unit/ir/test_harmonic_melody_constraints.py (30 tests) | CouplingStyle (6), PositionLabel (4), score_pitch() [0.0-1.0]; frozen dataclass |
 
-## Combination & Coupling (Layer 2.5, v3.0)
+## Combination & Coupling
 
 | Feature | Status | Tests | Notes |
 |---|---|---|---|
 | Harmonic-Melodic Coupling (§4.1) | ✅ | tests/unit/coupling/test_harmonic_melody.py (32 tests), tests/scenarios/test_chord_aware_melody.py (4 tests) | derive_constraints() with 6 style rule sets; LRU-cached; wired into M2 skeleton generator; feature-flag gated (chord_aware_melody=true default) |
 | Voice-Leading Optimizer (§5.4) | ✅ | tests/unit/coupling/test_voice_leading.py (13 tests), tests/scenarios/test_voice_leading_quality.py (4 tests) | optimal_voicing_transition() with constraint filtering; deterministic tie-breaking |
 | Reharmonization Engine (§5.1) | ✅ | tests/unit/coupling/test_reharmonization.py (14 tests), tests/scenarios/test_reharmonization_diversity.py (5 tests) | 12 ReharmonizationOperation types; ReharmonizationConstraints; melody compatibility check; feature-flag gated (reharmonization=false default) |
-| Feature Flags (v3.0) | ✅ | — | FeatureFlags Pydantic model; chord_aware_melody (default true), voice_leading_optimization (default true), reharmonization (default false) |
+| Feature Flags | ✅ | — | FeatureFlags Pydantic model; chord_aware_melody (default true), voice_leading_optimization (default true), reharmonization (default false) |
 | Rhythm Markov Generator (§3.1) | ✅ | tests/unit/coupling/test_rhythm_markov.py (7 tests) | RhythmMarkovModel with load/generate/list API; 12 genre-specific rhythm models |
 | Modulation Planner (§5.2) | ✅ | tests/unit/coupling/test_modulation.py (9 tests) | 7 ModulationStrategy types; genre-aware strategy weighting; ModulationPlan IR |
 | Harmonic Devices Library (§5.6) | ✅ | tests/unit/coupling/test_harmonic_devices.py (7 tests) | 15 device YAMLs; genre/placement filtering; HarmonicDevice loader |
@@ -112,7 +111,7 @@
 | Polyrhythm Engine (§3.2) | ✅ | tests/unit/coupling/test_polyrhythm.py (9 tests) | compose_polyrhythm(); phase_shift(); coprime check; multi-layer onset generation |
 | Listening-Agent Dialog (§6.3) | ✅ | tests/unit/coupling/test_listening_dialog.py (12 tests) | EnsembleRole (6); RhythmicDialogGraph; topological generation ordering; default OFF |
 
-## Verification — v3.0 Metrics
+## Verification Metrics
 
 | Feature | Status | Tests | Notes |
 |---|---|---|---|
@@ -326,7 +325,7 @@
 | Golden MIDI tests | ✅ | tests/golden/ | 6 baselines (3 specs x 2 realizers); comparison.py; regenerate_goldens.py |
 | Genre coverage tests | ✅ | tests/genre_coverage/ (3 files) | 111 tests covering all 22 unified genre profiles |
 | Property-based tests | ✅ | tests/properties/test_genre_invariants.py | Key/range/section/provenance invariants across 4 strategies × 5 seeds |
-| Tonal systems tests | ✅ | tests/tonal_systems/ | 15 tests; v2.0 tonal system abstraction acceptance |
+| Tonal systems tests | ✅ | tests/tonal_systems/ | 15 tests; tonal system abstraction acceptance |
 | Audio regression tests | ✅ | tests/audio_regression/test_baseline.py (8 tests) | Synthetic baselines (sine, noise, two-section); deterministic extraction verification; `make test-acoustic` target; `audio_regression` pytest marker for weekly CI |
 | Subjective quality tests | ✅ | tests/subjective/test_listening_panel.py | Rating JSON schema; overall ≥ 6.0 threshold; `make test-subjective`; `pytest.mark.subjective` for CI skip |
 | LLM quality tests | ✅ | tests/llm_quality/test_motif_quality.py | PythonOnly vs Anthropic API comparison; requires ANTHROPIC_API_KEY |

@@ -2,7 +2,7 @@
 
 YaO uses a strict layered architecture with downward-only dependencies. Each layer can only import from layers below it. This is enforced by `make arch-lint`.
 
-**v3.0** introduces **Layer 2.5: Combination & Coupling** (`src/yao/coupling/`) between Layer 2 and Layer 3. This layer houses 13 modules that transform, couple, blend, and optimize already-generated material.
+The **Combination & Coupling** layer (`src/yao/coupling/`) sits between Layer 2 and Layer 3. This layer houses 13 modules that transform, couple, blend, and optimize already-generated material.
 
 ---
 
@@ -14,7 +14,7 @@ Layer 1    schema/            → constants
 Layer 1    ir/                → constants
 Layer 1    reflect/           → constants (cross-cutting)
 Layer 2    generators/        → constants, schema, ir, reflect
-Layer 2.5  coupling/          → constants, schema, ir, generators (NEW v3.0)
+Layer 2.5  coupling/          → constants, schema, ir, generators
 Layer 3.5  sound_design/     → constants, schema, ir
 Layer 4    perception/        → constants, schema, ir, generators
 Layer 5    render/            → constants, schema, ir, generators, sound_design, perception
@@ -35,13 +35,13 @@ Hardcoded musical values. No dependencies.
 - 28 scale definitions (EDO, Japanese, maqam, raga, gamelan, just intonation)
 - 20 song forms (AABA, verse-chorus, rondo, blues, J-pop, game BGM, ambient...)
 - 14 chord types, MIDI constants, genre profiles
-- 15 harmonic device YAMLs (v3.0: `constants/harmonic_devices/`)
+- 15 harmonic device YAMLs (`constants/harmonic_devices/`)
 
 ### Layer 1: Specification + IR + Reflect
 
 **Schema** — Pydantic models for YAML spec validation:
 
-- CompositionSpec (v1 simple, v2 detailed 11-section, v3 composable with extends/overrides)
+- CompositionSpec (simple flat YAML, detailed 11-section, composable with extends/overrides)
 - TonalSystem (10 kinds), TimeSignatureSpec, TrajectorySpec
 - ConstraintsSpec, IntentSpec, FeedbackSpec
 - HooksSpec, GrooveSpec, ConversationSpec, TensionArcsSpec
@@ -71,12 +71,12 @@ Composition algorithms that produce `(ScoreIR, ProvenanceLog)`.
 **Note-level generators** (8):
 rule_based, stochastic, markov, twelve_tone, process_music, constraint_solver, loop_evolution, ai_seed
 
-**Markov models** (v3.0): `markov_models/pitch/`, `markov_models/rhythm/`, `markov_models/contour/`
+**Markov models**: `markov_models/pitch/`, `markov_models/rhythm/`, `markov_models/contour/`
 
 **Specialized generators**:
 drum_patterner (15 patterns), counter_melody, melodic_strategies (8), reactive_fills, frequency_clearance, groove_applicator, conversation_director
 
-### Layer 2.5: Combination & Coupling *(NEW v3.0)*
+### Combination & Coupling Layer
 
 Modules that transform, couple, blend, or optimize already-generated material. All feature-flagged.
 
@@ -140,8 +140,8 @@ Analysis, critique, and evaluation.
 - Music lint (parallel fifths, voice leading)
 - Evaluator (6-dimension + genre-driven dynamic weights)
 - 35 critique rules across 8 roles (structural, harmonic, melodic, rhythmic, arrangement, emotional, memorability, genre_fitness + groove, surprise, hook, dynamics, conversation, metric_drift, tension, acoustic divergence)
-- Melody-harmony alignment metric (v3.0: `verify/melody_harmony_alignment.py`)
-- Voice-leading smoothness metric (v3.0: `verify/voice_leading_smoothness.py`)
+- Melody-harmony alignment metric (`verify/melody_harmony_alignment.py`)
+- Voice-leading smoothness metric (`verify/voice_leading_smoothness.py`)
 - Constraint checker (range, voice, ensemble)
 - Acoustic divergence rules (5: LUFS, spectral imbalance, brightness, energy trajectory, symbolic-acoustic)
 - Loopability validator, singability evaluator, seamlessness evaluator
