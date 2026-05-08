@@ -1,7 +1,9 @@
 .PHONY: install install-all setup-hooks test test-unit test-integration test-music test-golden test-subagent \
-test-acoustic test-genre-coverage lint format arch-lint meter-lint matrix-check feature-status \
+test-acoustic test-genre-coverage test-coupling test-diversity test-melody test-genres \
+lint format arch-lint meter-lint matrix-check feature-status markov-validate device-validate \
 validate-spec new-project compose render setup-soundfonts setup-references all-checks \
-honesty-check plan-consumption skill-grounding critic-coverage backend-honesty audit-monthly
+honesty-check plan-consumption skill-grounding critic-coverage backend-honesty audit-monthly \
+profile-perf
 
 install:
 	pip install -e ".[dev]"
@@ -41,6 +43,18 @@ test-acoustic:
 test-genre-coverage:
 	pytest tests/genre_coverage/ -v -m genre_coverage
 
+test-coupling:
+	pytest tests/unit/coupling/ -v
+
+test-diversity:
+	pytest tests/scenarios/test_chord_aware_melody.py tests/scenarios/test_voice_leading_quality.py tests/scenarios/test_reharmonization_diversity.py -v
+
+test-melody:
+	pytest tests/unit/generators/melody/ tests/unit/ir/test_harmonic_melody_constraints.py -v
+
+test-genres:
+	pytest tests/genre_coverage/ tests/scenarios/test_genre_distinguishability.py -v
+
 calibrate-genres:
 	python tools/calibrate_genres.py
 
@@ -57,6 +71,16 @@ arch-lint:
 
 meter-lint:
 	python tools/meter_assumption_lint.py
+
+markov-validate:
+	pytest tests/unit/coupling/test_markov_models_load.py::TestPitchMarkovModels -v
+	pytest tests/unit/coupling/test_markov_models_load.py::TestRhythmMarkovModels -v
+
+device-validate:
+	pytest tests/unit/coupling/test_markov_models_load.py::TestHarmonicDevices -v
+
+profile-perf:
+	@echo "Performance profiling not yet implemented — see CLAUDE.md Performance Expectations"
 
 matrix-check: feature-status
 
@@ -97,7 +121,7 @@ audit-monthly:
 	python tools/check_critic_coverage.py --json > docs/audit/latest-critic.json || true
 	@echo "Audit outputs saved to docs/audit/"
 
-all-checks: lint arch-lint matrix-check feature-status honesty-check plan-consumption skill-grounding critic-coverage backend-honesty sync-docs test test-golden
+all-checks: lint arch-lint matrix-check feature-status honesty-check plan-consumption skill-grounding critic-coverage backend-honesty sync-docs test test-golden test-coupling
 
 new-project:
 	@test -n "$(NAME)" || (echo "Usage: make new-project NAME=my-song" && exit 1)
