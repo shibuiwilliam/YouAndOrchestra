@@ -1,0 +1,18 @@
+form_template:
+  id: "lofi_loop"
+  description: "Minimal 8-bar loopable structure for lo-fi hip-hop and ambient beats"
+  total_bars: 8
+  genre_tags: [lofi, lofi_hip_hop, ambient, chillhop]
+
+  sections:
+    - name: loop_a
+      bars: 4
+      role: exposition
+      intensity: 0.4
+    - name: loop_b
+      bars: 4
+      role: restatement
+      intensity: 0.45
+
+  loopable: true
+  cadence_at_end: half

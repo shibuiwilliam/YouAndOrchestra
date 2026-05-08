@@ -1,0 +1,26 @@
+form_template:
+  id: "aaba_32"
+  description: "32-bar AABA jazz standard form with bridge contrast"
+  total_bars: 32
+  genre_tags: [jazz, swing, vocal_jazz]
+
+  sections:
+    - name: A1
+      bars: 8
+      role: exposition
+      intensity: 0.5
+    - name: A2
+      bars: 8
+      role: restatement
+      intensity: 0.55
+    - name: B
+      bars: 8
+      role: contrast
+      intensity: 0.65
+    - name: A3
+      bars: 8
+      role: recapitulation
+      intensity: 0.6
+
+  loopable: true
+  cadence_at_end: authentic

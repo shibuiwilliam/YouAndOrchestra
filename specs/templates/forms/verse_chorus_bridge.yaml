@@ -1,0 +1,42 @@
+form_template:
+  id: "verse_chorus_bridge"
+  description: "Pop/rock verse-chorus-bridge form with dynamic arc"
+  total_bars: 64
+  genre_tags: [pop, rock, indie]
+
+  sections:
+    - name: intro
+      bars: 4
+      role: introduction
+      intensity: 0.3
+    - name: verse_1
+      bars: 8
+      role: exposition
+      intensity: 0.4
+    - name: chorus_1
+      bars: 8
+      role: climax
+      intensity: 0.7
+    - name: verse_2
+      bars: 8
+      role: development
+      intensity: 0.45
+    - name: chorus_2
+      bars: 8
+      role: climax
+      intensity: 0.75
+    - name: bridge
+      bars: 8
+      role: contrast
+      intensity: 0.6
+    - name: chorus_3
+      bars: 8
+      role: climax
+      intensity: 0.85
+    - name: outro
+      bars: 12
+      role: resolution
+      intensity: 0.5
+
+  loopable: false
+  cadence_at_end: authentic

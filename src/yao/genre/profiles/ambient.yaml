@@ -1,0 +1,114 @@
+name: ambient
+description: |
+  Ambient: atmospheric, texture-focused, slowly evolving soundscapes.
+  Minimal melodic content, emphasis on timbre and space.
+  Brian Eno, Harold Budd, Stars of the Lid lineage.
+  Designed to create an immersive sonic environment rather than
+  foreground listening.
+
+typical_tempo_range: [50, 90]
+typical_keys: ["C", "D", "F", "Ab", "Eb", "Am"]
+typical_modes: ["major", "lydian", "mixolydian", "dorian"]
+typical_time_signatures: ["4/4", "3/4", "6/4"]
+typical_form_templates: ["through_composed", "arc", "drone_evolving"]
+typical_duration_seconds: [240, 600]
+
+core_instruments:
+  - name: synth_pad_atmospheric
+    role: pad
+  - name: synth_pad_warm
+    role: pad
+optional_instruments:
+  - name: piano_acoustic
+    role: melody
+  - name: electric_piano_rhodes
+    role: melody
+  - name: strings_ensemble
+    role: pad
+  - name: synth_granular
+    role: pad
+  - name: field_recordings
+    role: texture
+  - name: glass_marimba
+    role: melody
+  - name: harp
+    role: melody
+forbidden_instruments:
+  - distorted_electric_guitar
+  - drums_808
+  - drums_rock_kit
+  - electric_bass_slap
+  - clavinet
+
+chord_palette_extended:
+  - maj7
+  - min7
+  - sus2
+  - sus4
+  - add9
+  - "6/9"
+  - m9
+  - maj9
+progression_library_ids:
+  - ambient_drone_pedal
+  - ambient_slow_descent
+  - ambient_modal_float
+harmonic_rhythm: [2.0, 8.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.15
+seventh_chord_probability: 0.5
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.15
+
+swing_8th: 0.5
+swing_16th: 0.5
+typical_grooves:
+  - ambient_free
+  - ambient_pulse
+drum_kit_preference: none
+drum_pattern_ids: []
+syncopation_density: 0.05
+polyrhythm_tolerance: 0.1
+
+melodic_devices:
+  - long_tones
+  - stepwise_motion
+  - repetition_with_variation
+  - octave_displacement
+phrase_length_beats: [8.0, 32.0]
+typical_scales:
+  - major
+  - lydian
+  - pentatonic_major
+  - mixolydian
+  - dorian
+call_response_density: 0.05
+melodic_contour_weights:
+  ascending: 0.15
+  descending: 0.15
+  arch: 0.2
+  valley: 0.15
+  flat: 0.35
+leap_probability: 0.1
+blue_note_probability: 0.0
+
+voicing_density_target: 3
+bass_motion_style: pedal
+typical_dynamics_range: ["ppp", "mp"]
+target_spectral_centroid: 0.35
+
+target_lufs: -24.0
+target_peak_db: -3.0
+typical_effects:
+  - long_reverb
+  - shimmer_reverb
+  - slow_chorus
+  - tape_saturation_subtle
+stereo_imaging: wide
+production_profile_id: ambient_immersive
+
+cliches_to_avoid:
+  - "New age cheese: overly bright pads with no harmonic depth"
+  - "Static drone with zero evolution over several minutes"
+  - "Reverb used as a substitute for actual compositional development"
+  - "Sudden loud elements that break the immersive quality"

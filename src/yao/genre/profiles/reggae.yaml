@@ -1,0 +1,116 @@
+name: reggae
+description: |
+  Reggae: Jamaican-origin groove music with offbeat "skank" guitar/keys,
+  one-drop drumming, heavy bass, and laid-back tempo.
+  Bob Marley, Peter Tosh, Lee Scratch Perry lineage.
+  Emphasis on rhythmic space, bass prominence, and the "one-drop" pattern
+  where kick lands on beat 3 rather than beat 1.
+
+typical_tempo_range: [65, 95]
+typical_keys: ["G", "C", "D", "A", "Bb", "Eb"]
+typical_modes: ["major", "minor", "mixolydian", "dorian"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["verse_chorus_bridge", "verse_chorus_repeat"]
+typical_duration_seconds: [180, 300]
+
+core_instruments:
+  - name: electric_bass_finger
+    role: bass
+  - name: drums_reggae_kit
+    role: rhythm
+  - name: electric_guitar_clean
+    role: harmony
+  - name: organ_reggae
+    role: harmony
+optional_instruments:
+  - name: piano_acoustic
+    role: harmony
+  - name: trumpet
+    role: melody
+  - name: trombone
+    role: melody
+  - name: tenor_sax
+    role: melody
+  - name: percussion_hand
+    role: rhythm
+forbidden_instruments:
+  - distorted_electric_guitar
+  - synth_lead_saw
+  - drums_808
+  - harpsichord
+
+chord_palette_extended:
+  - major
+  - minor
+  - dom7
+  - min7
+  - sus4
+  - "9"
+progression_library_ids:
+  - reggae_one_chord_vamp
+  - reggae_I_IV_V
+  - reggae_minor_groove
+  - reggae_steppers
+harmonic_rhythm: [1.0, 4.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.1
+seventh_chord_probability: 0.3
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.1
+
+swing_8th: 0.5
+swing_16th: 0.52
+typical_grooves:
+  - reggae_one_drop
+  - reggae_steppers
+  - reggae_rockers
+drum_kit_preference: reggae_kit
+drum_pattern_ids:
+  - reggae_one_drop
+  - reggae_steppers
+  - reggae_rockers
+syncopation_density: 0.5
+polyrhythm_tolerance: 0.15
+
+melodic_devices:
+  - pentatonic_major
+  - call_and_response
+  - repetitive_hooks
+  - stepwise_motion
+phrase_length_beats: [4.0, 8.0]
+typical_scales:
+  - major
+  - pentatonic_major
+  - mixolydian
+  - minor_natural
+  - pentatonic_minor
+call_response_density: 0.35
+melodic_contour_weights:
+  ascending: 0.2
+  descending: 0.2
+  arch: 0.25
+  valley: 0.15
+  flat: 0.2
+leap_probability: 0.2
+blue_note_probability: 0.05
+
+voicing_density_target: 3
+bass_motion_style: syncopated_root
+typical_dynamics_range: ["mp", "mf"]
+target_spectral_centroid: 0.4
+
+target_lufs: -12.0
+target_peak_db: -1.0
+typical_effects:
+  - spring_reverb
+  - dub_delay
+  - warm_eq
+  - gentle_compression
+stereo_imaging: moderate
+production_profile_id: reggae_classic
+
+cliches_to_avoid:
+  - "Skank pattern on every beat without rhythmic variation"
+  - "Bass not syncopated enough or too busy for the groove"
+  - "Missing the characteristic space in the one-drop pattern"
+  - "Horn lines that overpower the rhythmic foundation"

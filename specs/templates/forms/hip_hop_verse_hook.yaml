@@ -1,0 +1,38 @@
+form_template:
+  id: "hip_hop_verse_hook"
+  description: "Hip-hop form with 16-bar verses and 8-bar hooks"
+  total_bars: 72
+  genre_tags: [hip_hop, rap, trap]
+
+  sections:
+    - name: intro
+      bars: 8
+      role: introduction
+      intensity: 0.3
+    - name: hook_1
+      bars: 8
+      role: refrain
+      intensity: 0.7
+    - name: verse_1
+      bars: 16
+      role: exposition
+      intensity: 0.5
+    - name: hook_2
+      bars: 8
+      role: refrain
+      intensity: 0.75
+    - name: verse_2
+      bars: 16
+      role: development
+      intensity: 0.55
+    - name: hook_3
+      bars: 8
+      role: refrain
+      intensity: 0.8
+    - name: outro
+      bars: 8
+      role: resolution
+      intensity: 0.4
+
+  loopable: false
+  cadence_at_end: half

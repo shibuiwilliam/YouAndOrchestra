@@ -1,0 +1,34 @@
+form_template:
+  id: "through_composed"
+  description: "Through-composed cinematic form with continuous narrative arc"
+  total_bars: 48
+  genre_tags: [cinematic, film_score, orchestral, contemporary]
+
+  sections:
+    - name: opening
+      bars: 8
+      role: introduction
+      intensity: 0.2
+    - name: rising_action
+      bars: 8
+      role: development
+      intensity: 0.4
+    - name: tension
+      bars: 8
+      role: tension
+      intensity: 0.65
+    - name: climax
+      bars: 8
+      role: climax
+      intensity: 0.9
+    - name: falling_action
+      bars: 8
+      role: resolution
+      intensity: 0.5
+    - name: denouement
+      bars: 8
+      role: resolution
+      intensity: 0.25
+
+  loopable: false
+  cadence_at_end: plagal

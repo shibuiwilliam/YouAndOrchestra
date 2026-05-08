@@ -1,0 +1,122 @@
+name: bossa_nova
+parent: jazz
+description: |
+  Bossa Nova: Brazilian fusion of cool jazz harmony and samba rhythm.
+  Gentle syncopation, nylon-string guitar, understated vocals,
+  sophisticated extended chords. Tom Jobim, Joao Gilberto lineage.
+  Quieter and more intimate than samba, with jazz-level harmonic complexity.
+
+typical_tempo_range: [100, 140]
+typical_keys: ["C", "F", "Db", "Ab", "G", "D"]
+typical_modes: ["major", "minor", "lydian", "dorian"]
+typical_time_signatures: ["4/4", "2/4"]
+typical_form_templates: ["aaba_32", "verse_chorus_bridge", "through_composed"]
+typical_duration_seconds: [180, 300]
+
+core_instruments:
+  - name: nylon_guitar
+    role: harmony
+  - name: upright_bass
+    role: bass
+  - name: drums_bossa_kit
+    role: rhythm
+optional_instruments:
+  - name: piano_acoustic
+    role: harmony
+  - name: flute
+    role: melody
+  - name: tenor_sax
+    role: melody
+  - name: alto_sax
+    role: melody
+  - name: vibraphone
+    role: melody
+  - name: shaker
+    role: rhythm
+forbidden_instruments:
+  - distorted_electric_guitar
+  - synth_lead_saw
+  - drums_808
+  - heavy_distortion_bass
+
+chord_palette_extended:
+  - maj7
+  - min7
+  - dom7
+  - m7b5
+  - dim7
+  - "9"
+  - "13"
+  - "#11"
+  - "6"
+  - m6
+  - m9
+  - alt
+  - "6/9"
+progression_library_ids:
+  - bossa_ii_V_I
+  - bossa_chromatic_descent
+  - bossa_girl_from_ipanema
+  - jazz_ii_V_i_minor
+harmonic_rhythm: [1.0, 2.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.45
+seventh_chord_probability: 0.9
+secondary_dominant_probability: 0.35
+modal_interchange_probability: 0.25
+
+swing_8th: 0.5
+swing_16th: 0.52
+typical_grooves:
+  - bossa_nova_classic
+  - bossa_nova_slow
+drum_kit_preference: bossa_kit
+drum_pattern_ids:
+  - bossa_nova_basic
+  - bossa_nova_variation
+  - bossa_brushes
+syncopation_density: 0.45
+polyrhythm_tolerance: 0.2
+
+melodic_devices:
+  - chromatic_passing
+  - scalar_runs
+  - anticipation
+  - approach_notes
+  - stepwise_motion
+phrase_length_beats: [4.0, 16.0]
+typical_scales:
+  - major
+  - lydian
+  - melodic_minor
+  - dorian
+  - mixolydian
+call_response_density: 0.2
+melodic_contour_weights:
+  ascending: 0.2
+  descending: 0.25
+  arch: 0.3
+  valley: 0.15
+  flat: 0.1
+leap_probability: 0.2
+blue_note_probability: 0.05
+
+voicing_density_target: 4
+bass_motion_style: root_fifth_chromatic
+typical_dynamics_range: ["pp", "mp"]
+target_spectral_centroid: 0.4
+
+target_lufs: -18.0
+target_peak_db: -2.0
+typical_effects:
+  - room_reverb_small
+  - gentle_compression
+  - warm_eq
+stereo_imaging: narrow
+production_profile_id: bossa_intimate
+
+cliches_to_avoid:
+  - "Overly busy guitar comping that obscures the bossa rhythm"
+  - "Too loud or aggressive dynamics destroying the intimate feel"
+  - "Ignoring the characteristic syncopated bass pattern"
+  - "Straight eighth notes without the subtle bossa swing"

@@ -1,0 +1,115 @@
+name: funk
+description: |
+  Funk: groove-driven, rhythmically complex, syncopation-heavy.
+  Emphasis on the "one," 16th-note subdivisions, slap bass,
+  clavinet/wah guitar, tight horn stabs, and pocket drumming.
+  James Brown, Parliament, Tower of Power lineage.
+
+typical_tempo_range: [90, 130]
+typical_keys: ["E", "Em", "Am", "Dm", "G", "Bb"]
+typical_modes: ["mixolydian", "dorian", "minor"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["funk_vamp", "verse_chorus_bridge", "one_chord_jam"]
+typical_duration_seconds: [180, 360]
+
+core_instruments:
+  - name: electric_bass_slap
+    role: bass
+  - name: drums_funk_kit
+    role: rhythm
+  - name: clavinet
+    role: harmony
+optional_instruments:
+  - name: electric_guitar_wah
+    role: harmony
+  - name: hammond_organ
+    role: harmony
+  - name: trumpet
+    role: melody
+  - name: tenor_sax
+    role: melody
+  - name: trombone
+    role: melody
+  - name: synth_pad_warm
+    role: pad
+forbidden_instruments:
+  - harpsichord
+  - sitar
+  - timpani
+
+chord_palette_extended:
+  - dom7
+  - min7
+  - "9"
+  - "13"
+  - "7#9"
+  - sus4
+  - m9
+progression_library_ids:
+  - funk_one_chord_vamp
+  - funk_two_chord_vamp
+  - funk_minor_groove
+  - funk_chromatic_descent
+harmonic_rhythm: [1.0, 4.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.25
+seventh_chord_probability: 0.7
+secondary_dominant_probability: 0.1
+modal_interchange_probability: 0.15
+
+swing_8th: 0.5
+swing_16th: 0.55
+typical_grooves:
+  - funk_16th_pocket
+  - funk_shuffle
+  - funk_halftime
+drum_kit_preference: funk_kit
+drum_pattern_ids:
+  - funk_16th_hihat
+  - funk_breakbeat
+  - funk_pocket
+syncopation_density: 0.7
+polyrhythm_tolerance: 0.3
+
+melodic_devices:
+  - rhythmic_repetition
+  - syncopated_riffs
+  - horn_stabs
+  - pentatonic_minor
+  - chromatic_approach
+phrase_length_beats: [2.0, 8.0]
+typical_scales:
+  - mixolydian
+  - dorian
+  - pentatonic_minor
+  - blues
+call_response_density: 0.4
+melodic_contour_weights:
+  ascending: 0.15
+  descending: 0.2
+  arch: 0.2
+  valley: 0.15
+  flat: 0.3
+leap_probability: 0.2
+blue_note_probability: 0.15
+
+voicing_density_target: 4
+bass_motion_style: syncopated_root
+typical_dynamics_range: ["mf", "f"]
+target_spectral_centroid: 0.5
+
+target_lufs: -12.0
+target_peak_db: -0.5
+typical_effects:
+  - envelope_filter
+  - wah_guitar
+  - tight_compression
+  - plate_reverb_short
+stereo_imaging: moderate
+production_profile_id: funk_classic
+
+cliches_to_avoid:
+  - "Losing the pocket by overplaying 16th-note fills"
+  - "Ignoring the importance of ghost notes on the snare"
+  - "Bass and drums not locking rhythmically"
+  - "Horn stabs without rhythmic precision"

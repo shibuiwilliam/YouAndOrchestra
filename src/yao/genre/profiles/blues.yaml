@@ -1,0 +1,112 @@
+name: blues
+description: |
+  Blues: expressive, soulful music rooted in African-American tradition.
+  12-bar blues form, dominant 7th chords, call-and-response phrasing,
+  blue notes (b3, b5, b7), and swing feel. Emotional rawness over
+  technical complexity.
+
+typical_tempo_range: [60, 130]
+typical_keys: ["E", "A", "G", "D", "C", "Bb"]
+typical_modes: ["mixolydian", "minor", "dorian"]
+typical_time_signatures: ["4/4", "12/8"]
+typical_form_templates: ["blues_12_bar", "blues_8_bar", "blues_16_bar"]
+typical_duration_seconds: [180, 360]
+
+core_instruments:
+  - name: electric_guitar_clean
+    role: melody
+  - name: electric_bass_finger
+    role: bass
+  - name: drums_blues_kit
+    role: rhythm
+optional_instruments:
+  - name: piano_acoustic
+    role: harmony
+  - name: hammond_organ
+    role: harmony
+  - name: harmonica
+    role: melody
+  - name: alto_sax
+    role: melody
+  - name: slide_guitar
+    role: melody
+forbidden_instruments:
+  - synth_lead_saw
+  - synth_bass_acid
+  - drums_808
+
+chord_palette_extended:
+  - dom7
+  - "9"
+  - "13"
+  - minor
+  - min7
+  - dim
+  - "7#9"
+progression_library_ids:
+  - blues_12_bar_basic
+  - blues_12_bar_quick_change
+  - blues_minor_12_bar
+  - blues_jazz_changes
+harmonic_rhythm: [1.0, 4.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.3
+seventh_chord_probability: 0.8
+secondary_dominant_probability: 0.15
+modal_interchange_probability: 0.1
+
+swing_8th: 0.6
+swing_16th: 0.55
+typical_grooves:
+  - blues_shuffle
+  - blues_slow_12_8
+  - blues_straight
+drum_kit_preference: blues_kit
+drum_pattern_ids:
+  - blues_shuffle
+  - blues_slow_12_8
+  - blues_straight
+syncopation_density: 0.3
+polyrhythm_tolerance: 0.1
+
+melodic_devices:
+  - blue_notes
+  - string_bends
+  - call_and_response
+  - pentatonic_runs
+  - vibrato
+phrase_length_beats: [4.0, 12.0]
+typical_scales:
+  - blues
+  - pentatonic_minor
+  - mixolydian
+  - dorian
+call_response_density: 0.5
+melodic_contour_weights:
+  ascending: 0.15
+  descending: 0.3
+  arch: 0.25
+  valley: 0.15
+  flat: 0.15
+leap_probability: 0.25
+blue_note_probability: 0.3
+
+voicing_density_target: 3
+bass_motion_style: walking
+typical_dynamics_range: ["mp", "f"]
+target_spectral_centroid: 0.45
+
+target_lufs: -14.0
+target_peak_db: -1.0
+typical_effects:
+  - tube_overdrive_light
+  - spring_reverb
+  - gentle_compression
+stereo_imaging: narrow
+production_profile_id: blues_classic
+
+cliches_to_avoid:
+  - "12-bar form with no variation in turnarounds or fills"
+  - "Pentatonic noodling without melodic intent or phrasing"
+  - "Every solo lick starting on the root"
+  - "No dynamic contrast between verse and solo sections"

@@ -1,0 +1,30 @@
+form_template:
+  id: "rondo"
+  description: "Classical ABACA rondo form with recurring refrain"
+  total_bars: 40
+  genre_tags: [classical, orchestral, chamber]
+
+  sections:
+    - name: A1
+      bars: 8
+      role: refrain
+      intensity: 0.5
+    - name: B
+      bars: 8
+      role: contrast
+      intensity: 0.6
+    - name: A2
+      bars: 8
+      role: refrain
+      intensity: 0.55
+    - name: C
+      bars: 8
+      role: contrast
+      intensity: 0.7
+    - name: A3
+      bars: 8
+      role: refrain
+      intensity: 0.65
+
+  loopable: false
+  cadence_at_end: authentic

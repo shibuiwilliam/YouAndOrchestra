@@ -1,0 +1,124 @@
+name: r_and_b
+description: |
+  R&B (rhythm and blues): smooth, groove-oriented music combining
+  soul, funk, and pop elements. Rich vocal harmony, extended chords,
+  syncopated rhythms, and polished production.
+  Stevie Wonder, D'Angelo, Erykah Badu, SZA lineage.
+  Modern R&B blends neo-soul harmony with contemporary production.
+
+typical_tempo_range: [65, 110]
+typical_keys: ["Ab", "Db", "Eb", "Bb", "F", "C", "Gm", "Cm"]
+typical_modes: ["minor", "dorian", "mixolydian", "major"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["verse_chorus_bridge", "verse_pre_chorus_chorus"]
+typical_duration_seconds: [180, 300]
+
+core_instruments:
+  - name: electric_piano_rhodes
+    role: harmony
+  - name: electric_bass_finger
+    role: bass
+  - name: drums_rnb_kit
+    role: rhythm
+optional_instruments:
+  - name: synth_pad_warm
+    role: pad
+  - name: strings_ensemble
+    role: pad
+  - name: piano_acoustic
+    role: harmony
+  - name: nylon_guitar
+    role: harmony
+  - name: synth_bass_sub
+    role: bass
+  - name: alto_sax
+    role: melody
+forbidden_instruments:
+  - distorted_electric_guitar
+  - harpsichord
+  - timpani
+  - bagpipes
+
+chord_palette_extended:
+  - maj7
+  - min7
+  - dom7
+  - m9
+  - "9"
+  - "13"
+  - "#11"
+  - add9
+  - m7b5
+  - dim7
+  - "6/9"
+  - m11
+progression_library_ids:
+  - rnb_neo_soul
+  - rnb_classic
+  - neo_soul_loop
+  - rnb_slow_jam
+harmonic_rhythm: [0.5, 2.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.35
+seventh_chord_probability: 0.8
+secondary_dominant_probability: 0.25
+modal_interchange_probability: 0.2
+
+swing_8th: 0.55
+swing_16th: 0.58
+typical_grooves:
+  - rnb_pocket
+  - rnb_slow_groove
+  - neo_soul_swing
+drum_kit_preference: rnb_kit
+drum_pattern_ids:
+  - rnb_pocket
+  - rnb_halftime
+  - neo_soul_swing
+syncopation_density: 0.45
+polyrhythm_tolerance: 0.2
+
+melodic_devices:
+  - melismatic_runs
+  - pentatonic_minor
+  - chromatic_passing
+  - approach_notes
+  - blues_notes
+phrase_length_beats: [4.0, 8.0]
+typical_scales:
+  - pentatonic_minor
+  - dorian
+  - mixolydian
+  - minor_natural
+  - blues
+  - pentatonic_major
+call_response_density: 0.3
+melodic_contour_weights:
+  ascending: 0.2
+  descending: 0.25
+  arch: 0.3
+  valley: 0.15
+  flat: 0.1
+leap_probability: 0.25
+blue_note_probability: 0.15
+
+voicing_density_target: 5
+bass_motion_style: syncopated_root
+typical_dynamics_range: ["pp", "mf"]
+target_spectral_centroid: 0.45
+
+target_lufs: -12.0
+target_peak_db: -0.5
+typical_effects:
+  - warm_compression
+  - plate_reverb
+  - vinyl_warmth
+  - stereo_widener
+stereo_imaging: wide
+production_profile_id: rnb_modern
+
+cliches_to_avoid:
+  - "Over-processed vocals masking weak melodic content"
+  - "Neo-soul chord substitutions without melodic justification"
+  - "Drums too rigid, lacking the human groove feel"
+  - "Rhodes comping the same voicing pattern across every chord"

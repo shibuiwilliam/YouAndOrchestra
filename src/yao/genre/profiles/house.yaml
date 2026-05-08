@@ -1,0 +1,114 @@
+name: house
+description: |
+  House music: four-on-the-floor kick, offbeat hi-hats, synth-driven,
+  repetitive but evolving grooves. Chicago/Detroit lineage.
+  Emphasis on danceability, gradual arrangement builds, and filter sweeps.
+  Typically 124-128 BPM with 8/16-bar phrase structure.
+
+typical_tempo_range: [118, 132]
+typical_keys: ["Am", "Dm", "Gm", "Cm", "Fm", "Em"]
+typical_modes: ["minor", "dorian", "mixolydian"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["intro_build_drop", "loop_8bar_evolving", "verse_chorus_bridge"]
+typical_duration_seconds: [240, 420]
+
+core_instruments:
+  - name: drums_house_kit
+    role: rhythm
+  - name: synth_bass_house
+    role: bass
+  - name: synth_pad_warm
+    role: pad
+optional_instruments:
+  - name: electric_piano_rhodes
+    role: harmony
+  - name: piano_acoustic
+    role: harmony
+  - name: synth_lead_saw
+    role: melody
+  - name: synth_stab
+    role: harmony
+  - name: vocal_chop
+    role: melody
+  - name: strings_ensemble
+    role: pad
+forbidden_instruments:
+  - distorted_electric_guitar
+  - harpsichord
+  - sitar
+  - timpani
+
+chord_palette_extended:
+  - minor
+  - min7
+  - dom7
+  - "9"
+  - sus2
+  - sus4
+  - m9
+  - maj7
+progression_library_ids:
+  - house_minor_loop
+  - house_deep_chords
+  - house_classic_piano
+harmonic_rhythm: [0.5, 2.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.15
+seventh_chord_probability: 0.4
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.1
+
+swing_8th: 0.5
+swing_16th: 0.52
+typical_grooves:
+  - house_four_on_floor
+  - house_shuffled
+drum_kit_preference: house_kit
+drum_pattern_ids:
+  - house_basic_4_4
+  - house_offbeat_hihat
+  - house_shuffled_hat
+syncopation_density: 0.35
+polyrhythm_tolerance: 0.15
+
+melodic_devices:
+  - repetitive_hooks
+  - filter_sweeps
+  - arpeggiated_lines
+  - vocal_chops
+phrase_length_beats: [4.0, 16.0]
+typical_scales:
+  - minor_natural
+  - dorian
+  - pentatonic_minor
+  - mixolydian
+call_response_density: 0.15
+melodic_contour_weights:
+  ascending: 0.2
+  descending: 0.2
+  arch: 0.25
+  valley: 0.15
+  flat: 0.2
+leap_probability: 0.15
+blue_note_probability: 0.05
+
+voicing_density_target: 4
+bass_motion_style: syncopated_root
+typical_dynamics_range: ["mf", "f"]
+target_spectral_centroid: 0.5
+
+target_lufs: -8.0
+target_peak_db: -0.3
+typical_effects:
+  - sidechain_compression
+  - filter_sweep
+  - plate_reverb
+  - stereo_delay
+stereo_imaging: wide
+production_profile_id: house_modern
+
+cliches_to_avoid:
+  - "Monotonous 8-bar loop with no arrangement evolution"
+  - "Kick and bass frequency masking without proper EQ/sidechain"
+  - "Build-up with no satisfying drop or payoff"
+  - "Generic supersaw chord stab with no harmonic character"

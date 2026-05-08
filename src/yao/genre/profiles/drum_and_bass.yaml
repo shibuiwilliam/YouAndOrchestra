@@ -1,0 +1,116 @@
+name: drum_and_bass
+description: |
+  Drum and bass: high-tempo breakbeat-driven electronic music with
+  deep sub-bass. Fast tempos (160-180 BPM), syncopated break patterns,
+  Amen-break variations, rolling bass lines, and atmospheric pads.
+  Goldie, LTJ Bukem, Roni Size, Noisia lineage.
+
+typical_tempo_range: [160, 180]
+typical_keys: ["Am", "Dm", "Em", "Cm", "Gm", "Fm"]
+typical_modes: ["minor", "dorian", "phrygian"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["intro_build_drop", "loop_8bar_evolving", "verse_chorus_bridge"]
+typical_duration_seconds: [240, 420]
+
+core_instruments:
+  - name: drums_breakbeat
+    role: rhythm
+  - name: synth_bass_reese
+    role: bass
+  - name: synth_pad_atmospheric
+    role: pad
+optional_instruments:
+  - name: synth_lead_saw
+    role: melody
+  - name: electric_piano_rhodes
+    role: harmony
+  - name: vocal_chop
+    role: melody
+  - name: strings_ensemble
+    role: pad
+  - name: pluck_synth
+    role: melody
+forbidden_instruments:
+  - distorted_electric_guitar
+  - harpsichord
+  - nylon_guitar
+  - timpani
+  - upright_bass
+
+chord_palette_extended:
+  - minor
+  - min7
+  - sus2
+  - sus4
+  - dom7
+  - m9
+  - add9
+progression_library_ids:
+  - dnb_minor_loop
+  - dnb_atmospheric
+  - dnb_roller_chords
+harmonic_rhythm: [1.0, 4.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.2
+seventh_chord_probability: 0.35
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.1
+
+swing_8th: 0.5
+swing_16th: 0.52
+typical_grooves:
+  - dnb_two_step
+  - dnb_roller
+  - dnb_amen_chop
+drum_kit_preference: breakbeat_kit
+drum_pattern_ids:
+  - dnb_two_step
+  - dnb_roller
+  - dnb_amen_basic
+  - dnb_halftime
+syncopation_density: 0.6
+polyrhythm_tolerance: 0.25
+
+melodic_devices:
+  - arpeggiated_lines
+  - vocal_chops
+  - filter_sweeps
+  - octave_jumps
+  - stepwise_motion
+phrase_length_beats: [4.0, 16.0]
+typical_scales:
+  - minor_natural
+  - dorian
+  - phrygian
+  - pentatonic_minor
+call_response_density: 0.1
+melodic_contour_weights:
+  ascending: 0.2
+  descending: 0.25
+  arch: 0.25
+  valley: 0.15
+  flat: 0.15
+leap_probability: 0.2
+blue_note_probability: 0.05
+
+voicing_density_target: 3
+bass_motion_style: syncopated_root
+typical_dynamics_range: ["mf", "ff"]
+target_spectral_centroid: 0.5
+
+target_lufs: -8.0
+target_peak_db: -0.3
+typical_effects:
+  - sidechain_compression
+  - distortion_bass
+  - long_reverb
+  - stereo_delay
+  - filter_automation
+stereo_imaging: wide
+production_profile_id: dnb_modern
+
+cliches_to_avoid:
+  - "Amen break chopped identically without creative variation"
+  - "Sub-bass and kick fighting for the same frequency space"
+  - "No arrangement development, just a static loop"
+  - "Atmospheric pads that mask rather than complement the breakbeat"

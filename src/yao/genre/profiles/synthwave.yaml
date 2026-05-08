@@ -1,0 +1,117 @@
+name: synthwave
+description: |
+  Synthwave: retro-futuristic electronic music inspired by 1980s
+  synthesizer soundtracks. Analog synth leads, gated reverb drums,
+  arpeggiated bass lines, neon-drenched atmosphere.
+  Vangelis, Tangerine Dream, and modern artists like Perturbator,
+  Kavinsky, and Com Truise lineage.
+
+typical_tempo_range: [90, 130]
+typical_keys: ["Am", "Em", "Dm", "Cm", "Fm", "F#m"]
+typical_modes: ["minor", "dorian", "phrygian", "mixolydian"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["verse_chorus_bridge", "intro_build_drop", "through_composed"]
+typical_duration_seconds: [180, 360]
+
+core_instruments:
+  - name: synth_lead_saw
+    role: melody
+  - name: synth_bass_analog
+    role: bass
+  - name: drums_electronic_80s
+    role: rhythm
+  - name: synth_pad_warm
+    role: pad
+optional_instruments:
+  - name: synth_arpeggio
+    role: harmony
+  - name: synth_strings
+    role: pad
+  - name: electric_guitar_clean
+    role: melody
+  - name: synth_fm
+    role: melody
+  - name: gated_reverb_snare
+    role: rhythm
+forbidden_instruments:
+  - upright_bass
+  - nylon_guitar
+  - harpsichord
+  - timpani
+  - sitar
+
+chord_palette_extended:
+  - minor
+  - major
+  - sus2
+  - sus4
+  - min7
+  - dom7
+  - add9
+progression_library_ids:
+  - synthwave_minor_loop
+  - synthwave_chromatic_descent
+  - synthwave_power_chords
+harmonic_rhythm: [0.5, 2.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.2
+seventh_chord_probability: 0.3
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.15
+
+swing_8th: 0.5
+swing_16th: 0.5
+typical_grooves:
+  - synthwave_straight
+  - synthwave_driving
+drum_kit_preference: electronic_80s_kit
+drum_pattern_ids:
+  - synthwave_basic_4_4
+  - synthwave_driving
+  - synthwave_halftime
+syncopation_density: 0.2
+polyrhythm_tolerance: 0.1
+
+melodic_devices:
+  - arpeggiated_lines
+  - stepwise_motion
+  - octave_jumps
+  - synth_runs
+  - anthemic_leaps
+phrase_length_beats: [4.0, 16.0]
+typical_scales:
+  - minor_natural
+  - dorian
+  - phrygian
+  - minor_harmonic
+  - pentatonic_minor
+call_response_density: 0.1
+melodic_contour_weights:
+  ascending: 0.25
+  descending: 0.2
+  arch: 0.3
+  valley: 0.1
+  flat: 0.15
+leap_probability: 0.3
+blue_note_probability: 0.0
+
+voicing_density_target: 4
+bass_motion_style: arpeggiated
+typical_dynamics_range: ["mp", "f"]
+target_spectral_centroid: 0.55
+
+target_lufs: -10.0
+target_peak_db: -0.5
+typical_effects:
+  - gated_reverb
+  - chorus
+  - analog_delay
+  - sidechain_compression
+stereo_imaging: wide
+production_profile_id: synthwave_retro
+
+cliches_to_avoid:
+  - "Generic saw-wave arpeggio without any timbral evolution"
+  - "Gated reverb snare used identically on every beat"
+  - "Relying solely on nostalgia without compositional substance"
+  - "Constant 16th-note arpeggios without dynamic variation"

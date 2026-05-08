@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from yao.schema.composition import CompositionSpec
 from yao.verify.critique.types import Finding
 from yao.verify.evaluator import EvaluationReport, EvaluationScore
+from yao.verify.genre_conformance import GenreConformanceScore
 
 
 @dataclass(frozen=True)
@@ -208,6 +209,73 @@ def _adaptation_for_metric(
         )
 
     return None
+
+
+def suggest_genre_adaptations(
+    conformance: GenreConformanceScore,
+    spec: CompositionSpec,
+) -> list[SpecAdaptation]:
+    """Map genre conformance failures to spec modifications.
+
+    Implements PROJECT.md §13.6: when conformance is low, the Conductor
+    adapts the spec to push output toward the genre's profile.
+
+    Args:
+        conformance: Genre conformance score with per-dimension results.
+        spec: The current composition spec.
+
+    Returns:
+        List of suggested adaptations for genre alignment.
+    """
+    adaptations: list[SpecAdaptation] = []
+
+    if conformance.tempo_match < 0.5:
+        adaptations.append(
+            SpecAdaptation(
+                field="tempo_bpm",
+                old_value=str(spec.tempo_bpm),
+                new_value="genre_midpoint",
+                reason=f"Tempo {spec.tempo_bpm} BPM outside genre range. "
+                f"Genre conformance tempo_match={conformance.tempo_match:.2f}.",
+            )
+        )
+
+    if conformance.instrumentation_match < 0.5:
+        adaptations.append(
+            SpecAdaptation(
+                field="instruments",
+                old_value="current",
+                new_value="add_core_instruments",
+                reason=f"Core instruments missing for genre '{conformance.genre}'. "
+                f"Instrumentation match={conformance.instrumentation_match:.2f}.",
+            )
+        )
+
+    if conformance.harmony_match < 0.5:
+        current_temp = spec.generation.temperature
+        new_temp = min(current_temp + 0.15, 1.0)
+        adaptations.append(
+            SpecAdaptation(
+                field="generation.temperature",
+                old_value=str(current_temp),
+                new_value=str(new_temp),
+                reason=f"Harmonic vocabulary doesn't match genre '{conformance.genre}'. "
+                f"Harmony match={conformance.harmony_match:.2f}. Increasing temperature.",
+            )
+        )
+
+    if conformance.rhythm_match < 0.5:
+        adaptations.append(
+            SpecAdaptation(
+                field="groove",
+                old_value="current",
+                new_value="genre_default",
+                reason=f"Rhythmic feel doesn't match genre '{conformance.genre}'. "
+                f"Rhythm match={conformance.rhythm_match:.2f}.",
+            )
+        )
+
+    return adaptations
 
 
 def _differentiate_dynamics(spec: CompositionSpec) -> SpecAdaptation | None:

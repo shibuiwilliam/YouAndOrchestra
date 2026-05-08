@@ -1,0 +1,124 @@
+name: latin
+description: |
+  Latin music: broad genre encompassing salsa, cumbia, son, and
+  Latin pop elements. Clave-based rhythmic foundation, montuno piano,
+  tumbao bass, horn sections, and layered percussion.
+  Tito Puente, Celia Cruz, Ruben Blades lineage.
+  Emphasis on clave alignment and rhythmic interplay.
+
+typical_tempo_range: [90, 140]
+typical_keys: ["C", "F", "Bb", "Eb", "G", "D", "Am", "Dm"]
+typical_modes: ["major", "minor", "dorian", "mixolydian"]
+typical_time_signatures: ["4/4", "6/8"]
+typical_form_templates: ["verse_chorus_bridge", "montuno_coro", "son_form"]
+typical_duration_seconds: [180, 360]
+
+core_instruments:
+  - name: piano_acoustic
+    role: harmony
+  - name: electric_bass_finger
+    role: bass
+  - name: congas
+    role: rhythm
+  - name: timbales
+    role: rhythm
+optional_instruments:
+  - name: trumpet
+    role: melody
+  - name: trombone
+    role: melody
+  - name: alto_sax
+    role: melody
+  - name: bongos
+    role: rhythm
+  - name: guiro
+    role: rhythm
+  - name: claves
+    role: rhythm
+  - name: tres_guitar
+    role: harmony
+forbidden_instruments:
+  - distorted_electric_guitar
+  - synth_lead_saw
+  - drums_808
+  - harpsichord
+
+chord_palette_extended:
+  - major
+  - minor
+  - dom7
+  - min7
+  - "9"
+  - sus4
+  - dim
+  - "13"
+progression_library_ids:
+  - latin_son_montuno
+  - latin_ii_V_I
+  - latin_minor_clave
+  - salsa_basic
+harmonic_rhythm: [0.5, 2.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.2
+seventh_chord_probability: 0.5
+secondary_dominant_probability: 0.2
+modal_interchange_probability: 0.1
+
+swing_8th: 0.5
+swing_16th: 0.5
+typical_grooves:
+  - latin_son_clave
+  - latin_rumba_clave
+  - latin_songo
+  - latin_cha_cha
+drum_kit_preference: latin_percussion
+drum_pattern_ids:
+  - latin_son_clave_2_3
+  - latin_son_clave_3_2
+  - latin_tumbao
+  - latin_cascara
+syncopation_density: 0.6
+polyrhythm_tolerance: 0.5
+
+melodic_devices:
+  - montuno_patterns
+  - call_and_response
+  - scalar_runs
+  - chromatic_approach
+  - pentatonic_major
+phrase_length_beats: [4.0, 8.0]
+typical_scales:
+  - major
+  - minor_harmonic
+  - minor_natural
+  - dorian
+  - mixolydian
+call_response_density: 0.5
+melodic_contour_weights:
+  ascending: 0.25
+  descending: 0.25
+  arch: 0.25
+  valley: 0.15
+  flat: 0.1
+leap_probability: 0.25
+blue_note_probability: 0.05
+
+voicing_density_target: 4
+bass_motion_style: tumbao
+typical_dynamics_range: ["mf", "ff"]
+target_spectral_centroid: 0.55
+
+target_lufs: -12.0
+target_peak_db: -0.5
+typical_effects:
+  - room_reverb
+  - gentle_compression
+  - bright_eq
+stereo_imaging: wide
+production_profile_id: latin_live
+
+cliches_to_avoid:
+  - "Piano montuno not aligned with the clave pattern"
+  - "Bass tumbao conflicting with clave direction"
+  - "Percussion layers without clear clave reference"
+  - "Horn arrangement lacking rhythmic precision on hits"

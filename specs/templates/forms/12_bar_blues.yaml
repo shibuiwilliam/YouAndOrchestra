@@ -1,0 +1,26 @@
+form_template:
+  id: "12_bar_blues"
+  description: "Standard 12-bar blues form with V-IV-I-V turnaround"
+  total_bars: 12
+  genre_tags: [blues, jazz, rock]
+
+  sections:
+    - name: tonic_statement
+      bars: 4
+      role: I
+      intensity: 0.5
+    - name: subdominant
+      bars: 2
+      role: IV
+      intensity: 0.6
+    - name: tonic_return
+      bars: 2
+      role: I
+      intensity: 0.55
+    - name: turnaround
+      bars: 4
+      progression: [V7, IV7, I, V7]
+      intensity: 0.7
+
+  loopable: true
+  cadence_at_end: half

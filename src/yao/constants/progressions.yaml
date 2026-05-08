@@ -1,0 +1,613 @@
+# Chord Progression Library
+# =========================
+# Idiomatic chord progressions organized by genre, using Roman numeral notation.
+# Based on IMPROVEMENT.md §4.3 Extended Harmony System.
+#
+# Each progression specifies:
+#   id:            unique identifier (genre_prefix + descriptive slug)
+#   name:          human-readable name
+#   chords:        list of Roman numeral chord symbols
+#   genre_tags:    list of applicable genres
+#   cadence_type:  authentic | half | deceptive | plagal | none
+#   description:   brief music-theoretical explanation
+
+# ---------------------------------------------------------------------------
+# Jazz
+# ---------------------------------------------------------------------------
+
+- id: jazz_ii_v_i_major
+  name: "Major ii-V-I"
+  chords: ["IIm7", "V7", "IM7"]
+  genre_tags: [jazz, bebop, swing, bossa_nova]
+  cadence_type: authentic
+  description: "The foundational jazz cadence. Predominant to dominant to tonic resolution."
+
+- id: jazz_ii_v_i_minor
+  name: "Minor ii-V-i"
+  chords: ["IIm7b5", "V7b9", "Im7"]
+  genre_tags: [jazz, bebop, latin_jazz]
+  cadence_type: authentic
+  description: "Minor-key ii-V-i with half-diminished ii and altered dominant."
+
+- id: jazz_ii_v_i_long
+  name: "Extended ii-V-I with turnaround"
+  chords: ["IIm7", "V7", "IM7", "VI7", "IIm7", "V7", "IM7"]
+  genre_tags: [jazz, bebop, swing]
+  cadence_type: authentic
+  description: "Two-pass ii-V-I with secondary dominant turnaround back to ii."
+
+- id: jazz_rhythm_changes_a
+  name: "Rhythm Changes A section"
+  chords: ["IM7", "VIm7", "IIm7", "V7", "IIIm7", "VI7", "IIm7", "V7"]
+  genre_tags: [jazz, bebop, swing]
+  cadence_type: half
+  description: "A section of Rhythm Changes (I Got Rhythm form). 8 bars, AABA structure."
+
+- id: jazz_rhythm_changes_b
+  name: "Rhythm Changes bridge"
+  chords: ["III7", "III7", "VI7", "VI7", "II7", "II7", "V7", "V7"]
+  genre_tags: [jazz, bebop]
+  cadence_type: half
+  description: "Bridge of Rhythm Changes. Circle-of-fifths dominant chain."
+
+- id: jazz_bird_blues
+  name: "Bird Blues (Charlie Parker blues)"
+  chords: ["IM7", "IV7", "IM7", "Im7", "IV7", "IV7", "IM7", "IIm7", "V7", "IIIm7", "VI7", "IIm7", "V7"]
+  genre_tags: [jazz, bebop]
+  cadence_type: authentic
+  description: "Bebop-enriched 12-bar blues with tritone subs and ii-V movements."
+
+- id: jazz_coltrane_changes
+  name: "Coltrane Changes"
+  chords: ["IM7", "bIIIM7", "VM7", "IM7"]
+  genre_tags: [jazz, post_bop]
+  cadence_type: authentic
+  description: "Major-third cycle substitution dividing the octave into three equal parts."
+
+- id: jazz_modal_so_what
+  name: "Modal vamp (So What form)"
+  chords: ["Im7", "Im7", "Im7", "Im7", "IIm7", "IIm7", "Im7", "Im7"]
+  genre_tags: [jazz, modal_jazz]
+  cadence_type: none
+  description: "16-bar modal form. Two Dorian centers a whole step apart."
+
+- id: jazz_backdoor
+  name: "Backdoor ii-V"
+  chords: ["IVm7", "bVII7", "IM7"]
+  genre_tags: [jazz, swing, pop_jazz]
+  cadence_type: authentic
+  description: "Minor iv to bVII dominant resolving to I. Softer resolution than standard V7-I."
+
+- id: jazz_tritone_sub
+  name: "ii-V with tritone substitution"
+  chords: ["IIm7", "bII7", "IM7"]
+  genre_tags: [jazz, bebop, bossa_nova]
+  cadence_type: authentic
+  description: "Tritone substitute replaces V7, creating chromatic bass descent."
+
+- id: jazz_turnaround_basic
+  name: "Basic jazz turnaround"
+  chords: ["IM7", "VIm7", "IIm7", "V7"]
+  genre_tags: [jazz, swing, bebop]
+  cadence_type: half
+  description: "Standard I-vi-ii-V turnaround used at the end of sections."
+
+- id: jazz_turnaround_tritone
+  name: "Tritone sub turnaround"
+  chords: ["IM7", "bVII7", "bVI7", "V7"]
+  genre_tags: [jazz, bebop]
+  cadence_type: half
+  description: "Turnaround with tritone substitutions creating chromatic bass descent."
+
+- id: jazz_confirmation
+  name: "Confirmation changes"
+  chords: ["IM7", "IVm7", "bVII7", "IM7", "IIIm7", "VI7", "IIm7", "V7"]
+  genre_tags: [jazz, bebop]
+  cadence_type: half
+  description: "Bebop standard form with backdoor progression and circle movement."
+
+# ---------------------------------------------------------------------------
+# Pop
+# ---------------------------------------------------------------------------
+
+- id: pop_i_v_vi_iv
+  name: "Pop Axis (I-V-vi-IV)"
+  chords: ["I", "V", "VIm", "IV"]
+  genre_tags: [pop, rock, indie, singer_songwriter]
+  cadence_type: plagal
+  description: "The most common pop progression. Bright, optimistic, endlessly loopable."
+
+- id: pop_vi_iv_i_v
+  name: "Sensitive rotation (vi-IV-I-V)"
+  chords: ["VIm", "IV", "I", "V"]
+  genre_tags: [pop, indie, singer_songwriter, emo]
+  cadence_type: half
+  description: "Minor-start rotation of the axis progression. Melancholic, introspective."
+
+- id: pop_i_vi_iv_v
+  name: "50s progression (I-vi-IV-V)"
+  chords: ["I", "VIm", "IV", "V"]
+  genre_tags: [pop, doo_wop, classic_rock]
+  cadence_type: half
+  description: "Classic 1950s doo-wop progression. Nostalgic, singable."
+
+- id: pop_i_iv_v_iv
+  name: "I-IV-V-IV"
+  chords: ["I", "IV", "V", "IV"]
+  genre_tags: [pop, rock, country]
+  cadence_type: plagal
+  description: "Simple plagal motion with dominant peak. Anthemic, open feel."
+
+- id: pop_royal_road
+  name: "Royal Road (IV-V-iii-vi)"
+  chords: ["IV", "V", "IIIm", "VIm"]
+  genre_tags: [pop, j_pop, anime]
+  cadence_type: deceptive
+  description: "Common in J-pop and anime. Rising expectation resolves to relative minor."
+
+- id: pop_iv_i_v_vi
+  name: "IV-I-V-vi"
+  chords: ["IV", "I", "V", "VIm"]
+  genre_tags: [pop, worship, indie]
+  cadence_type: deceptive
+  description: "Plagal start with deceptive ending. Uplifting, emotionally open."
+
+- id: pop_i_iii_iv_iv
+  name: "I-iii-IV-iv (major to minor IV)"
+  chords: ["I", "IIIm", "IV", "IVm"]
+  genre_tags: [pop, singer_songwriter, indie]
+  cadence_type: plagal
+  description: "Chromatic descent via minor iv borrowing. Bittersweet, reflective."
+
+- id: pop_pachelbel
+  name: "Pachelbel's Canon progression"
+  chords: ["I", "V", "VIm", "IIIm", "IV", "I", "IV", "V"]
+  genre_tags: [pop, classical, wedding]
+  cadence_type: half
+  description: "Descending bass line from I through V. Universally recognized, elegant."
+
+- id: pop_reggae_strum
+  name: "I-V-vi-iii-IV"
+  chords: ["I", "V", "VIm", "IIIm", "IV"]
+  genre_tags: [pop, indie, folk]
+  cadence_type: plagal
+  description: "Extended descending-third chain before plagal arrival."
+
+# ---------------------------------------------------------------------------
+# Rock
+# ---------------------------------------------------------------------------
+
+- id: rock_i_bvii_iv
+  name: "Mixolydian rock (I-bVII-IV)"
+  chords: ["I", "bVII", "IV"]
+  genre_tags: [rock, classic_rock, southern_rock]
+  cadence_type: plagal
+  description: "Modal interchange from Mixolydian. Open, driving, quintessentially rock."
+
+- id: rock_i_bvi_bvii
+  name: "Aeolian rock (i-bVI-bVII)"
+  chords: ["Im", "bVI", "bVII"]
+  genre_tags: [rock, metal, grunge, alternative]
+  cadence_type: none
+  description: "Natural minor with no leading tone. Dark, powerful, unresolved."
+
+- id: rock_power_i_iv_v
+  name: "Power chord I-IV-V"
+  chords: ["I5", "IV5", "V5"]
+  genre_tags: [rock, punk, garage]
+  cadence_type: authentic
+  description: "Root-fifth power chords only. Raw, aggressive, genre-defining for punk."
+
+- id: rock_i_biii_bvii_iv
+  name: "Rock Mixolydian-Dorian blend"
+  chords: ["I", "bIII", "bVII", "IV"]
+  genre_tags: [rock, classic_rock, blues_rock]
+  cadence_type: plagal
+  description: "Modal interchange creating a gritty, earthy progression."
+
+- id: rock_i_iv_bvii_iv
+  name: "I-IV-bVII-IV"
+  chords: ["I", "IV", "bVII", "IV"]
+  genre_tags: [rock, southern_rock, classic_rock]
+  cadence_type: plagal
+  description: "Mixolydian vamp with subdominant emphasis. Arena-rock anthem feel."
+
+- id: rock_grunge_i_v_bvi_iv
+  name: "Grunge I-V-bVI-IV"
+  chords: ["I", "V", "bVI", "IV"]
+  genre_tags: [rock, grunge, alternative]
+  cadence_type: plagal
+  description: "Major-minor mixture. Tension from bVI resolves to familiar IV."
+
+- id: rock_doom_i_bii
+  name: "Doom metal i-bII"
+  chords: ["Im", "bII"]
+  genre_tags: [metal, doom_metal]
+  cadence_type: none
+  description: "Phrygian semitone oscillation. Extremely dark, heavy, dissonant."
+
+- id: rock_acdc_vamp
+  name: "AC/DC vamp (I-IV-V riff)"
+  chords: ["I", "IV", "I", "V", "IV", "I"]
+  genre_tags: [rock, hard_rock, blues_rock]
+  cadence_type: authentic
+  description: "Riff-based I-IV-V pattern. Rhythmically driven, high energy."
+
+# ---------------------------------------------------------------------------
+# Blues
+# ---------------------------------------------------------------------------
+
+- id: blues_12_bar_basic
+  name: "12-bar blues (basic)"
+  chords: ["I7", "I7", "I7", "I7", "IV7", "IV7", "I7", "I7", "V7", "IV7", "I7", "V7"]
+  genre_tags: [blues, rock, country, jazz]
+  cadence_type: half
+  description: "The quintessential blues form. All dominant 7th chords, turnaround on V7."
+
+- id: blues_12_bar_quick_change
+  name: "12-bar blues (quick change)"
+  chords: ["I7", "IV7", "I7", "I7", "IV7", "IV7", "I7", "I7", "V7", "IV7", "I7", "V7"]
+  genre_tags: [blues, rock]
+  cadence_type: half
+  description: "Quick IV in bar 2 adds harmonic motion early. Standard Chicago blues."
+
+- id: blues_jazz_12_bar
+  name: "Jazz blues (12-bar)"
+  chords: ["I7", "IV7", "I7", "I7", "IV7", "IVdim7", "I7", "VIm7", "IIm7", "V7", "I7", "IIm7-V7"]
+  genre_tags: [blues, jazz, bebop]
+  cadence_type: authentic
+  description: "Blues with ii-V substitutions and diminished passing chord."
+
+- id: blues_minor_12_bar
+  name: "Minor blues (12-bar)"
+  chords: ["Im7", "Im7", "Im7", "Im7", "IVm7", "IVm7", "Im7", "Im7", "bVI7", "V7", "Im7", "V7"]
+  genre_tags: [blues, jazz, soul]
+  cadence_type: half
+  description: "Minor-key 12-bar blues. Darker, more intense emotional palette."
+
+- id: blues_8_bar
+  name: "8-bar blues"
+  chords: ["I7", "V7", "IV7", "IV7", "I7", "V7", "I7", "V7"]
+  genre_tags: [blues, folk_blues]
+  cadence_type: half
+  description: "Compressed blues form. More common in early Delta and country blues."
+
+- id: blues_shuffle_turnaround
+  name: "Blues turnaround"
+  chords: ["I7", "IV7", "I7", "I7-VI7-IIm7-V7"]
+  genre_tags: [blues, jazz, swing]
+  cadence_type: half
+  description: "Final 4 bars of a blues with elaborated turnaround."
+
+- id: blues_stormy_monday
+  name: "Stormy Monday blues"
+  chords: ["I9", "I9", "IV9", "IV9", "I9", "I9", "IIm7", "V7", "I9", "VI7", "IIm7", "V7"]
+  genre_tags: [blues, jazz_blues, soul]
+  cadence_type: half
+  description: "9th-chord blues with jazz turnaround. Smoother, more sophisticated voicing."
+
+# ---------------------------------------------------------------------------
+# Funk / R&B / Soul / Neo-Soul
+# ---------------------------------------------------------------------------
+
+- id: funk_one_chord_vamp
+  name: "One-chord funk vamp"
+  chords: ["I7"]
+  genre_tags: [funk, disco, afrobeat]
+  cadence_type: none
+  description: "Single dominant 7th chord. All motion comes from rhythm and bass line."
+
+- id: funk_i7_iv7_vamp
+  name: "i7-IV7 funk vamp"
+  chords: ["Im7", "IV7"]
+  genre_tags: [funk, r_and_b, soul]
+  cadence_type: none
+  description: "Two-chord modal vamp. Dorian-flavored, groove-centric."
+
+- id: funk_ii7_v7_vamp
+  name: "ii7-V7 funk vamp"
+  chords: ["IIm7", "V7"]
+  genre_tags: [funk, r_and_b, jazz_funk]
+  cadence_type: half
+  description: "Unresolved ii-V. Perpetual harmonic motion without tonic arrival."
+
+- id: rnb_i_iii_iv_iv_m
+  name: "R&B chromatic descent"
+  chords: ["IM7", "IIIm7", "IVM7", "IVm7"]
+  genre_tags: [r_and_b, neo_soul, gospel]
+  cadence_type: plagal
+  description: "Major I through iii to IV with chromatic minor iv. Lush, soulful."
+
+- id: neo_soul_iv_iii_biii_ii
+  name: "Neo-Soul chromatic walk-down"
+  chords: ["IVM9", "IIIm9", "bIIIM9", "IIm9"]
+  genre_tags: [neo_soul, r_and_b, gospel]
+  cadence_type: none
+  description: "Chromatic bass descent through extended 9th chords. Rich, complex."
+
+- id: gospel_iv_iv_i
+  name: "Gospel plagal cadence"
+  chords: ["IV", "IVm", "I"]
+  genre_tags: [gospel, soul, r_and_b]
+  cadence_type: plagal
+  description: "Major IV to borrowed minor iv resolving to I. The Amen cadence."
+
+- id: rnb_doo_wop
+  name: "Doo-wop (I-vi-IV-V)"
+  chords: ["I", "VIm", "IV", "V"]
+  genre_tags: [r_and_b, doo_wop, pop, soul]
+  cadence_type: half
+  description: "Classic 1950s R&B form. Foundation for countless ballads."
+
+- id: funk_chromatic_approach
+  name: "Chromatic approach funk"
+  chords: ["Im9", "bIIM9", "Im9"]
+  genre_tags: [funk, jazz_funk, fusion]
+  cadence_type: none
+  description: "Semitone upper neighbor chord creating tension-release. Angular, modern."
+
+# ---------------------------------------------------------------------------
+# Latin / Bossa Nova / Afro-Cuban
+# ---------------------------------------------------------------------------
+
+- id: latin_andalusian
+  name: "Andalusian cadence"
+  chords: ["Im", "bVII", "bVI", "V"]
+  genre_tags: [flamenco, latin, spanish, rock]
+  cadence_type: half
+  description: "Descending tetrachord bass from i to V. Iconic Spanish/flamenco sound."
+
+- id: bossa_girl_from_ipanema
+  name: "Bossa nova ii-V-I with chromatic motion"
+  chords: ["IM7", "IIm7", "bII7", "IM7"]
+  genre_tags: [bossa_nova, latin_jazz, mpb]
+  cadence_type: authentic
+  description: "Bossa ii to tritone-sub resolution. Smooth, floating harmonic motion."
+
+- id: bossa_iim7_v7_im7
+  name: "Bossa minor ii-V-i"
+  chords: ["IIm7b5", "V7b9", "Im9"]
+  genre_tags: [bossa_nova, latin_jazz]
+  cadence_type: authentic
+  description: "Minor bossa cadence with lush 9th on tonic. Melancholic sophistication."
+
+- id: latin_descending_tritone
+  name: "Tritone descent"
+  chords: ["IM7", "bVM7", "IVM7", "bIVM7", "IIIM7"]
+  genre_tags: [bossa_nova, latin_jazz, jazz]
+  cadence_type: none
+  description: "Chain of major 7th chords descending by tritone then semitone. Lush."
+
+- id: latin_son_montuno
+  name: "Son montuno (I-IV-V-V)"
+  chords: ["I", "IV", "V", "V"]
+  genre_tags: [salsa, son, afro_cuban, mambo]
+  cadence_type: half
+  description: "Basic Afro-Cuban son pattern. Drives the montuno piano figure."
+
+- id: latin_guajira
+  name: "Guajira (I-IV-V-I alternation)"
+  chords: ["I", "IV", "V", "I", "IV", "V"]
+  genre_tags: [salsa, guajira, afro_cuban]
+  cadence_type: authentic
+  description: "Simple I-IV-V cycle underpinning guajira and son styles."
+
+- id: latin_i_iv_bvii_biii
+  name: "Latin modal vamp"
+  chords: ["Im7", "IVm7", "bVII7", "bIIIM7"]
+  genre_tags: [latin_jazz, afro_cuban, fusion]
+  cadence_type: none
+  description: "Minor modal vamp with Dorian/Aeolian coloring. Open, expansive."
+
+# ---------------------------------------------------------------------------
+# EDM / Electronic / Dance
+# ---------------------------------------------------------------------------
+
+- id: edm_i_bvi_biii_bvii
+  name: "Epic EDM (i-bVI-bIII-bVII)"
+  chords: ["Im", "bVI", "bIII", "bVII"]
+  genre_tags: [edm, trance, house, synthwave]
+  cadence_type: none
+  description: "Aeolian loop. Anthemic, emotional, builds well with layered production."
+
+- id: edm_one_chord_vamp
+  name: "Static EDM vamp"
+  chords: ["Im"]
+  genre_tags: [edm, techno, minimal, house]
+  cadence_type: none
+  description: "Single chord. Harmonic interest comes from filter sweeps and texture."
+
+- id: edm_i_bvii_bvi_bvii
+  name: "EDM Aeolian ascent"
+  chords: ["Im", "bVII", "bVI", "bVII"]
+  genre_tags: [edm, trance, progressive_house]
+  cadence_type: none
+  description: "Ascending bVI-bVII motion creates lift without dominant resolution."
+
+- id: edm_iv_i_v_vi
+  name: "EDM euphoric (IV-I-V-vi)"
+  chords: ["IV", "I", "V", "VIm"]
+  genre_tags: [edm, future_bass, progressive_house]
+  cadence_type: deceptive
+  description: "Bright pop-influenced loop. The emotional EDM build and drop staple."
+
+- id: edm_i_bvi_iv_bvii
+  name: "Synthwave progression"
+  chords: ["Im", "bVI", "IV", "bVII"]
+  genre_tags: [synthwave, retrowave, edm]
+  cadence_type: none
+  description: "Minor tonic with modal interchange IV. Retro-futuristic nostalgia."
+
+# ---------------------------------------------------------------------------
+# Classical / Common Practice
+# ---------------------------------------------------------------------------
+
+- id: classical_i_iv_v_i
+  name: "Classical authentic cadence"
+  chords: ["I", "IV", "V", "I"]
+  genre_tags: [classical, baroque, romantic, hymn]
+  cadence_type: authentic
+  description: "Foundational tonal cadence. Tonic-predominant-dominant-tonic cycle."
+
+- id: classical_i_iv_v7_i
+  name: "Classical with dominant 7th"
+  chords: ["I", "IV", "V7", "I"]
+  genre_tags: [classical, romantic, hymn]
+  cadence_type: authentic
+  description: "Stronger dominant pull with added 7th. Standard classical resolution."
+
+- id: classical_i_ii_v_i
+  name: "I-ii-V-I"
+  chords: ["I", "IIm", "V", "I"]
+  genre_tags: [classical, baroque, chorale]
+  cadence_type: authentic
+  description: "Supertonic predominant to dominant resolution. Smooth voice leading."
+
+- id: classical_circle_of_fifths
+  name: "Circle of fifths sequence"
+  chords: ["I", "IV", "VIIo", "IIIm", "VIm", "IIm", "V", "I"]
+  genre_tags: [classical, baroque]
+  cadence_type: authentic
+  description: "Full diatonic circle of fifths. Common in Baroque sequences."
+
+- id: classical_deceptive
+  name: "Deceptive cadence (V-vi)"
+  chords: ["I", "IV", "V", "VIm"]
+  genre_tags: [classical, romantic, film]
+  cadence_type: deceptive
+  description: "Dominant resolves to submediant instead of tonic. Surprise, extension."
+
+- id: classical_half_cadence
+  name: "Half cadence (I-V)"
+  chords: ["I", "IIm", "V"]
+  genre_tags: [classical, baroque, chorale]
+  cadence_type: half
+  description: "Phrase ends on dominant. Creates expectation, phrase boundary."
+
+- id: classical_plagal
+  name: "Plagal cadence (IV-I)"
+  chords: ["IV", "I"]
+  genre_tags: [classical, hymn, gospel]
+  cadence_type: plagal
+  description: "The Amen cadence. Gentle, restful conclusion."
+
+- id: classical_lament_bass
+  name: "Lament bass (chromatic descent)"
+  chords: ["Im", "Im/7", "Im/b7", "Im/6"]
+  genre_tags: [classical, baroque, romantic]
+  cadence_type: none
+  description: "Chromatic descending bass over minor tonic. Grief, pathos, nobility."
+
+# ---------------------------------------------------------------------------
+# Modal
+# ---------------------------------------------------------------------------
+
+- id: modal_dorian_vamp
+  name: "Dorian vamp (i-IV)"
+  chords: ["Im7", "IV7"]
+  genre_tags: [modal_jazz, funk, r_and_b, soul]
+  cadence_type: none
+  description: "Dorian mode highlighted by major IV over minor tonic. Warm ambiguity."
+
+- id: modal_mixolydian_vamp
+  name: "Mixolydian vamp (I-bVII)"
+  chords: ["I", "bVII"]
+  genre_tags: [rock, modal_jazz, folk, celtic]
+  cadence_type: none
+  description: "Major tonic with flat-seventh neighbor. Open, rootsy, pentatonic-friendly."
+
+- id: modal_aeolian_vamp
+  name: "Aeolian vamp (i-bVI-bVII)"
+  chords: ["Im", "bVI", "bVII"]
+  genre_tags: [rock, metal, folk, edm]
+  cadence_type: none
+  description: "Natural minor without leading tone. Resolute, dark, medievalesque."
+
+- id: modal_phrygian_vamp
+  name: "Phrygian vamp (i-bII)"
+  chords: ["Im", "bII"]
+  genre_tags: [flamenco, metal, film]
+  cadence_type: none
+  description: "Semitone oscillation from Phrygian mode. Exotic, tense, cinematic."
+
+- id: modal_lydian_shimmer
+  name: "Lydian shimmer (I-II)"
+  chords: ["IM7", "II"]
+  genre_tags: [film, ambient, new_age, j_pop]
+  cadence_type: none
+  description: "Major tonic with major II from Lydian mode. Bright, ethereal, floating."
+
+# ---------------------------------------------------------------------------
+# Country / Folk
+# ---------------------------------------------------------------------------
+
+- id: country_i_iv_v
+  name: "Country I-IV-V"
+  chords: ["I", "IV", "V", "I"]
+  genre_tags: [country, folk, bluegrass]
+  cadence_type: authentic
+  description: "The three-chord backbone of country and folk music."
+
+- id: country_i_v_iv_v
+  name: "Country train beat"
+  chords: ["I", "V", "IV", "V"]
+  genre_tags: [country, bluegrass]
+  cadence_type: half
+  description: "Driving progression evoking locomotive rhythm. Upbeat, road-song feel."
+
+- id: folk_i_iv_i_v
+  name: "Folk ballad (I-IV-I-V)"
+  chords: ["I", "IV", "I", "V"]
+  genre_tags: [folk, singer_songwriter, acoustic]
+  cadence_type: half
+  description: "Simple tonic-predominant alternation with half cadence. Narrative, sparse."
+
+- id: country_vi_iv_i_v
+  name: "Country heartbreak (vi-IV-I-V)"
+  chords: ["VIm", "IV", "I", "V"]
+  genre_tags: [country, pop_country]
+  cadence_type: half
+  description: "Minor-start rotation. The modern country ballad progression."
+
+# ---------------------------------------------------------------------------
+# Film / Cinematic
+# ---------------------------------------------------------------------------
+
+- id: film_i_bvi_biii_bvii
+  name: "Cinematic minor descent"
+  chords: ["Im", "bVI", "bIII", "bVII"]
+  genre_tags: [film, trailer, epic, cinematic]
+  cadence_type: none
+  description: "Minor-mode descending thirds. Grand, sweeping, dramatic."
+
+- id: film_deceptive_resolve
+  name: "Cinematic false hope"
+  chords: ["Im", "bVI", "bVII", "I"]
+  genre_tags: [film, cinematic, trailer]
+  cadence_type: authentic
+  description: "Minor progression resolving to parallel major I. Dawn-after-darkness effect."
+
+- id: film_chromatic_mediant
+  name: "Chromatic mediant shift"
+  chords: ["I", "bIII", "I", "bVI"]
+  genre_tags: [film, cinematic, fantasy]
+  cadence_type: none
+  description: "Third-related root motion. Otherworldly, fantastical, John Williams-esque."
+
+# ---------------------------------------------------------------------------
+# Reggae / Ska
+# ---------------------------------------------------------------------------
+
+- id: reggae_one_drop
+  name: "Reggae one-drop (I-IV)"
+  chords: ["I", "IV"]
+  genre_tags: [reggae, ska, dub]
+  cadence_type: none
+  description: "Simple tonic-subdominant oscillation with offbeat emphasis."
+
+- id: reggae_i_v_vi_iv
+  name: "Reggae pop (I-V-vi-IV)"
+  chords: ["I", "V", "VIm", "IV"]
+  genre_tags: [reggae, dancehall, pop_reggae]
+  cadence_type: plagal
+  description: "Pop-influenced reggae loop. Bright, accessible, festival-ready."

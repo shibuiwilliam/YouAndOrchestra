@@ -1,0 +1,117 @@
+name: hard_rock
+parent: rock
+description: |
+  Hard rock: heavier, more aggressive variant of rock with
+  heavily distorted guitars, powerful vocals, and driving rhythms.
+  Led Zeppelin, AC/DC, Deep Purple, Guns N' Roses lineage.
+  More gain and intensity than standard rock, but retains
+  blues-influenced melodic sensibility.
+
+typical_tempo_range: [100, 170]
+typical_keys: ["E", "A", "D", "G", "B", "Em", "Am"]
+typical_modes: ["minor", "mixolydian", "dorian", "pentatonic_minor"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["verse_chorus_solo", "verse_chorus_bridge", "riff_based"]
+typical_duration_seconds: [180, 330]
+
+core_instruments:
+  - name: distorted_electric_guitar_rhythm
+    role: harmony
+  - name: distorted_electric_guitar_lead
+    role: melody
+  - name: electric_bass_pick
+    role: bass
+  - name: drums_rock_kit
+    role: rhythm
+optional_instruments:
+  - name: hammond_organ
+    role: harmony
+  - name: piano_acoustic
+    role: harmony
+  - name: acoustic_guitar_steel
+    role: harmony
+forbidden_instruments:
+  - harpsichord
+  - sitar
+  - nylon_guitar
+  - synth_pad_atmospheric
+  - flute
+
+chord_palette_extended:
+  - "5"
+  - major
+  - minor
+  - sus4
+  - "7"
+  - add9
+  - dim
+progression_library_ids:
+  - rock_i_bVII_IV
+  - hard_rock_power_riff
+  - hard_rock_blues_based
+  - rock_power_ballad
+harmonic_rhythm: [0.5, 2.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.25
+seventh_chord_probability: 0.2
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.2
+
+swing_8th: 0.5
+swing_16th: 0.5
+typical_grooves:
+  - rock_straight_8th
+  - rock_half_time
+  - hard_rock_driving
+drum_kit_preference: rock_kit
+drum_pattern_ids:
+  - rock_basic_4_4
+  - rock_half_time
+  - hard_rock_double_kick
+  - rock_shuffle
+syncopation_density: 0.25
+polyrhythm_tolerance: 0.1
+
+melodic_devices:
+  - pentatonic_lead
+  - blues_box
+  - string_bends
+  - hammer_on_pull_off
+  - anthemic_leaps
+phrase_length_beats: [4.0, 8.0]
+typical_scales:
+  - pentatonic_minor
+  - blues
+  - minor_natural
+  - mixolydian
+  - dorian
+call_response_density: 0.2
+melodic_contour_weights:
+  ascending: 0.3
+  descending: 0.2
+  arch: 0.3
+  valley: 0.1
+  flat: 0.1
+leap_probability: 0.4
+blue_note_probability: 0.2
+
+voicing_density_target: 3
+bass_motion_style: root_fifth
+typical_dynamics_range: ["f", "fff"]
+target_spectral_centroid: 0.65
+
+target_lufs: -8.0
+target_peak_db: -0.3
+typical_effects:
+  - high_gain_overdrive
+  - plate_reverb
+  - parallel_compression
+  - bright_eq
+stereo_imaging: wide
+production_profile_id: hard_rock
+
+cliches_to_avoid:
+  - "Power chords only with no melodic guitar lines"
+  - "Constant double-kick without dynamic variation"
+  - "Solo that is all speed and no melodic development"
+  - "No contrast between verse and chorus intensity levels"

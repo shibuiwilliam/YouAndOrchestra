@@ -1,0 +1,26 @@
+form_template:
+  id: "strophic"
+  description: "Folk strophic AAAA form with identical repeated verses"
+  total_bars: 32
+  genre_tags: [folk, singer_songwriter, traditional]
+
+  sections:
+    - name: verse_1
+      bars: 8
+      role: exposition
+      intensity: 0.4
+    - name: verse_2
+      bars: 8
+      role: restatement
+      intensity: 0.5
+    - name: verse_3
+      bars: 8
+      role: restatement
+      intensity: 0.55
+    - name: verse_4
+      bars: 8
+      role: resolution
+      intensity: 0.6
+
+  loopable: true
+  cadence_at_end: authentic

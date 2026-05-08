@@ -1,0 +1,122 @@
+name: lofi_hip_hop
+parent: hip_hop
+description: |
+  Lo-fi hip hop: mellow, sample-driven beats with intentional
+  lo-fi aesthetic. Vinyl crackle, tape saturation, detuned piano,
+  jazzy chord progressions, relaxed swing. Nujabes, J Dilla lineage.
+  Study/chill music that blends jazz harmony with hip-hop grooves.
+
+typical_tempo_range: [70, 95]
+typical_keys: ["Am", "Dm", "Em", "Cm", "Gm", "Fm"]
+typical_modes: ["minor", "dorian", "mixolydian"]
+typical_time_signatures: ["4/4"]
+typical_form_templates: ["hip_hop_loop_8bar", "hip_hop_verse_hook"]
+typical_duration_seconds: [120, 240]
+
+core_instruments:
+  - name: drums_lofi
+    role: rhythm
+  - name: electric_piano_rhodes
+    role: harmony
+  - name: synth_bass_sub
+    role: bass
+optional_instruments:
+  - name: piano_acoustic
+    role: harmony
+  - name: nylon_guitar
+    role: harmony
+  - name: pluck_synth
+    role: melody
+  - name: flute
+    role: melody
+  - name: vinyl_noise
+    role: texture
+  - name: vibraphone
+    role: melody
+forbidden_instruments:
+  - distorted_electric_guitar
+  - drums_rock_kit
+  - synth_lead_saw
+  - trumpet
+
+chord_palette_extended:
+  - min7
+  - maj7
+  - dom7
+  - m9
+  - "9"
+  - "6"
+  - m6
+  - m7b5
+  - add9
+  - "6/9"
+progression_library_ids:
+  - neo_soul_loop
+  - lofi_jazz_loop
+  - lofi_minor_descent
+  - jazz_ii_V_i_minor
+harmonic_rhythm: [0.5, 2.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.25
+seventh_chord_probability: 0.7
+secondary_dominant_probability: 0.15
+modal_interchange_probability: 0.15
+
+swing_8th: 0.55
+swing_16th: 0.58
+typical_grooves:
+  - lofi_boom_bap
+  - lofi_lazy_pocket
+  - hip_hop_lazy_pocket
+drum_kit_preference: lofi_kit
+drum_pattern_ids:
+  - lofi_boom_bap
+  - lofi_swing
+  - lofi_minimal
+syncopation_density: 0.35
+polyrhythm_tolerance: 0.1
+
+melodic_devices:
+  - pentatonic_minor
+  - chromatic_passing
+  - jazz_licks
+  - stepwise_motion
+  - repetition_with_variation
+phrase_length_beats: [4.0, 8.0]
+typical_scales:
+  - pentatonic_minor
+  - dorian
+  - minor_natural
+  - blues
+  - melodic_minor
+call_response_density: 0.15
+melodic_contour_weights:
+  ascending: 0.15
+  descending: 0.25
+  arch: 0.25
+  valley: 0.2
+  flat: 0.15
+leap_probability: 0.15
+blue_note_probability: 0.1
+
+voicing_density_target: 4
+bass_motion_style: pedal
+typical_dynamics_range: ["pp", "mp"]
+target_spectral_centroid: 0.35
+
+target_lufs: -14.0
+target_peak_db: -2.0
+typical_effects:
+  - vinyl_warmth
+  - tape_saturation
+  - lo_pass_filter
+  - room_reverb_small
+  - gentle_compression
+stereo_imaging: moderate
+production_profile_id: lofi_chill
+
+cliches_to_avoid:
+  - "Over-reliance on vinyl crackle as a substitute for musical content"
+  - "Same 4-bar piano loop with zero variation for entire track"
+  - "Drums too quantized, losing the human swing feel"
+  - "Using lo-fi processing to mask poor harmonic choices"

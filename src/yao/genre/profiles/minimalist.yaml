@@ -1,0 +1,112 @@
+name: minimalist
+description: |
+  Minimalist music: repetitive structures with gradual evolution,
+  phasing, additive processes, and rhythmic cells.
+  Steve Reich, Philip Glass, Terry Riley, Arvo Part lineage.
+  Emphasis on process-based composition, limited pitch material,
+  and hypnotic repetition with subtle variation.
+
+typical_tempo_range: [80, 140]
+typical_keys: ["C", "D", "F", "G", "A", "E"]
+typical_modes: ["major", "mixolydian", "dorian", "lydian"]
+typical_time_signatures: ["4/4", "3/4", "5/4", "7/8", "6/8"]
+typical_form_templates: ["through_composed", "arc", "additive_process"]
+typical_duration_seconds: [240, 600]
+
+core_instruments:
+  - name: piano_acoustic
+    role: melody
+  - name: strings_ensemble
+    role: harmony
+optional_instruments:
+  - name: marimba
+    role: melody
+  - name: vibraphone
+    role: melody
+  - name: organ
+    role: harmony
+  - name: flute
+    role: melody
+  - name: clarinet
+    role: melody
+  - name: harp
+    role: harmony
+  - name: synth_pad_warm
+    role: pad
+forbidden_instruments:
+  - distorted_electric_guitar
+  - drums_808
+  - synth_bass_acid
+  - electric_bass_slap
+  - clavinet
+
+chord_palette_extended:
+  - major
+  - minor
+  - sus2
+  - sus4
+  - add9
+  - "5"
+progression_library_ids:
+  - minimalist_diatonic_cycle
+  - minimalist_pedal_tone
+  - minimalist_modal_shift
+harmonic_rhythm: [2.0, 16.0]
+modal_interchange_allowed: true
+chromaticism_level: 0.1
+seventh_chord_probability: 0.15
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.1
+
+swing_8th: 0.5
+swing_16th: 0.5
+typical_grooves:
+  - minimalist_pulse
+  - minimalist_phasing
+drum_kit_preference: none
+drum_pattern_ids: []
+syncopation_density: 0.15
+polyrhythm_tolerance: 0.5
+
+melodic_devices:
+  - phasing
+  - additive_process
+  - rhythmic_displacement
+  - repetition_with_variation
+  - canon
+  - augmentation
+phrase_length_beats: [4.0, 32.0]
+typical_scales:
+  - major
+  - mixolydian
+  - dorian
+  - lydian
+  - pentatonic_major
+call_response_density: 0.3
+melodic_contour_weights:
+  ascending: 0.15
+  descending: 0.15
+  arch: 0.15
+  valley: 0.15
+  flat: 0.4
+leap_probability: 0.15
+blue_note_probability: 0.0
+
+voicing_density_target: 3
+bass_motion_style: pedal
+typical_dynamics_range: ["pp", "mf"]
+target_spectral_centroid: 0.45
+
+target_lufs: -20.0
+target_peak_db: -2.0
+typical_effects:
+  - concert_hall_reverb
+  - gentle_compression
+stereo_imaging: moderate
+production_profile_id: minimalist_acoustic
+
+cliches_to_avoid:
+  - "Repetition without any perceptible evolution or process"
+  - "Too many simultaneous processes obscuring the structural clarity"
+  - "Phasing that never resolves or reaches a satisfying convergence"
+  - "Imitating Glass arpeggios without understanding the additive structure"

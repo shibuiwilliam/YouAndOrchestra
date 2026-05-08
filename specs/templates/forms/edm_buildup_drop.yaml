@@ -1,0 +1,42 @@
+form_template:
+  id: "edm_buildup_drop"
+  description: "EDM intro-build-drop structure with tension-release arc"
+  total_bars: 64
+  genre_tags: [edm, house, trance, dubstep]
+
+  sections:
+    - name: intro
+      bars: 8
+      role: introduction
+      intensity: 0.2
+    - name: buildup_1
+      bars: 8
+      role: tension
+      intensity: 0.5
+    - name: drop_1
+      bars: 8
+      role: climax
+      intensity: 0.95
+    - name: breakdown
+      bars: 8
+      role: contrast
+      intensity: 0.3
+    - name: buildup_2
+      bars: 8
+      role: tension
+      intensity: 0.6
+    - name: drop_2
+      bars: 8
+      role: climax
+      intensity: 1.0
+    - name: breakdown_2
+      bars: 8
+      role: resolution
+      intensity: 0.35
+    - name: outro
+      bars: 8
+      role: resolution
+      intensity: 0.2
+
+  loopable: false
+  cadence_at_end: plagal
