@@ -92,6 +92,23 @@
 | Tonal System IR | ✅ | tests/unit/ir/test_tonal_system.py (23 tests) | CommonPracticeTonality, ModalSystem, MaqamSystem; cultural tuning systems |
 | Tuning IR (microtonal) | ✅ | tests/unit/ir/test_tuning.py (20 tests) | ScaleDefinition (cents-based); Tuning class; 28 scales (9 EDO + 6 Japanese + 5 maqam + 5 raga + 2 gamelan + 1 JI) |
 | Plan IRs (8 modules) | ✅ | tests/unit/ir/plan/ (55 tests) | ArrangementPlan, DrumPlan, HarmonyPlan, MotifPlan, MusicalPlan, PhrasePlan, SongFormPlan, GlobalContext |
+| HarmonicMelodyConstraints IR (v3.0) | ✅ | tests/unit/ir/test_harmonic_melody_constraints.py (30 tests) | CouplingStyle (6), PositionLabel (4), score_pitch() [0.0-1.0]; frozen dataclass |
+
+## Combination & Coupling (Layer 2.5, v3.0)
+
+| Feature | Status | Tests | Notes |
+|---|---|---|---|
+| Harmonic-Melodic Coupling (§4.1) | ✅ | tests/unit/coupling/test_harmonic_melody.py (32 tests), tests/scenarios/test_chord_aware_melody.py (4 tests) | derive_constraints() with 6 style rule sets; LRU-cached; wired into M2 skeleton generator; feature-flag gated (chord_aware_melody=true default) |
+| Voice-Leading Optimizer (§5.4) | ✅ | tests/unit/coupling/test_voice_leading.py (13 tests), tests/scenarios/test_voice_leading_quality.py (4 tests) | optimal_voicing_transition() with constraint filtering; deterministic tie-breaking |
+| Reharmonization Engine (§5.1) | ✅ | tests/unit/coupling/test_reharmonization.py (14 tests), tests/scenarios/test_reharmonization_diversity.py (5 tests) | 12 ReharmonizationOperation types; ReharmonizationConstraints; melody compatibility check; feature-flag gated (reharmonization=false default) |
+| Feature Flags (v3.0) | ✅ | — | FeatureFlags Pydantic model; chord_aware_melody (default true), voice_leading_optimization (default true), reharmonization (default false) |
+
+## Verification — v3.0 Metrics
+
+| Feature | Status | Tests | Notes |
+|---|---|---|---|
+| Melody-Harmony Alignment (§12.9) | ✅ | tests/unit/verify/test_melody_harmony_alignment.py (5 tests) | AlignmentReport (overall + downbeat); target >= 0.7 overall, >= 0.85 downbeat |
+| Voice-Leading Smoothness (§12.10) | ✅ | tests/unit/verify/test_voice_leading_smoothness.py (7 tests) | VoiceLeadingReport (total motion, avg, max leap); target <= 1.5x minimum |
 
 ## Rendering
 
@@ -339,9 +356,9 @@
 
 | Category | Count |
 |---|---|
-| Source files (src/yao/) | 208 |
-| Test files | 213 |
-| Test functions | ~2285 |
+| Source files (src/yao/) | 215 |
+| Test files | 219 |
+| Test functions | ~2400 |
 | Genre Skills (.md) | 29 |
 | Culture/Theory/Other Skills | 14 |
 | Subagent definitions | 9 + protocol |
