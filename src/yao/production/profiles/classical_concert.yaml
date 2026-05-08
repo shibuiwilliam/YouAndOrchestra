@@ -1,0 +1,14 @@
+name: classical_concert
+genre_tags: [classical]
+target_lufs: -23.0
+target_peak_db: -3.0
+stereo_width: 0.6
+tape_saturation: 0.0
+vinyl_simulation: false
+sidechain_enabled: false
+reverb_type: hall
+reverb_amount: 0.6
+master_compressor: null
+master_limiter:
+  threshold_db: -3.0
+  release_ms: 200.0

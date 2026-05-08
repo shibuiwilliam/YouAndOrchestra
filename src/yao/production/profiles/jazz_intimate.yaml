@@ -1,0 +1,18 @@
+name: jazz_intimate
+genre_tags: [jazz, bebop, modal_jazz, bossa_nova]
+target_lufs: -16.0
+target_peak_db: -1.0
+stereo_width: 0.35
+tape_saturation: 0.05
+vinyl_simulation: false
+sidechain_enabled: false
+reverb_type: room
+reverb_amount: 0.3
+master_compressor:
+  threshold_db: -14.0
+  ratio: 1.5
+  attack_ms: 15.0
+  release_ms: 200.0
+master_limiter:
+  threshold_db: -1.0
+  release_ms: 100.0

@@ -55,22 +55,47 @@ SCALE_INTERVALS: dict[str, tuple[int, ...]] = {
 """Scale types mapped to their semitone intervals from the root."""
 
 CHORD_INTERVALS: dict[str, tuple[int, ...]] = {
+    # Triads (4)
     "maj": (0, 4, 7),
     "min": (0, 3, 7),
     "dim": (0, 3, 6),
     "aug": (0, 4, 8),
+    # Suspended (2)
+    "sus2": (0, 2, 7),
+    "sus4": (0, 5, 7),
+    # Seventh chords (7)
     "maj7": (0, 4, 7, 11),
     "min7": (0, 3, 7, 10),
     "dom7": (0, 4, 7, 10),
     "dim7": (0, 3, 6, 9),
     "half_dim7": (0, 3, 6, 10),
-    "sus2": (0, 2, 7),
-    "sus4": (0, 5, 7),
+    "aug7": (0, 4, 8, 10),
+    "min_maj7": (0, 3, 7, 11),
+    "7sus4": (0, 5, 7, 10),
+    # Extended — 9th (4)
     "add9": (0, 4, 7, 14),
+    "dom9": (0, 4, 7, 10, 14),
     "min9": (0, 3, 7, 10, 14),
     "maj9": (0, 4, 7, 11, 14),
+    # Extended — 11th (3)
+    "add11": (0, 4, 7, 17),
+    "min11": (0, 3, 7, 10, 14, 17),
+    "dom11": (0, 4, 7, 10, 14, 17),
+    # Extended — 13th (3)
+    "dom13": (0, 4, 7, 10, 14, 21),
+    "min13": (0, 3, 7, 10, 14, 21),
+    "maj13": (0, 4, 7, 11, 14, 21),
+    # Sixth chords (3)
+    "maj6": (0, 4, 7, 9),
+    "min6": (0, 3, 7, 9),
+    "6_9": (0, 4, 7, 9, 14),
+    # Altered dominants — jazz (3)
+    "7alt": (0, 4, 8, 10),
+    "7b9": (0, 4, 7, 10, 13),
+    "7sharp9": (0, 4, 7, 10, 15),
 }
-"""Chord types mapped to their semitone intervals from the root."""
+"""Chord types mapped to their semitone intervals from the root.
+Total: 30 chord types covering triads, 7ths, extended, 6ths, and altered."""
 
 SECTION_TYPES: list[str] = [
     "intro",

@@ -1,0 +1,18 @@
+name: modern_pop
+genre_tags: [pop]
+target_lufs: -10.0
+target_peak_db: -0.5
+stereo_width: 0.7
+tape_saturation: 0.05
+vinyl_simulation: false
+sidechain_enabled: false
+reverb_type: plate
+reverb_amount: 0.3
+master_compressor:
+  threshold_db: -8.0
+  ratio: 3.0
+  attack_ms: 5.0
+  release_ms: 80.0
+master_limiter:
+  threshold_db: -0.5
+  release_ms: 30.0

@@ -1,0 +1,28 @@
+# Rock shuffle pattern
+# Shuffled kick and snare backbeat, ride with swing feel
+id: rock_shuffle
+genre: rock
+time_signature: "4/4"
+bars_per_pattern: 1
+swing: 0.6
+humanize_ms: 5
+
+hits:
+  # Beat 1
+  - { time_beats: 0.0, kit_piece: kick, velocity: 110, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: ride, velocity: 90, duration_beats: 0.25 }
+  - { time_beats: 0.5, kit_piece: ride, velocity: 70, duration_beats: 0.25 }
+  # Beat 2
+  - { time_beats: 1.0, kit_piece: snare, velocity: 115, duration_beats: 0.25 }
+  - { time_beats: 1.0, kit_piece: ride, velocity: 90, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: ride, velocity: 70, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: kick, velocity: 90, duration_beats: 0.25 }
+  # Beat 3
+  - { time_beats: 2.0, kit_piece: kick, velocity: 105, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: ride, velocity: 90, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: ride, velocity: 70, duration_beats: 0.25 }
+  # Beat 4
+  - { time_beats: 3.0, kit_piece: snare, velocity: 115, duration_beats: 0.25 }
+  - { time_beats: 3.0, kit_piece: ride, velocity: 90, duration_beats: 0.25 }
+  - { time_beats: 3.5, kit_piece: ride, velocity: 70, duration_beats: 0.25 }
+  - { time_beats: 3.5, kit_piece: kick, velocity: 85, duration_beats: 0.25 }

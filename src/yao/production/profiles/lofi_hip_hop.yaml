@@ -1,0 +1,20 @@
+name: lofi_hip_hop
+genre_tags: [lofi_hip_hop, hip_hop]
+target_lufs: -16.0
+target_peak_db: -1.0
+stereo_width: 0.4
+tape_saturation: 0.3
+vinyl_simulation: true
+sidechain_enabled: false
+reverb_type: room
+reverb_amount: 0.3
+bit_crush: 0.1
+lo_pass_hz: 8000
+master_compressor:
+  threshold_db: -12.0
+  ratio: 2.0
+  attack_ms: 20.0
+  release_ms: 150.0
+master_limiter:
+  threshold_db: -1.0
+  release_ms: 80.0

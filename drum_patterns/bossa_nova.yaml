@@ -1,0 +1,44 @@
+# Bossa nova pattern
+# Cross-stick on rim, bass drum pattern with syncopation, closed hat steady
+# Based on traditional bossa nova drum adaptation
+id: bossa_nova
+genre: bossa_nova
+time_signature: "4/4"
+bars_per_pattern: 2
+swing: 0.0
+humanize_ms: 5
+
+hits:
+  # Bar 1 - Beat 1
+  - { time_beats: 0.0, kit_piece: kick, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 0.5, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }
+  # Bar 1 - Beat 2
+  - { time_beats: 1.0, kit_piece: rim, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 1.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 1.5, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }
+  # Bar 1 - Beat 3
+  - { time_beats: 2.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: kick, velocity: 75, duration_beats: 0.25 }
+  - { time_beats: 2.5, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }
+  # Bar 1 - Beat 4
+  - { time_beats: 3.0, kit_piece: rim, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 3.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 3.5, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }
+  # Bar 2 - Beat 1
+  - { time_beats: 4.0, kit_piece: kick, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 4.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 4.5, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }
+  # Bar 2 - Beat 2
+  - { time_beats: 5.0, kit_piece: rim, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 5.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 5.5, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }
+  # Bar 2 - Beat 3
+  - { time_beats: 6.0, kit_piece: kick, velocity: 75, duration_beats: 0.25 }
+  - { time_beats: 6.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 6.5, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }
+  # Bar 2 - Beat 4
+  - { time_beats: 7.0, kit_piece: rim, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 7.0, kit_piece: closed_hat, velocity: 65, duration_beats: 0.25 }
+  - { time_beats: 7.5, kit_piece: kick, velocity: 70, duration_beats: 0.25 }
+  - { time_beats: 7.5, kit_piece: closed_hat, velocity: 50, duration_beats: 0.25 }

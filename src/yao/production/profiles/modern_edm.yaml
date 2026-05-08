@@ -1,0 +1,19 @@
+name: modern_edm
+genre_tags: [house, drum_and_bass, synthwave]
+target_lufs: -8.0
+target_peak_db: -0.3
+stereo_width: 0.8
+tape_saturation: 0.0
+vinyl_simulation: false
+sidechain_enabled: true
+sidechain_source: kick
+reverb_type: plate
+reverb_amount: 0.15
+master_compressor:
+  threshold_db: -6.0
+  ratio: 4.0
+  attack_ms: 2.0
+  release_ms: 40.0
+master_limiter:
+  threshold_db: -0.3
+  release_ms: 20.0

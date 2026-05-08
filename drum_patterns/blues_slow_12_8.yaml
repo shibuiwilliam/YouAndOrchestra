@@ -1,0 +1,29 @@
+# Slow 12/8 blues pattern
+# Triplet-based compound feel, kick on 1 and 4, snare on 4, ride triplets
+id: blues_slow_12_8
+genre: blues
+time_signature: "12/8"
+bars_per_pattern: 1
+swing: 0.0
+humanize_ms: 7
+
+hits:
+  # Group 1 (beat 1 - strong)
+  - { time_beats: 0.0, kit_piece: kick, velocity: 100, duration_beats: 0.25 }
+  - { time_beats: 0.0, kit_piece: ride, velocity: 85, duration_beats: 0.25 }
+  - { time_beats: 0.333, kit_piece: ride, velocity: 55, duration_beats: 0.25 }
+  - { time_beats: 0.667, kit_piece: ride, velocity: 60, duration_beats: 0.25 }
+  # Group 2 (beat 2)
+  - { time_beats: 1.0, kit_piece: ride, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 1.333, kit_piece: ride, velocity: 55, duration_beats: 0.25 }
+  - { time_beats: 1.667, kit_piece: ride, velocity: 60, duration_beats: 0.25 }
+  # Group 3 (beat 3)
+  - { time_beats: 2.0, kit_piece: kick, velocity: 90, duration_beats: 0.25 }
+  - { time_beats: 2.0, kit_piece: ride, velocity: 85, duration_beats: 0.25 }
+  - { time_beats: 2.333, kit_piece: ride, velocity: 55, duration_beats: 0.25 }
+  - { time_beats: 2.667, kit_piece: ride, velocity: 60, duration_beats: 0.25 }
+  # Group 4 (beat 4 - snare accent)
+  - { time_beats: 3.0, kit_piece: snare, velocity: 95, duration_beats: 0.25 }
+  - { time_beats: 3.0, kit_piece: ride, velocity: 80, duration_beats: 0.25 }
+  - { time_beats: 3.333, kit_piece: ride, velocity: 55, duration_beats: 0.25 }
+  - { time_beats: 3.667, kit_piece: ride, velocity: 60, duration_beats: 0.25 }

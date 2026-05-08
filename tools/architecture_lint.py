@@ -38,6 +38,7 @@ LAYER_MAP: dict[str, int] = {
     "generators": 2,
     "sound_design": 3,  # Layer 3.5: patches, effects, synthesis config
     "perception": 4,
+    "production": 5,  # Production profiles (Layer 5 adjunct)
     "arrange": 5,  # arrangement engine uses ir, render, schema
     "mix": 5,
     "render": 5,
