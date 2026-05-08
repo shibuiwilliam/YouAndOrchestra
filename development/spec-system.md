@@ -194,6 +194,8 @@ Features:
 | `conversation.yaml` | `ConversationSpec` | Inter-instrument dialogue and voice focus |
 | `arrangement.yaml` | `ArrangementSpec` | Style transfer with preservation contracts |
 | `pins.yaml` | `PinsSpec` | Localized user feedback (auto-generated via CLI) |
+| `harmonic-devices.yaml` | `HarmonicDevicesSpec` | Harmonic device selection and reharmonization config (v3.0) |
+| `modulation-plan.yaml` | `ModulationPlanSpec` | Key modulation specifications (v3.0) |
 
 ### `trajectory.yaml` (optional)
 
@@ -287,6 +289,34 @@ All specs are validated via Pydantic at load time:
 - `TrajectorySpec.from_yaml(path)` -- validates waypoint values in [0, 1]
 - Validation failures raise `SpecValidationError` with field name and actionable message
 - v1/v2/v3 format is auto-detected by `load_composition_spec_auto()`
+
+### Feature Flags (v3.0)
+
+Specs can include a `features:` block to control Combination Stack modules:
+
+```yaml
+features:
+  chord_aware_melody: true          # Default ON — melody constrained by active chord
+  voice_leading_optimization: true  # Default ON — Hungarian-optimal voicings
+  reharmonization: false            # Default OFF — opt-in reharmonization
+  modulation_planner: false         # Default OFF — key modulation planning
+  listening_agents: false           # Default OFF — turn-based generation
+  genre_blend: false                # Default OFF — n-way genre blending
+  rhythm_markov: false              # Default OFF — Markov rhythm models
+  polyrhythm: false                 # Default OFF — polyrhythmic textures
+  theme_recurrence: false           # Default OFF — long-form thematic returns
+```
+
+### Genre Blend (v3.0)
+
+Instead of a single genre, specs can blend multiple genres:
+
+```yaml
+genre_blend:
+  - {profile: bossa_nova, weight: 0.6}
+  - {profile: drum_n_bass, weight: 0.3}
+  - {profile: cinematic, weight: 0.1}
+```
 
 CLI validation: `yao validate specs/projects/my-song/composition.yaml`
 

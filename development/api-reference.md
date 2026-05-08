@@ -503,3 +503,63 @@ YaOError (base)
 +-- AgentOutputParseError
 +-- IncompleteGenreProfileError
 ```
+
+## Combination Stack Types (v3.0)
+
+### `HarmonicMelodyConstraints` (`yao.ir.harmonic_melody_constraints`)
+```python
+@dataclass(frozen=True)
+class HarmonicMelodyConstraints:
+    chord_tones: tuple[MidiNote, ...]
+    available_extensions: tuple[MidiNote, ...]
+    avoid_notes: tuple[MidiNote, ...]
+    target_resolutions: dict[MidiNote, MidiNote]
+    style: CouplingStyle
+
+    def score_pitch(self, pitch: MidiNote, position: PositionLabel) -> float:
+        """0.0 = serious clash; 1.0 = excellent fit."""
+
+class CouplingStyle(StrEnum):
+    COMMON_PRACTICE = "common_practice"
+    JAZZ = "jazz"
+    BLUES = "blues"
+    MODAL = "modal"
+    RAGA = "raga"
+    MAQAM = "maqam"
+```
+
+### `FeatureFlags` (`yao.schema.features`)
+```python
+class FeatureFlags(BaseModel):
+    chord_aware_melody: bool = True
+    voice_leading_optimization: bool = True
+    reharmonization: bool = False
+    modulation_planner: bool = False
+    listening_agents: bool = False
+    genre_blend: bool = False
+    rhythm_markov: bool = False
+    polyrhythm: bool = False
+    theme_recurrence: bool = False
+```
+
+### Coupling Module API (`yao.coupling`)
+```python
+# Harmonic-Melody Coupling
+derive_constraints(chord, key, scale_type, style) -> HarmonicMelodyConstraints
+
+# Voice-Leading Optimizer
+optimal_voicing_transition(prev_voicing, next_chord, voice_count, constraints) -> list[MidiNote]
+
+# Reharmonization Engine
+reharmonize(progression, operations, intensity, style, constraints, rng) -> ChordProgression
+```
+
+### Verification Metrics (v3.0)
+
+```python
+# yao.verify.melody_harmony_alignment
+melody_harmony_alignment(score: ScoreIR) -> float  # Target: ≥ 0.7
+
+# yao.verify.voice_leading_smoothness
+voice_leading_smoothness(score: ScoreIR) -> float  # Target: ≤ 1.5× minimum
+```

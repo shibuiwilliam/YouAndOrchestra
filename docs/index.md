@@ -8,7 +8,8 @@
 
 - **Multi-turn sketches** — describe a piece in plain language (English or Japanese), refine through dialogue
 - **Full composition pipeline** — 9-step plan-based generation from intent to rendered audio
-- **Genre-aware** — 29 genre skills shape every decision from chord palette to groove feel
+- **Combination Stack (v3.0)** — Layer 2.5 coupling modules: chord-aware melody, voice-leading optimization, reharmonization, genre blending, and more
+- **Genre-aware** — 29+ genre skills shape every decision from chord palette to groove feel
 - **Adversarial critique** — 35 rules catch structural, harmonic, melodic, and rhythmic issues
 - **Pin-based feedback** — point at a specific bar and say what's wrong in natural language
 - **Multiple output formats** — MIDI, WAV, MusicXML, LilyPond/PDF, Reaper RPP, Strudel
@@ -21,6 +22,7 @@
 CompositionSpec
     → PlanOrchestrator (9 steps)
         → MusicalPlan (form + harmony + motif + phrase + drums + arrangement + hooks + conversation)
+    → Combination Stack / Layer 2.5 (chord-aware melody, voice leading, reharmonization...)
     → Critic Gate (35 rules)
     → NoteRealizer (rule-based or stochastic)
     → GrooveApplicator (20 profiles)
@@ -28,7 +30,7 @@ CompositionSpec
     → Renderer (MIDI / WAV / MusicXML / LilyPond / Reaper / Strudel)
 ```
 
-**7 Subagents**: Producer, Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic
+**8 Subagents**: Producer, Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Modulation Planner
 
 **8 Generation Strategies**: rule_based, stochastic, markov, twelve_tone, process_music, constraint_solver, loop_evolution, ai_seed
 
@@ -46,10 +48,12 @@ CompositionSpec
 | Drum Patterns | 15 (including non-4/4: waltz, 6/8, 5/4, 7/8) |
 | Groove Profiles | 20 (jazz swing, bossa nova, afrobeat, samba, drum & bass...) |
 | Critique Rules | 35 across 8 categories |
-| Genre Skills | 29 covering classical, electronic, world, functional music |
+| Genre Skills | 29+ covering classical, electronic, world, functional music |
+| Harmonic Devices | 15 YAML-defined (jazz turnarounds, blues patterns, Coltrane changes...) |
 | Tonal Systems | 10 kinds (major/minor, modal, blues, pentatonic, atonal, drone, raga, maqam, microtonal, custom) |
 | Trajectory Dims | 5 (tension, density, register_height, variation, instrumentation) |
-| Evaluation | 6-dimension scoring + 7 use-case evaluators + aesthetic metrics |
+| Evaluation | 6-dimension scoring + melody-harmony alignment + voice-leading smoothness + 7 use-case evaluators |
+| Coupling (v3.0) | 13 modules: chord-aware melody, voice leading, reharmonization, genre blending, and more |
 | Perception | Audio features, surprise scoring, mood classification, reference matching |
 
 ---
@@ -91,6 +95,9 @@ yao pin "verse:bar4:piano — too busy, simplify the left hand"
 3. **Constraints liberate** — specs and rules are scaffolds, not cages
 4. **Time-axis first** — design trajectory curves before notes
 5. **Human ear is truth** — automated scores inform, humans decide
+6. **Phrase before notes** — phrases have function, target pitch, cadence
+7. **Genre is a constellation** — `MelodicProfile`, not a label
+8. **Diversity through combination** — the Combination Stack turns rich material into genuinely diverse output
 
 ---
 

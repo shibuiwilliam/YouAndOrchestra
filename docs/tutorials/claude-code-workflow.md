@@ -177,7 +177,7 @@ Claude: [Regenerates only loop_a with new seed, preserves everything else]
 
 ---
 
-## The Orchestra: 7 Subagents
+## The Orchestra: 8 Subagents
 
 Behind the scenes, Claude Code can invoke specialized subagents:
 
@@ -190,6 +190,7 @@ Behind the scenes, Claude Code can invoke specialized subagents:
 | **Orchestrator** | Assigns instruments, voicings, frequency spacing |
 | **Mix Engineer** | Manages stereo placement, dynamics, frequency balance |
 | **Adversarial Critic** | Finds weaknesses — never praises |
+| **Modulation Planner** *(v3.0)* | Plans key modulations per trajectory and genre preferences |
 
 ---
 
@@ -201,8 +202,8 @@ YaO includes 44 domain knowledge skills that Claude Code can draw on:
 |---|---|
 | Genres (29) | cinematic, jazz_swing, jazz_ballad, rock_classic, pop, pop_western, pop_japan, electronic (edm_house, synthwave), ambient, deep_house, lo_fi_hiphop, funk, blues, hiphop, baroque, romantic, orchestral_classical, neoclassical, acoustic_folk, game_8bit_chiptune, game_bgm_rpg, film_score_dramatic, bossa_nova, celtic_traditional, arab_maqam, indian_classical_hindustani, j_pop |
 | Cultures (3) | Japanese, Middle Eastern, Indian Classical |
-| Theory (4) | Voice leading, Microtonal, Process music, Twelve-tone |
-| Instruments (1) | Piano |
+| Theory (6) | Voice leading, Microtonal, Process music, Twelve-tone, Reharmonization *(v3.0)*, Modulation *(v3.0)* |
+| Instruments (2) | Piano, Idiomatic gestures *(v3.0)* |
 | Psychology (2) | Tension-resolution, Emotion mapping |
 | Articulation (4) | Jazz microtiming, Piano pedaling, Strings articulation, Winds articulation |
 
@@ -219,9 +220,9 @@ outputs/projects/<name>/iterations/v001/
 |   +-- piano.mid
 |   +-- acoustic_bass.mid
 +-- analysis.json      # Note counts, pitch range, lint results
-+-- evaluation.json    # Quality scores (6 dimensions: structure, melody, harmony, aesthetic, arrangement, acoustics)
++-- evaluation.json    # Quality scores (6+ dimensions: structure, melody, harmony, aesthetic, arrangement, acoustics, melody-harmony alignment, voice-leading smoothness)
 +-- perceptual.json    # Acoustic analysis (LUFS, spectral features, onset density)
-+-- provenance.json    # Why every decision was made
++-- provenance.json    # Why every decision was made (with caused_by causal edges)
 +-- critique.md        # Adversarial critique (if /critique was run)
 +-- audio.wav          # Rendered audio (if --render-audio or /render was used)
 ```

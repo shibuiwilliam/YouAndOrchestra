@@ -223,3 +223,53 @@ Available in the stochastic generator via `MelodicGenerationStrategy`:
 - scalar_runs, call_response, pedal_tone, hocketing
 
 Each strategy produces distinct melodic character, verified by tests.
+
+## Combination Stack Modules (v3.0, Layer 2.5)
+
+The Combination Stack (`src/yao/coupling/`) sits between generators and IR. These modules **transform, couple, blend, or optimize** already-generated material — they never generate raw notes from scratch.
+
+### Module Pattern
+
+Every coupling module follows this shape:
+
+```python
+# src/yao/coupling/<module>.py
+
+def couple(
+    input_ir: SomeIR,
+    profile: MelodicProfile,
+    config: CouplingConfig,
+    provenance: ProvenanceLog,
+) -> SomeIR:
+    """Transform input IR. Never mutates inputs; returns new IR with provenance."""
+    if not _is_enabled(config):
+        return input_ir  # feature flag off → identity
+    transformed = _apply(input_ir, profile, config)
+    provenance.record(layer="coupling", decision="<module>_apply", ...)
+    return transformed
+```
+
+### Key Coupling Modules
+
+| Module | File | Purpose |
+|---|---|---|
+| Harmonic-Melody Coupling | `harmonic_melody.py` | `derive_constraints()` — per-chord pitch scoring for M2 |
+| Voice-Leading Optimizer | `voice_leading.py` | `optimal_voicing_transition()` — Hungarian assignment |
+| Reharmonization | `reharmonization.py` | 12 operations + melody compatibility checks |
+| Modulation | `modulation.py` | 7 modulation strategies |
+| Genre Vector | `genre_vector.py` | N-way genre blending |
+| Rhythm Markov | `rhythm_markov.py` | Genre-conditioned rhythm generation |
+| Polyrhythm | `polyrhythm.py` | Multi-layer polyrhythmic textures |
+| Theme Recurrence | `theme_recurrence.py` | Long-form thematic return planning |
+| Phrase Shape | `phrase_shape.py` | Intra-section phrase structures |
+| Listening Dialog | `listening_dialog.py` | Turn-based inter-instrument generation |
+| Idiomatic Gestures | `idiomatic_gestures.py` | Per-instrument body-language patterns |
+| Harmonic Devices | `harmonic_devices.py` | Genre-typical harmonic gestures |
+
+### Rules for Coupling Modules
+
+1. **Never mutate inputs** — always return new IR objects
+2. **Feature-flagged** — check `composition.features.<flag>`, return input unchanged when disabled
+3. **Full provenance** — every decision recorded with `caused_by` linking to input decisions
+4. **Layer 2.5 imports** — may import from Layers 0, 1, 2, and other coupling modules only
+5. **No raw note generation** — coupling transforms or constrains, not generates

@@ -16,8 +16,9 @@ Technical documentation for contributors and AI agents developing YaO.
 
 ## See Also
 
-- [PROJECT.md](../PROJECT.md) -- Full project design (v2.0)
+- [PROJECT.md](../PROJECT.md) -- Full project design (v3.0)
 - [CLAUDE.md](../CLAUDE.md) -- Development rules and conventions
+- [IMPROVEMENT.md](../IMPROVEMENT.md) -- Gap analysis and v3.0 roadmap
 - [VISION.md](../VISION.md) -- Target architecture
 - [FEATURE_STATUS.md](../FEATURE_STATUS.md) -- Capability matrix (single source of truth)
 - [.claude/guides/](../.claude/guides/) -- Focused guides (architecture, coding, music engineering, testing, workflow)
@@ -25,15 +26,16 @@ Technical documentation for contributors and AI agents developing YaO.
 ## Current State
 
 - **Version:** 0.1.0
-- **Phase:** v2.0 -- All major phases complete (gamma + delta + v3.0 Waves 1-3)
+- **Phase:** v3.0 -- Phase 3.5 (Diversity Foundation) active. Combination Stack (Layer 2.5) in development: chord-aware melody, voice-leading optimizer, reharmonization engine.
 - **Python:** 3.11+
-- **Source modules:** 241 Python modules in `src/yao/`
-- **Test files:** 259 test files, ~2,157 tests passing
-- **Test categories:** unit, integration, scenario, constraint, golden, acoustic regression, properties, genre coverage, subjective, tools
+- **Source modules:** 277 Python modules in `src/yao/`
+- **Test files:** 299 test files, ~2,701 tests passing
+- **Test categories:** unit (including `unit/coupling/`), integration, scenario, constraint, golden, acoustic regression, properties, genre coverage, subjective, tools
 
 ### Generation
 
 - **V2 Pipeline:** Spec -> PlanOrchestrator (9 steps) -> MusicalPlan -> Critic Gate -> NoteRealizer V2 -> Performance -> Renderer
+- **Combination Stack (Layer 2.5):** 13 coupling modules (`src/yao/coupling/`) — harmonic-melody coupling, voice leading, reharmonization, modulation, genre vector, rhythm Markov, polyrhythm, theme recurrence, phrase shape, listening dialog, idiomatic gestures, harmonic devices
 - **Note Realizers:** 4 registered -- 2 V2 (rule_based_v2, stochastic_v2 with 100% plan consumption) + 2 legacy (deprecated)
 - **Additional generators:** markov, twelve_tone, process_music, constraint_solver
 - **Melodic strategies:** 8 distinct approaches (contour, motif development, linear voice, arpeggiated, scalar runs, call-response, pedal tone, hocketing)
@@ -55,14 +57,16 @@ Technical documentation for contributors and AI agents developing YaO.
 - **Drum patterns:** 15 across time signatures (4/4, 3/4, 5/4, 6/8, 7/8)
 - **Groove profiles:** 20 (jazz swing, bossa nova, funk, afrobeat, samba, etc.)
 - **Chord types:** 14 with functional harmony
+- **Harmonic devices:** 15 YAML-defined devices (jazz turnarounds, blues 12-bar, Coltrane changes, etc.)
+- **Markov models:** pitch, rhythm, and contour subdirectories with genre-specific models
 
 ### Infrastructure
 
 - **Spec formats:** v1 (flat YAML) + v2 (11-section) + v3 (composability with extends/overrides/fragments)
 - **Backends:** PythonOnlyBackend (CI default) + AnthropicAPIBackend (real LLM, structured output via tool use)
-- **Genre Skills:** 22 genres integrated into HarmonyPlanner + SpecCompiler + genre_fitness critique
-- **Subagents:** 7 roles (Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Producer)
-- **Slash commands:** 10 (compose, conduct, sketch, critique, regenerate-section, render, explain, arrange, pin, feedback)
+- **Genre Skills:** 29+ genres integrated into HarmonyPlanner + SpecCompiler + genre_fitness critique
+- **Subagents:** 8 roles (Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Producer, Modulation Planner)
+- **Slash commands:** 13 (compose, conduct, sketch, critique, regenerate-section, render, explain, arrange, pin, feedback, reharmonize, blend-genres, modulate)
 - **StyleVector:** 6 copyright-safe features (histograms + statistics, never sequences)
 - **Sketch:** 6-turn interactive dialogue with state persistence (English + Japanese)
 - **Arrangement:** Source plan extraction, style vector transfer, preservation contracts, diff reports

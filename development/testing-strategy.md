@@ -4,38 +4,46 @@
 
 | Category | Location | Purpose | Approx Count |
 |----------|----------|---------|------|
-| Unit | `tests/unit/` | Individual module behavior across all layers | ~1,500 |
+| Unit | `tests/unit/` | Individual module behavior across all layers | ~1,800 |
+| Unit (Coupling) | `tests/unit/coupling/` | Combination Stack module tests (v3.0) — harmonic_melody, voice_leading, reharmonization, modulation, genre_vector, rhythm_markov, polyrhythm, theme_recurrence, phrase_shape, listening_dialog, harmonic_devices, markov_models_load | ~120 |
 | Integration | `tests/integration/` | Full pipeline, spec compiler (EN+JP), motif recurrence, skill grounding | ~40 |
 | Music Constraints | `tests/music_constraints/` | Music theory rule enforcement | ~16 |
-| Scenarios | `tests/scenarios/` | Prove musical value (trajectory compliance, surprise distribution, diversity, hook deployment, pin localization, groove changes feel, NL feedback) | ~30 |
+| Scenarios | `tests/scenarios/` | Prove musical value — includes v3.0 diversity scenarios (chord-aware melody, voice-leading quality, reharmonization diversity) | ~45 |
 | Golden | `tests/golden/` | Fixed output regression (V1 + V2 baselines) | 6 |
 | Audio Regression | `tests/audio_regression/` | Acoustic feature stability (weekly CI) | ~8 |
-| Genre Coverage | `tests/genre_coverage/` | Per-genre schema validation, profile loading, all 22 genres | ~111 |
+| Genre Coverage | `tests/genre_coverage/` | Per-genre schema validation, profile loading, all 29+ genres | ~130 |
 | Properties | `tests/properties/` | Property-based genre invariants across strategies and seeds | ~20 |
 | Subjective | `tests/subjective/` | Human rating threshold validation | ~5 |
 | LLM Quality | `tests/llm_quality/` | NL generation quality tests | ~5 |
 | Tonal Systems | `tests/tonal_systems/` | Tonal system IR tests | ~5 |
 | Tools | `tests/tools/` | CI audit tool tests | ~15 |
-| **Total** | | | **~2,157** |
+| **Total** | | | **~2,701** |
 
 ## Running Tests
 
 ```bash
 make all-checks        # Full pipeline: lint + arch-lint + tests + golden + honesty
-make test              # All ~2,157 tests
+make test              # All ~2,701 tests
 make test-unit         # Unit tests only
 make test-integration  # Integration tests
+make test-melody       # Phrase-first melody pipeline tests
+make test-coupling     # Combination Stack (Layer 2.5) tests (v3.0)
+make test-genres       # Genre-specific scenario tests
 make test-golden       # Golden MIDI regression tests
+make test-diversity    # Same-spec/different-seed diversity scenarios (v3.0)
 make test-acoustic     # Audio feature regression (weekly CI)
-make test-genre-coverage  # Per-genre validation (22 genres)
+make test-genre-coverage  # Per-genre validation (29+ genres)
 make test-subjective   # Human rating tests (skipped in CI)
 make lint              # ruff + mypy strict
-make arch-lint         # Layer boundary enforcement
+make arch-lint         # Layer boundary enforcement (now covers Layer 2.5)
 make meter-lint        # Non-4/4 meter support validation
 make honesty-check     # Verify no stub features marked as complete
 make feature-status    # Verify FEATURE_STATUS.md alignment
 make sync-docs         # Check doc sync
 make calibrate-genres  # Genre profile parameter sweep
+make markov-validate   # Validate all Markov YAML models (v3.0)
+make device-validate   # Validate harmonic-device YAMLs (v3.0)
+make profile-perf      # Verify generation stays within performance budget
 pytest tests/unit/test_foo.py::test_bar -v   # One specific test
 ```
 
@@ -70,6 +78,9 @@ assert_trajectory_match(score, trajectory, dimension="tension", tolerance=0.1)
 | Conversation/groove | Plan-level check + note-level effect |
 | Pin/feedback | Scope localization (affected region changes, surrounding preserved) |
 | New genre skill | Genre coverage tests + calibrate-genres pass |
+| Coupling module (v3.0) | Unit tests in `tests/unit/coupling/`, diversity scenario test, feature-flag gating verified |
+| New Markov model | Load test, transition distribution sum check, `make markov-validate` |
+| New harmonic device | Schema validation via `make device-validate` |
 | New drum pattern | Meter-aware validation + fills |
 
 ## Golden Test Protocol
@@ -104,6 +115,9 @@ Scenario tests prove musical value, not just mechanical correctness:
 - **Trajectory compliance** -- When trajectory changes, output changes measurably
 - **Different seeds produce variation** -- Same spec, different seed produces different melody
 - **Groove changes feel** -- Applying groove profile measurably shifts microtiming and velocity
+- **Chord-aware melody increases alignment** (v3.0) -- Same spec with/without `chord_aware_melody` flag shows ≥ 0.15 alignment improvement
+- **Voice-leading optimization reduces motion** (v3.0) -- With optimization, total motion ≤ 70% of without
+- **Reharmonization increases complexity** (v3.0) -- Same spec at intensity 0.0 vs 0.3 vs 0.6 shows monotonic harmonic complexity growth
 
 ## Honesty Tools
 

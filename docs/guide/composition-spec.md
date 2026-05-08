@@ -180,3 +180,55 @@ yao validate my-spec.yaml
 ```
 
 All formats are validated at load time via Pydantic. Invalid specs produce clear error messages.
+
+## Feature Flags (v3.0)
+
+Control Combination Stack modules via a `features:` block in any spec format:
+
+```yaml
+features:
+  chord_aware_melody: true          # Default ON — melody constrained by active chord
+  voice_leading_optimization: true  # Default ON — Hungarian-optimal voicings
+  reharmonization: false            # Default OFF — opt-in reharmonization
+  modulation_planner: false         # Default OFF — key modulation planning
+  listening_agents: false           # Default OFF — turn-based generation
+  genre_blend: false                # Default OFF — n-way genre blending
+  rhythm_markov: false              # Default OFF — Markov rhythm models
+  polyrhythm: false                 # Default OFF — polyrhythmic textures
+  theme_recurrence: false           # Default OFF — long-form thematic returns
+```
+
+When a flag is `false`, the corresponding coupling module returns input unchanged (identity function).
+
+## Genre Blending (v3.0)
+
+Instead of a single genre, blend multiple genres with weighted profiles:
+
+```yaml
+genre_blend:
+  - {profile: bossa_nova, weight: 0.6}
+  - {profile: drum_n_bass, weight: 0.3}
+  - {profile: cinematic, weight: 0.1}
+```
+
+The result is a single synthesized `MelodicProfile`. Discrete fields use weighted random selection; numeric fields interpolate linearly.
+
+## Harmonic Devices (v3.0)
+
+Specify genre-typical harmonic patterns via `harmonic-devices.yaml`:
+
+```yaml
+devices:
+  - {name: jazz_turnaround_I_VI_II_V, placement: section_end, sections: [verse, chorus]}
+  - {name: coltrane_changes, placement: bridge, sections: [bridge]}
+
+reharmonization:
+  intensity: 0.4
+  preserve_melody: true
+  operations:
+    - secondary_dominant
+    - tritone_substitution
+    - ii_V_insertion
+```
+
+15 harmonic device YAMLs are available in `src/yao/constants/harmonic_devices/`.

@@ -107,3 +107,35 @@ Terms used throughout the YaO codebase and documentation.
 **UserStyleProfile** — Aggregated preferences from subjective ratings, stored as preferred ranges and confidence per dimension (memorability, emotional fit, technical quality, genre fitness, overall). Built via `yao reflect ingest`.
 
 **Voicing** — The specific pitch arrangement of a chord (which octave, which inversion, which doubling). Distinct from "orchestration" (instrument assignment).
+
+---
+
+## v3.0 Terms (Combination Stack)
+
+**Combination Stack** — Layer 2.5 modules that combine, couple, blend, and dialogue across the existing material library. Never replaces existing generators; always additive and feature-flagged. See `src/yao/coupling/`.
+
+**Coupling Style** — How strictly melody-harmony coupling is enforced. One of: `COMMON_PRACTICE`, `JAZZ`, `BLUES`, `MODAL`, `RAGA`, `MAQAM`. See `CouplingStyle` in `yao.ir.harmonic_melody_constraints`.
+
+**Feature Flags** — Boolean flags in `composition.features` that gate Combination Stack modules. Default-ON: `chord_aware_melody`, `voice_leading_optimization`. Default-OFF: `reharmonization`, `listening_agents`, etc. See `yao.schema.features.FeatureFlags`.
+
+**Genre Vector** — Multi-dimensional embedding of a genre profile, enabling n-way blending and neighbor queries. See `yao.coupling.genre_vector`.
+
+**Harmonic Device** — A genre-typical harmonic gesture (jazz turnaround, gospel walk-up, Coltrane changes, etc.). 15 defined in `src/yao/constants/harmonic_devices/`.
+
+**Harmonic Melody Constraints** — Per-position chord-derived rules for melody pitch selection. `score_pitch()` returns 0.0 (clash) to 1.0 (excellent fit). See `yao.ir.harmonic_melody_constraints`.
+
+**Idiomatic Gesture** — An instrument-specific body-language pattern (violin trill, sax altissimo, sitar meend, etc.). See `yao.coupling.idiomatic_gestures`.
+
+**Listening Agent** — A generator that produces notes based on what other instruments have already played. Gated by `features.listening_agents`. See `yao.coupling.listening_dialog`.
+
+**Melody-Harmony Alignment** — Average chord-conditioned pitch score across a piece. Target: ≥ 0.7, ≥ 0.85 on downbeats. See `yao.verify.melody_harmony_alignment`.
+
+**Modulation Planner** — Subagent that plans key modulations using 7 strategies (pivot chord, direct, chromatic, sequential, enharmonic, common tone, third relation).
+
+**Polyrhythm Texture** — Multiple rhythmic cycles at different ratios (3:4, 4:5, hemiola, etc.). See `yao.coupling.polyrhythm`.
+
+**Reharmonization** — Replacing chords with substitutes (12 operations: secondary dominant, tritone sub, modal interchange, etc.) while preserving melody. See `yao.coupling.reharmonization`.
+
+**Theme Recurrence Graph** — Plan for theme returns and transformations across a piece. Auto-generated from song form. See `yao.coupling.theme_recurrence`.
+
+**Voice-Leading Smoothness** — Total voice motion across consecutive chords / Hungarian-optimal minimum. Target: ≤ 1.5× minimum for common-practice. See `yao.verify.voice_leading_smoothness`.

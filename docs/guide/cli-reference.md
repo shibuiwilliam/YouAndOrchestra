@@ -105,3 +105,34 @@ Aggregates rating JSON files into a `UserStyleProfile` with preferred ranges and
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--profile-path` | `user_style_profile.json` | Path to save/load profile |
+
+---
+
+## v3.0 Commands (Combination Stack)
+
+### `yao reharmonize <midi_path>`
+
+Apply reharmonization to an existing piece using the Reharmonization Engine.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--intensity` | `0.3` | Probability of applying operations per chord (0.0-1.0) |
+| `--style` | `common_practice` | Coupling style (common_practice, jazz, blues, modal) |
+| `--preserve-melody` | `true` | Keep melody bit-identical |
+| `--operations` | all | Comma-separated list of operations to use |
+
+### `yao blend-genres <genres...>`
+
+Generate using a blended genre profile.
+
+```bash
+yao blend-genres bossa_nova:0.6,drum_n_bass:0.4 --project my-blend
+```
+
+### `yao modulate <project> <bar> <to_key>`
+
+Add a modulation at a specific bar.
+
+```bash
+yao modulate my-song 32 "F major" --strategy pivot_chord
+```
