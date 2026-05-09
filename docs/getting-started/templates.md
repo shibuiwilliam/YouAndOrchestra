@@ -22,6 +22,23 @@ YaO ships with ready-to-use templates in `specs/templates/`.
 | `v2/bgm-90sec-pop.yaml` | ~58s | Pop BGM with melody/harmony sections |
 | `v2/loopable-game-bgm.yaml` | -- | Game background music, loop-friendly |
 
+### Form Templates
+
+| Template | Description |
+|----------|-------------|
+| `forms/12_bar_blues.yaml` | 12-bar blues form |
+| `forms/aaba_32.yaml` | AABA 32-bar standard form |
+| `forms/edm_buildup_drop.yaml` | EDM buildup-drop structure |
+| `forms/hip_hop_verse_hook.yaml` | Hip-hop verse-hook form |
+| `forms/lofi_loop.yaml` | Lo-fi loop structure |
+| `forms/power_ballad.yaml` | Power ballad form |
+| `forms/rondo.yaml` | Classical rondo form |
+| `forms/strophic.yaml` | Strophic (repeating verse) form |
+| `forms/theme_variations.yaml` | Theme and variations form |
+| `forms/through_composed.yaml` | Through-composed (no repeats) form |
+| `forms/verse_chorus_bridge.yaml` | Verse-chorus-bridge pop form |
+| `forms/verse_chorus_solo.yaml` | Verse-chorus with solo section |
+
 ## Using a Template
 
 ```bash

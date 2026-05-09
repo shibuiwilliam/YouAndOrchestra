@@ -94,9 +94,13 @@ File-watch mode: auto-regenerate and auto-play when spec files change. 500ms deb
 |--------|---------|-------------|
 | `--soundfont` | auto-detect | Path to SoundFont |
 
-### `yao rate <project>`
+### `yao rate <iteration_path>`
 
 Interactive 5-dimension rating (memorability, emotional fit, technical quality, genre fitness, overall) plus free text. Saves a JSON rating file.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--rater` | prompted | Rater identifier |
 
 ### `yao reflect ingest [ratings_dir]`
 
@@ -105,6 +109,27 @@ Aggregates rating JSON files into a `UserStyleProfile` with preferred ranges and
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--profile-path` | `user_style_profile.json` | Path to save/load profile |
+
+### `yao critique <project>`
+
+Run adversarial critique on the latest iteration of a project. Generates structured findings across all registered critique rules and writes `critique.md` to the iteration directory.
+
+### `yao arrange <spec.yaml>`
+
+Transform an existing piece using arrangement operations defined in an `arrangement.yaml` spec.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `-o, --output-dir` | auto-versioned | Output directory |
+
+### `yao feedback apply <project>`
+
+Apply human feedback from a `feedback.yaml` file to regenerate a composition.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `-f, --feedback` | — | Path to feedback.yaml file (required) |
+| `-n, --max-iterations` | 3 | Max conductor iterations |
 
 ---
 

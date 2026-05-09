@@ -29,7 +29,7 @@ class GeneratorBase(ABC):
 
 Register with `@register_generator("name")`. Select at runtime with `get_generator("name")`.
 
-Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `process_music`, `constraint_solver`, `rule_based_v2`, `stochastic_v2`.
+Currently registered (9): `rule_based`, `stochastic`, `markov`, `constraint_satisfaction`, `twelve_tone`, `phrase_aware`, `process_music`, `loop_evolution`, `ai_seed`.
 
 ## Creating a Plan Generator
 
@@ -192,30 +192,44 @@ def test_trajectory_compliance():
 - **Per-instrument deterministic RNG** -- master_seed:instrument:section for reproducibility
 - **Temperature semantics**: 0.0 = conservative (mostly steps, basic chords), 1.0 = adventurous (leaps, 7th chords, complex rhythms)
 
-### Plan Generators
-- **FormPlanner** -- Generates `SongFormPlan` from spec sections (consumes 20-form library)
-- **HarmonyPlanner** -- Generates `HarmonyPlan` with chord events per section (genre-aware, uses genre skill chord palettes)
-- **Composer (Subagent)** -- Generates `MotifPlan` + `PhrasePlan` + `HookPlan` (Markov bigram + intent-driven, guaranteed motif recurrence >= 3)
-- **DrumPatterner** -- Generates `DrumPattern` + `GrooveProfile` (15 patterns across time signatures)
-- **Orchestrator** -- Generates `ArrangementPlan` with register separation
-- **ConversationDirector** -- Generates `ConversationPlan` (Step 5.5, inter-instrument dialogue)
+### Plan Generators (5 modules, 3 registered)
+- **FormPlanner** (`form_planner.py`) -- Generates `SongFormPlan` from spec sections (consumes 20-form library); registered as `rule_based_form`
+- **HarmonyPlanner** (`harmony_planner.py`) -- Generates `HarmonyPlan` with chord events per section (genre-aware, uses genre skill chord palettes); registered as `rule_based_harmony`
+- **MotivicPlanner** (`motivic_planner.py`) -- Generates `MotifPlan` + `PhrasePlan` + `HookPlan` (Markov bigram + intent-driven, guaranteed motif recurrence >= 3); registered as `rule_based_motif`
+- **Orchestrator** (`orchestrator.py`) -- Generates `ArrangementPlan` with register separation (not registered as plan generator)
+- **ConversationDirector** (`conversation_director.py`) -- Generates `ConversationPlan` (inter-instrument dialogue; not registered as plan generator)
 
-### Note Realizers
-- **rule_based_v2** -- Deterministic, 100% plan consumption, chord-aware voicing
-- **stochastic_v2** -- Seeded randomness, 100% plan consumption, temperature control
+### Note Realizers (4 modules)
+- **rule_based** (`rule_based.py`) -- Legacy deterministic realizer wrapping v1 logic
+- **stochastic** (`stochastic.py`) -- Legacy stochastic realizer wrapping v1 logic
+- **rule_based_v2** (`rule_based_v2.py`) -- Deterministic, 100% plan consumption, chord-aware voicing
+- **stochastic_v2** (`stochastic_v2.py`) -- Seeded randomness, 100% plan consumption, temperature control
 
 ### Additional Generators
-- **Markov** -- Probabilistic transitions from YAML models (bigram, diatonic + pentatonic)
+- **Markov** -- Probabilistic transitions from 27 YAML models (14 pitch, 11 rhythm, 2 root-level legacy)
 - **Twelve-tone** -- Serial composition with P/I/R/RI row transformations
 - **Process music** -- Minimalist phasing/additive/subtractive processes
-- **Constraint solver** -- Backtracking CSP with key+range+stepwise constraints (5s timeout)
+- **Constraint satisfaction** -- Backtracking CSP with key+range+stepwise constraints (5s timeout)
+- **Loop evolution** -- Loop-first iterative design; core loop bars config; layer evolution across sections; arrangement string parsing
+- **AI seed** -- AI-assisted seed generation
 - **Neural bridge** -- Stable Audio texture generation (optional dep `pip install yao[neural]`)
 
 ### Post-Realization Processing
 - **GrooveApplicator** -- Ensemble-wide microtiming + velocity from GrooveProfile (20 profiles available)
 - **Reactive fills** -- Short fills at melodic phrase endings (2-4 notes, >= 60% fill rate)
 - **Frequency clearance** -- Octave displacement for spectral collision reduction (primary voice unchanged)
-- **Performance pipeline** -- Articulation, dynamics curves, microtiming, CC curves (4 subtypes)
+- **Performance pipeline** (5 modules) -- `pipeline.py` (orchestrator), `microtiming_injector.py`, `dynamics_curve_renderer.py`, `articulation_realizer.py`, `cc_curve_generator.py`
+
+### Melody Pipeline (9 modules)
+- **selector.py** -- `HarmonicMelodicSelector`, pitch selection coupled with `HarmonicContext`
+- **skeleton.py** -- M2 skeleton generation, chord-aware pitch scoring
+- **outline.py** -- `OutlineGenerator`, chord-progression-outlining skeleton strategy
+- **surface.py** -- M3 surface realization, connecting skeleton notes
+- **motif_developer.py** -- 13 motif transformations wired into `MotifDevelopmentPlanner`
+- **motif_library.py** -- Motif library persistence at `references/motifs/`
+- **phrase_aware.py** -- `PhraseAwareGenerator`, registered as `phrase_aware`, M1-M4 pipeline entry point
+- **ornament.py** -- M4 ornament application from `OrnamentProfile`
+- **groove.py** -- M4 microtiming from `GrooveProfile`
 
 ### Melodic Strategies (8)
 Available in the stochastic generator via `MelodicGenerationStrategy`:
@@ -249,7 +263,7 @@ def couple(
     return transformed
 ```
 
-### Key Coupling Modules
+### Key Coupling Modules (11)
 
 | Module | File | Purpose |
 |---|---|---|
@@ -263,7 +277,6 @@ def couple(
 | Theme Recurrence | `theme_recurrence.py` | Long-form thematic return planning |
 | Phrase Shape | `phrase_shape.py` | Intra-section phrase structures |
 | Listening Dialog | `listening_dialog.py` | Turn-based inter-instrument generation |
-| Idiomatic Gestures | `idiomatic_gestures.py` | Per-instrument body-language patterns |
 | Harmonic Devices | `harmonic_devices.py` | Genre-typical harmonic gestures |
 
 ### Rules for Coupling Modules

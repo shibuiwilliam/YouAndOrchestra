@@ -29,8 +29,8 @@ sections:                       # At least one required
     key: "G major"              # Optional: override per section
 
 generation:                     # Optional
-  strategy: "stochastic"        # rule_based, stochastic, markov, twelve_tone,
-                                # process_music, constraint_solver, loop_evolution, ai_seed
+  strategy: "stochastic"        # rule_based, stochastic, markov, phrase_aware, twelve_tone,
+                                # process_music, constraint_satisfaction, loop_evolution, ai_seed
   seed: 42                      # Integer, for reproducibility
   temperature: 0.5              # 0.0–1.0, variation control
 ```

@@ -2,7 +2,7 @@
 
 YaO uses a strict layered architecture with downward-only dependencies. Each layer can only import from layers below it. This is enforced by `make arch-lint`.
 
-The **Combination & Coupling** layer (`src/yao/coupling/`) sits between Layer 2 and Layer 3. This layer houses 13 modules that transform, couple, blend, and optimize already-generated material.
+The **Combination & Coupling** layer (`src/yao/coupling/`) sits between Layer 2 and Layer 3. This layer houses 11 modules that transform, couple, blend, and optimize already-generated material.
 
 ---
 
@@ -68,8 +68,8 @@ Hardcoded musical values. No dependencies.
 
 Composition algorithms that produce `(ScoreIR, ProvenanceLog)`.
 
-**Note-level generators** (8):
-rule_based, stochastic, markov, twelve_tone, process_music, constraint_solver, loop_evolution, ai_seed
+**Note-level generators** (10):
+rule_based, stochastic, markov, twelve_tone, process_music, constraint_solver, loop_evolution, ai_seed, phrase_aware, hybrid
 
 **Markov models**: `markov_models/pitch/`, `markov_models/rhythm/`, `markov_models/contour/`
 
@@ -90,7 +90,6 @@ Modules that transform, couple, blend, or optimize already-generated material. A
 - `coupling/theme_recurrence.py` — Long-form thematic return planning
 - `coupling/phrase_shape.py` — Intra-section phrase structures
 - `coupling/listening_dialog.py` — Turn-based inter-instrument generation
-- `coupling/idiomatic_gestures.py` — Per-instrument body-language patterns
 - `coupling/harmonic_devices.py` — Genre-typical harmonic gestures
 
 **Import rules**: may import from Layers 0, 1, 2, and other coupling modules only. Never from Layers 3+.

@@ -196,11 +196,11 @@ Behind the scenes, Claude Code can invoke specialized subagents:
 
 ## Domain Skills
 
-YaO includes 44 domain knowledge skills that Claude Code can draw on:
+YaO includes 55 domain knowledge skills that Claude Code can draw on:
 
 | Category | Skills |
 |---|---|
-| Genres (29) | cinematic, jazz_swing, jazz_ballad, rock_classic, pop, pop_western, pop_japan, electronic (edm_house, synthwave), ambient, deep_house, lo_fi_hiphop, funk, blues, hiphop, baroque, romantic, orchestral_classical, neoclassical, acoustic_folk, game_8bit_chiptune, game_bgm_rpg, film_score_dramatic, bossa_nova, celtic_traditional, arab_maqam, indian_classical_hindustani, j_pop |
+| Genres (38) | cinematic, jazz, jazz_swing, jazz_ballad, bebop, rock, rock_classic, pop, pop_western, pop_japan, electronic (edm_house, synthwave), ambient, deep_house, lo_fi_hiphop, lofi_hiphop, funk, blues, hip_hop, hiphop, baroque, romantic, orchestral_classical, neoclassical, acoustic_folk, game_8bit_chiptune, game_bgm_rpg, film_score_dramatic, bossa_nova, celtic_traditional, arab_maqam, indian_classical_hindustani, j_pop |
 | Cultures (3) | Japanese, Middle Eastern, Indian Classical |
 | Theory (6) | Voice leading, Microtonal, Process music, Twelve-tone, Reharmonization, Modulation |
 | Instruments (2) | Piano, Idiomatic gestures |

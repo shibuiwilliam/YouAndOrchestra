@@ -2,7 +2,7 @@
 
 **Describe music in plain language. Get a full MIDI score with stems, quality evaluation, and a log explaining every decision.**
 
-YaO is an agentic music production environment built on Claude Code. You give it an idea — a sentence, a conversation, or a detailed YAML spec — and it runs a multi-stage generation pipeline with AI subagents, 34 adversarial critique rules, and automatic iteration until quality thresholds pass. Everything is explainable: every note carries a provenance record explaining why it exists.
+YaO is an agentic music production environment built on [Claude Code](https://docs.anthropic.com/en/docs/claude-code). You give it an idea — a sentence, a conversation, or a detailed YAML spec — and it runs a multi-stage generation pipeline with AI subagents, 35 adversarial critique rules, and automatic iteration until quality thresholds pass. Everything is explainable: every note carries a provenance record explaining why it exists.
 
 > Your vision. Your taste. Your soul. — and an Orchestra ready to listen, respond, and surprise.
 
@@ -46,6 +46,29 @@ The `/sketch` command walks you through a 6-turn dialogue to refine your idea in
 
 The sketch dialogue supports both English and Japanese input.
 
+### 2. Natural language (one-shot)
+
+```
+/conduct epic orchestral trailer music building to a massive brass climax
+```
+
+The Conductor generates, evaluates, adapts, and regenerates — up to 3 iterations — until quality thresholds pass.
+
+### 3. YAML spec (full control)
+
+Create a project and edit the spec directly:
+
+```
+/sketch my-piece
+# Edit specs/projects/my-piece/composition.yaml to taste
+/compose my-piece
+```
+
+Three spec formats are available:
+
+- **Simple** — Flat YAML for quick experiments
+- **Detailed** — Multi-section spec with full control over melody, harmony, rhythm, arrangement, and production
+- **Composable** — Specs with `extends`, `overrides`, and reusable fragments
 
 ---
 
@@ -79,33 +102,8 @@ The sketch dialogue supports both English and Japanese input.
 /sketch Flamenco bulerias for nylon guitar, cajon, and handclaps, 12-beat compas cycle, rasgueado strumming, falsetas over Am-G-F-E progression, 100 seconds
 /sketch ambient generative soundscape for planetarium, 50 BPM, granular-style evolving textures with oboe and cello drones, no percussion, very slow harmonic motion, 240 seconds
 /sketch aggressive industrial metal, 140 BPM, drop-tuned palm-muted guitar riff in 7/8, double kick drums, distorted bass following guitar, dissonant brass hits on accents, 90 seconds
-/sketch big band swing, 160 BPM, walking bass, ride cymbal, trumpet section melody in unison then harmony soli, trombone counter-melody, piano comping, saxophone shout chorus at climax, 120 seconds
+/sketch big band swing, 160 BPM, walking bass, ride cymbal, trumpet section melody in unison then harmony soli, trombone counter-melody, saxophone shout chorus at climax, 120 seconds
 ```
-
-
-### 2. Natural language (one-shot)
-
-```
-/conduct epic orchestral trailer music building to a massive brass climax
-```
-
-The Conductor generates, evaluates, adapts, and regenerates — up to 3 iterations — until quality thresholds pass.
-
-### 3. YAML spec (full control)
-
-Create a project and edit the spec directly:
-
-```
-/sketch my-piece
-# Edit specs/projects/my-piece/composition.yaml to taste
-/compose my-piece
-```
-
-Three spec formats are available:
-
-- **Simple** — Flat YAML for quick experiments
-- **Detailed** — 11-section spec with full control over melody, harmony, rhythm, arrangement, and production
-- **Composable** — Specs with `extends`, `overrides`, and reusable `fragments`
 
 ---
 
@@ -116,10 +114,12 @@ Each generation creates a versioned iteration (`v001`, `v002`, ...) so nothing i
 ```
 outputs/projects/my-piece/iterations/v001/
   full.mid           # Complete MIDI score
-  stems/piano.mid    # Per-instrument MIDI stems
+  stems/             # Per-instrument MIDI stems
+    piano.mid
+    violin.mid
+    ...
   analysis.json      # Structural analysis
   evaluation.json    # Quality scores (6 dimensions)
-  perceptual.json    # Acoustic analysis (LUFS, spectral, temporal)
   provenance.json    # Causal graph of every decision
 ```
 
@@ -140,7 +140,7 @@ User Input (natural language or YAML)
   -> [Step 4]  Drum Patterner  -> DrumPattern + GrooveProfile
   -> [Step 5]  Orchestrator    -> ArrangementPlan
   -> [Step 5.5] Conversation   -> ConversationPlan (inter-instrument dialogue)
-  === Critic Gate (34 adversarial rules before any notes are placed) ===
+  === Critic Gate (35 adversarial rules before any notes are placed) ===
   -> [Step 6]  Note Realizer   -> ScoreIR (with harmonic coupling)
   -> [Step 6.5] Performance    -> Articulation, dynamics, microtiming
   -> [Step 7]  Renderer        -> MIDI / WAV / MusicXML / LilyPond / Score
@@ -166,7 +166,7 @@ Subagents run via **PythonOnlyBackend** (default, no API key needed) or **Anthro
 
 ### The Combination Stack
 
-The **Combination & Coupling** layer provides 11 modules that turn YaO's rich material library into genuinely diverse output. These modules sit between raw generation and the IR layer, coupling melody to harmony, optimizing voice leading, and enabling genre blending.
+The **Combination & Coupling** layer provides 11 modules that turn YaO's material library into genuinely diverse output. These modules sit between raw generation and the IR layer, coupling melody to harmony, optimizing voice leading, and enabling genre blending.
 
 | Module | What It Does |
 |---|---|
@@ -221,9 +221,9 @@ Eight strategies shape how pitches are chosen within any generator:
 
 ## Music Theory Support
 
-### Instruments (46)
+### Instruments (54)
 
-38 Western instruments across keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, and percussion families. Plus 8 non-Western instruments with culturally appropriate ranges and idiomatic techniques:
+46 Western instruments across keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, and percussion families. Plus 8 non-Western instruments with culturally appropriate ranges and idiomatic techniques:
 
 **shakuhachi** (Japanese bamboo flute) | **koto** (13-string zither) | **shamisen** (3-string lute) | **taiko** (drum) | **sitar** (Indian plucked string) | **tabla** (pair of drums) | **oud** (fretless lute) | **ney** (end-blown flute)
 
@@ -246,7 +246,7 @@ All defined in cents-based `ScaleDefinition` objects supporting microtonal preci
 ### Harmony
 
 - 14 chord types (major, minor, diminished, augmented, dom7, maj7, min7, dim7, half-dim7, sus2, sus4, add9, min9, maj9)
-- Functional harmony with Roman numeral analysis (I, ii, V7/V, vii°, etc.)
+- Functional harmony with Roman numeral analysis (I, ii, V7/V, vii, etc.)
 - Voice-leading detection (parallel fifths/octaves)
 - 15 harmonic devices (jazz turnaround, gospel walkdown, 12-bar blues, Coltrane changes, ii-V-I, Neapolitan approach, circle of fifths, tritone substitution, etc.)
 
@@ -279,8 +279,6 @@ Every composition is automatically evaluated across 6 dimensions:
 
 ### Combination Stack Metrics
 
-The Combination Stack adds two additional evaluation metrics:
-
 - **Melody-Harmony Alignment** — scores each melody note against the chord active at that position (target: >= 0.7 overall, >= 0.85 on downbeats)
 - **Voice-Leading Smoothness** — total voice motion relative to the theoretical minimum (target: <= 1.5x for common practice, <= 2.0x for jazz)
 
@@ -293,7 +291,7 @@ The Combination Stack adds two additional evaluation metrics:
 | Temporal | Onset density per section, tempo stability |
 | Use-case | YouTube BGM, Game BGM, Advertisement, Study Focus, Meditation, Workout, Cinematic |
 
-### Adversarial Critique (34 Rules)
+### Adversarial Critique (35 Rules)
 
 A panel of automated critics, each specialized to find specific weaknesses:
 
@@ -312,7 +310,6 @@ A panel of automated critics, each specialized to find specific weaknesses:
 | Groove | Groove inconsistency, microtiming flatness, ensemble conflict |
 | Conversation | Conversation silence, voice ambiguity, fill absence |
 | Acoustic | Symbolic-acoustic divergence, LUFS violation, spectral imbalance, brightness-intent mismatch |
-| Other | Tension arc unresolved, flat phrase dynamics, metric drift |
 
 ---
 
@@ -396,14 +393,14 @@ YaO uses an 8-layer architecture with strict downward-only dependency flow, enfo
 
 ```
 Layer 7: Reflection & Learning       (reflect/, agents/, runtime/)
-Layer 6: Verification & Critique     (verify/ — 34 rules, aesthetic metrics, acoustic eval)
-Layer 5: Rendering                   (render/ — MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel)
-Layer 4: Perception                  (perception/ — audio features, style vectors, surprise, use-case eval)
-Layer 3: Score IR                    (ir/ — note, part, section, voicing, timing, phrase, skeleton, melody)
-Coupling: Combination & Coupling     (coupling/ — 11 modules, Combination Stack)
-Layer 2: Generation Strategy         (generators/ — plan generators, note realizers, melody pipeline)
-Layer 1: Specification               (schema/, sketch/ — YAML specs, NL compiler, feature flags)
-Layer 0: Constants                   (constants/ — instruments, scales, forms, chords, profiles)
+Layer 6: Verification & Critique     (verify/ - 35 rules, aesthetic metrics, acoustic eval)
+Layer 5: Rendering                   (render/ - MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel)
+Layer 4: Perception                  (perception/ - audio features, style vectors, surprise, use-case eval)
+Layer 3: Score IR                    (ir/ - note, part, section, voicing, timing, phrase, skeleton, melody)
+Coupling: Combination & Coupling     (coupling/ - 11 modules, Combination Stack)
+Layer 2: Generation Strategy         (generators/ - plan generators, note realizers, melody pipeline)
+Layer 1: Specification               (schema/, sketch/ - YAML specs, NL compiler, feature flags)
+Layer 0: Constants                   (constants/ - instruments, scales, forms, chords, profiles)
 ```
 
 Layer boundaries are enforced by `tools/architecture_lint.py` — lower layers never import upper layers.
@@ -413,10 +410,10 @@ Layer boundaries are enforced by `tools/architecture_lint.py` — lower layers n
 Inside Layer 2, melodies are generated through a four-stage sub-pipeline:
 
 ```
-M1: Phrase & Motif Plan    → phrase boundaries, cadence types, motif selection
-M2: Skeleton Generation    → chord-tone targets at metrically strong positions
-M3: Surface Realization    → passing tones, neighbor tones, rhythm templates
-M4: Ornament & Articulation → grace notes, trills, slides, microtiming
+M1: Phrase & Motif Plan    -> phrase boundaries, cadence types, motif selection
+M2: Skeleton Generation    -> chord-tone targets at metrically strong positions
+M3: Surface Realization    -> passing tones, neighbor tones, rhythm templates
+M4: Ornament & Articulation -> grace notes, trills, slides, microtiming
 ```
 
 When `features.chord_aware_melody` is enabled (the default), M2 scores every candidate pitch against `HarmonicMelodyConstraints` derived from the active chord — transforming melodies from "scale-walking" to "harmonically functional."
@@ -505,14 +502,29 @@ Place a `.sf2` file in `soundfonts/`, then use `/render` in Claude Code.
 
 ---
 
+## Gallery
+
+Four pre-generated demonstration pieces with audio and full specs:
+
+| Audio | Description |
+|---|---|
+| [short-anime-v1.mp3](https://drive.google.com/file/d/1GRhr3dlH41BJ4krFNCKvYfLiWLQif0fR/view?usp=drive_link) | 28-second anime J-rock opening in Bb major, 165 BPM. Electric guitar lead with driving energy. |
+| [short-string-v1.mp3](https://drive.google.com/file/d/1Kex9F1l6jbAROb7GIS4NM9a4ILApJuwm/view?usp=drive_link) | 29-second Romantic-era string ensemble miniature in A major, 90 BPM. Elegant and tender. |
+| [short-jazz-v1.mp3](https://drive.google.com/file/d/1KXKeYuJo9H2OpNybEmV8OSM7nCiFh6nN/view?usp=drive_link) | 30-second cool jazz for a midnight bar in Bb minor, 80 BPM. Tenor sax, piano, contrabass, drums. |
+| [puzzle-light.mp3](https://drive.google.com/file/d/1Pq8btcpo1iOjKxffWGm1IhSksUxxOynu/view?usp=drive_link) | 29-second light puzzle game BGM in C major, 90 BPM. Loopable and cheerful. |
+
+Each gallery directory contains the full `composition.yaml`, `trajectory.yaml`, and `intent.md` used for generation.
+
+---
+
 ## CI and Quality
 
 ```bash
 make all-checks     # Full quality pipeline
-make test           # All 3,328 tests
+make test           # All tests (~2,500+ test functions across 256 files)
 make lint           # ruff + mypy strict
 make arch-lint      # Layer boundary enforcement (AST-based)
-make test-coupling  # Combination Stack tests (196 tests)
+make test-coupling  # Combination Stack tests
 make test-diversity # Diversity scenario tests
 make test-golden    # Golden MIDI regression tests
 make test-melody    # Melody pipeline tests
@@ -558,6 +570,8 @@ Five honesty tools run in CI to verify that features actually work, not just exi
 | [PROJECT.md](PROJECT.md) | Full architecture and design |
 | [CLAUDE.md](CLAUDE.md) | Development rules, current phase, escalation guide |
 | [IMPROVEMENT.md](IMPROVEMENT.md) | Gap analysis and diversity improvement roadmap |
+| [development/](development/) | API reference, generator guide, spec system, testing strategy, contributing |
+| [docs/](docs/) | MkDocs site with tutorials, glossary, and architecture deep-dives |
 
 ---
 

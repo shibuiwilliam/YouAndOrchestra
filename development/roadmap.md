@@ -62,7 +62,7 @@ The highest-leverage current effort. Introduces the Combination & Coupling layer
 | §5.4 Voice-Leading Optimizer | In progress | `optimal_voicing_transition()` with Hungarian assignment, `VoicingConstraints` schema |
 | §5.1 Reharmonization Engine | In progress | 12 reharmonization operations, `ReharmonizationConstraints`, `/reharmonize` command |
 
-Coupling infrastructure is in place: `src/yao/coupling/` contains 13 modules, `src/yao/ir/harmonic_melody_constraints.py` defines core IR types, `src/yao/schema/features.py` provides feature flags, and `src/yao/verify/melody_harmony_alignment.py` + `voice_leading_smoothness.py` provide evaluation metrics.
+Coupling infrastructure is in place: `src/yao/coupling/` contains 11 modules, `src/yao/ir/harmonic_melody_constraints.py` defines core IR types, `src/yao/schema/features.py` provides feature flags, and `src/yao/verify/melody_harmony_alignment.py` + `voice_leading_smoothness.py` provide evaluation metrics.
 
 ### Upcoming Work
 
@@ -95,15 +95,16 @@ Coupling infrastructure is in place: `src/yao/coupling/` contains 13 modules, `s
 
 Everything below is implemented, tested, and verified by CI honesty tools:
 
-- 277 Python source modules (including 13 new coupling modules)
-- 299 test files with ~2,701 tests (including `tests/unit/coupling/` with 12 test files)
+- 285 Python source modules (including 11 coupling modules)
+- 256 test files with ~2,701 tests (including `tests/unit/coupling/` with 12 test files)
 - 8 generation strategies + 8 melodic strategies
 - 35 critique rules across 15 categories
 - 46 instruments (9 families), 28+ scales, 20 forms, 14 chords
 - 15 drum patterns, 20 groove profiles
+- 25 melodic profile YAMLs, 31 rhythm template YAMLs
 - 15 harmonic device YAMLs (jazz turnarounds, blues patterns, Coltrane changes, etc.)
-- Markov models organized by type: pitch/, rhythm/, contour/
-- 29+ genre skills, 3 culture skills
+- 29 Markov model YAMLs organized by type: 14 pitch, 12 rhythm, 3 contour
+- 38 genre profiles, 3 culture skills
 - 8 subagents (including Modulation Planner), 13 slash commands
 - 6 output formats (MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel)
 - 7 use-case evaluators (YouTube BGM, Game BGM, Ad, Study, Meditation, Workout, Cinematic)

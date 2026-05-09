@@ -4,26 +4,26 @@
 
 | Category | Location | Purpose | Approx Count |
 |----------|----------|---------|------|
-| Unit | `tests/unit/` | Individual module behavior across all layers | ~1,800 |
-| Unit (Coupling) | `tests/unit/coupling/` | Combination Stack module tests -- harmonic_melody, voice_leading, reharmonization, modulation, genre_vector, rhythm_markov, polyrhythm, theme_recurrence, phrase_shape, listening_dialog, harmonic_devices, markov_models_load | ~120 |
-| Integration | `tests/integration/` | Full pipeline, spec compiler (EN+JP), motif recurrence, skill grounding | ~40 |
-| Music Constraints | `tests/music_constraints/` | Music theory rule enforcement | ~16 |
-| Scenarios | `tests/scenarios/` | Prove musical value -- includes diversity scenarios (chord-aware melody, voice-leading quality, reharmonization diversity) | ~45 |
-| Golden | `tests/golden/` | Fixed output regression baselines | 6 |
+| Unit | `tests/unit/` | Individual module behavior across all layers | ~2,404 |
+| Unit (Coupling) | `tests/unit/coupling/` | Combination Stack module tests -- harmonic_melody, voice_leading, reharmonization, modulation, genre_vector, rhythm_markov, polyrhythm, theme_recurrence, phrase_shape, listening_dialog, harmonic_devices, markov_models_load | ~143 |
+| Integration | `tests/integration/` | Full pipeline, spec compiler (EN+JP), motif recurrence, skill grounding | ~66 |
+| Music Constraints | `tests/music_constraints/` | Music theory rule enforcement | ~2 |
+| Scenarios | `tests/scenarios/` | Prove musical value -- includes diversity scenarios (chord-aware melody, voice-leading quality, reharmonization diversity) | ~80 |
+| Golden | `tests/golden/` | Fixed output regression baselines | 1 |
 | Audio Regression | `tests/audio_regression/` | Acoustic feature stability (weekly CI) | ~8 |
-| Genre Coverage | `tests/genre_coverage/` | Per-genre schema validation, profile loading, all 29+ genres | ~130 |
-| Properties | `tests/properties/` | Property-based genre invariants across strategies and seeds | ~20 |
-| Subjective | `tests/subjective/` | Human rating threshold validation | ~5 |
-| LLM Quality | `tests/llm_quality/` | NL generation quality tests | ~5 |
-| Tonal Systems | `tests/tonal_systems/` | Tonal system IR tests | ~5 |
-| Tools | `tests/tools/` | CI audit tool tests | ~15 |
-| **Total** | | | **~2,701** |
+| Genre Coverage | `tests/genre_coverage/` | Per-genre schema validation, profile loading, all 29+ genres | ~6 |
+| Properties | `tests/properties/` | Property-based genre invariants across strategies and seeds | ~4 |
+| Subjective | `tests/subjective/` | Human rating threshold validation | ~4 |
+| LLM Quality | `tests/llm_quality/` | NL generation quality tests | ~1 |
+| Tonal Systems | `tests/tonal_systems/` | Tonal system IR tests | ~15 |
+| Tools | `tests/tools/` | CI audit tool tests | ~44 |
+| **Total** | | | **~2,778** |
 
 ## Running Tests
 
 ```bash
 make all-checks        # Full pipeline: lint + arch-lint + tests + golden + honesty
-make test              # All ~2,701 tests
+make test              # All ~2,778 tests
 make test-unit         # Unit tests only
 make test-integration  # Integration tests
 make test-melody       # Phrase-first melody pipeline tests

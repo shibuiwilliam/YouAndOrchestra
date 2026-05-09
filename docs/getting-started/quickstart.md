@@ -114,9 +114,10 @@ outputs/projects/<name>/iterations/v001/
 | `rule_based` | Deterministic, predictable |
 | `stochastic` | Probabilistic, temperature-controlled |
 | `markov` | N-gram patterns, style-aware |
+| `phrase_aware` | 4-layer phrase-first pipeline (M1–M4) |
 | `twelve_tone` | Serial composition (P/I/R/RI) |
 | `process_music` | Phasing, additive, subtractive |
-| `constraint_solver` | CSP backtracking |
+| `constraint_satisfaction` | CSP backtracking |
 | `loop_evolution` | Loop-first, layer evolution |
 | `ai_seed` | Motif generation from intent |
 
@@ -145,7 +146,7 @@ yao watch my-spec.yaml
 
 ## Combination Stack Features
 
-The **Combination Stack** provides chord-aware melody generation, voice-leading optimization, and reharmonization. These are enabled by default via feature flags:
+The **Combination Stack** (Layer 2.5) provides 11 coupling modules for harmonic coupling, voice leading, reharmonization, and more. These are controlled via feature flags:
 
 ```yaml
 # Add to any spec to control combination stack features
@@ -153,6 +154,14 @@ features:
   chord_aware_melody: true          # Melody fits active chords (default ON)
   voice_leading_optimization: true  # Smooth chord transitions (default ON)
   reharmonization: false            # Opt-in chord substitutions
+  genre_vector: false               # N-way genre blending
+  rhythm_markov: false              # Markov-based rhythm generation
+  polyrhythm: false                 # Polyrhythmic texture layers
+  theme_recurrence: false           # Theme recurrence graph planning
+  phrase_shape: false               # Phrase contour shaping
+  modulation: false                 # Key modulation planning
+  harmonic_devices: false           # Harmonic device library
+  listening_agents: false           # Turn-based listening-agent dialog
 ```
 
 New commands:

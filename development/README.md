@@ -28,16 +28,15 @@ Technical documentation for contributors and AI agents developing YaO.
 - **Version:** 0.1.0
 - **Phase:** Diversity Foundation active. Combination & Coupling layer in development: chord-aware melody, voice-leading optimizer, reharmonization engine.
 - **Python:** 3.11+
-- **Source modules:** 277 Python modules in `src/yao/`
-- **Test files:** 299 test files, ~2,701 tests passing
+- **Source modules:** 285 Python modules in `src/yao/`
+- **Test files:** 256 test files
 - **Test categories:** unit (including `unit/coupling/`), integration, scenario, constraint, golden, acoustic regression, properties, genre coverage, subjective, tools
 
 ### Generation
 
 - **Pipeline:** Spec -> PlanOrchestrator (9 steps) -> MusicalPlan -> Critic Gate -> NoteRealizer -> Performance -> Renderer
-- **Combination & Coupling:** 13 coupling modules (`src/yao/coupling/`) -- harmonic-melody coupling, voice leading, reharmonization, modulation, genre vector, rhythm Markov, polyrhythm, theme recurrence, phrase shape, listening dialog, idiomatic gestures, harmonic devices
-- **Note Realizers:** 4 registered -- 2 current (rule_based_v2, stochastic_v2 with 100% plan consumption) + 2 legacy (deprecated)
-- **Additional generators:** markov, twelve_tone, process_music, constraint_solver
+- **Combination & Coupling:** 11 coupling modules (`src/yao/coupling/`) -- voice leading, reharmonization, harmonic-melody coupling, harmonic devices, rhythm Markov, modulation, phrase shape, theme recurrence, polyrhythm, genre vector, listening dialog
+- **Registered generators:** 10 (rule_based, stochastic, markov, constraint_satisfaction, twelve_tone, phrase_aware, process_music, loop_evolution, ai_seed)
 - **Melodic strategies:** 8 distinct approaches (contour, motif development, linear voice, arpeggiated, scalar runs, call-response, pedal tone, hocketing)
 - **Plan generators:** FormPlanner, HarmonyPlanner, Composer, DrumPatterner, Orchestrator, ConversationDirector
 
@@ -58,13 +57,13 @@ Technical documentation for contributors and AI agents developing YaO.
 - **Groove profiles:** 20 (jazz swing, bossa nova, funk, afrobeat, samba, etc.)
 - **Chord types:** 14 with functional harmony
 - **Harmonic devices:** 15 YAML-defined devices (jazz turnarounds, blues 12-bar, Coltrane changes, etc.)
-- **Markov models:** pitch, rhythm, and contour subdirectories with genre-specific models
+- **Markov models:** 29 total (14 pitch, 10+ rhythm, contour) with genre-specific models
 
 ### Infrastructure
 
 - **Spec formats:** Simple (flat YAML), Detailed (11-section), and Composable (extends/overrides/fragments)
 - **Backends:** PythonOnlyBackend (CI default) + AnthropicAPIBackend (real LLM, structured output via tool use)
-- **Genre Skills:** 29+ genres integrated into HarmonyPlanner + SpecCompiler + genre_fitness critique
+- **Genre Skills:** 38 genres integrated into HarmonyPlanner + SpecCompiler + genre_fitness critique
 - **Subagents:** 8 roles (Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Producer, Modulation Planner)
 - **Slash commands:** 13 (compose, conduct, sketch, critique, regenerate-section, render, explain, arrange, pin, feedback, reharmonize, blend-genres, modulate)
 - **StyleVector:** 6 copyright-safe features (histograms + statistics, never sequences)

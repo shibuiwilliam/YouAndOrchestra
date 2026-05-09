@@ -80,8 +80,8 @@ class CompositionSpecV2(BaseModel):
 ```python
 class GenerationConfig(BaseModel):
     strategy: str = "rule_based"    # rule_based, stochastic, markov, twelve_tone,
-                                    # process_music, constraint_solver,
-                                    # rule_based_v2, stochastic_v2
+                                    # process_music, constraint_satisfaction,
+                                    # phrase_aware, ai_seed, loop_evolution
     seed: int | None = None         # for reproducibility
     temperature: float = 0.5        # 0.0=conservative, 1.0=adventurous
 ```
@@ -316,7 +316,7 @@ class GeneratorBase(ABC):
 
 Register with `@register_generator("name")`. Select at runtime with `get_generator("name")`.
 
-Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `process_music`, `constraint_solver`.
+Currently registered: `rule_based`, `stochastic`, `markov`, `twelve_tone`, `process_music`, `constraint_satisfaction`, `phrase_aware`, `ai_seed`, `loop_evolution`.
 
 ### Plan Generators
 
@@ -331,9 +331,7 @@ class PlanGeneratorBase(ABC):
     ) -> PlanNode: ...
 ```
 
-Register with `@register_plan_generator("name")`.
-
-Implemented: FormPlanner, HarmonyPlanner, Composer, DrumPatterner, Orchestrator, ConversationDirector.
+Register with `@register_plan_generator("name")`. Implemented: `rule_based_form`, `rule_based_harmony`, `rule_based_motif`.
 
 ### Note Realizers
 
@@ -349,9 +347,7 @@ class NoteRealizerBase(ABC):
     ) -> ScoreIR: ...
 ```
 
-Register with `@register_note_realizer("name")`.
-
-Implemented: rule_based_v2, stochastic_v2.
+Register with `@register_note_realizer("name")`. Implemented: `rule_based`, `stochastic`, `rule_based_v2`, `stochastic_v2`.
 
 ## Conductor API
 
@@ -412,7 +408,7 @@ lint_score(score: ScoreIR) -> list[LintResult]
 # Analysis
 analyze_score(score: ScoreIR) -> AnalysisReport
 
-# Evaluation (6 dimensions: structure, melody, harmony, aesthetic, arrangement, acoustics)
+# Evaluation (6 dimensions: structure 20%, melody 25%, harmony 20%, aesthetic 20%, arrangement 10%, acoustics 5%)
 evaluate_score(score, spec, trajectory=None) -> EvaluationReport
 
 # Diffing
@@ -458,6 +454,15 @@ write_musicxml(score, output_path) -> Path
 # LilyPond
 write_lilypond(score, output_path) -> Path
 
+# Strudel
+write_strudel(score, output_path) -> Path
+
+# DAW (Reaper, MCP bridge)
+# yao.render.daw.reaper_writer
+write_reaper_project(score, output_path) -> Path
+# yao.render.daw.mcp_bridge
+send_to_daw(score, bridge_config) -> None
+
 # Iteration management
 next_iteration_dir(project_output_dir) -> Path
 list_iterations(project_output_dir) -> list[Path]
@@ -482,15 +487,18 @@ current_iteration(project_output_dir) -> Path | None
 | `yao watch <spec>` | Auto-regenerate on file change (500ms debounce) |
 | `yao rate <project>` | Interactive 5-dimension rating |
 | `yao reflect ingest [dir]` | Aggregate ratings into UserStyleProfile |
+| `yao reharmonize <project>` | Apply reharmonization operations to a progression |
+| `yao blend-genres <spec>` | Blend multiple genre profiles via GenreVector |
+| `yao modulate <spec>` | Plan and apply modulation strategies |
 
 ## Error Hierarchy
 
 ```
 YaOError (base)
 +-- SpecValidationError (field: str | None)
-+-- ExpressionValidationError
 +-- ConstraintViolationError
 |   +-- RangeViolationError (instrument, note, valid_low, valid_high)
+|   +-- ExpressionValidationError
 +-- LayerViolationError
 +-- RenderError
 +-- VerificationError
@@ -498,10 +506,12 @@ YaOError (base)
 +-- MissingRightsStatusError
 +-- ForbiddenExtractionError
 +-- NeuralBackendUnavailableError
++-- NeuralGenerationTimeoutError
 +-- BackendNotConfiguredError
 +-- AgentBackendError
-+-- AgentOutputParseError
-+-- IncompleteGenreProfileError
+|   +-- AgentOutputParseError
++-- PhaseIncompleteError (phase, missing_artifacts)
++-- IncompleteGenreProfileError (genre_id, missing_sections)
 ```
 
 ## Combination Stack Types
@@ -542,16 +552,25 @@ class FeatureFlags(BaseModel):
     theme_recurrence: bool = False
 ```
 
-### Coupling Module API (`yao.coupling`)
+### Coupling Module API (`yao.coupling`) — 11 modules
 ```python
-# Harmonic-Melody Coupling
+# Harmonic-Melody Coupling (harmonic_melody.py)
 derive_constraints(chord, key, scale_type, style) -> HarmonicMelodyConstraints
 
-# Voice-Leading Optimizer
+# Voice-Leading Optimizer (voice_leading.py)
 optimal_voicing_transition(prev_voicing, next_chord, voice_count, constraints) -> list[MidiNote]
 
-# Reharmonization Engine
+# Reharmonization Engine (reharmonization.py)
 reharmonize(progression, operations, intensity, style, constraints, rng) -> ChordProgression
+
+# Harmonic Devices (harmonic_devices.py)
+# Modulation Planner (modulation.py)
+# Rhythm Markov Generator (rhythm_markov.py)
+# Phrase Shape Generator (phrase_shape.py)
+# Theme Recurrence (theme_recurrence.py)
+# Polyrhythm Composer (polyrhythm.py)
+# Genre Vector Space (genre_vector.py)
+# Listening-Agent Dialog (listening_dialog.py)
 ```
 
 ### Verification Metrics

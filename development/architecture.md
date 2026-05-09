@@ -156,18 +156,18 @@ Conductor Feedback Loop (up to 3 iterations + audio loop)
 ## Package Layout
 
 ```
-src/yao/           277 Python modules
-  constants/       Layer 0: 46 instruments, 28 scales, 20 forms, 14 chords, 15 harmonic devices
-  schema/          Layer 1: Pydantic specs (simple + detailed + composable), genre profiles, features.py
+src/yao/           285 Python modules
+  constants/       Layer 0: 46 instruments, 28 scales, 20 forms, 14 chords, 15 harmonic devices (103+ YAML files)
+  schema/          Layer 1: 28 Pydantic model files (simple + detailed + composable specs, genre profiles, features.py)
   sketch/          Layer 1.5: NL compiler (3-stage), emotion vocab, dialogue (5 files)
-  ir/              Layer 3: Score IR + Plan IR (34+ files), HarmonicMelodyConstraints
-  generators/      Layer 2: 9 generators, 8 melodic strategies, performance, markov_models/ (pitch+rhythm+contour)
-  coupling/        Combination & Coupling: 13 coupling modules (harmonic_melody, voice_leading, reharmonization, modulation, genre_vector, rhythm_markov, polyrhythm, theme_recurrence, phrase_shape, listening_dialog, idiomatic_gestures, harmonic_devices)
-  perception/      Layer 4: Audio features, style vector, surprise, mood (9 files)
-  render/          Layer 5: MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel (14 files)
-  verify/          Layer 6: Evaluator, 35 critique rules, constraints, melody_harmony_alignment, voice_leading_smoothness
+  ir/              Layer 3: Score IR + Plan IR (32 type files), HarmonicMelodyConstraints
+  generators/      Layer 2: 10 registered generators (rule_based, stochastic, markov, constraint_satisfaction, twelve_tone, phrase_aware, process_music, loop_evolution, ai_seed), 8 melodic strategies, performance, markov_models/ (pitch+rhythm+contour)
+  coupling/        Combination & Coupling: 11 modules (voice_leading, reharmonization, harmonic_melody, harmonic_devices, rhythm_markov, modulation, phrase_shape, theme_recurrence, polyrhythm, genre_vector, listening_dialog)
+  perception/      Layer 4: Audio features, style vector, surprise, mood (8 modules)
+  render/          Layer 5: MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel, DAW integration (mcp_bridge, reaper_writer) (11+ modules)
+  verify/          Layer 6: Evaluator, 35 critique rules, constraints, melody_harmony_alignment, voice_leading_smoothness (25+ modules including critique subsystem)
   reflect/         Layer 7: Provenance, style profile (6 files)
-  conductor/       Orchestration: Generate-evaluate-adapt loop (8 files)
+  conductor/       Orchestration: Generate-evaluate-adapt loop (11 modules)
   subagents/       8 subagent implementations (including Modulation Planner)
   agents/          Backend protocol: PythonOnly, Anthropic API (6 files)
   arrange/         Arrangement: Style ops, extraction, diff (12 files)

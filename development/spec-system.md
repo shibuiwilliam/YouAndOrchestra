@@ -39,7 +39,7 @@ sections:
     dynamics: "mp"
 
 generation:
-  strategy: stochastic  # rule_based, stochastic, markov, twelve_tone, etc.
+  strategy: stochastic  # rule_based, stochastic, markov, phrase_aware, twelve_tone, ai_seed, constraint_satisfaction, process_music, loop_evolution
   seed: 42              # reproducibility (stochastic only)
   temperature: 0.5      # 0.0=conservative, 1.0=adventurous
 ```
@@ -252,7 +252,7 @@ Located in `specs/templates/`:
 
 ## Example Projects
 
-YaO ships with 35+ example projects in `specs/projects/`, covering styles from classical piano trio to hard rock game BGM, anime J-pop to Indian classical. Each includes `composition.yaml` and `intent.md`.
+YaO ships with 100+ example projects in `specs/projects/`, covering styles from classical piano trio to hard rock game BGM, anime J-pop to Indian classical. Each includes `composition.yaml` and `intent.md`.
 
 ## Project Structure
 

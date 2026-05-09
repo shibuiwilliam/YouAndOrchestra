@@ -7,7 +7,7 @@ git clone https://github.com/shibuiwilliam/YouAndOrchestra
 cd YouAndOrchestra
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-make all-checks   # Should see ~2,701 tests passing + 6 golden + 5 honesty tools
+make all-checks   # Should see ~2,978 tests passing + 6 golden + 5 honesty tools
 ```
 
 Requires **Python 3.11+**.
@@ -90,15 +90,21 @@ def test_my_feature() -> None:
 
 ```bash
 make all-checks        # Full pipeline (lint + arch-lint + tests + golden + honesty)
-make test              # All tests (~2,701)
+make test              # All tests (~2,978)
 make lint              # ruff + mypy strict
-make arch-lint         # Layer boundary enforcement (covers Coupling layer)
+make arch-lint         # Layer boundary enforcement (covers Layer 2.5 Coupling)
+make format            # Auto-format code (ruff)
+make test-melody       # Unit tests for the phrase-first melody pipeline
+make test-coupling     # Combination Stack tests (Layer 2.5)
+make test-genres       # Genre-specific scenario tests (38 genres)
 make test-golden       # Golden MIDI regression
-make test-coupling     # Combination Stack tests
 make test-diversity    # Diversity scenario tests
 make test-acoustic     # Audio feature regression (weekly CI)
-make test-genre-coverage  # Per-genre validation (29+ genres)
+make test-genre-coverage  # Per-genre validation (38 genres)
 make markov-validate   # Validate Markov model YAMLs
+make device-validate   # Validate harmonic-device YAMLs
+make gesture-validate  # Validate idiomatic-gesture YAMLs
+make profile-perf      # Verify generation stays within performance budget
 make calibrate-genres  # Genre profile parameter sweep
 pytest tests/unit/test_foo.py::test_bar -v   # One test
 ```
@@ -122,7 +128,7 @@ claude
 ## Before Submitting
 
 ```bash
-make all-checks        # Must pass (2,701+ tests + 6 golden + 5 honesty tools)
+make all-checks        # Must pass (2,978+ tests + 6 golden + 5 honesty tools)
 ```
 
 ## Code Standards

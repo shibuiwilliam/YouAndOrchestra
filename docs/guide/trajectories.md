@@ -50,4 +50,4 @@ yao compose my-spec.yaml --trajectory trajectory.yaml
 
 ## Values
 
-All trajectory values are in the range **0.0 to 1.0**. The generator maps these to musical parameters (e.g., tension 0.5 → base velocity, tension 1.0 → +20% velocity).
+All trajectory values are in the range **0.0 to 1.0**. The generator maps these to musical parameters (e.g., tension 0.5 → base velocity, tension 1.0 → +20 velocity units).

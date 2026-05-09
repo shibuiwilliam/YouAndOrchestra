@@ -16,7 +16,7 @@ Extend SpecCompiler with Japanese keyword + emotion vocabulary support. Language
 
 ## Extended Scales
 
-28 scales total:
+33 scales total:
 - 14 standard Western (major, minor, modes, pentatonic, blues, etc.)
 - 6 Japanese (in, yo, ritsu, minyo, hirajoshi, iwato)
 - 5 Maqam (hijaz, kurd, nahawand, bayati, rast)
@@ -40,6 +40,6 @@ Extend SpecCompiler with Japanese keyword + emotion vocabulary support. Language
 - `src/yao/sketch/language_detect.py` — auto-detection
 - `src/yao/sketch/emotion_vocabulary.py` — 50+ Japanese emotion words
 - `src/yao/sketch/compiler.py` — SpecCompiler with 3-stage fallback
-- `src/yao/constants/scales.py` — 28 scale definitions
+- `src/yao/constants/scales.py` — 33 scale definitions
 - `src/yao/constants/custom_instruments.py` — 8 cultural instruments
 - `.claude/skills/cultures/` — 3 culture skill files

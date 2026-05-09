@@ -24,7 +24,14 @@ The file is a JSON array of provenance records:
       "note_count": 30
     },
     "source": "RuleBasedGenerator._generate_part_notes",
-    "rationale": "Generated melody part for piano using rule-based approach."
+    "rationale": "Generated melody part for piano using rule-based approach.",
+    "record_id": "a1b2c3d4e5f6",
+    "caused_by": [],
+    "agent": null,
+    "phase": null,
+    "confidence": null,
+    "alternatives_rejected": [],
+    "skill_referenced": null
   }
 ]
 ```
@@ -37,8 +44,15 @@ The file is a JSON array of provenance records:
 | `layer` | string | Architectural layer that made the decision (e.g., "generator", "render") |
 | `operation` | string | Specific operation performed (e.g., "generate_melody", "write_midi") |
 | `parameters` | object | Input parameters that influenced the decision |
-| `source` | string | Code location that produced this record (class.method) |
+| `source` | string | What triggered this operation |
 | `rationale` | string | Human-readable explanation of why this decision was made |
+| `record_id` | string | Unique identifier for causal graph edges (auto-generated SHA-256 prefix) |
+| `caused_by` | array of strings | IDs of records that influenced this decision (for causal tracing) |
+| `agent` | string or null | Subagent identifier (v2.0, optional) |
+| `phase` | string or null | Cognitive phase name, e.g., "SKELETAL_GENERATION" (v2.0, optional) |
+| `confidence` | number or null | Decision confidence in [0.0, 1.0] (v2.0, optional) |
+| `alternatives_rejected` | array of strings | Other options considered but not chosen (v2.0, optional) |
+| `skill_referenced` | string or null | Genre Skill that informed this decision (v2.0, optional) |
 
 ## Rules
 
