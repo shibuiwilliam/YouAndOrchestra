@@ -52,15 +52,35 @@ Delivered the eight structural improvements from PROJECT.md:
 
 ---
 
-## Diversity Foundation -- ACTIVE (started 2026-05-08)
+## Phase 2: Claude Agent SDK -- COMPLETE (2026-05-14)
 
-The highest-leverage current effort. Introduces the Combination & Coupling layer with the three highest-impact modules:
+The Agent SDK surface makes YaO driveable from any Python program. Seven sub-phases delivered:
+
+| Phase | Feature | Key Deliverable |
+|---|---|---|
+| 2A | SDK Foundation | In-process MCP server (15 tools), `default_yao_options()`, Lane B raw access |
+| 2B | Lane A Facade | `YaoAgent` class (10 async-generator methods), 9 streaming events, 9 typed results |
+| 2C | Hooks & Permissions | 4 standard hooks, `default_yao_permission()` callback, protected-path enforcement |
+| 2D | Programmatic Subagents | `yao_agent_definitions()` Markdown parser, parity guarantee G2 |
+| 2E | Sessions & Streaming | Project-scoped sessions, JSON-Schema outputs, `fork_session`, `tag_session` |
+| 2F | Reference Applications | 5 examples: minimal, web (FastAPI+SSE), Discord bot, CI pipeline, Jupyter notebook |
+| 2G | Documentation | 6 SDK doc pages, design summary ADR, CLAUDE.md SDK section |
+
+**Post-2G gap fixes (commit 03438ff):** Wired hooks/agents/permissions into `default_yao_options`, added `YaoAgent.interrupt()` and `set_permission_mode()`, structured error payloads, per-subagent tool restrictions and effort tuning, CLI commands `yao agent` and `yao serve`.
+
+**Parity guarantees (G1--G5):** Same files, same subagent reasoning, same Conductor loop, same provenance/outputs, same constraint/lint results across all three surfaces. 164 SDK tests + 196 existing tests = 360 total, zero Phase 1 regressions.
+
+---
+
+## Diversity Foundation -- COMPLETE (2026-05-14)
+
+Introduced the Combination & Coupling layer with 11 modules:
 
 | Module | Status | Key Deliverable |
 |---|---|---|
-| §4.1 Chord-Aware Melody | In progress | `HarmonicMelodyConstraints` IR, `derive_constraints()`, M2 wire-up, 5 `CouplingStyle` profiles |
-| §5.4 Voice-Leading Optimizer | In progress | `optimal_voicing_transition()` with Hungarian assignment, `VoicingConstraints` schema |
-| §5.1 Reharmonization Engine | In progress | 12 reharmonization operations, `ReharmonizationConstraints`, `/reharmonize` command |
+| §4.1 Chord-Aware Melody | Complete | `HarmonicMelodyConstraints` IR, `derive_constraints()`, M2 wire-up, 5 `CouplingStyle` profiles |
+| §5.4 Voice-Leading Optimizer | Complete | `optimal_voicing_transition()` with Hungarian assignment, `VoicingConstraints` schema |
+| §5.1 Reharmonization Engine | Complete | 12 reharmonization operations, `ReharmonizationConstraints`, `/reharmonize` command |
 
 Coupling infrastructure is in place: `src/yao/coupling/` contains 11 modules, `src/yao/ir/harmonic_melody_constraints.py` defines core IR types, `src/yao/schema/features.py` provides feature flags, and `src/yao/verify/melody_harmony_alignment.py` + `voice_leading_smoothness.py` provide evaluation metrics.
 
@@ -87,7 +107,8 @@ Coupling infrastructure is in place: `src/yao/coupling/` contains 11 modules, `s
 | Structural Improvements | ~1,680 |
 | Production Features | ~1,748 |
 | Combination Stack Foundation | ~2,157 |
-| Current (Diversity Foundation in progress) | **~2,701** |
+| Phase 2 SDK (complete) | ~2,823 |
+| Current (Diversity Foundation in progress) | **~2,900+** |
 
 ---
 
@@ -95,17 +116,17 @@ Coupling infrastructure is in place: `src/yao/coupling/` contains 11 modules, `s
 
 Everything below is implemented, tested, and verified by CI honesty tools:
 
-- 285 Python source modules (including 11 coupling modules)
-- 256 test files with ~2,701 tests (including `tests/unit/coupling/` with 12 test files)
-- 8 generation strategies + 8 melodic strategies
-- 35 critique rules across 15 categories
-- 46 instruments (9 families), 28+ scales, 20 forms, 14 chords
+- 285+ Python source modules (including 11 coupling modules + 14 SDK modules)
+- 256+ test files with ~2,900+ tests (including `tests/unit/coupling/` with 12 test files + `tests/sdk/` with 17 test files)
+- 9 generation strategies + 8 melodic strategies
+- 34 critique rules across 15 categories
+- 46 instruments (9 families), 33 scales, 20 forms, 30 chords
 - 15 drum patterns, 20 groove profiles
 - 25 melodic profile YAMLs, 31 rhythm template YAMLs
 - 15 harmonic device YAMLs (jazz turnarounds, blues patterns, Coltrane changes, etc.)
 - 29 Markov model YAMLs organized by type: 14 pitch, 12 rhythm, 3 contour
 - 38 genre profiles, 3 culture skills
-- 8 subagents (including Modulation Planner), 13 slash commands
+- 7 subagents, 10 slash commands
 - 6 output formats (MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel)
 - 7 use-case evaluators (YouTube BGM, Game BGM, Ad, Study, Meditation, Workout, Cinematic)
 - 5 honesty check tools enforced in CI
@@ -114,6 +135,10 @@ Everything below is implemented, tested, and verified by CI honesty tools:
 - 110+ example project specs across diverse genres
 - Feature flags schema (`src/yao/schema/features.py`) for gating Combination Stack modules
 - New evaluation metrics: melody-harmony alignment, voice-leading smoothness
+- Agent SDK surface: `YaoAgent` facade (Lane A) + raw SDK access (Lane B), 15 in-process MCP tools, 9 streaming events, 9 typed results
+- 5 SDK reference applications (minimal, web, Discord, CI, notebook)
+- 6 SDK documentation pages in `docs/sdk/`
+- G1--G5 surface parity guarantees enforced in CI
 
 ---
 
@@ -128,6 +153,6 @@ These are research directions, not committed roadmap items:
 - **Community reference library** -- shared StyleVector format for collaboration
 - **Backend-agnostic agents** -- Claude Code as one adapter among many
 - **Video sync** -- align music to visual cues
-- **Cloud API server** -- expose YaO as a web service
+- **Cloud API server** -- expose YaO as a web service (SDK reference apps provide a starting point)
 - **Full microtonal MIDI rendering** -- MPE-based per-note pitch bend for non-12TET tunings
 - **Genre-driven dynamic evaluation weights** -- evaluation criteria that adapt to the genre being composed

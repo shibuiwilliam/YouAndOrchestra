@@ -26,24 +26,25 @@ Technical documentation for contributors and AI agents developing YaO.
 ## Current State
 
 - **Version:** 0.1.0
-- **Phase:** Diversity Foundation active. Combination & Coupling layer in development: chord-aware melody, voice-leading optimizer, reharmonization engine.
+- **Phase:** Phase 2 (Claude Agent SDK) complete. Diversity Foundation active.
 - **Python:** 3.11+
-- **Source modules:** 285 Python modules in `src/yao/`
-- **Test files:** 256 test files
-- **Test categories:** unit (including `unit/coupling/`), integration, scenario, constraint, golden, acoustic regression, properties, genre coverage, subjective, tools
+- **Source modules:** 285+ Python modules in `src/yao/` (including 14 SDK modules in `src/yao/sdk/`)
+- **Test files:** 256+ test files (including 17 SDK test files in `tests/sdk/`)
+- **Test categories:** unit (including `unit/coupling/`), integration, scenario, constraint, golden, acoustic regression, properties, genre coverage, subjective, tools, sdk (unit + integration + scenarios)
+- **Surfaces:** Claude Code (interactive), CLI (scriptable), Agent SDK (programmatic)
 
 ### Generation
 
 - **Pipeline:** Spec -> PlanOrchestrator (9 steps) -> MusicalPlan -> Critic Gate -> NoteRealizer -> Performance -> Renderer
 - **Combination & Coupling:** 11 coupling modules (`src/yao/coupling/`) -- voice leading, reharmonization, harmonic-melody coupling, harmonic devices, rhythm Markov, modulation, phrase shape, theme recurrence, polyrhythm, genre vector, listening dialog
-- **Registered generators:** 10 (rule_based, stochastic, markov, constraint_satisfaction, twelve_tone, phrase_aware, process_music, loop_evolution, ai_seed)
+- **Registered generators:** 9 (rule_based, stochastic, markov, constraint_satisfaction, twelve_tone, phrase_aware, process_music, loop_evolution, ai_seed)
 - **Melodic strategies:** 8 distinct approaches (contour, motif development, linear voice, arpeggiated, scalar runs, call-response, pedal tone, hocketing)
 - **Plan generators:** FormPlanner, HarmonyPlanner, Composer, DrumPatterner, Orchestrator, ConversationDirector
 
 ### Evaluation and Critique
 
 - **Evaluation:** 11+ metrics across 6 dimensions (structure, melody, harmony, aesthetic, arrangement, acoustics)
-- **Critique rules:** 35 structured rules across 15 categories
+- **Critique rules:** 34 structured rules across 15 categories
 - **Aesthetic metrics:** 4 (surprise, memorability, contrast, pacing)
 - **Acoustic evaluation:** LUFS, spectral features, onset density, 7 use-case evaluators, symbolic-acoustic divergence detection
 - **Ensemble constraints:** 5 inter-part rules (register separation, downbeat consonance, no parallel octaves, no frequency collision, bass below melody)
@@ -51,11 +52,11 @@ Technical documentation for contributors and AI agents developing YaO.
 ### Music Theory
 
 - **Instruments:** 46 across 9 families (including 8 non-Western: shakuhachi, koto, shamisen, taiko, sitar, tabla, oud, ney)
-- **Scales:** 28+ including microtonal (ragas, maqamat, gamelan, just intonation)
+- **Scales:** 33 including microtonal (14 standard + 19 extended: ragas, maqamat, gamelan, Japanese, just intonation)
 - **Song forms:** 20 (AABA, verse-chorus-bridge, rondo, blues, J-Pop, game BGM, ambient, etc.)
 - **Drum patterns:** 15 across time signatures (4/4, 3/4, 5/4, 6/8, 7/8)
 - **Groove profiles:** 20 (jazz swing, bossa nova, funk, afrobeat, samba, etc.)
-- **Chord types:** 14 with functional harmony
+- **Chord types:** 30 with functional harmony
 - **Harmonic devices:** 15 YAML-defined devices (jazz turnarounds, blues 12-bar, Coltrane changes, etc.)
 - **Markov models:** 29 total (14 pitch, 10+ rhythm, contour) with genre-specific models
 
@@ -64,8 +65,8 @@ Technical documentation for contributors and AI agents developing YaO.
 - **Spec formats:** Simple (flat YAML), Detailed (11-section), and Composable (extends/overrides/fragments)
 - **Backends:** PythonOnlyBackend (CI default) + AnthropicAPIBackend (real LLM, structured output via tool use)
 - **Genre Skills:** 38 genres integrated into HarmonyPlanner + SpecCompiler + genre_fitness critique
-- **Subagents:** 8 roles (Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Producer, Modulation Planner)
-- **Slash commands:** 13 (compose, conduct, sketch, critique, regenerate-section, render, explain, arrange, pin, feedback, reharmonize, blend-genres, modulate)
+- **Subagents:** 7 roles (Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Producer)
+- **Slash commands:** 10 (compose, conduct, sketch, critique, regenerate-section, render, explain, arrange, pin, feedback)
 - **StyleVector:** 6 copyright-safe features (histograms + statistics, never sequences)
 - **Sketch:** 6-turn interactive dialogue with state persistence (English + Japanese)
 - **Arrangement:** Source plan extraction, style vector transfer, preservation contracts, diff reports
@@ -77,3 +78,21 @@ Technical documentation for contributors and AI agents developing YaO.
 - **Mix:** Per-track EQ, compression, reverb + master chain (pedalboard-based)
 - **CI:** GitHub Actions + pre-commit hooks + 5 honesty check tools + weekly audio regression
 - **Provenance:** Append-only causal graph with record_id + caused_by edges
+
+### SDK Surface (Phase 2 -- Complete)
+
+- **Modules:** 14 Python modules in `src/yao/sdk/`
+- **Lane A:** `YaoAgent` facade with 10 async-generator methods (1:1 with slash commands) + `interrupt()` and `set_permission_mode()`
+- **Lane B:** `default_yao_options()` + `create_yao_mcp_server()` for raw SDK access (fully wired: hooks, agents, permissions)
+- **MCP tools:** 15 in-process tools (`yao_compose`, `yao_conduct`, `yao_critique`, etc.) with structured error payloads
+- **Streaming events:** 9 typed events (`PhaseStartedEvent`, `IterationCompletedEvent`, `AudioReadyEvent`, etc.)
+- **Results:** 9 typed result dataclasses (`ComposeResult`, `ConductResult`, `CritiqueResult`, etc.)
+- **Hooks:** 4 standard hooks (pre-validate, post-provenance, post-render, post-critique)
+- **Permissions:** `default_yao_permission()` callback protecting iterations, references, agent defs
+- **Subagent definitions:** `yao_agent_definitions()` with per-role tool allowlists and effort tuning
+- **Sessions:** Project-scoped sessions with tagging and forking
+- **Tests:** 164 SDK tests + 196 existing = 360 total, zero Phase 1 regressions
+- **Parity:** G1--G5 guarantees enforce identical behavior across all three surfaces
+- **Reference apps:** 5 examples (minimal, web/FastAPI, Discord bot, CI pipeline, Jupyter notebook)
+- **CLI integration:** `yao agent` (SDK-driven one-shot) and `yao serve` (headless HTTP server)
+- **Documentation:** 6 pages in `docs/sdk/` (overview, quickstart, API reference, Lane A vs B, deployment, parity)

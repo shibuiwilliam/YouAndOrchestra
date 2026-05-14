@@ -1,740 +1,793 @@
-# PROJECT.md — You and Orchestra (YaO)
+# You and Orchestra (YaO)
 
-> *An agentic music production environment built on Claude Code.*
-> *You are the conductor; the AI is your orchestra.*
-> *Music as Code. Reproducible. Auditable. Iterable. Multi-genre.*
+> *An agentic music production environment where you are the conductor, and the AI is your orchestra.*
+> *Reachable through Claude Code, the command line, and the Claude Agent SDK — same orchestra, different venues.*
 
 ---
 
-## 0. The Essence of YaO
+## 0. The Essence of the Project
 
-**You and Orchestra (YaO)** is an agentic music production environment that runs on top of Claude Code. Unlike conventional "AI music tools" that emit music from a single black box, YaO is structured as **a coordinated team of specialized AI subagents (the Orchestra Members), directed by a human (You = the Conductor)**.
+**You and Orchestra (YaO)** is an **agentic music production environment** that runs on top of three peer surfaces — Claude Code, a Click-based CLI, and the Claude Agent SDK for Python. Unlike conventional "AI music tools" that emit a black-box result, YaO produces music through a **division of labor among role-specialized AI agents (Orchestra Members)**, conducted by a human (You = Conductor).
 
-Every architectural choice in YaO descends from one proposition:
+Every design decision in YaO is subordinate to a single proposition:
 
-> **Music production is not a one-off, intuitive act. It is a reproducible, improvable creative-engineering process.**
+> **Music production is not a one-shot intuitive act; it is a reproducible, improvable engineering process.**
 
-For this reason, YaO treats music — before it is sound — as **code, specifications, tests, diffs, and provenance**. We call this the **Music-as-Code** philosophy.
-
-This document, version 2.0, extends the original YaO architecture with **first-class support for diverse music genres**. The single most important architectural addition since 1.0 is the introduction of the **Genre System**: a coordinated set of data structures, generators, and evaluators that allow YaO to produce credible output across at least 20 distinct genres including pop, rock, jazz, hip-hop, EDM, blues, funk, R&B, Latin, classical, and electronic subgenres.
+YaO therefore treats music as **code, specifications, tests, diffs, and provenance** *before* it becomes audio. We call this the **Music-as-Code** philosophy. The same orchestra, the same Conductor, and the same musical engine are reachable from a terminal, an interactive Claude Code session, a web app, a Discord bot, a CI pipeline, or a Jupyter notebook — without compromise.
 
 ---
 
 ## 1. The Metaphor: You and Orchestra
 
-Every concept in YaO maps to a corresponding role in a real orchestra. Internalizing this mapping is the shortest path to using YaO correctly.
+Every YaO concept maps onto an orchestral analogy. Internalizing this map is the shortest path to using YaO correctly.
 
-| YaO Component | Orchestra Metaphor | Implementation |
-|---|---|---|
-| **You** | Conductor | The human project owner |
-| **Score** | Sheet music | YAML specs in `specs/` |
-| **Orchestra Members** | Players | Each Subagent (Composer, Critic, Theorist, etc.) |
-| **Concertmaster** | Lead violinist | Producer Subagent (overall coordination) |
-| **Section Leader** | Genre specialist | **Genre Specialist Subagent** (NEW in v2.0) |
-| **Rehearsal** | Practice cycle | Generate-evaluate-revise iteration loop |
-| **Library** | Score archive | `references/` (with genre-tagged catalog) |
-| **Performance** | Live concert | Rendered final audio |
-| **Recording** | Studio recording | Files in `outputs/` |
-| **Critic / Reviewer** | Music critic | Adversarial Critic Subagent |
+| YaO component | Orchestral analogy | Implementation |
+| --- | --- | --- |
+| **You** | The Conductor | The human owner of the project |
+| **Score** | Sheet music | The YAML specifications under `specs/` |
+| **Orchestra Members** | Players | The seven Subagents (Composer, Critic, Theorist, …) |
+| **Concertmaster** | First-chair coordinator | The Producer Subagent |
+| **Rehearsal** | Iteration before performance | The Conductor loop (generate → evaluate → adapt) |
+| **Library** | The orchestra's score library | The reference works under `references/` |
+| **Performance** | The concert | The rendered final audio |
+| **Recording** | A pressed record | The artifacts under `outputs/` |
+| **Critic** | The reviewer in the press | The Adversarial Critic Subagent |
+| **Venue** | The hall the orchestra plays in | The **Surface** (Claude Code, CLI, or Agent SDK) |
 
-The Conductor (you) does not write every note. Your job is to **clarify intent, set direction for the orchestra members, make judgment calls during rehearsal, and ensure the quality of the final performance**. YaO brings this division of labor to AI.
-
----
-
-## 2. Five Inviolable Design Principles
-
-Every implementation decision in YaO is checked against these five principles. They are also reproduced verbatim in `CLAUDE.md` as the primary judgment criteria for the development agent.
-
-### Principle 1: The Agent Is an Environment, Not a Composer
-YaO is "an environment that makes a human composer 10x faster," not "an AI that writes music." Full automation is not the goal; accelerating and extending human creative judgment is.
-
-### Principle 2: Every Decision Must Be Explainable
-For every generated note, chord, and arrangement choice, a "why" must be recordable. This becomes a `ProvenanceLog` and is persistent, traceable, reviewable, and revisable.
-
-### Principle 3: Constraints Liberate
-Explicit specifications (YAML), reference libraries, negative space declarations, and **genre profiles** are not shackles on creativity but scaffolds for it. Unbounded freedom produces paralysis.
-
-### Principle 4: Time-Axis First, Notes Second
-A piece is first sketched as time-axis trajectories (tension, density, valence, predictability) and only then filled with notes. This produces structurally meaningful music.
-
-### Principle 5: The Human Ear Is the Final Truth
-No matter how sophisticated the automated metrics become, human auditory experience is the ultimate judge. Agents **assist** judgment; they do not replace it.
+The Conductor (You) does not write every note. The Conductor's job is to **clarify intent, set direction, judge rehearsals, and guarantee performance quality**. YaO brings that division of labor to AI. Crucially, the same orchestra plays in different venues: a private rehearsal room (Claude Code), a public stage (Agent SDK in a web app), or a quick recording session (CLI).
 
 ---
 
-## 3. Architecture: The 8-Layer Model
+## 2. Design Principles
 
-YaO is composed of eight clearly separated layers. Each layer has independent input/output contracts and can be swapped or tested in isolation.
+Every implementation choice in YaO is checked against the following **five non-negotiable principles**. They are mirrored in `CLAUDE.md` and used as decision criteria by every agent in the system.
+
+### Principle 1 — The agent is an environment, not a composer
+YaO does not aim to "be the AI that writes the song." It aims to be the environment that makes a human compose **ten times faster**. We accelerate human creativity; we never replace human judgment.
+
+### Principle 2 — Every decision is explainable
+Every note, chord, and arrangement choice carries a **why**. This is persisted in the Provenance Graph and is queryable, reviewable, and revisable.
+
+### Principle 3 — Constraints liberate
+Explicit YAML specifications, reference libraries, and negative-space designs are **scaffolds, not cages**. Unconstrained freedom paralyzes; well-shaped constraints unlock creation.
+
+### Principle 4 — Time-axis first
+A piece is first designed as **trajectories on the time axis** (tension, density, valence, predictability). Notes are filled in only after the curves are right. This produces musically meaningful structure rather than dense local cleverness.
+
+### Principle 5 — The human ear is the final truth
+No automated metric, however sophisticated, beats the human ear. Agents inform; humans decide. Every workflow keeps a clear human approval point.
+
+---
+
+## 3. Architecture: Three Surfaces over Seven Layers
+
+YaO is split into a 3-tier **Surfaces** stratum atop a strict **7-layer** engine. Surfaces are how users invoke YaO. Layers are how YaO does the music. The two are independent: a layer never knows which surface called it; a surface never reaches around the layer it sits above.
 
 ```
-┌──────────────────────────────────────────────────────┐
-│ Layer 7: Reflection & Learning                       │
-│   Learn from production history; user-style profiles │
-├──────────────────────────────────────────────────────┤
-│ Layer 6: Verification & Critique                     │
-│   Music lint, evaluation, diff, Genre Conformance    │
-├──────────────────────────────────────────────────────┤
-│ Layer 5: Rendering                                   │
-│   MIDI, audio (FluidSynth + pedalboard), score PDF   │
-├──────────────────────────────────────────────────────┤
-│ Layer 4: Perception Substitute                       │
-│   Reference matching, style vector, psych mapping    │
-├──────────────────────────────────────────────────────┤
-│ Layer 3: Intermediate Representation (IR)            │
-│   ScoreIR, harmony, motif, voicing, timing, groove,  │
-│   phrasing, drum pattern                             │
-├──────────────────────────────────────────────────────┤
-│ Layer 2: Generation Strategy                         │
-│   Pluggable generators: rule-based, stochastic,      │
-│   drums, markov, constraint solver, AI bridge        │
-├──────────────────────────────────────────────────────┤
-│ Layer 1: Specification                               │
-│   YAML, Pydantic, dialogue, sketch input             │
-├──────────────────────────────────────────────────────┤
-│ Layer 0: Constants & Genre Definitions               │
-│   Instruments, scales, chords, dynamics,             │
-│   GenreProfiles, drum kits, grooves                  │
-└──────────────────────────────────────────────────────┘
+╔═══════════════════════════════════════════════════════════════════╗
+║ Surfaces                                                          ║
+║ ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐    ║
+║ │  Claude Code     │ │  CLI (Click)     │ │  Agent SDK       │    ║
+║ │  (interactive)   │ │  (yao …)         │ │  (yao.sdk)       │    ║
+║ └─────────┬────────┘ └─────────┬────────┘ └─────────┬────────┘    ║
+║           │                    │                    │             ║
+║           └────────────────────┴────────────────────┘             ║
+║                                │                                  ║
+║                           Conductor                               ║
+╚═══════════════════════════════════════════════════════════════════╝
+                                 │
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 7: Reflection & Learning                              │
+│   Provenance log, query, explain                            │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 6: Verification & Critique                            │
+│   Music lint, analysis, evaluation, diff, constraints       │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 5: Rendering                                          │
+│   MIDI writer, stems, audio (FluidSynth), iterations        │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 4: Perception Substitute                              │
+│   Reference matching, psychology mapping, style vector      │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 3: Intermediate Representation (IR)                   │
+│   ScoreIR, harmony, motif, voicing, timing, notation        │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 2: Generation Strategy                                │
+│   Rule-based, stochastic, (Markov, constraint-solver)       │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 1: Specification                                      │
+│   Pydantic schemas, YAML parsing                            │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 0: Constants                                          │
+│   Instrument ranges, MIDI maps, scales, chords, dynamics    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Inter-layer dependencies flow strictly upward. Lower-layer changes propagate up; upper layers can change without affecting lower ones. This means, for example, that swapping Layer 2 generators (rule-based → Markov) requires no changes to Layer 1 specifications.
+Layer dependency flows strictly **upward**. Lower layers do not import from higher layers. The Conductor is the engine entry point: it orchestrates the layered engine and is the **single point of truth** that all surfaces call. An AST-based architecture lint (`make arch-lint`) enforces these boundaries on every commit.
 
-The new addition in v2.0 is making **Layer 0 contain genre definitions**, which then flow up through every layer. This is the foundation of multi-genre support.
+### 3.1 Why surfaces matter
 
----
+Every surface offers a different latency / agency / persistence trade-off:
 
-## 4. The Genre System (v2.0 Centerpiece)
+| | **Claude Code** | **CLI** | **Agent SDK** |
+|---|---|---|---|
+| Latency | Conversational | One-shot | Streaming |
+| Agency | Full agentic loop | Stateless | Full agentic loop |
+| Persistence | Session-bound | None | Resumable sessions |
+| Best for | Day-to-day human composition | Scripts, smoke tests, CI shells | Web apps, bots, batch services, notebooks |
 
-The Genre System is the single most important architectural addition in YaO v2.0. It elevates "genre" from a string label to a first-class data structure that coordinates every layer of the pipeline.
-
-### 4.1 Why a Genre System Was Needed
-
-In v1.0, a user could write `genre: jazz` in `composition.yaml`, but no module interpreted that string into actionable musical decisions. As a result, the system could produce reasonable classical or chamber piano works, but rock had no drums, jazz had no swing, hip-hop had no boom-bap, EDM had no buildup-and-drop. **Every genre limitation traced to a single missing abstraction**: a coordinator that mapped genre semantics into instruments, rhythm, harmony, form, and production.
-
-### 4.2 The GenreProfile Data Structure
-
-The Genre System is centered on the `GenreProfile` frozen dataclass, defined in `src/yao/genre/profile.py`. Each profile captures, in machine-readable form, what a genre *is*: typical tempo range, modes, time signatures, core and forbidden instruments, chord palette extensions, harmonic rhythm, voicing style, swing ratios, drum kit preferences, melodic devices, production targets, and anti-cliché rules. Profiles also support **inheritance** (e.g., `bebop` inherits from `jazz` and overrides specific fields), enabling a hierarchy of related genres.
-
-Profiles are authored as YAML files in `src/yao/genre/profiles/<name>.yaml`, validated through Pydantic, and consumed by every layer that needs to make genre-aware decisions. Non-developers can contribute new genres without writing Python.
-
-### 4.3 Initial Genre Catalog
-
-The launch catalog covers 20 genres organized by family:
-
-| Family | Genres |
-|---|---|
-| Popular | Pop, Rock, Hard Rock, Funk, R&B, Hip-Hop, Lo-fi Hip-Hop |
-| Jazz | Swing Jazz, Bebop, Bossa Nova, Modal Jazz, Fusion |
-| Electronic | House, Techno, Drum & Bass, Ambient, Synthwave |
-| Roots & World | Blues, Latin, Reggae, Celtic |
-| Classical/Cinematic | Baroque, Romantic, Impressionist, Cinematic, Minimalist |
-
-Subgenres (e.g., trap inheriting from hip-hop, bossa nova inheriting from latin) are added incrementally by community contribution.
-
-### 4.4 How Genre Flows Through the System
-
-A user request flows through the Genre System as follows:
-
-1. **Spec Layer:** The natural-language parser or YAML spec produces a primary genre (and optional fusion genres with weights).
-2. **Genre Specialist Subagent:** Reads the resolved `GenreProfile` and produces a "genre briefing" — a structured summary distributed to all other subagents.
-3. **Generation Layer:** Each generator consults the genre briefing to constrain its output. Drum Generator picks a kit and pattern set; Harmony Theorist selects a chord palette and voicing style; Rhythm Architect applies a groove template.
-4. **Verification Layer:** The Genre Conformance evaluator scores how well the output matches the genre, and feeds adaptation hints back to the Conductor.
-5. **Provenance Layer:** Every genre-driven decision is recorded ("9th chord chosen because GenreProfile.chord_palette_extended includes it for `lo-fi hip-hop`").
-
-The Genre System is **additive**: a user who omits the genre field gets the same v1.0 behavior. There are no breaking changes.
+Crucially, **all three surfaces share the same `.claude/` directory** (subagents, slash commands, skills, CLAUDE.md). The SDK loads it via `setting_sources=["project"]`; Claude Code loads it natively; the CLI does not load it because the CLI does not run an agent loop. This means: **changing a subagent definition in `.claude/agents/composer.md` instantly affects both Claude Code and the SDK** — there is one source of truth.
 
 ---
 
-## 5. Directory Structure
+## 4. Directory Structure
 
 ```
 yao/
-├── CLAUDE.md                      # Invariant rules for the development agent
-├── PROJECT.md                     # This document
+├── CLAUDE.md                      # Invariant rules for Claude Code
+├── PROJECT.md                     # This file (full design)
 ├── README.md                      # User-facing quickstart
-├── pyproject.toml                 # Python dependencies
-├── Makefile                       # Top-level commands
+├── pyproject.toml                 # Dependencies (pretty_midi, music21, …, claude-agent-sdk)
+├── Makefile                       # Top-level dev commands
 │
 ├── .claude/
-│   ├── commands/                  # Slash commands (/compose, /arrange, ...)
-│   ├── agents/                    # Subagent definitions (8 total in v2.0)
+│   ├── commands/                  # Slash commands shared by Claude Code & SDK
+│   │   ├── compose.md
+│   │   ├── critique.md
+│   │   ├── sketch.md
+│   │   ├── regenerate-section.md
+│   │   ├── render.md
+│   │   ├── arrange.md             # planned (Phase 2)
+│   │   └── explain.md
+│   ├── agents/                    # Markdown subagent definitions (source of truth)
+│   │   ├── producer.md
 │   │   ├── composer.md
 │   │   ├── harmony-theorist.md
 │   │   ├── rhythm-architect.md
 │   │   ├── orchestrator.md
-│   │   ├── adversarial-critic.md
 │   │   ├── mix-engineer.md
-│   │   ├── producer.md
-│   │   ├── genre-specialist.md          # NEW in v2.0
-│   │   └── reharmonization.md           # NEW in v2.0
-│   ├── skills/
-│   │   ├── genres/                # ≥20 genre skills
-│   │   ├── theory/                # voice-leading, reharmonization, etc.
-│   │   ├── instruments/           # per-instrument idiomatic playing
-│   │   ├── psychology/            # emotion-mapping, memorability
-│   │   ├── grooves/               # NEW: groove-engineering knowledge
-│   │   ├── drums/                 # NEW: per-genre drum vocabulary
-│   │   └── production/            # NEW: per-genre mix/master practice
-│   ├── guides/                    # Internal developer docs
-│   │   ├── architecture.md
-│   │   ├── coding-conventions.md
-│   │   ├── music-engineering.md
-│   │   ├── testing.md
-│   │   ├── workflow.md
-│   │   ├── genre-development.md         # NEW: how to add a genre
-│   │   └── drum-pattern-authoring.md    # NEW: how to author drum MIDI
-│   └── hooks/                     # Pre-commit, post-generate, etc.
+│   │   └── adversarial-critic.md
+│   ├── skills/                    # Specialized knowledge modules
+│   │   ├── genres/
+│   │   ├── theory/
+│   │   ├── instruments/
+│   │   └── psychology/
+│   └── guides/                    # Developer guides referenced by CLAUDE.md
+│       ├── architecture.md
+│       ├── coding-conventions.md
+│       ├── music-engineering.md
+│       ├── sdk.md                 # SDK-specific dev guide
+│       ├── testing.md
+│       └── workflow.md
 │
-├── specs/
-│   ├── projects/                  # User compositions
-│   │   └── <name>/
-│   │       ├── intent.md
-│   │       ├── composition.yaml
-│   │       ├── trajectory.yaml
-│   │       ├── references.yaml
-│   │       ├── negative-space.yaml
-│   │       ├── arrangement.yaml
-│   │       └── production.yaml
-│   ├── templates/                 # Compose-from-scratch starters
-│   │   ├── bgm-90sec.yaml
-│   │   ├── cinematic-3min.yaml
-│   │   ├── lofi-hiphop-loop.yaml        # NEW
-│   │   ├── rock-anthem-3min.yaml        # NEW
-│   │   ├── jazz-trio-4min.yaml          # NEW
-│   │   └── edm-drop-90sec.yaml          # NEW
-│   ├── templates/forms/           # NEW: form-template library
-│   │   ├── 12_bar_blues.yaml
-│   │   ├── aaba_32.yaml
-│   │   ├── verse_chorus_bridge.yaml
-│   │   ├── edm_buildup_drop.yaml
-│   │   └── ...
-│   └── fragments/                 # Reusable spec fragments (planned)
+├── specs/                         # Composition specifications
+│   ├── templates/                 # Ready-to-use templates
+│   └── projects/                  # User compositions
 │
 ├── src/
-│   └── yao/
-│       ├── constants/             # Layer 0
-│       │   ├── instruments.py     # Extended to ~70 instruments
-│       │   ├── scales.py
-│       │   ├── chords.py          # Extended to 30+ chord types
-│       │   ├── dynamics.py
-│       │   └── drum_kits.py             # NEW: drum-kit definitions
-│       ├── genre/                       # NEW: Genre subsystem (Layer 0/1)
-│       │   ├── profile.py
-│       │   ├── registry.py
-│       │   ├── inheritance.py
-│       │   ├── briefing.py
-│       │   └── profiles/<name>.yaml
-│       ├── schema/                # Layer 1: Pydantic models
-│       │   ├── composition.py    # Extended with genre block
-│       │   ├── trajectory.py
-│       │   ├── constraints.py
-│       │   ├── negative_space.py
-│       │   ├── references.py
-│       │   ├── production.py
-│       │   └── form_template.py         # NEW
-│       ├── ir/                    # Layer 3
-│       │   ├── note.py
-│       │   ├── score_ir.py
-│       │   ├── harmony.py        # Extended chord types + devices
-│       │   ├── progressions.py          # NEW: progression library
-│       │   ├── motif.py
-│       │   ├── voicing.py        # Extended voicing styles
-│       │   ├── timing.py
-│       │   ├── notation.py
-│       │   ├── groove.py                # NEW: groove templates
-│       │   ├── drum_pattern.py          # NEW: drum pattern type
-│       │   └── phrasing.py              # NEW: vocal-like phrasing
-│       ├── generators/            # Layer 2
-│       │   ├── base.py
-│       │   ├── registry.py
-│       │   ├── rule_based.py
-│       │   ├── stochastic.py
-│       │   ├── drums.py                 # NEW: drum generator
-│       │   ├── walking_bass.py          # NEW: walking-bass generator
-│       │   ├── markov.py                # NEW: per-genre markov
-│       │   ├── constraint_solver.py     # NEW: counterpoint, voice leading
-│       │   └── ai_bridge.py             # NEW: external-model adapter
-│       ├── perception/            # Layer 4
-│       │   ├── style_vector.py          # NEW
-│       │   ├── reference_matcher.py     # NEW
-│       │   └── reference_library.py     # NEW
-│       ├── render/                # Layer 5
-│       │   ├── midi_writer.py
-│       │   ├── stems.py
-│       │   ├── audio_renderer.py
-│       │   ├── lilypond_writer.py
-│       │   └── strudel_emitter.py
-│       ├── production/                  # NEW (Layer 5 adjunct)
-│       │   ├── profile.py
-│       │   ├── effect_chain.py
-│       │   ├── pedalboard_runner.py
-│       │   └── profiles/<name>.yaml
-│       ├── verify/                # Layer 6
-│       │   ├── music_lint.py
-│       │   ├── analyzer.py
-│       │   ├── evaluator.py
-│       │   ├── diff.py
-│       │   ├── constraint_checker.py
-│       │   └── genre_conformance.py     # NEW
-│       ├── reflect/               # Layer 7
-│       │   ├── provenance.py
-│       │   ├── feedback_loop.py
-│       │   └── style_profile.py         # NEW: user preference learning
-│       └── conductor/             # Cross-layer orchestrator
-│           ├── conductor.py
-│           ├── feedback.py
-│           ├── nl_parser.py             # Upgraded to LLM-powered
-│           └── result.py
+│   ├── yao/                       # Core engine (layers 0–7)
+│   │   ├── constants/             # Layer 0
+│   │   ├── schema/                # Layer 1
+│   │   ├── generators/            # Layer 2
+│   │   ├── ir/                    # Layer 3
+│   │   ├── perception/            # Layer 4
+│   │   ├── render/                # Layer 5
+│   │   ├── verify/                # Layer 6
+│   │   ├── reflect/               # Layer 7
+│   │   ├── conductor/             # Engine entry point
+│   │   ├── errors.py
+│   │   ├── types.py
+│   │   └── sdk/                   # SURFACE: Agent SDK integration
+│   │       ├── __init__.py
+│   │       ├── agent.py           # YaoAgent façade (Lane A)
+│   │       ├── server.py          # In-process MCP server (Lane B core)
+│   │       ├── tools.py           # @tool decorators
+│   │       ├── agents.py          # AgentDefinition mirrors of .claude/agents/
+│   │       ├── _frontmatter.py    # Internal Markdown parser
+│   │       ├── hooks.py           # PreToolUse / PostToolUse hooks
+│   │       ├── permissions.py     # CanUseTool callback
+│   │       ├── events.py          # Streaming event types
+│   │       ├── results.py         # Typed result objects
+│   │       ├── schemas.py         # JSON Schema for output_format
+│   │       ├── streaming.py       # Message → YaoEvent translator
+│   │       ├── sessions.py        # Project-scoped session helpers
+│   │       └── _options.py        # default_yao_options builder
+│   └── cli/                       # SURFACE: Click-based CLI
+│       ├── __init__.py
+│       ├── compose.py
+│       ├── conduct.py
+│       ├── render.py
+│       ├── …
+│       ├── agent.py               # `yao agent "<prompt>"`
+│       └── serve.py               # `yao serve`
 │
-├── references/                    # Aesthetic reference library
-│   ├── catalog.yaml               # Rights, era, genre tags, feature vectors
-│   ├── midi/<genre>/<id>.mid      # Rights-cleared MIDIs
-│   ├── musicxml/<genre>/<id>.xml
-│   ├── drum_patterns/<genre>/<id>.mid   # NEW: pattern library
-│   ├── grooves/<id>.yaml                # NEW: groove templates
-│   └── extracted_features/        # Pre-computed style vectors
+├── references/                    # Aesthetic reference library (rights-cleared)
+│   ├── catalog.yaml
+│   ├── midi/
+│   └── extracted_features/
 │
 ├── outputs/                       # Generated artifacts (git-ignored)
-├── soundfonts/                    # SoundFont files
-└── tests/                         # 226+ tests, growing
-    ├── unit/
-    ├── integration/
-    ├── scenarios/
-    ├── music_constraints/
-    ├── genre/                           # NEW: genre-specific tests
-    └── helpers/
+│   └── projects/<name>/iterations/v001/…
+│
+├── soundfonts/                    # Audio rendering
+│
+├── tests/
+│   ├── unit/                      # Per-module tests
+│   ├── integration/               # Full pipeline tests
+│   ├── music_constraints/         # Instrument-range, voice-leading, etc.
+│   ├── scenarios/                 # End-to-end musical scenarios
+│   └── sdk/                       # SDK-specific tests
+│       ├── unit/
+│       ├── integration/           # Includes G1–G5 parity tests
+│       └── scenarios/
+│
+├── examples/
+│   └── sdk/                       # Reference applications
+│       ├── minimal.py             # 5-line YaoAgent example
+│       ├── web/                   # FastAPI + HTML
+│       ├── discord/               # discord.py bot
+│       ├── ci/                    # GitHub Action
+│       └── notebook/              # Jupyter
+│
+├── tools/
+│   └── architecture_lint.py       # Layer-boundary AST checker
+│
+└── docs/
+    ├── design/                    # Architecture decision records
+    ├── tutorials/
+    ├── glossary.md
+    └── sdk/                       # SDK documentation site
+        ├── overview.md
+        ├── quickstart.md
+        ├── api-reference.md
+        ├── lane-a-vs-lane-b.md
+        ├── deployment.md
+        └── parity-with-claude-code.md
 ```
 
 ---
 
-## 6. Orchestra Composition: The 9 Subagents
+## 5. The Orchestra: Subagent Design
 
-YaO v2.0 includes nine subagents. Each has a defined role, scoped tools, and explicit acceptance criteria. The Producer subagent acts as the concertmaster, integrating all outputs and resolving conflicts.
+YaO's orchestra has **seven members**. Each has a clearly bounded responsibility, an explicit input contract, an explicit output contract, and a tool allowlist that enforces role boundaries. The Producer Subagent is the only member with override authority over the others.
 
-### 6.1 Genre Specialist (NEW in v2.0)
-**Role:** Translates the user's chosen genre into a concrete genre briefing for all other subagents.
-**Inputs:** `composition.yaml` (genre block), `GenreProfile` from registry.
-**Outputs:** `GenreBriefing` — a structured object with target tempo, instrumentation rules, harmonic vocabulary, rhythmic feel, do's and don'ts, and per-section dynamics expectations.
-**Boundary:** Does not generate any notes. Only produces a constraint set.
-**Acceptance criteria:** The briefing is read by every downstream subagent and visibly affects their decisions in the provenance log.
+The seven members are defined in **two synchronized representations**:
 
-### 6.2 Composer
-**Role:** Generates melody, themes, motifs, and structural outlines.
-**Inputs:** `intent.md`, `composition.yaml`, `trajectory.yaml`, `references.yaml`, `GenreBriefing`.
-**Outputs:** Skeletal `ScoreIR` (motifs, melodic lines, structural outline).
-**Boundary:** Does not assign instruments or final voicings (Orchestrator's job).
-**Acceptance criteria:** Motif memorability, balance of repetition and variation, fit to trajectory.
+1. **`.claude/agents/<name>.md`** — Markdown with YAML front matter. *Source of truth.* Used by Claude Code natively and loaded by the Agent SDK via `setting_sources=["project"]`.
+2. **`yao.sdk.agents.yao_agent_definitions()`** — A function that parses the Markdown at module load time and returns `dict[str, AgentDefinition]`. Used when a host has no filesystem access (serverless, embedded deployments).
 
-### 6.3 Harmony Theorist
-**Role:** Designs chord progressions, modulations, cadences, and reharmonization.
-**Inputs:** Composer's melody, `composition.yaml` harmony block, `GenreBriefing`.
-**Outputs:** Chord-progression IR (functional + concrete voicings).
-**Acceptance criteria:** Functional integrity, tension-resolution flow, genre-appropriate vocabulary.
+**The Markdown is authoritative.** The Python mirror is regenerated on import. There is no manual sync step; if the Markdown changes, the Python mirror changes too.
 
-### 6.4 Rhythm Architect
-**Role:** Drum patterns, grooves, syncopation, fills.
-**Inputs:** `composition.yaml` rhythm block, `GenreBriefing`, drum pattern library.
-**Outputs:** Drum and percussion `ScoreIR` plus groove template selection.
-**Acceptance criteria:** Idiomatic groove for the genre, section-to-section contrast, humanization that feels organic.
+### 5.1 Composer
+**Responsibility:** Generate melodies, motifs, themes, and structural outlines.
+**Inputs:** `intent.md`, `composition.yaml`, `trajectory.yaml`, `references.yaml`.
+**Outputs:** ScoreIR fragments (motifs, melodic lines, structure).
+**Forbidden:** Instrument selection, final voicing (those belong to the Orchestrator).
+**Evaluated on:** Motif memorability, repetition/variation balance, trajectory match.
 
-### 6.5 Orchestrator
-**Role:** Instrument assignment, voicings, register placement, countermelody.
-**Inputs:** Outputs from Composer, Harmony Theorist, Rhythm Architect.
-**Outputs:** Complete `ScoreIR` with per-instrument parts.
-**Acceptance criteria:** Frequency-spacing without collision, idiomatic instrument usage, texture density matches trajectory.
+### 5.2 Harmony Theorist
+**Responsibility:** Chord progressions, modulations, secondary dominants, cadences, reharmonization.
+**Inputs:** Composer's melodic seed, the `harmony` block of `composition.yaml`.
+**Outputs:** Chord progression IR (functional notation + concrete voicing candidates).
+**Evaluated on:** Functional integrity, tension–resolution shape, genre fit.
 
-### 6.6 Reharmonization (NEW in v2.0)
-**Role:** Applies chord substitutions and voicing transformations.
-**Inputs:** Existing chord progression + transformation directive.
-**Outputs:** Substituted progression with provenance.
-**Used by:** `/arrange` command, fusion-genre handling.
-**Acceptance criteria:** Substitutions preserve melodic compatibility; voice leading remains smooth.
+### 5.3 Rhythm Architect
+**Responsibility:** Drum patterns, groove, syncopation, fills.
+**Inputs:** `rhythm` block of `composition.yaml`, genre cues.
+**Outputs:** Rhythm IR for all instruments.
+**Evaluated on:** Groove, humanization, section contrast.
 
-### 6.7 Adversarial Critic
-**Role:** Find every weakness. Does not praise.
-**Inputs:** Any-stage generation artifact.
-**Outputs:** `critique.md` with severity ratings.
-**Properties:** **Praise is forbidden.** The critic detects clichés, structural monotony, emotional inconsistencies, similarity to existing works, and genre violations.
+### 5.4 Orchestrator
+**Responsibility:** Instrument assignment, voicings, register placement, countermelodies.
+**Inputs:** Output of Composer, Harmony Theorist, Rhythm Architect.
+**Outputs:** Complete ScoreIR with per-instrument parts.
+**Evaluated on:** Frequency-space conflict avoidance, idiomatic instrument use, texture density.
 
-### 6.8 Mix Engineer
-**Role:** Stereo placement, dynamics, frequency-mask resolution, loudness.
-**Inputs:** Orchestrator output + `production.yaml` + `ProductionProfile`.
-**Outputs:** Mix instructions per track (EQ, compression, reverb, panning) and final mastered audio.
-**Acceptance criteria:** Target LUFS achieved, frequency balance, stereo image matches genre profile.
+### 5.5 Mix Engineer
+**Responsibility:** Stereo placement, dynamics, frequency-mask resolution, loudness (LUFS).
+**Inputs:** Orchestrator's output + `production.yaml` parameters.
+**Outputs:** Mix instructions per track (EQ, compression, reverb, pan).
+**Evaluated on:** LUFS target, frequency balance, stereo width.
 
-### 6.9 Producer
-**Role:** Overall integration, prioritization, dialogue with the human Conductor, final decisions.
-**Inputs:** All other subagents' outputs + human feedback.
-**Outputs:** Final production decisions and instructions for the next iteration.
-**Privilege:** The only subagent that can override or reject another subagent's output.
-**Acceptance criteria:** Faithfulness to `intent.md`.
+### 5.6 Adversarial Critic
+**Responsibility:** **Find every weakness.**
+**Inputs:** Any artifact at any pipeline stage.
+**Outputs:** `critique.md` with a severity-ranked list of issues.
+**Distinguishing trait:** **Never praises.** Hunts for clichés, structural boredom, emotional misalignment, suspicious similarity to existing works.
+**Tool restriction:** `disallowedTools = ["Write", "Edit"]`. The Critic reads, judges, and reports — it never modifies.
+**Evaluated on:** Coverage and specificity of issues found.
+
+### 5.7 Producer
+**Responsibility:** Coordination, prioritization, dialogue with the human Conductor, final judgment.
+**Inputs:** All Subagent outputs + human feedback.
+**Outputs:** Final production decisions, instructions for the next iteration.
+**Privilege:** *The only* Subagent who can reject or revise another's output.
+**Evaluated on:** Fidelity to `intent.md`.
 
 ---
 
-## 7. The 6-Phase Cognitive Protocol
+## 6. The Six-Phase Cognitive Protocol
 
-The `/compose` and `/arrange` slash commands force Claude Code through these six phases in order. This structured cognition prevents the failure mode of "agent immediately writes notes."
+YaO's `/compose`, `/conduct`, and `/arrange` commands all execute the following six phases **in order**. The protocol prevents the most common failure pattern: an agent who jumps straight to writing notes before deciding what the piece is about.
 
-### Phase 1: Intent Crystallization
-Convert user input (dialogue, YAML, sketch) into a 1–3 sentence statement of essence. Ambiguity is rejected. The result lives in `intent.md`.
-
-> Example: "An early summer morning, the forward-leaning anticipation of a new challenge — though faintly mixed with anxiety. Not too cheerful, not too sentimental. A neutral uplift."
-
-### Phase 2: Genre Resolution (NEW in v2.0)
-Resolve the primary genre, optional fusion weights, and load the corresponding `GenreProfile`. Genre Specialist subagent produces the `GenreBriefing`. This phase exists only when a genre is specified; otherwise the protocol proceeds with default heuristics.
-
-### Phase 3: Architectural Sketch
-Draw the time-axis trajectories (tension / density / valence / predictability) **first**. Notes are not yet written. `trajectory.yaml` is finalized.
-
-### Phase 4: Skeletal Generation
-Composer produces 5–10 candidate skeletons (chord progression + main motif at 60% completion).
-
-### Phase 5: Critic-Composer Dialogue
-Adversarial Critic attacks all candidates. Producer judges and either selects the strongest, or commissions a synthesis that combines strengths.
-
-### Phase 6: Detailed Filling and Listening Simulation
-Harmony, Rhythm, Orchestrator, and Mix Engineer fill in detail. Provenance is recorded for every decision. Perception Substitute Layer (Layer 4) "listens" to the result, computes style-vector similarity to references, and triggers regeneration if drift exceeds threshold. Final output: `critique.md`, `analysis.json`, `evaluation.json`, `provenance.json`.
-
----
-
-## 8. Specification Files
-
-YaO describes a piece through a coordinated set of YAML files and Markdown intent. All files are version-controlled.
-
-| File | Purpose |
-|---|---|
-| `intent.md` | Natural-language statement of the piece's essence (1–3 sentences) |
-| `composition.yaml` | Core spec (key, tempo, time signature, form, genre, instruments, sections) |
-| `trajectory.yaml` | Time-axis curves (tension, density, valence, predictability) |
-| `references.yaml` | Aesthetic reference tracks (positive and negative anchors) |
-| `negative-space.yaml` | What *not* to play (rests, frequency gaps, textural subtractions) |
-| `arrangement.yaml` | (Arrangement mode only) preserve / transform / avoid directives |
-| `production.yaml` | Mix and master targets (LUFS, stereo width, effect chains, profile id) |
-| `provenance.json` | (Auto-generated) traceable decision log |
-
-The `composition.yaml` schema in v2.0 introduces a richer `genre` block:
-
-```yaml
-genre:
-  primary: "lofi_hip_hop"
-  fusion:
-    - genre: "neo_soul"
-      weight: 0.2
-  override_profile:
-    target_lufs: -18.0   # User overrides specific profile fields
-
-generation:
-  per_instrument:
-    drums:   { strategy: pattern_based, pattern: "boom_bap_classic" }
-    bass:    { strategy: rule_based, walking: false }
-    rhodes:  { strategy: stochastic, temperature: 0.55 }
-    melody:  { strategy: markov, model: "neo_soul_2gram" }
-
-form_template: "lofi_loop"
-
-production:
-  profile: "lofi_hip_hop"
-```
-
-Per-instrument generator selection is a key v2.0 capability: jazz drums benefit from pattern-based generation, jazz bass from constraint-solver-derived walking lines, jazz piano from stochastic comping, jazz sax from a Markov model trained on bebop.
-
----
-
-## 9. Custom Commands (Conductor's Baton)
-
-| Command | Purpose | Primary Subagents |
+| Phase | Purpose | Output |
 |---|---|---|
-| `/sketch` | Sketch-to-spec dialogue mode | Producer + Genre Specialist |
-| `/compose <project>` | Generate from spec | Composer → all |
-| `/arrange <project>` | Transform an existing piece | Orchestrator + Reharmonization + Adversarial Critic |
-| `/critique <iteration>` | Critique an existing artifact | Adversarial Critic |
-| `/regenerate-section <project> <section>` | Regenerate one section, preserve others | Composer + Producer |
-| `/morph <from> <to> <bars>` | Interpolate between two musical states | Composer + Orchestrator |
-| `/improvise <input>` | Live improvisation mode | Composer + Rhythm Architect |
-| `/explain <element>` | Explain a generation decision | Producer (consults provenance) |
-| `/diff <iter_a> <iter_b>` | Music diff between iterations | Verifier |
-| `/render <iteration>` | MIDI → audio + score | Mix Engineer |
-| `/genre-info <genre>` | Display the GenreProfile for a genre | Genre Specialist |
+| **1. Intent Crystallization** | Convert user input (chat, YAML, sketch) into 1–3 sentences capturing the essence of the piece. No vagueness allowed. | `intent.md` |
+| **2. Architectural Sketch** | Draw the time-axis trajectories (tension, density, valence, predictability). No notes yet. | `trajectory.yaml` |
+| **3. Skeletal Generation** | Composer generates 5–10 candidate seed melodies + chord skeletons. ~60% completeness suffices. | Candidate ScoreIRs |
+| **4. Critic–Composer Dialogue** | Adversarial Critic attacks every candidate. Producer chooses the strongest, or instructs synthesis of a new candidate that combines strengths. | Selected ScoreIR |
+| **5. Detailed Filling** | Harmony / Rhythm / Orchestrator fill in voicings, countermelodies, fills, dynamics. Every choice is recorded in provenance. | Full ScoreIR |
+| **6. Listening Simulation** | The Perception Substitute Layer "listens" to the result and compares against intent. Sections that exceed the divergence threshold are regenerated. | `critique.md`, `evaluation.json` |
+
+The same six-phase protocol is executed identically by all three surfaces. The SDK additionally emits a `PhaseStartedEvent` / `PhaseCompletedEvent` per phase so UIs can show progress.
 
 ---
 
-## 10. Skills (Players' Knowledge)
+## 7. Parameter Specification
 
-`.claude/skills/` contains structured knowledge modules. Subagents consult these as needed.
+Each YaO project is described by **eight YAML/JSON files**, all version-controllable so `git diff` works on music:
 
-### 10.1 Genre Skills
-Each genre has its own skill file matching the `GenreProfile` it documents. Includes typical chord progressions, rhythm patterns, instrumentation, representative reference tracks, and clichés to avoid. Authored as Markdown so non-coders can contribute.
-
-### 10.2 Theory Skills
-Voice leading, counterpoint, reharmonization, modal interchange, secondary dominants, tritone substitution. Includes examples, counter-examples, and genre-dependent applicability.
-
-### 10.3 Instrument Skills
-Per-instrument range, idiomatic articulations, characteristic phrases, physical and ergonomic constraints, recommended SoundFonts.
-
-### 10.4 Psychology Skills
-Empirical mappings from music psychology research (Juslin, Huron, Krumhansl): tempo-arousal, mode-valence, spectral centroid-brightness, expectancy-tension.
-
-### 10.5 Groove Skills (NEW in v2.0)
-What makes a piece "feel" like a genre at the rhythmic level: micro-timing, pocket, swing semantics, accent patterns. Includes call-and-response density patterns.
-
-### 10.6 Drum Skills (NEW in v2.0)
-Per-genre drum vocabulary: typical kick patterns, snare placements, hi-hat behaviors, fills, and which kit (rock, jazz, 808, lo-fi) each subgenre prefers.
-
-### 10.7 Production Skills (NEW in v2.0)
-Per-genre mix and master practices: lo-fi vinyl crackle, EDM sidechain pumping, vintage tape saturation, classical hall reverb. Operational, not theoretical.
-
----
-
-## 11. Hooks (Automatic Performance Cues)
-
-Hooks are scripts (not LLM instructions) that are guaranteed to run at specific lifecycle events. They cannot be forgotten.
-
-| Hook | When | Action |
+| File | Purpose | Authoring |
 |---|---|---|
-| `pre-commit-lint` | Before `git commit` | music21 theory lint + YAML schema validation + architecture lint |
-| `post-generate-render` | After every generation | Auto-render MIDI to audio and score |
-| `post-generate-critique` | After every generation | Auto-invoke Adversarial Critic |
-| `post-generate-conformance` | After every generation | Auto-compute Genre Conformance (NEW in v2.0) |
-| `update-provenance` | After any change | Refresh the provenance graph |
+| `intent.md` | 1–3-sentence statement of essence | Human or Phase 1 |
+| `composition.yaml` | Key, tempo, time signature, form, instruments, sections | Human or `/sketch` |
+| `trajectory.yaml` | Tension / density / valence / predictability over time | Phase 2 |
+| `references.yaml` | Positive (emulate) and negative (avoid) reference works | Human |
+| `negative-space.yaml` | Rests, frequency gaps, textural subtractions | Human or Phase 5 |
+| `arrangement.yaml` | (Arrange mode only) preserve / transform / avoid axes | Human |
+| `production.yaml` | LUFS target, stereo width, reverb amount | Human |
+| `provenance.json` | Append-only decision log | **Auto-generated, hand-edits forbidden** |
+
+Trajectory specifications support three curve types — `bezier` (smooth), `stepped` (per-section flat), and `linear` (target with allowed variance) — with values in `[0.0, 1.0]`.
 
 ---
 
-## 12. MCP Integrations
+## 8. Custom Commands and SDK Methods
 
-YaO is designed to connect with these MCP servers, though most remain optional.
+The user invokes the orchestra through **slash commands** (in Claude Code, defined in `.claude/commands/*.md`) or **`YaoAgent` methods** (in the SDK). The two are 1-to-1 by design: anyone fluent in slash commands can drive YaO from Python without learning a new vocabulary.
 
-| Connection | Purpose |
+| Slash command | `YaoAgent` method | Primary subagent | What it does |
+|---|---|---|---|
+| `/sketch <description>` | `agent.sketch(desc)` | Producer | Interactive spec creation |
+| `/compose <project|desc>` | `agent.compose(spec_or_desc)` | All seven | Generate one iteration via the Conductor loop |
+| `/conduct <project|desc>` | `agent.conduct(spec_or_desc, max_iterations=3)` | All seven | Generate, evaluate, adapt, regenerate until quality passes |
+| `/critique [iteration]` | `agent.critique(iteration)` | Adversarial Critic | Severity-ranked critique markdown |
+| `/regenerate-section <section>` | `agent.regenerate_section(section, seed=…)` | Composer + Producer | Replace one section, preserve the rest |
+| `/render [iteration]` | `agent.render(iteration)` | Mix Engineer | MIDI → WAV via FluidSynth |
+| `/diff <iter_a> <iter_b>` | `agent.diff(a, b)` | (verify layer) | Musical diff with modified-note tracking |
+| `/explain <query>` | `agent.explain(query)` | Producer (provenance) | Trace any decision back to its rationale |
+| `/evaluate [iteration]` | `agent.evaluate(iteration)` | (verify layer) | Re-run quality scoring |
+| `/arrange <project>` *(planned)* | `agent.arrange(project, …)` | Orchestrator + Critic | Reharmonize / regroove / reorchestrate |
+| (free-form) | `agent.chat(prompt)` | All seven | Anything the orchestra can do |
+
+The free-form `chat` method matches the experience of talking to Claude Code directly — describe what you want in natural language and the orchestra figures out which steps to take.
+
+---
+
+## 9. Skills
+
+`.claude/skills/` holds structured knowledge modules referenced by Subagents. There are four categories:
+
+- **Genres** — typical chord progressions, drum patterns, instrument combos, representative reference works, clichés to avoid.
+- **Theory** — voice leading, counterpoint, reharmonization, modal interchange, with exception rules and genre dependencies explicit.
+- **Instruments** — range, idiomatic playing techniques, timbre characteristics, physical constraints, signature phrase patterns.
+- **Psychology** — empirical mappings from Juslin, Huron, Krumhansl: tempo↔arousal, mode↔valence, spectral centroid↔perceived brightness.
+
+The Agent SDK loads skills automatically via `skills="all"` (or a whitelist for context-budget-constrained deployments). The Skill tool remains available so unloaded skills can be invoked on demand.
+
+---
+
+## 10. Hooks
+
+Hooks make non-negotiable behaviors **infrastructure rather than discipline**. They run regardless of agent forgetfulness. YaO has **four standard hooks**, registered in two parallel forms:
+
+- **For Claude Code and CLI development workflows:** shell scripts under `.claude/hooks/`.
+- **For the Agent SDK:** Python callbacks in `yao.sdk.hooks` registered via `HookMatcher`.
+
+Both forms enforce the same four guarantees:
+
+| Hook | When it fires | What it does |
+|---|---|---|
+| `pre-compose-validate` | Before `yao_compose` / `yao_conduct` | Validates spec via Pydantic; blocks the call if invalid |
+| `post-iteration-provenance` | After any iteration-mutating tool | Appends a provenance event to the iteration's `provenance.json` |
+| `post-compose-render` | After `yao_compose` / `yao_conduct` | Renders MIDI → WAV if a SoundFont is available |
+| `post-compose-critique` | After `yao_compose` | Auto-invokes the Adversarial Critic |
+
+The Python form has access to the in-process `Conductor` and runs without subprocess overhead.
+
+---
+
+## 11. MCP Integration
+
+YaO connects to the broader Model Context Protocol ecosystem in two complementary ways.
+
+### 11.1 In-process MCP server (Agent SDK only)
+A built-in MCP server named `yao` is created via `create_sdk_mcp_server()` and registered in `default_yao_options()`. It exposes ~15 in-process tools that wrap every CLI verb plus a few primitives the agent loop needs:
+
+- `yao_compose`, `yao_conduct`, `yao_critique`, `yao_regenerate_section`, `yao_render_audio`
+- `yao_evaluate`, `yao_diff`, `yao_explain`
+- `yao_validate_spec`, `yao_load_spec`, `yao_new_project`
+- `yao_list_iterations`, `yao_read_iteration`
+- `yao_arch_lint`, `yao_run_tests` *(useful for SDK-driven contributors)*
+
+Because the server runs in the same process as the SDK client, there is no serialization between tool calls; the Conductor singleton, the provenance log, and the in-memory ScoreIR are all shared.
+
+### 11.2 External MCP servers
+YaO is designed to integrate with external MCP servers for capabilities that need their own runtimes:
+
+| External MCP | Purpose |
 |---|---|
-| **DAW (Reaper preferred)** | Project file read/write, automatic track layout |
-| **Sample library** | Drum samples, one-shots, loop search and retrieval |
-| **Reference track DB** | Rights-cleared reference catalog and feature search |
-| **MIDI controller** | Live improvisation mode input |
-| **SoundFont/VST server** | Audio rendering |
-| **Cloud storage** | Backup and team collaboration |
+| **DAW (Reaper preferred)** | Read/write project files, auto-layout tracks |
+| **Sample libraries** | Search and fetch drum samples, one-shots, loops |
+| **Reference catalog** | Query rights-cleared reference metadata + extracted features |
+| **MIDI controllers** | Live improvisation input |
+| **SoundFont/VST servers** | Timbre rendering |
+| **Cloud storage** | Backup and team sharing of artifacts |
+
+External servers use stdio or HTTP transports; the in-process server uses the SDK transport. No surface mixes the two.
 
 ---
 
-## 13. Quality Evaluation
+## 12. Quality Evaluation
 
-Generated outputs are scored across six dimensions (six in v2.0; was five in v1.0). Scores are persisted in `evaluation.json`.
+YaO scores every iteration on **five dimensions**, each with numerical targets and tolerance ranges:
 
-### 13.1 Structure Evaluation
-Section contrast, climax position, density-curve fit, repetition balance, loop-ability.
+### 12.1 Structure
+Section contrast, climax position, density-curve fit, repetition balance, loopability.
 
-### 13.2 Melody Evaluation
-Range fit, motif memorability, singability (leap reasonableness), phrase closure, contour variation.
+### 12.2 Melody
+Range fit, motif memorability, singability (leap distribution), phrase closure, contour variation.
 
-### 13.3 Harmony Evaluation
-Chord function integrity, tension-resolution, complexity matching the spec, cadence strength.
+### 12.3 Harmony
+Functional integrity, tension–resolution shape, complexity match against spec, cadence strength.
 
-### 13.4 Arrangement Evaluation (Arrangement mode)
-Instrument-role clarity, frequency collision risk, original-piece preservation, transformation strength.
+### 12.4 Arrangement (when in arrange mode)
+Instrument-role clarity, frequency-collision risk, original-preservation ratio, transformation strength.
 
-### 13.5 Acoustic Evaluation
-BPM match, beat stability, LUFS target achievement, spectral balance, onset density.
+### 12.5 Acoustics
+BPM match, beat stability, LUFS target, spectral balance, onset density.
 
-### 13.6 Genre Conformance (NEW in v2.0)
-The aggregate of: instrumentation match, tempo match, time-signature match, mode match, swing match, chord-palette match, harmonic-rhythm match, form match, and reference similarity. Each genre profile contributes its own weighting (jazz weights harmony heavily, EDM weights rhythm and texture). The Conductor uses this score to drive genre-aware adaptations in the feedback loop.
-
----
-
-## 14. Roadmap
-
-The roadmap unifies prior phases (0–1, completed in v1.0) with the new diversity-driven phases (A–G) introduced for v2.0.
-
-### v1.0 — Foundation (Completed)
-- 7-layer architecture with AST-based linting
-- `ScoreIR`, harmony, motif, voicing, timing modules
-- Rule-based and stochastic generators
-- Conductor with feedback loop
-- Provenance logging
-- Music lint, evaluator, diff
-- 226+ tests
-- 4 spec templates and 7 example projects
-
-### v2.0 — Genre Diversity (In Progress)
-
-#### Phase A: Genre System Foundation (2–3 weeks)
-- `GenreProfile` Pydantic model
-- 15–20 genre profile YAMLs
-- Genre detection in NL parser (keyword → LLM-powered)
-- Genre Conformance evaluator (initial 4–5 sub-metrics)
-- Genre Specialist subagent
-
-#### Phase B: Rhythm and Drums (3–4 weeks)
-- 35–40 drum patterns as MIDI in `references/drum_patterns/`
-- `DrumPattern` data structure and loader
-- `DrumGenerator` with pattern selection logic
-- `GrooveTemplate` and 20+ initial grooves
-- Whole-piece groove application
-- Section-boundary fill generator
-
-#### Phase C: Extended Harmony (3–4 weeks)
-- 15+ new chord types (9th, 11th, 13th, altered, quartal, slash, etc.)
-- Progression library with 50–80 idiomatic progressions
-- Secondary dominants, tritone substitution, modal interchange
-- Voicing styles (rootless, drop2, quartal, power chord)
-- Harmonic-rhythm control
-- Reharmonization Subagent
-
-#### Phase D: Instrument Palette Expansion (2–3 weeks)
-- 20–30 modern instruments (808/909 kits, Rhodes, Hammond, distorted guitars, ethnic instruments)
-- Updated SoundFont mappings
-- Per-instrument velocity-response curves
-- Non-GM percussion in render layer
-
-#### Phase E: Form and Structure (2–3 weeks)
-- 12–15 form templates (12-bar blues, AABA, verse-chorus-bridge, EDM buildup-drop, etc.)
-- Form template loader and validator
-- Automatic form selection based on genre
-- Form-aware section trajectory presets
-
-#### Phase F: Layer 4 — Style Reference (3–4 weeks)
-- Reference Library with 5–10 rights-cleared MIDIs per genre
-- `StyleVector` extraction
-- `ReferenceMatcher` with weighted distance
-- Conductor integration of similarity score
-
-#### Phase G: Production and Phrasing (continuous)
-- `ProductionProfile` data structure
-- `pedalboard` dependency, per-genre effect chains
-- Phrasing Engine (vocal-like melody generation)
-- Call-and-response patterns
-- Markov Generator (per-genre training)
-- Constraint Solver Generator (counterpoint, jazz harmony, 12-tone)
-- AI Bridge Generator (Magenta, Stable Audio, etc.)
-
-### v3.0 and Beyond
-- Live improvisation mode (real-time MIDI in)
-- DAW integration (Reaper MCP)
-- User-style learning (Layer 7)
-- Community-shared reference libraries
-- Web-based browser preview
+When any score falls outside its tolerance, the Adversarial Critic is invoked automatically and the Conductor adapts the spec for the next iteration.
 
 ---
 
-## 15. Quickstart
+## 13. The SDK Surface in Detail
+
+The Agent SDK surface adds programmatic agentic access to YaO. It is **not** a separate engine — it is one of three peer entry points to the same Conductor and the same seven layers. This section describes its specific design.
+
+### 13.1 Two lanes
+
+We deliberately offer two API lanes:
+
+- **Lane A — `YaoAgent` façade** *(used by ~90% of integrations)*: a single class that pre-configures the SDK for music production and exposes one method per slash command. Five lines suffice for most tasks.
+- **Lane B — Raw SDK + `default_yao_options`** *(used by hosting platforms)*: the user constructs `ClaudeAgentOptions` manually, optionally overriding hooks, permissions, or the system prompt, and uses `query()` or `ClaudeSDKClient` directly.
+
+Both lanes load the same `.claude/` directory, register the same in-process MCP server, and call the same Conductor.
+
+### 13.2 Default Agent SDK options
+
+`yao.sdk.default_yao_options(project)` returns a `ClaudeAgentOptions` with:
+
+- `system_prompt={"type": "preset", "preset": "claude_code"}` — same prompt as Claude Code.
+- `setting_sources=["project"]` — loads `.claude/` and `CLAUDE.md`.
+- `mcp_servers={"yao": create_yao_mcp_server()}` — registers the in-process server.
+- `agents=yao_agent_definitions()` — programmatic mirrors of the seven Subagents.
+- `hooks=default_yao_hooks()` — auto-render, auto-critique, auto-provenance, pre-validate.
+- `can_use_tool=default_yao_permission()` — refuses destructive operations on protected paths.
+- `permission_mode="acceptEdits"` — autonomous edits within the project root.
+- `effort="high"` — composition is reasoning-heavy by default.
+- `skills="all"` — preload all four skill categories.
+
+Power users override any of these via `extra_options`.
+
+### 13.3 Streaming events
+
+The SDK exposes a stream of typed events that mirror the six-phase protocol and the Conductor loop:
+
+| Event | When emitted |
+|---|---|
+| `PhaseStartedEvent` | At the start of each of the six cognitive phases |
+| `PhaseCompletedEvent` | At the end of each phase |
+| `SubagentStartedEvent` | When a Subagent begins working |
+| `IterationCompletedEvent` | After each Conductor iteration |
+| `EvaluationReportEvent` | When `evaluation.json` is written |
+| `CritiqueAvailableEvent` | When `critique.md` is written |
+| `AudioReadyEvent` | When WAV rendering finishes |
+| `ProvenanceUpdatedEvent` | After every provenance append |
+| `ConductorFinishedEvent` | At the end of a `conduct()` run |
+
+UIs subscribe to this stream to show progress at the granularity composers care about.
+
+### 13.4 Structured outputs
+
+Every SDK method that returns user-visible data uses `output_format={"type": "json_schema", "schema": …}` to guarantee well-typed results: `ComposeResult`, `ConductResult`, `CritiqueResult`, etc., all defined as Pydantic models. Front-ends consume them directly; no regex parsing of free text.
+
+### 13.5 Permission policies for music production
+
+A music session has narrower destructive boundaries than general coding. The default permission callback **denies** writes to:
+
+- `outputs/projects/<name>/iterations/v*/` (iterations are append-only forever)
+- `references/` (reference works are precious)
+- `.claude/agents/`, `.claude/commands/`, `.claude/skills/` (dev-time concerns, not music-time)
+- `CLAUDE.md`
+
+It also denies Bash commands containing `rm -rf` against any protected directory. Users can override with `permission_mode="default"` (interactive approvals) or supply a custom `can_use_tool` for unusual deployments.
+
+### 13.6 Sessions
+
+Sessions are SDK-native: `list_sessions()`, `resume`, `fork_session=True`, `tag_session()`. YaO conventions add:
+
+- One session directory per project, keyed by absolute project path.
+- Auto-tagging: a finished session is tagged with the iteration it ended on (`v003`).
+- Forks: when a user wants to explore "what if the bridge were in a different key," `fork_session=True` creates a branch tagged `fork-of-<original>`.
+
+For team deployments, `session_store` mirrors transcripts to S3/Postgres.
+
+### 13.7 Five parity guarantees (G1–G5)
+
+Tests in `tests/sdk/integration/test_compose_parity.py` enforce that the same prompt produces identical (or musically equivalent for stochastic seeds) artifacts across all surfaces:
+
+- **G1 — Same files:** All surfaces load `.claude/` and `CLAUDE.md` identically.
+- **G2 — Same subagent reasoning:** Markdown definitions and Python mirrors produce identical traces.
+- **G3 — Same Conductor loop:** Every surface calls `yao.conductor.Conductor`; no surface reimplements the loop.
+- **G4 — Same provenance and outputs:** Identical paths and JSON schema across surfaces.
+- **G5 — Same constraint and lint guarantees:** Identical music-lint and constraint-check results.
+
+A failure of any G* test blocks release.
+
+---
+
+## 14. Hosted Application Patterns
+
+The SDK enables four canonical applications, each with a minimal reference implementation in `examples/sdk/` and an integration test in CI.
+
+### 14.1 Web app
+A FastAPI server wraps `YaoAgent`. The browser front-end shows one progress card per cognitive phase, plus a play button when audio is ready. Streaming via Server-Sent Events. ~250 lines.
+
+### 14.2 Discord/Slack bot
+A bot listens for `!compose <description>`, calls `YaoAgent.conduct()`, replies with the WAV file and the critique markdown. Permission policy is locked down hard (no Bash, no Edit outside `outputs/`). ~150 lines.
+
+### 14.3 CI music generation
+A GitHub Action runs on push to a game-content repo. It reads `levels/*.yaml`, generates one YaO spec per level, and produces stems + WAV in a release artifact. Demonstrates `permission_mode="bypassPermissions"` in a sandboxed runner. ~100 lines.
+
+### 14.4 Jupyter notebook
+`yao_in_jupyter.ipynb` shows inline `display(Audio(wav_path))`, plots evaluation scores across iterations with matplotlib, and embeds the `YaoEvent` stream as a tqdm progress bar.
+
+---
+
+## 15. Quickstart: Four Ways to Use YaO
+
+### 15.1 Setup
 
 ```bash
-git clone <repo>
-cd yao
+git clone https://github.com/shibuiwilliam/YouAndOrchestra.git
+cd YouAndOrchestra
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-make setup-soundfonts
+pip install -e ".[dev,sdk]"
+make setup-soundfonts                # one-time SoundFont setup
+export ANTHROPIC_API_KEY=sk-…        # for Agent SDK
 ```
+
+### 15.2 Path 1 — Natural-language CLI
 
 ```bash
-yao new-project my-first-song
-claude   # launch Claude Code in the YaO directory
-> /sketch
-> "lo-fi hip hop for studying, mellow, 90 seconds"
-> /compose my-first-song
-afplay outputs/projects/my-first-song/iterations/v001/audio.wav
-> /critique my-first-song
-> /regenerate-section my-first-song chorus
+yao conduct "a calm piano piece in D minor for studying, 90 seconds"
 ```
 
-For arrangement (transforming an existing piece into a different genre):
+### 15.3 Path 2 — YAML CLI
 
 ```bash
-cp source.mid specs/projects/my-arrangement/source.mid
-> /arrange my-arrangement --target-genre jazz
+yao new-project rainy-cafe
+# edit specs/projects/rainy-cafe/composition.yaml
+yao conduct --spec specs/projects/rainy-cafe/composition.yaml --project rainy-cafe
 ```
+
+### 15.4 Path 3 — Claude Code (interactive)
+
+```bash
+claude                                # in the YaO directory
+> /sketch a mysterious puzzle game BGM
+> /compose
+> /critique
+> /regenerate-section bridge
+```
+
+### 15.5 Path 4 — Agent SDK (programmatic)
+
+```python
+import asyncio
+from yao.sdk import YaoAgent
+from yao.sdk.events import IterationCompletedEvent, AudioReadyEvent
+
+async def main():
+    async with YaoAgent(project="rainy-cafe") as agent:
+        async for event in agent.conduct(
+            "a rainy-cafe BGM with piano and cello, melancholy",
+            max_iterations=3,
+        ):
+            if isinstance(event, IterationCompletedEvent):
+                print(f"iter {event.iteration} -> {event.iteration_path}")
+            elif isinstance(event, AudioReadyEvent):
+                print(f"audio: {event.wav_path}")
+
+asyncio.run(main())
+```
+
+All four paths produce **identical artifacts** at `outputs/projects/rainy-cafe/iterations/v00N/`.
 
 ---
 
 ## 16. File Formats and Interoperability
 
-YaO uses standard formats wherever possible to maintain interoperability.
+YaO commits to industry-standard formats:
 
-| Use | Format | Reason |
+| Use | Format | Why |
 |---|---|---|
-| Music data | MIDI (.mid), MusicXML (.xml) | Universal DAW support |
-| Score | LilyPond (.ly), PDF | High-quality typesetting |
-| Specs | YAML | Human-readable, git-friendly |
-| IR | JSON | Programmatic + schema-validated |
-| Provenance | JSON | Graph-structured |
-| Audio | WAV (working), FLAC/MP3 (distribution) | Standards |
-| Live patterns | Strudel pattern strings | Browser-based instant audition |
-| Drum patterns | MIDI Type 1 | Authorable in any DAW |
-| Grooves | YAML | Per-tick offset specification |
+| Music data | MIDI (`.mid`), MusicXML (`.xml`) | Industry standard; every DAW reads them |
+| Notation | LilyPond (`.ly`), PDF | High-quality, automatable |
+| Specifications | YAML | Human-readable, git-friendly |
+| Intermediate representation | JSON | Programmatic, schema-validated |
+| Provenance | JSON | Graph-friendly |
+| Audio | WAV (production), FLAC/MP3 (distribution) | Universal |
+| Live coding | Strudel pattern strings | Browser-playable |
 
-Custom formats are introduced only when no standard suffices, and only with explicit design justification.
+Custom formats are introduced only when no standard suffices.
 
 ---
 
 ## 17. Ethics and Licensing
 
-### 17.1 Reference Library
-Only rights-cleared works are placed in `references/`. Each entry's license status is recorded in `catalog.yaml`. Unknown-status works are not used.
+### 17.1 Training data and references
+The reference library accepts **rights-cleared works only**. Each entry in `references/catalog.yaml` records its license; works with unknown status are not used.
 
-### 17.2 Artist Mimicry
-Direct mimicry of named, currently-active artists is discouraged. Use abstract feature descriptions instead.
+### 17.2 Artist imitation
+Naming a living artist as a target style is discouraged. Use **abstract feature descriptions** instead:
 
-> ✗ "in the style of <Living Artist Name>"
-> ✓ "wide open string voicings, ascending motifs, oscillation between major and minor, meditative tempo"
+- ✗ "In the style of Joe Hisaishi"
+- ✓ "Wide open string voicings, ascending motifs, major/minor flux, meditative tempo"
 
-### 17.3 Output Rights
-Pieces generated by YaO are owned by the user by default. If reference influence is unusually high, YaO emits a warning and records details in the provenance log.
+### 17.3 Generated rights
+Music produced with YaO belongs to the user. When a single reference dominates the influence vectors, YaO emits a warning.
 
 ### 17.4 Transparency
-Generated outputs should record "produced with YaO" along with the list of aesthetic anchors consulted.
+Every artifact records "produced with YaO" plus the influencing aesthetic anchors in `provenance.json`. We recommend disclosure when distributing.
 
 ---
 
-## 18. Document Relationships
+## 18. Document Hierarchy
 
-| File | Audience | Contents |
+| File | Audience | Purpose |
 |---|---|---|
-| `PROJECT.md` (this) | Humans + agents | Overall design, philosophy, architecture |
-| `CLAUDE.md` | Agent (development) | Invariant rules, prohibitions, references to skills |
-| `IMPROVEMENT.md` | Humans + agents | Detailed analysis and proposals for v2.0 (genre diversity) |
-| `README.md` | Humans | Quickstart, minimal usage |
-| `docs/design/*.md` | Humans + agents | Individual design-decision records |
-| `.claude/guides/*.md` | Agent (development) | Topic-specific deep guides (architecture, testing, etc.) |
-| `docs/` (mkdocs) | Users + developers | Hosted documentation site |
+| `PROJECT.md` (this file) | Humans + agents | Full design, philosophy, architecture |
+| `CLAUDE.md` | Agents (primarily) | Invariant rules, forbidden patterns, surface guides |
+| `README.md` | New users | Quickstart, minimal usage |
+| `docs/design/*.md` | Both | Individual design decision records (ADR-style) |
+| `docs/sdk/*.md` | SDK users + agents | SDK-specific API reference and deployment |
+| `.claude/guides/*.md` | Developing agents | Detailed dev guides referenced by CLAUDE.md |
+| `development/*.md` | Developers | Internal technical docs |
+| `mkdocs.yml` site | End users | Published documentation |
 
 ---
 
-## 19. Glossary
+## 19. Roadmap
 
-**Conductor** — The human project owner; final decision-maker.
-**Orchestra** — The collective of subagents.
-**Score** — The YAML spec set.
-**ScoreIR** — The mid-level dataclass representation of a piece.
-**Trajectory** — A time-axis curve of musical attributes.
-**GenreProfile** — Machine-readable definition of a genre (NEW v2.0).
-**GenreBriefing** — Resolved guidance distributed to all subagents (NEW v2.0).
-**GrooveTemplate** — Coordinated micro-timing pattern (NEW v2.0).
-**DrumPattern** — A bar-length pattern across the GM drum map (NEW v2.0).
-**ProductionProfile** — Genre-specific mix/master settings (NEW v2.0).
-**Aesthetic Reference Library** — Genre-tagged reference works.
-**Perception Substitute Layer** — Layer 4: stand-in for the AI's inability to "hear."
-**Provenance** — Traceable record of every generation decision.
-**Adversarial Critic** — Subagent that exclusively criticizes.
-**Negative Space** — What is intentionally not played.
-**Style Vector** — Multi-dimensional feature representation of style.
-**Iteration** — A version (v001, v002, ...) within a project.
-**Music Lint** — Automated theory-violation detection.
-**Genre Conformance** — Quality dimension introduced in v2.0.
+### 19.1 Technical phases (engine + surface)
+
+| Phase | Duration | Deliverables |
+|---|---|---|
+| **Phase 0 — Bootstrap** | ✅ done | Project layout, CLAUDE.md, MVP MIDI generation |
+| **Phase 1 — Symbolic composition** | ✅ done | Eight-spec parameter system, Conductor, two generators, evaluation, CLI, slash commands, four skills |
+| **Phase 2A — SDK foundation** | 1–2 weeks | In-process MCP server, `default_yao_options`, Lane B raw access |
+| **Phase 2B — SDK Lane A façade** | 1–2 weeks | `YaoAgent` class, streaming events, typed results |
+| **Phase 2C — SDK hooks/permissions** | 1 week | Auto-render, auto-critique, auto-provenance, protected-path enforcement |
+| **Phase 2D — Programmatic subagents** | 1 week | `yao_agent_definitions()`, parser tests, parity G2 |
+| **Phase 2E — Sessions / streaming polish** | 1 week | Project-scoped sessions, JSON-Schema outputs, back-pressure |
+| **Phase 2F — Reference applications** | 2 weeks | Web, Discord, CI, notebook, all in CI |
+| **Phase 2G — Docs and SDK preview release** | 1 week | `docs/sdk/`, README path 4, CLAUDE.md SDK section |
+| **Phase 3 — Arrangement engine + Style Vector** | 1 month | `/arrange`, reharmonization, regrooving, reorchestration |
+| **Phase 4 — Perception layer + critique** | 1 month | Reference matching, psychology mapping, multi-resolution trajectory |
+| **Phase 5 — Production integration** | 2–3 months | DAW (Reaper) MCP, AI music model bridges, live improvisation |
+| **Phase 6 — Reflection & learning** | ongoing | User-style profiles, community reference sharing |
+
+### 19.2 User-value milestones
+
+| Milestone | User-facing value | Required features |
+|---|---|---|
+| **1. Describe & Hear** | "Describe in YAML, hear immediately" | CLI compose, two generators, templates, auto-versioning |
+| **2. Iterate & Improve** | "Tell it what's wrong, get an improvement" | Score diff, evaluation, `/critique`, section regeneration |
+| **3. Richer Music** | "Pro-quality harmony, rhythm, dynamics" | Harmony IR, constraints, walking bass, syncopation |
+| **4. My Style** | "Learns my taste, generates in my voice" | Reference matching, style profile, spec composition |
+| **5. Production Ready** | "Usable in real projects" | DAW integration, multi-format export, mix engineer |
+| **6. Anywhere YaO Goes** | "Driveable from any program in any language" | **SDK in production: web apps, bots, CI, batch services** |
+
+### 19.3 Strategic insight
+
+YaO's design pattern is, beneath the music, a **general framework for structured human-AI creative collaboration**. The `Surface ↔ Engine ↔ Layers` decomposition we use here generalizes:
+
+| YaO pattern | General pattern | Other domains |
+|---|---|---|
+| Score (YAML) | **Intent-as-Code** | UI design, narrative structure, game-level design |
+| Trajectory | **Time-axis quality curves** | Video pacing, presentation flow, UX journeys |
+| Adversarial Critic | **Adversarial review** | Code review, design critique, writing feedback |
+| Provenance Graph | **Decision genealogy** | All AI-assisted creative work |
+| 6-phase protocol | **Structured creative protocol** | Any domain where "don't jump to implementation" matters |
+| **Three surfaces / one engine** | **Surface ↔ Engine ↔ Layers** | Any system that needs interactive, scriptable, and programmatic access |
+
+These abstractions are designed for future extraction; current scope remains music.
+
+### 19.4 Development culture
+
+- **Sound-first culture:** Changes that affect generation or rendering must include before/after audio samples in the PR.
+- **Documentation budget:** Maintain ≥ 3 lines of working code per 1 line of design documentation.
+- **Dogfooding:** Music made with YaO is used in our demo videos and presentations.
+- **Contribution paths for musicians:** Genre skills, templates, and reference analyses are Python-free contribution paths.
+- **Surface parity is non-negotiable:** Every PR that touches any surface runs G1–G5 in CI.
 
 ---
 
-## 20. Closing Words: What YaO Aims to Be
+## 20. Future Architectural Extensions
 
-YaO is not a project where AI writes music. It is **infrastructure for humans and AI to co-create music**, each contributing what they do best.
+### 20.1 Session/project runtime layer
+The SDK already covers the session use case. A future enhancement is to add a **`ProjectRuntime`** that caches per-section regeneration, manages a feedback queue (critique → revision loop), and supports musical undo/redo across iterations.
 
-- Humans provide **intent, judgment, and taste**.
-- AI provides **theoretical knowledge, iteration speed, and exhaustive recordkeeping**.
-- YaO is **the structured collaborative process** that lets these two work together.
+### 20.2 Abstract agent protocol
+The seven Subagents are currently coupled to Claude Code via Markdown and to the SDK via Python `AgentDefinition`. A backend-neutral Python protocol (`AgentRole`, `AgentContext`, `AgentOutput`) would let other agentic backends (e.g., other LLMs or future Anthropic platforms) be plugged in. Claude Code becomes one adapter; the SDK becomes another.
 
-Great music remains, in the end, an expression of the human soul. YaO aims to make that expression **faster, deeper, and more reproducible** — across every genre that humans care about.
+### 20.3 Real-time feedback paths
+The current YAML → MIDI → WAV → external player pipeline has too much latency for live work. Future work:
+
+- `yao preview` command for inline MIDI playback
+- Strudel pattern emission for browser-based real-time auditioning
+- `sounddevice` direct WAV playback
+
+### 20.4 Spec composition
+Reusable spec fragments under `specs/fragments/` with `extends:` / `overrides:` keys for spec composition.
+
+### 20.5 Live improvisation mode
+A `/improvise` flow that listens to MIDI input via an external MCP server and the in-process MCP server emits accompaniment in real time.
+
+---
+
+## 21. Glossary
+
+**Conductor** — the human owner of the project; final authority.
+**Engine** — the seven-layer musical core (`yao.conductor` plus layers 0–7).
+**Surface** — one of three peer entry points: Claude Code, CLI, Agent SDK.
+**Score** — the YAML specifications under `specs/`.
+**ScoreIR** — frozen-dataclass intermediate representation of a score.
+**Trajectory** — a time-axis curve over a musical attribute (tension, density, etc.).
+**Aesthetic Reference Library** — the rights-cleared works in `references/`.
+**Perception Substitute Layer** — Layer 4, which compensates for AI's inability to actually hear.
+**Provenance** — the append-only, queryable log of every generation decision.
+**Adversarial Critic** — the never-praising Subagent that hunts for weaknesses.
+**Negative Space** — the deliberately-silent parts of a piece.
+**Style Vector** — multi-dimensional feature representation of genre/style.
+**Iteration** — a versioned generation under `outputs/projects/<name>/iterations/v<NNN>/`.
+**Music Lint** — automated detection of theory and constraint violations.
+**Sketch-to-Spec** — the dialogue that turns natural language into a YAML spec.
+**Lane A** — high-level SDK access via `YaoAgent`.
+**Lane B** — low-level SDK access via raw `query()` / `ClaudeSDKClient` plus `default_yao_options()`.
+**`YaoAgent`** — the high-level Agent SDK façade class.
+**In-process MCP server** — the `yao` MCP server registered via `create_sdk_mcp_server()`.
+
+---
+
+## 22. Closing
+
+YaO does not aim to be "the AI that makes music." It aims to be **the place where humans and AI make music together**, and to make that place reachable from anywhere.
+
+- Humans bring **intent, taste, and soul.**
+- AI brings **theory knowledge, iteration speed, and exhaustive recordkeeping.**
+- YaO provides **the structured collaborative process** that turns the two into a piece of music.
+
+Whether the conductor is a hobbyist on a laptop typing slash commands, a developer wiring `YaoAgent` into a Discord bot, or a CI pipeline regenerating game music on every push — they are conducting **the same orchestra**, in different venues. Great music remains, in the end, an expression of the human soul. YaO exists to make that expression **faster, deeper, and reproducible.**
 
 > *Your vision. Your taste. Your soul.*
-> *— and an Orchestra ready to serve, in any genre.*
+> *— and an Orchestra ready to serve, anywhere you need it.*
 
 ---
 
-**Project: You and Orchestra (YaO)**
-*Document version: 2.0*
-*Last updated: 2026-05-08*
+**Project:** You and Orchestra (YaO)
+**Document:** PROJECT.md
+**Document version:** 2.0 (SDK Surface integrated)
+**Last updated:** 2026-05-10

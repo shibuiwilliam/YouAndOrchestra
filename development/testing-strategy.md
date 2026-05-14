@@ -17,13 +17,16 @@
 | LLM Quality | `tests/llm_quality/` | NL generation quality tests | ~1 |
 | Tonal Systems | `tests/tonal_systems/` | Tonal system IR tests | ~15 |
 | Tools | `tests/tools/` | CI audit tool tests | ~44 |
-| **Total** | | | **~2,778** |
+| SDK Unit | `tests/sdk/unit/` | YaoAgent, MCP server, events, results, hooks, permissions, agents, sessions | ~100 |
+| SDK Integration | `tests/sdk/integration/` | G1--G5 parity tests, full-stack compose with pinned seeds | ~15 |
+| SDK Scenarios | `tests/sdk/scenarios/` | Reference app scripts, musical quality via SDK | ~7 |
+| **Total** | | | **~2,900+** |
 
 ## Running Tests
 
 ```bash
 make all-checks        # Full pipeline: lint + arch-lint + tests + golden + honesty
-make test              # All ~2,778 tests
+make test              # All ~2,900+ tests
 make test-unit         # Unit tests only
 make test-integration  # Integration tests
 make test-melody       # Phrase-first melody pipeline tests
@@ -44,6 +47,8 @@ make calibrate-genres  # Genre profile parameter sweep
 make markov-validate   # Validate all Markov YAML models
 make device-validate   # Validate harmonic-device YAMLs
 make profile-perf      # Verify generation stays within performance budget
+make sdk-test          # SDK-specific tests (unit + integration)
+make sdk-examples-test # Verify SDK reference applications
 pytest tests/unit/test_foo.py::test_bar -v   # One specific test
 ```
 
@@ -82,6 +87,9 @@ assert_trajectory_match(score, trajectory, dimension="tension", tolerance=0.1)
 | New Markov model | Load test, transition distribution sum check, `make markov-validate` |
 | New harmonic device | Schema validation via `make device-validate` |
 | New drum pattern | Meter-aware validation + fills |
+| SDK module | Unit tests in `tests/sdk/unit/`, G1--G5 parity unaffected |
+| SDK event/result | Serialization round-trip, event emission at correct phase |
+| SDK hook/permission | Hook fires at correct lifecycle point, permission blocks/allows correctly |
 
 ## Golden Test Protocol
 
@@ -142,3 +150,4 @@ Use these markers to select specific test subsets:
 - `@pytest.mark.subjective` -- Human rating (skipped in CI)
 - `@pytest.mark.audio_regression` -- Acoustic features (weekly CI)
 - `@pytest.mark.genre_coverage` -- Per-genre validation
+- `@pytest.mark.sdk` -- SDK-specific tests

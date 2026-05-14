@@ -1,5 +1,20 @@
 # Deployment Guide
 
+## Built-in HTTP Server (`yao serve`)
+
+The fastest way to deploy YaO as a service. No custom code needed:
+
+```bash
+pip install -e ".[sdk]"
+yao serve --host 0.0.0.0 --port 8765
+```
+
+Endpoints:
+- `POST /compose` — accepts `{"description": "...", "project": "..."}`, streams events
+- `GET /health` — health check
+
+For production deployments with custom endpoints, SSE streaming, or authentication, use a custom FastAPI app instead.
+
 ## Web App (FastAPI)
 
 See `examples/sdk/web/app.py` for a complete example.

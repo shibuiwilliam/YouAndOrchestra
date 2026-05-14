@@ -2,9 +2,32 @@
 
 ## Overview
 
-YaO is a layered music production pipeline with 8 layers (0 through 7) plus intermediate layers for Coupling, Musical Plan IR, and Performance Expression. Each layer has clear responsibilities and strict downward-only dependency flow. Layer boundaries are enforced by `tools/architecture_lint.py` using AST analysis.
+YaO is a layered music production pipeline with 8 layers (0 through 7) plus intermediate layers for Coupling, Musical Plan IR, and Performance Expression, accessible through **three peer surfaces**: Claude Code (interactive), CLI (scriptable), and Agent SDK (programmatic). Each layer has clear responsibilities and strict downward-only dependency flow. Layer boundaries are enforced by `tools/architecture_lint.py` using AST analysis.
 
 The **Combination & Coupling** layer (`src/yao/coupling/`) sits between the Generation and Score IR layers. This layer houses modules that transform, couple, blend, and optimize already-generated material -- including chord-aware melody, voice-leading optimization, reharmonization, modulation planning, genre blending, rhythm Markov models, polyrhythm, theme recurrence, and listening-agent dialog.
+
+## Surfaces
+
+All three surfaces call the same Conductor and share the same `.claude/` directory. A layer never knows which surface called it; a surface never reaches around the layer it sits above.
+
+```
+┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
+│  Claude Code     │ │  CLI (Click)     │ │  Agent SDK       │
+│  (interactive)   │ │  (yao …)         │ │  (yao.sdk)       │
+└─────────┬────────┘ └─────────┬────────┘ └─────────┬────────┘
+          └────────────────────┴────────────────────┘
+                               │
+                          Conductor
+                               │
+                     7-Layer Music Engine
+```
+
+The SDK surface (`src/yao/sdk/`, 14 modules) provides:
+- **Lane A** — `YaoAgent` facade with 10 async-generator methods
+- **Lane B** — Raw `query()` / `ClaudeSDKClient` with `default_yao_options()`
+- **In-process MCP server** — 15 tools registered via `create_yao_mcp_server()`
+- **9 streaming events** and **9 typed result dataclasses**
+- **4 standard hooks** and **protected-path permission callback**
 
 ## Layer Model
 
@@ -17,7 +40,7 @@ The **Combination & Coupling** layer (`src/yao/coupling/`) sits between the Gene
 |   Provenance (causal graph), style profiles, agent backends  |
 +--------------------------------------------------------------+
 | Layer 6: Verification & Critique (verify/)                   |
-|   Evaluation (6 dims), aesthetic metrics, 35 critique rules, |
+|   Evaluation (6 dims), aesthetic metrics, 34 critique rules, |
 |   ensemble constraints, acoustic divergence, constraint check |
 +--------------------------------------------------------------+
 | Layer 5: Rendering (render/)                                 |
@@ -55,7 +78,7 @@ The **Combination & Coupling** layer (`src/yao/coupling/`) sits between the Gene
 |   conversation, tension_arcs, genre profiles, arrangement    |
 +--------------------------------------------------------------+
 | Layer 0: Constants (constants/)                              |
-|   46 instruments, 28 scales, 20 forms, 14 chords, MIDI maps |
+|   46 instruments, 33 scales, 20 forms, 30 chords, MIDI maps |
 +--------------------------------------------------------------+
 ```
 
@@ -101,7 +124,7 @@ PlanOrchestrator (9 steps)
 === MusicalPlan Complete ===
     |
     v
-Critic Gate (MPIR-level: 35 rules + ensemble constraints)
+Critic Gate (MPIR-level: 34 rules + ensemble constraints)
     |
     v
 NoteRealizer (100% plan consumption -- no legacy adapter)
@@ -157,18 +180,18 @@ Conductor Feedback Loop (up to 3 iterations + audio loop)
 
 ```
 src/yao/           285 Python modules
-  constants/       Layer 0: 46 instruments, 28 scales, 20 forms, 14 chords, 15 harmonic devices (103+ YAML files)
+  constants/       Layer 0: 46 instruments, 33 scales, 20 forms, 30 chords, 15 harmonic devices (103+ YAML files)
   schema/          Layer 1: 28 Pydantic model files (simple + detailed + composable specs, genre profiles, features.py)
   sketch/          Layer 1.5: NL compiler (3-stage), emotion vocab, dialogue (5 files)
   ir/              Layer 3: Score IR + Plan IR (32 type files), HarmonicMelodyConstraints
-  generators/      Layer 2: 10 registered generators (rule_based, stochastic, markov, constraint_satisfaction, twelve_tone, phrase_aware, process_music, loop_evolution, ai_seed), 8 melodic strategies, performance, markov_models/ (pitch+rhythm+contour)
+  generators/      Layer 2: 9 registered generators (rule_based, stochastic, markov, constraint_satisfaction, twelve_tone, phrase_aware, process_music, loop_evolution, ai_seed), 8 melodic strategies, performance, markov_models/ (pitch+rhythm+contour)
   coupling/        Combination & Coupling: 11 modules (voice_leading, reharmonization, harmonic_melody, harmonic_devices, rhythm_markov, modulation, phrase_shape, theme_recurrence, polyrhythm, genre_vector, listening_dialog)
   perception/      Layer 4: Audio features, style vector, surprise, mood (8 modules)
   render/          Layer 5: MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel, DAW integration (mcp_bridge, reaper_writer) (11+ modules)
-  verify/          Layer 6: Evaluator, 35 critique rules, constraints, melody_harmony_alignment, voice_leading_smoothness (25+ modules including critique subsystem)
+  verify/          Layer 6: Evaluator, 34 critique rules, constraints, melody_harmony_alignment, voice_leading_smoothness (25+ modules including critique subsystem)
   reflect/         Layer 7: Provenance, style profile (6 files)
   conductor/       Orchestration: Generate-evaluate-adapt loop (11 modules)
-  subagents/       8 subagent implementations (including Modulation Planner)
+  subagents/       7 subagent implementations
   agents/          Backend protocol: PythonOnly, Anthropic API (6 files)
   arrange/         Arrangement: Style ops, extraction, diff (12 files)
   feedback/        Feedback: Pin, NL translator, regenerator (4 files)
@@ -179,6 +202,7 @@ src/yao/           285 Python modules
   skills/          Genre skill loader (2 files)
   runtime/         Project runtime (2 files)
   sound_design/    Sound design: Patches, effects (2 files)
+  sdk/             Agent SDK surface: YaoAgent, MCP server, events, results, hooks (14 files)
 ```
 
 ## Library Confinement
@@ -195,6 +219,7 @@ src/yao/           285 Python modules
 | `torch` | generators/neural/ | all other layers |
 | `mido` | improvise/ | all other layers |
 | `fastapi` | annotate/, audition/ | all other layers |
+| `claude_agent_sdk` | sdk/ | all other layers |
 
 ## Honesty Enforcement
 

@@ -206,7 +206,7 @@ def test_trajectory_compliance():
 - **stochastic_v2** (`stochastic_v2.py`) -- Seeded randomness, 100% plan consumption, temperature control
 
 ### Additional Generators
-- **Markov** -- Probabilistic transitions from 27 YAML models (14 pitch, 11 rhythm, 2 root-level legacy)
+- **Markov** -- Probabilistic transitions from 29 YAML models (14 pitch, 12 rhythm, 3 contour)
 - **Twelve-tone** -- Serial composition with P/I/R/RI row transformations
 - **Process music** -- Minimalist phasing/additive/subtractive processes
 - **Constraint satisfaction** -- Backtracking CSP with key+range+stepwise constraints (5s timeout)

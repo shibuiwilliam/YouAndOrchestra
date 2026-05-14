@@ -139,3 +139,23 @@ Terms used throughout the YaO codebase and documentation.
 **Theme Recurrence Graph** — Plan for theme returns and transformations across a piece. Auto-generated from song form. See `yao.coupling.theme_recurrence`.
 
 **Voice-Leading Smoothness** — Total voice motion across consecutive chords / Hungarian-optimal minimum. Target: ≤ 1.5× minimum for common-practice. See `yao.verify.voice_leading_smoothness`.
+
+---
+
+## SDK Surface
+
+**Agent SDK** — The third peer surface for YaO, providing programmatic access via the Claude Agent SDK for Python. Enables web apps, bots, CI pipelines, and notebooks to drive the same orchestra. See `src/yao/sdk/`.
+
+**In-process MCP Server** — An MCP server created via `create_sdk_mcp_server()` that runs in the same process as the SDK client. Exposes 15 tools wrapping every CLI verb. No serialization overhead between tool calls. See `yao.sdk.server`.
+
+**Lane A** — High-level SDK access via the `YaoAgent` facade class. Pre-configures the SDK for music production and exposes one async-generator method per slash command. Five lines suffice for most tasks. See `yao.sdk.agent`.
+
+**Lane B** — Low-level SDK access via raw `query()` / `ClaudeSDKClient` plus `default_yao_options()`. For hosting platforms and power users who need to override hooks, permissions, or the system prompt. See `yao.sdk._options`.
+
+**Parity Guarantees (G1--G5)** — Five testable guarantees that the same prompt produces identical artifacts across all three surfaces: same files (G1), same subagent reasoning (G2), same Conductor loop (G3), same provenance and outputs (G4), same constraint and lint results (G5). See `tests/sdk/integration/`.
+
+**Surface** — One of three peer entry points to YaO: Claude Code (interactive), CLI (scriptable), Agent SDK (programmatic). All surfaces call the same Conductor and share the same `.claude/` directory.
+
+**YaoAgent** — The high-level Agent SDK facade class (`yao.sdk.agent.YaoAgent`). Exposes 10 async-generator methods (`sketch`, `compose`, `conduct`, `critique`, `regenerate_section`, `render`, `diff`, `evaluate`, `explain`, `chat`) that mirror slash commands. See `yao.sdk.agent`.
+
+**YaoEvent** — Base class for typed streaming events emitted by the SDK. Nine event types: `PhaseStartedEvent`, `PhaseCompletedEvent`, `SubagentStartedEvent`, `IterationCompletedEvent`, `EvaluationReportEvent`, `CritiqueAvailableEvent`, `AudioReadyEvent`, `ProvenanceUpdatedEvent`, `ConductorFinishedEvent`. See `yao.sdk.events`.

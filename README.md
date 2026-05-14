@@ -2,7 +2,7 @@
 
 **Describe music in plain language. Get a full MIDI score with stems, quality evaluation, and a log explaining every decision.**
 
-YaO is an agentic music production environment built on [Claude Code](https://docs.anthropic.com/en/docs/claude-code). You give it an idea — a sentence, a conversation, or a detailed YAML spec — and it runs a multi-stage generation pipeline with AI subagents, 35 adversarial critique rules, and automatic iteration until quality thresholds pass. Everything is explainable: every note carries a provenance record explaining why it exists.
+YaO is an agentic music production environment built on [Claude Code](https://docs.anthropic.com/en/docs/claude-code). You give it an idea — a sentence, a conversation, or a detailed YAML spec — and it runs a multi-stage generation pipeline with AI subagents, 34 adversarial critique rules, and automatic iteration until quality thresholds pass. Everything is explainable: every note carries a provenance record explaining why it exists.
 
 > Your vision. Your taste. Your soul. — and an Orchestra ready to listen, respond, and surprise.
 
@@ -32,7 +32,7 @@ The `/sketch` command walks you through a 6-turn dialogue to refine your idea in
 
 ---
 
-## Four Ways to Compose
+## Three Ways to Compose
 
 ### 1. Interactive sketch (recommended for exploration)
 
@@ -69,36 +69,6 @@ Three spec formats are available:
 - **Simple** — Flat YAML for quick experiments
 - **Detailed** — Multi-section spec with full control over melody, harmony, rhythm, arrangement, and production
 - **Composable** — Specs with `extends`, `overrides`, and reusable fragments
-
-### 4. Claude Agent SDK (programmatic)
-
-Drive YaO from any Python program — web apps, Discord bots, CI pipelines, Jupyter notebooks:
-
-```bash
-pip install -e ".[sdk]"
-export ANTHROPIC_API_KEY=sk-...
-```
-
-```python
-import asyncio
-from yao.sdk import YaoAgent
-from yao.sdk.events import IterationCompletedEvent, AudioReadyEvent
-
-async def main():
-    async with YaoAgent(project="my-song") as agent:
-        async for event in agent.conduct(
-            "a calm piano piece in D minor for studying, 90 seconds",
-            max_iterations=3,
-        ):
-            if isinstance(event, IterationCompletedEvent):
-                print(f"iter {event.iteration} -> {event.iteration_path}")
-            elif isinstance(event, AudioReadyEvent):
-                print(f"audio: {event.wav_path}")
-
-asyncio.run(main())
-```
-
-Same orchestra, same Conductor, same output — just a different venue. See [docs/sdk/](docs/sdk/) for the full API reference, deployment guides, and reference applications.
 
 ---
 
@@ -151,6 +121,7 @@ outputs/projects/my-piece/iterations/v001/
   analysis.json      # Structural analysis
   evaluation.json    # Quality scores (6 dimensions)
   provenance.json    # Causal graph of every decision
+  perceptual.json    # LUFS, spectral features, onset density
 ```
 
 ---
@@ -170,7 +141,7 @@ User Input (natural language or YAML)
   -> [Step 4]  Drum Patterner  -> DrumPattern + GrooveProfile
   -> [Step 5]  Orchestrator    -> ArrangementPlan
   -> [Step 5.5] Conversation   -> ConversationPlan (inter-instrument dialogue)
-  === Critic Gate (35 adversarial rules before any notes are placed) ===
+  === Critic Gate (34 adversarial rules before any notes are placed) ===
   -> [Step 6]  Note Realizer   -> ScoreIR (with harmonic coupling)
   -> [Step 6.5] Performance    -> Articulation, dynamics, microtiming
   -> [Step 7]  Renderer        -> MIDI / WAV / MusicXML / LilyPond / Score
@@ -224,7 +195,7 @@ Nine registered generators cover a spectrum from deterministic to probabilistic 
 |---|---|
 | **rule_based** | Deterministic, chord-aware, motif placement |
 | **stochastic** | Seed + temperature controlled, contour-shaped |
-| **markov** | Probabilistic transitions from 15 genre-specific pitch models |
+| **markov** | Probabilistic transitions from genre-specific pitch models |
 | **phrase_aware** | Four-layer pipeline (phrase plan -> skeleton -> surface -> ornament) |
 | **twelve_tone** | Serialist composition using P/I/R/RI tone rows |
 | **process_music** | Minimalist generative processes (phasing, additive, subtractive) |
@@ -251,15 +222,15 @@ Eight strategies shape how pitches are chosen within any generator:
 
 ## Music Theory Support
 
-### Instruments (54)
+### Instruments (39+)
 
-46 Western instruments across keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, and percussion families. Plus 8 non-Western instruments with culturally appropriate ranges and idiomatic techniques:
+Instruments across keyboard, strings, guitar, bass, brass, woodwind, saxophone, synth, and percussion families — plus non-Western instruments with culturally appropriate ranges and idiomatic techniques:
 
 **shakuhachi** (Japanese bamboo flute) | **koto** (13-string zither) | **shamisen** (3-string lute) | **taiko** (drum) | **sitar** (Indian plucked string) | **tabla** (pair of drums) | **oud** (fretless lute) | **ney** (end-blown flute)
 
-### Scales (28)
+### Scales (30)
 
-14 Western scales (major, minor, harmonic minor, melodic minor, dorian, mixolydian, lydian, phrygian, locrian, pentatonic major/minor, blues, whole tone, chromatic) plus 14 extended tuning systems:
+Western scales (major, minor, harmonic minor, dorian, mixolydian, pentatonic major/minor, blues, chromatic) plus extended tuning systems:
 
 - **Japanese**: hirajoshi, iwato, in, minyo, ritsu, yo
 - **Indian**: raga Yaman, Bhairav, Todi, Marwa, Darbari
@@ -275,7 +246,7 @@ All defined in cents-based `ScaleDefinition` objects supporting microtonal preci
 
 ### Harmony
 
-- 14 chord types (major, minor, diminished, augmented, dom7, maj7, min7, dim7, half-dim7, sus2, sus4, add9, min9, maj9)
+- 30 chord types (triads, 7ths, 9ths, 11ths, 13ths, suspended, altered dominants, and more)
 - Functional harmony with Roman numeral analysis (I, ii, V7/V, vii, etc.)
 - Voice-leading detection (parallel fifths/octaves)
 - 15 harmonic devices (jazz turnaround, gospel walkdown, 12-bar blues, Coltrane changes, ii-V-I, Neapolitan approach, circle of fifths, tritone substitution, etc.)
@@ -285,12 +256,12 @@ All defined in cents-based `ScaleDefinition` objects supporting microtonal preci
 - 31 rhythm templates spanning jazz, rock, pop, Latin, electronic, classical, world
 - 20 groove profiles for ensemble-wide microtiming (jazz swing, bossa nova, funk, afrobeat, samba, lo-fi hip hop, drum & bass, etc.)
 - 15 drum patterns across time signatures (4/4, 3/4, 5/4, 6/8, 7/8)
-- 12 rhythm Markov models for genre-conditioned onset patterns
-- 15 pitch Markov models per genre (bebop, blues, modal dorian, celtic, bossa nova, flamenco, raga, maqam, impressionist, J-pop, classical, ambient, etc.)
+- Rhythm Markov models for genre-conditioned onset patterns
+- Genre-specific pitch Markov models (bebop, blues, modal dorian, celtic, bossa nova, flamenco, raga, maqam, impressionist, J-pop, classical, ambient, etc.)
 
 ### Form
 
-20 song forms: AABA, verse-chorus-bridge, rondo, blues 12-bar/16-bar, sonata, fugue, theme & variations, binary, ternary, arch form, through-composed, J-pop, game BGM (intro-loop), ambient throughflow, minimalist phasing.
+20 song forms: AABA, verse-chorus-bridge, rondo, blues 12-bar/16-bar, sonata, fugue, theme & variations, binary, ternary, arch form, through-composed, J-pop, game BGM (intro-loop), ambient throughflow, minimalist phasing, EDM buildup-drop, hip-hop verse-hook, and more.
 
 ---
 
@@ -321,7 +292,7 @@ Every composition is automatically evaluated across 6 dimensions:
 | Temporal | Onset density per section, tempo stability |
 | Use-case | YouTube BGM, Game BGM, Advertisement, Study Focus, Meditation, Workout, Cinematic |
 
-### Adversarial Critique (35 Rules)
+### Adversarial Critique (34 Rules)
 
 A panel of automated critics, each specialized to find specific weaknesses:
 
@@ -338,8 +309,9 @@ A panel of automated critics, each specialized to find specific weaknesses:
 | Surprise | Surprise deficit, surprise overload |
 | Hook | Hook overuse, underuse, misplacement |
 | Groove | Groove inconsistency, microtiming flatness, ensemble conflict |
-| Conversation | Conversation silence, voice ambiguity, fill absence |
-| Acoustic | Symbolic-acoustic divergence, LUFS violation, spectral imbalance, brightness-intent mismatch |
+| Conversation | Conversation silence, voice ambiguity, fill absence, frequency collision unresolved |
+| Dynamics | Flat phrase dynamics |
+| Metric | Metric drift |
 
 ---
 
@@ -359,6 +331,54 @@ All interaction happens through Claude Code slash commands:
 | `/arrange <project>` | Style transfer with preservation contracts |
 | `/pin <project> <location> <note>` | Attach localized feedback to bars/beats/instruments |
 | `/feedback <project> <text>` | Natural-language feedback translated to structured suggestions |
+
+---
+
+## CLI
+
+YaO also provides a Click-based CLI for scripting and one-shot generation:
+
+```bash
+# One-shot composition
+yao conduct "a calm piano piece in D minor for studying, 90 seconds"
+
+# From a YAML spec
+yao new-project rainy-cafe
+yao conduct --spec specs/projects/rainy-cafe/composition.yaml --project rainy-cafe
+
+# Other commands
+yao render outputs/projects/my-piece/iterations/v001/full.mid
+yao explain "why was the bridge in F# minor?"
+yao blend-genres jazz classical --ratio 0.6
+yao reharmonize my-piece --operation tritone_sub
+```
+
+---
+
+## Agent SDK (Programmatic Access)
+
+For web apps, bots, CI pipelines, and notebooks, use the Agent SDK:
+
+```python
+import asyncio
+from yao.sdk import YaoAgent
+from yao.sdk.events import IterationCompletedEvent, AudioReadyEvent
+
+async def main():
+    async with YaoAgent(project="rainy-cafe") as agent:
+        async for event in agent.conduct(
+            "a rainy-cafe BGM with piano and cello, melancholy",
+            max_iterations=3,
+        ):
+            if isinstance(event, IterationCompletedEvent):
+                print(f"iter {event.iteration} -> {event.iteration_path}")
+            elif isinstance(event, AudioReadyEvent):
+                print(f"audio: {event.wav_path}")
+
+asyncio.run(main())
+```
+
+Install with `pip install -e ".[sdk]"`. See `examples/sdk/` for web app, Discord bot, CI, and Jupyter notebook examples.
 
 ---
 
@@ -404,6 +424,26 @@ Operations: **regroove**, **reharmonize**, **reorchestrate**, **retempo**, **tra
 
 ---
 
+## Multi-Genre Capabilities
+
+25 melodic profiles with genre-specific interval distributions, phrase conventions, ornament profiles, and anti-patterns:
+
+| Genre Category | Profiles |
+|---|---|
+| **Jazz** | Bebop, modal jazz, jazz ballad |
+| **Rock** | Classic rock, progressive rock |
+| **Pop** | J-Pop ballad, K-Pop |
+| **Electronic** | House, ambient, progressive electronic |
+| **Latin** | Bossa nova, salsa |
+| **Classical** | Baroque, romantic |
+| **World** | Celtic, reggae, bluegrass, folk |
+| **Urban** | Lo-fi hip hop, funk, soul/R&B, gospel |
+| **Other** | Blues, country, metal, cinematic |
+
+Each profile drives every decision in the pipeline — interval weights, chord-tone targeting, syncopation density, ornament probabilities, motif transformation preferences, and anti-pattern rules.
+
+---
+
 ## Output Formats
 
 | Format | Notes |
@@ -412,7 +452,6 @@ Operations: **regroove**, **reharmonize**, **reorchestrate**, **retempo**, **tra
 | WAV | Requires FluidSynth + SoundFont |
 | MusicXML | Import into Finale, MuseScore, Sibelius |
 | LilyPond / PDF | Publication-quality engraving |
-| Reaper RPP | DAW project with per-track MIDI |
 | Strudel | Live-coding notation for browser playback |
 
 ---
@@ -423,8 +462,8 @@ YaO uses an 8-layer architecture with strict downward-only dependency flow, enfo
 
 ```
 Layer 7: Reflection & Learning       (reflect/, agents/, runtime/)
-Layer 6: Verification & Critique     (verify/ - 35 rules, aesthetic metrics, acoustic eval)
-Layer 5: Rendering                   (render/ - MIDI, WAV, MusicXML, LilyPond, Reaper, Strudel)
+Layer 6: Verification & Critique     (verify/ - 34 rules, aesthetic metrics, acoustic eval)
+Layer 5: Rendering                   (render/ - MIDI, WAV, MusicXML, LilyPond, Strudel)
 Layer 4: Perception                  (perception/ - audio features, style vectors, surprise, use-case eval)
 Layer 3: Score IR                    (ir/ - note, part, section, voicing, timing, phrase, skeleton, melody)
 Coupling: Combination & Coupling     (coupling/ - 11 modules, Combination Stack)
@@ -450,6 +489,21 @@ When `features.chord_aware_melody` is enabled (the default), M2 scores every can
 
 ---
 
+## Gallery
+
+Four pre-generated demonstration pieces with audio and full specs:
+
+| Audio | Description |
+|---|---|
+| [short-anime-v1.mp3](https://drive.google.com/file/d/1GRhr3dlH41BJ4krFNCKvYfLiWLQif0fR/view?usp=drive_link) | 28-second anime J-rock opening in Bb major, 165 BPM. Electric guitar lead with driving energy. |
+| [short-string-v1.mp3](https://drive.google.com/file/d/1Kex9F1l6jbAROb7GIS4NM9a4ILApJuwm/view?usp=drive_link) | 29-second Romantic-era string ensemble miniature in A major, 90 BPM. Elegant and tender. |
+| [short-jazz-v1.mp3](https://drive.google.com/file/d/1KXKeYuJo9H2OpNybEmV8OSM7nCiFh6nN/view?usp=drive_link) | 30-second cool jazz for a midnight bar in Bb minor, 80 BPM. Tenor sax, piano, contrabass, drums. |
+| [puzzle-light.mp3](https://drive.google.com/file/d/1Pq8btcpo1iOjKxffWGm1IhSksUxxOynu/view?usp=drive_link) | 29-second light puzzle game BGM in C major, 90 BPM. Loopable and cheerful. |
+
+Each gallery directory contains the full `composition.yaml`, `trajectory.yaml`, and `intent.md` used for generation.
+
+---
+
 ## Feature Flags
 
 The Combination Stack is controlled by feature flags in the composition spec:
@@ -462,26 +516,6 @@ features:
 ```
 
 When a flag is off, the module returns its input unchanged — existing behavior is preserved bit-identically.
-
----
-
-## Multi-Genre Capabilities
-
-25 melodic profiles with genre-specific interval distributions, phrase conventions, ornament profiles, and anti-patterns:
-
-| Genre Category | Profiles |
-|---|---|
-| **Jazz** | Bebop, modal jazz, jazz ballad |
-| **Rock** | Classic rock, progressive rock |
-| **Pop** | J-Pop ballad, K-Pop |
-| **Electronic** | House, ambient, progressive electronic |
-| **Latin** | Bossa nova, salsa |
-| **Classical** | Baroque, romantic |
-| **World** | Celtic, reggae, bluegrass, folk |
-| **Urban** | Lo-fi hip hop, funk, soul/R&B, gospel |
-| **Other** | Blues, country, metal, cinematic |
-
-Each profile drives every decision in the pipeline — interval weights, chord-tone targeting, syncopation density, ornament probabilities, motif transformation preferences, and anti-pattern rules.
 
 ---
 
@@ -528,22 +562,11 @@ brew install fluid-synth
 sudo apt-get install fluidsynth
 ```
 
-Place a `.sf2` file in `soundfonts/`, then use `/render` in Claude Code.
+Place a `.sf2` file in `soundfonts/`, then use `/render` in Claude Code. A setup helper is available:
 
----
-
-## Gallery
-
-Four pre-generated demonstration pieces with audio and full specs:
-
-| Audio | Description |
-|---|---|
-| [short-anime-v1.mp3](https://drive.google.com/file/d/1GRhr3dlH41BJ4krFNCKvYfLiWLQif0fR/view?usp=drive_link) | 28-second anime J-rock opening in Bb major, 165 BPM. Electric guitar lead with driving energy. |
-| [short-string-v1.mp3](https://drive.google.com/file/d/1Kex9F1l6jbAROb7GIS4NM9a4ILApJuwm/view?usp=drive_link) | 29-second Romantic-era string ensemble miniature in A major, 90 BPM. Elegant and tender. |
-| [short-jazz-v1.mp3](https://drive.google.com/file/d/1KXKeYuJo9H2OpNybEmV8OSM7nCiFh6nN/view?usp=drive_link) | 30-second cool jazz for a midnight bar in Bb minor, 80 BPM. Tenor sax, piano, contrabass, drums. |
-| [puzzle-light.mp3](https://drive.google.com/file/d/1Pq8btcpo1iOjKxffWGm1IhSksUxxOynu/view?usp=drive_link) | 29-second light puzzle game BGM in C major, 90 BPM. Loopable and cheerful. |
-
-Each gallery directory contains the full `composition.yaml`, `trajectory.yaml`, and `intent.md` used for generation.
+```bash
+make setup-soundfonts
+```
 
 ---
 
@@ -551,7 +574,7 @@ Each gallery directory contains the full `composition.yaml`, `trajectory.yaml`, 
 
 ```bash
 make all-checks     # Full quality pipeline
-make test           # All tests (~2,500+ test functions across 256 files)
+make test           # All tests (~2,550 test functions across 325 files)
 make lint           # ruff + mypy strict
 make arch-lint      # Layer boundary enforcement (AST-based)
 make test-coupling  # Combination Stack tests
@@ -564,7 +587,7 @@ make honesty-check  # Verify no stub features marked as complete
 make calibrate-genres # Genre profile parameter sweep
 ```
 
-Five honesty tools run in CI to verify that features actually work, not just exist.
+CI runs on every push and PR: lint, architecture lint, unit/integration/scenario/golden tests across Python 3.11-3.13. Audio regression tests run weekly.
 
 ---
 
@@ -573,9 +596,23 @@ Five honesty tools run in CI to verify that features actually work, not just exi
 | Extra | Install | Features |
 |---|---|---|
 | `dev` | `pip install -e ".[dev]"` | pytest, mypy, ruff, pre-commit |
+| `sdk` | `pip install -e ".[sdk]"` | Claude Agent SDK for programmatic access |
 | `neural` | `pip install -e ".[neural]"` | Stable Audio texture generation (torch, transformers) |
 | `live` | `pip install -e ".[live]"` | Real-time MIDI improvisation (mido, python-rtmidi) |
 | `annotate` | `pip install -e ".[annotate]"` | Browser-based A/B audition and annotation UI (FastAPI) |
+
+---
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [FEATURE_STATUS.md](FEATURE_STATUS.md) | Single source of truth for all capabilities |
+| [PROJECT.md](PROJECT.md) | Full architecture and design |
+| [CLAUDE.md](CLAUDE.md) | Development rules, current phase, escalation guide |
+| [IMPROVEMENT.md](IMPROVEMENT.md) | Gap analysis and SDK integration roadmap |
+| [development/](development/) | API reference, generator guide, spec system, testing strategy, contributing |
+| [docs/](docs/) | MkDocs site with tutorials, glossary, and architecture deep-dives |
 
 ---
 
@@ -589,19 +626,6 @@ Five honesty tools run in CI to verify that features actually work, not just exi
 6. **Phrase before notes** — phrases have function, target pitch, and cadence; notes are derived
 7. **Genre is a constellation** — a `MelodicProfile` with dozens of parameters, not a string label
 8. **Diversity through combination** — the Combination Stack turns existing materials into genuinely varied output
-
----
-
-## Documentation
-
-| Document | Purpose |
-|---|---|
-| [FEATURE_STATUS.md](FEATURE_STATUS.md) | Single source of truth for all capabilities |
-| [PROJECT.md](PROJECT.md) | Full architecture and design |
-| [CLAUDE.md](CLAUDE.md) | Development rules, current phase, escalation guide |
-| [IMPROVEMENT.md](IMPROVEMENT.md) | Gap analysis and diversity improvement roadmap |
-| [development/](development/) | API reference, generator guide, spec system, testing strategy, contributing |
-| [docs/](docs/) | MkDocs site with tutorials, glossary, and architecture deep-dives |
 
 ---
 

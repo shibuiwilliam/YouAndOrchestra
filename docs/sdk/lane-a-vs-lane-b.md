@@ -10,6 +10,10 @@ async with YaoAgent(project="my-song") as agent:
         print(event)
 ```
 
+Lane A also supports lifecycle control:
+- `await agent.interrupt()` — abort mid-stream
+- `agent.set_permission_mode(mode)` — change permissions at runtime
+
 **Use when:**
 - You want music in 5 lines
 - You don't need custom hooks or permissions

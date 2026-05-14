@@ -6,8 +6,8 @@
 git clone https://github.com/shibuiwilliam/YouAndOrchestra
 cd YouAndOrchestra
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-make all-checks   # Should see ~2,978 tests passing + 6 golden + 5 honesty tools
+pip install -e ".[dev,sdk]"
+make all-checks   # Should see ~2,900+ tests passing + 6 golden + 5 honesty tools
 ```
 
 Requires **Python 3.11+**.
@@ -90,7 +90,7 @@ def test_my_feature() -> None:
 
 ```bash
 make all-checks        # Full pipeline (lint + arch-lint + tests + golden + honesty)
-make test              # All tests (~2,978)
+make test              # All tests (~2,900+)
 make lint              # ruff + mypy strict
 make arch-lint         # Layer boundary enforcement (covers Layer 2.5 Coupling)
 make format            # Auto-format code (ruff)
@@ -106,6 +106,8 @@ make device-validate   # Validate harmonic-device YAMLs
 make gesture-validate  # Validate idiomatic-gesture YAMLs
 make profile-perf      # Verify generation stays within performance budget
 make calibrate-genres  # Genre profile parameter sweep
+make sdk-test          # SDK-specific tests
+make sdk-examples-test # Verify SDK reference applications
 pytest tests/unit/test_foo.py::test_bar -v   # One test
 ```
 
@@ -125,10 +127,23 @@ claude
 > /render my-piece
 ```
 
+### Via Agent SDK
+```python
+import asyncio
+from yao.sdk import YaoAgent
+
+async def main():
+    async with YaoAgent(project="my-piece") as agent:
+        async for event in agent.conduct("a calm piano piece in D minor"):
+            print(event)
+
+asyncio.run(main())
+```
+
 ## Before Submitting
 
 ```bash
-make all-checks        # Must pass (2,978+ tests + 6 golden + 5 honesty tools)
+make all-checks        # Must pass (2,900+ tests + 6 golden + 5 honesty tools)
 ```
 
 ## Code Standards

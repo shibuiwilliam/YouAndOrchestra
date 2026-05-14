@@ -418,7 +418,7 @@ format_diff(diff: ScoreDiff) -> str
 # Constraints
 check_constraints(score, constraints: ConstraintsSpec) -> list[LintResult]
 
-# Critique (35 rules)
+# Critique (34 rules)
 from yao.verify.critique import CRITIQUE_RULES
 findings = CRITIQUE_RULES.run_all(plan, spec)
 ```
@@ -490,6 +490,8 @@ current_iteration(project_output_dir) -> Path | None
 | `yao reharmonize <project>` | Apply reharmonization operations to a progression |
 | `yao blend-genres <spec>` | Blend multiple genre profiles via GenreVector |
 | `yao modulate <spec>` | Plan and apply modulation strategies |
+| `yao agent "<prompt>"` | SDK-driven one-shot composition (like `claude -p` for music) |
+| `yao serve [--host --port]` | Headless HTTP server (POST /compose, GET /health) |
 
 ## Error Hierarchy
 
@@ -513,6 +515,120 @@ YaOError (base)
 +-- PhaseIncompleteError (phase, missing_artifacts)
 +-- IncompleteGenreProfileError (genre_id, missing_sections)
 ```
+
+## SDK API (`yao.sdk`)
+
+### `YaoAgent` (`yao.sdk.agent`)
+```python
+class YaoAgent:
+    def __init__(
+        self,
+        project: str,
+        *,
+        cwd: Path | None = None,
+        permission_mode: str = "acceptEdits",  # default, acceptEdits, plan, bypassPermissions, dontAsk, auto
+        extra_options: dict | None = None,
+    ) -> None
+
+    async def __aenter__(self) -> YaoAgent
+    async def __aexit__(self, ...) -> None
+
+    # 10 async-generator methods — each yields YaoEvent objects
+    async def sketch(self, description: str) -> AsyncIterator[YaoEvent]
+    async def compose(self, spec_or_desc: str | Path) -> AsyncIterator[YaoEvent]
+    async def conduct(self, spec_or_desc: str | Path, *, max_iterations: int = 3) -> AsyncIterator[YaoEvent]
+    async def critique(self, iteration: str | None = None) -> AsyncIterator[YaoEvent]
+    async def regenerate_section(self, section: str, *, seed: int | None = None) -> AsyncIterator[YaoEvent]
+    async def render(self, iteration: str | None = None) -> AsyncIterator[YaoEvent]
+    async def diff(self, iter_a: str, iter_b: str) -> AsyncIterator[YaoEvent]
+    async def evaluate(self, iteration: str | None = None) -> AsyncIterator[YaoEvent]
+    async def explain(self, query: str) -> AsyncIterator[YaoEvent]
+    async def chat(self, prompt: str) -> AsyncIterator[YaoEvent]
+
+    # Lifecycle methods
+    async def interrupt(self) -> None  # Abort current run; emits ConductorFinishedEvent(status="interrupted")
+    def set_permission_mode(self, mode: str) -> None  # Change permission for subsequent operations
+```
+
+### Per-Subagent Configuration (`yao.sdk.agents`)
+```python
+# Per-role tool allowlists and effort tuning
+_AGENT_TOOLS: dict[str, list[str]]   # role -> allowed tool names
+_AGENT_EFFORT: dict[str, str]        # role -> "high" | "medium" | default
+
+# Enriched in yao_agent_definitions():
+# Each AgentDefinition gets tools, disallowedTools, and effort fields
+```
+
+### Structured Error Payloads (`yao.sdk.server`)
+```python
+# MCP tool errors carry domain-specific structured fields:
+# RangeViolationError -> {instrument, note, valid_low, valid_high}
+# SpecValidationError -> {field, message}
+# ConstraintViolationError -> {constraint, details}
+```
+
+### Streaming Events (`yao.sdk.events`)
+```python
+class YaoEvent:
+    iteration: str | None
+    phase: str | None
+    timestamp_ms: int
+
+class PhaseStartedEvent(YaoEvent):      phase_name: str
+class PhaseCompletedEvent(YaoEvent):    phase_name: str
+class SubagentStartedEvent(YaoEvent):   agent_name: str
+class IterationCompletedEvent(YaoEvent): iteration_path: str; pass_status: bool; evaluation: dict
+class EvaluationReportEvent(YaoEvent):  scores: dict
+class CritiqueAvailableEvent(YaoEvent): severity_counts: dict
+class AudioReadyEvent(YaoEvent):        wav_path: str; duration_seconds: float
+class ProvenanceUpdatedEvent(YaoEvent): record_count: int
+class ConductorFinishedEvent(YaoEvent): final_iteration_path: str; total_iterations: int
+```
+
+### Lane B Building Blocks (`yao.sdk`)
+```python
+# Pre-configured ClaudeAgentOptions
+default_yao_options(project: str, *, cwd: Path | None = None, extra_options: dict | None = None) -> dict
+
+# In-process MCP server (15 tools)
+create_yao_mcp_server() -> McpSdkServerConfig
+
+# Subagent definitions from .claude/agents/*.md
+yao_agent_definitions() -> dict[str, AgentDefinition]
+
+# Standard hooks (auto-render, auto-critique, auto-provenance, pre-validate)
+default_yao_hooks() -> list[HookMatcher]
+
+# Permission callback (protects iterations, references, agent defs)
+default_yao_permission(tool_name: str, input_data: dict, context: dict) -> bool
+
+# Session helpers
+session_key_for_project(project: str) -> str
+list_sessions(project: str) -> list[SessionInfo]
+tag_session(session_id: str, tag: str) -> None
+```
+
+### MCP Tools (15)
+| Tool | Purpose |
+|---|---|
+| `yao_compose` | Single-pass composition |
+| `yao_conduct` | Multi-iteration composition with feedback |
+| `yao_critique` | Adversarial critique |
+| `yao_regenerate_section` | Regenerate one section |
+| `yao_render_audio` | MIDI → WAV rendering |
+| `yao_evaluate` | Quality evaluation |
+| `yao_diff` | Musical diff between iterations |
+| `yao_explain` | Provenance query |
+| `yao_validate_spec` | Spec validation |
+| `yao_load_spec` | Load and parse a spec |
+| `yao_new_project` | Create project skeleton |
+| `yao_list_iterations` | List project iterations |
+| `yao_read_iteration` | Read iteration artifacts |
+| `yao_arch_lint` | Architecture boundary check |
+| `yao_run_tests` | Run test suite |
+
+---
 
 ## Combination Stack Types
 

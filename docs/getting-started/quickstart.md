@@ -1,6 +1,6 @@
 # Quick Start
 
-Generate your first piece in under 2 minutes.
+Generate your first piece in under 2 minutes. YaO offers **four paths** — interactive Claude Code, natural language CLI, YAML specs, and the Agent SDK.
 
 ---
 
@@ -12,9 +12,15 @@ pip install -e ".[dev]"
 
 Optional extras:
 ```bash
+pip install -e ".[sdk]"        # Agent SDK (programmatic access)
 pip install -e ".[neural]"     # Stable Audio bridge
 pip install -e ".[live]"       # Realtime improvisation
 pip install -e ".[annotate]"   # A/B audition + annotation UI
+```
+
+For SDK usage, set your API key:
+```bash
+export ANTHROPIC_API_KEY=sk-…
 ```
 
 ---
@@ -176,6 +182,42 @@ yao conduct "bossa-flavored chords with drum and bass rhythm" \
 
 ---
 
+## Option D: Agent SDK (Programmatic)
+
+Drive the same orchestra from any Python program — web apps, Discord bots, CI pipelines, or Jupyter notebooks.
+
+```python
+import asyncio
+from yao.sdk import YaoAgent
+from yao.sdk.events import IterationCompletedEvent, AudioReadyEvent
+
+async def main():
+    async with YaoAgent(project="my-piece") as agent:
+        async for event in agent.conduct(
+            "a calm piano piece in D minor for studying, 90 seconds",
+            max_iterations=3,
+        ):
+            if isinstance(event, IterationCompletedEvent):
+                print(f"iter {event.iteration} -> {event.iteration_path}")
+            elif isinstance(event, AudioReadyEvent):
+                print(f"audio: {event.wav_path}")
+
+asyncio.run(main())
+```
+
+The SDK exposes 10 methods that mirror slash commands (`sketch`, `compose`, `conduct`, `critique`, `regenerate_section`, `render`, `diff`, `evaluate`, `explain`, `chat`) and streams 9 typed events for real-time UI updates.
+
+For lower-level control, use **Lane B** — construct `ClaudeAgentOptions` manually via `default_yao_options()`:
+
+```python
+from yao.sdk import default_yao_options, create_yao_mcp_server
+options = default_yao_options("my-project", extra_options={"max_tokens": 8192})
+```
+
+See [SDK Quickstart](../sdk/quickstart.md) for full details.
+
+---
+
 ## Next Steps
 
 - [Spec Templates](templates.md) — pre-built starting points for common genres
@@ -183,3 +225,5 @@ yao conduct "bossa-flavored chords with drum and bass rhythm" \
 - [CLI Reference](../guide/cli-reference.md) — all commands and options
 - [Composition Specs](../guide/composition-spec.md) — full spec format reference (includes feature flags)
 - [Claude Code Workflow](../tutorials/claude-code-workflow.md) — interactive session guide
+- [SDK Overview](../sdk/overview.md) — programmatic access via Agent SDK
+- [SDK API Reference](../sdk/api-reference.md) — YaoAgent, events, results, MCP tools

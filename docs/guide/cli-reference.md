@@ -1,5 +1,7 @@
 # CLI Reference
 
+The CLI is one of three peer surfaces for YaO. For interactive use, see [Claude Code Workflow](../tutorials/claude-code-workflow.md). For programmatic access, see the [Agent SDK](../sdk/overview.md) — every CLI command has a corresponding `YaoAgent` method.
+
 ## Commands
 
 ### `yao conduct "<description>"`
@@ -130,6 +132,37 @@ Apply human feedback from a `feedback.yaml` file to regenerate a composition.
 |--------|---------|-------------|
 | `-f, --feedback` | — | Path to feedback.yaml file (required) |
 | `-n, --max-iterations` | 3 | Max conductor iterations |
+
+---
+
+## SDK-Driven Commands
+
+### `yao agent "<prompt>"`
+
+Run a single SDK-driven agent invocation, pre-configured for music production. Like `claude -p` but with YaO's orchestra pre-loaded.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--project` | — | Project name |
+| `--max-iterations` | 3 | Maximum conductor iterations |
+
+```bash
+yao agent "create a calm piano piece in D minor for studying"
+```
+
+### `yao serve`
+
+Start a headless HTTP server for SDK-driven composition. Exposes `POST /compose` and `GET /health` endpoints.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--host` | `127.0.0.1` | Bind host |
+| `--port` | `8765` | Bind port |
+
+```bash
+yao serve --port 8765
+# POST /compose with {"description": "...", "project": "..."}
+```
 
 ---
 

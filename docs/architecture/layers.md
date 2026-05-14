@@ -6,6 +6,37 @@ The **Combination & Coupling** layer (`src/yao/coupling/`) sits between Layer 2 
 
 ---
 
+## Surfaces
+
+YaO has **three peer surfaces** that sit above the layered engine. All surfaces call the same Conductor and share the same `.claude/` directory.
+
+```
+┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
+│  Claude Code     │ │  CLI (Click)     │ │  Agent SDK       │
+│  (interactive)   │ │  (yao …)         │ │  (yao.sdk)       │
+└─────────┬────────┘ └─────────┬────────┘ └─────────┬────────┘
+          └────────────────────┴────────────────────┘
+                               │
+                          Conductor
+                               │
+                     7-Layer Music Engine
+```
+
+| | **Claude Code** | **CLI** | **Agent SDK** |
+|---|---|---|---|
+| Latency | Conversational | One-shot | Streaming |
+| Agency | Full agentic loop | Stateless | Full agentic loop |
+| Persistence | Session-bound | None | Resumable sessions |
+| Best for | Day-to-day composition | Scripts, CI shells | Web apps, bots, batch services, notebooks |
+
+The SDK surface (`src/yao/sdk/`, 14 modules) provides two lanes:
+- **Lane A** — `YaoAgent` facade with 10 async-generator methods (1:1 with slash commands)
+- **Lane B** — Raw `query()` / `ClaudeSDKClient` with `default_yao_options()` for power users
+
+See [SDK documentation](../sdk/overview.md) for details.
+
+---
+
 ## Layer Diagram
 
 ```
@@ -20,6 +51,7 @@ Layer 4    perception/        → constants, schema, ir, generators
 Layer 5    render/            → constants, schema, ir, generators, sound_design, perception
 Layer 6    verify/            → constants, schema, ir, generators, sound_design, perception, render
            conductor/         → all of the above
+           sdk/               → conductor (surface — does not participate in layer hierarchy)
 ```
 
 ---
@@ -32,9 +64,9 @@ Hardcoded musical values. No dependencies.
 
 - 46 standard instruments with MIDI ranges and GM program numbers
 - 8 custom cultural instruments (shakuhachi, koto, shamisen, taiko, sitar, tabla, oud, ney)
-- 28 scale definitions (EDO, Japanese, maqam, raga, gamelan, just intonation)
+- 33 scale definitions (14 standard + 19 extended: Japanese, maqam, raga, gamelan, just intonation)
 - 20 song forms (AABA, verse-chorus, rondo, blues, J-pop, game BGM, ambient...)
-- 14 chord types, MIDI constants, genre profiles
+- 30 chord types, MIDI constants, genre profiles
 - 15 harmonic device YAMLs (`constants/harmonic_devices/`)
 
 ### Layer 1: Specification + IR + Reflect
@@ -68,8 +100,8 @@ Hardcoded musical values. No dependencies.
 
 Composition algorithms that produce `(ScoreIR, ProvenanceLog)`.
 
-**Note-level generators** (10):
-rule_based, stochastic, markov, twelve_tone, process_music, constraint_solver, loop_evolution, ai_seed, phrase_aware, hybrid
+**Note-level generators** (9):
+rule_based, stochastic, markov, twelve_tone, process_music, constraint_solver, loop_evolution, ai_seed, phrase_aware
 
 **Markov models**: `markov_models/pitch/`, `markov_models/rhythm/`, `markov_models/contour/`
 
@@ -138,7 +170,7 @@ Analysis, critique, and evaluation.
 
 - Music lint (parallel fifths, voice leading)
 - Evaluator (6-dimension + genre-driven dynamic weights)
-- 35 critique rules across 8 roles (structural, harmonic, melodic, rhythmic, arrangement, emotional, memorability, genre_fitness + groove, surprise, hook, dynamics, conversation, metric_drift, tension, acoustic divergence)
+- 34 critique rules across 15 categories (structural, harmonic, melodic, rhythmic, arrangement, emotional, memorability, genre_fitness + groove, surprise, hook, dynamics, conversation, metric_drift, tension, acoustic divergence)
 - Melody-harmony alignment metric (`verify/melody_harmony_alignment.py`)
 - Voice-leading smoothness metric (`verify/voice_leading_smoothness.py`)
 - Constraint checker (range, voice, ensemble)
@@ -177,7 +209,7 @@ PlanOrchestrator (9 steps):
   8. HookPlanner        → HookPlan
   9. Assembler          → MusicalPlan
   ↓
-Critic Gate (35 rules, severity-ranked)
+Critic Gate (34 rules, severity-ranked)
   ↓
 NoteRealizer (rule_based_v2 or stochastic_v2)
   ↓
@@ -202,6 +234,7 @@ Renderer → MIDI / WAV / MusicXML / LilyPond / Reaper / Strudel
 | `pydantic` | schema/ | YAML spec validation |
 | `numpy/scipy` | ir/, generators/, sound_design/, perception/, render/, verify/ | Numerical computation |
 | `click` | cli/ only | CLI framework |
+| `claude-agent-sdk` | sdk/ only | Agent SDK surface |
 
 ---
 

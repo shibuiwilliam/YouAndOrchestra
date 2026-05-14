@@ -39,4 +39,7 @@ async with YaoAgent(project="my-song") as agent:
 - **Typed results**: Pydantic models for every operation
 - **Hooks**: Auto-render, auto-critique, auto-provenance
 - **Permissions**: Protected paths during music sessions
-- **Programmatic subagents**: AgentDefinition mirrors of Markdown agents
+- **Programmatic subagents**: AgentDefinition mirrors of Markdown agents with per-role tool restrictions and effort tuning
+- **Lifecycle control**: `interrupt()` to abort mid-stream, `set_permission_mode()` to adjust at runtime
+- **Structured errors**: Domain errors carry schema-friendly payloads for agent-driven recovery
+- **CLI integration**: `yao agent` for SDK-driven one-shot composition, `yao serve` for headless HTTP server

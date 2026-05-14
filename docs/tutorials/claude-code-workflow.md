@@ -1,6 +1,8 @@
 # Using YaO with Claude Code
 
-YaO is designed to be used interactively through Claude Code. Here are the three ways to create music, from simplest to most control.
+YaO can be used through three surfaces: Claude Code (interactive), CLI (scriptable), and the Agent SDK (programmatic). This guide covers Claude Code and CLI usage. For programmatic access via Python, see the [SDK documentation](../sdk/overview.md).
+
+Here are the three ways to create music in Claude Code, from simplest to most control.
 
 ---
 
@@ -29,7 +31,7 @@ Claude Code will:
 
 Claude Code will guide you through choices:
 - Key and tempo suggestions with musical reasoning
-- Instrument selection from 54 available instruments (including 8 non-Western cultural)
+- Instrument selection from 46 available instruments (including 8 non-Western cultural)
 - Section structure (intro/verse/chorus/outro)
 - Dynamic arc and trajectory curves
 - Writes the YAML spec and validates it for you
@@ -58,7 +60,7 @@ You can also compose from natural language:
 /critique rainy-afternoon
 ```
 
-The adversarial critic finds every weakness — it never praises. YaO includes 35 structured critique rules across 12 categories (structural, melodic, harmonic, rhythmic, arrangement, emotional, genre fitness, memorability, surprise, hook, groove, acoustic, conversation). Each rule emits `Finding` objects with severity (critical/major/minor/suggestion), evidence, bar-level location, and concrete recommendations. Writes `critique.md` to the iteration directory.
+The adversarial critic finds every weakness — it never praises. YaO includes 34 structured critique rules across 15 categories (structural, melodic, harmonic, rhythmic, arrangement, emotional, genre fitness, memorability, surprise, hook, groove, acoustic, conversation). Each rule emits `Finding` objects with severity (critical/major/minor/suggestion), evidence, bar-level location, and concrete recommendations. Writes `critique.md` to the iteration directory.
 
 ### `/regenerate-section` — Fix one section
 
@@ -177,7 +179,7 @@ Claude: [Regenerates only loop_a with new seed, preserves everything else]
 
 ---
 
-## The Orchestra: 8 Subagents
+## The Orchestra: 7 Subagents
 
 Behind the scenes, Claude Code can invoke specialized subagents:
 
@@ -190,7 +192,6 @@ Behind the scenes, Claude Code can invoke specialized subagents:
 | **Orchestrator** | Assigns instruments, voicings, frequency spacing |
 | **Mix Engineer** | Manages stereo placement, dynamics, frequency balance |
 | **Adversarial Critic** | Finds weaknesses — never praises |
-| **Modulation Planner** | Plans key modulations per trajectory and genre preferences |
 
 ---
 
@@ -226,3 +227,21 @@ outputs/projects/<name>/iterations/v001/
 +-- critique.md        # Adversarial critique (if /critique was run)
 +-- audio.wav          # Rendered audio (if --render-audio or /render was used)
 ```
+
+---
+
+## Programmatic Alternative: Agent SDK
+
+Everything above can also be done programmatically via the Claude Agent SDK. The SDK exposes 10 methods that map 1:1 to slash commands, with typed streaming events for UI integration.
+
+```python
+from yao.sdk import YaoAgent
+from yao.sdk.events import AudioReadyEvent
+
+async with YaoAgent(project="puzzle-bgm") as agent:
+    async for event in agent.conduct("minimal puzzle game BGM, mysterious, looping"):
+        if isinstance(event, AudioReadyEvent):
+            print(f"audio ready: {event.wav_path}")
+```
+
+See [SDK Quickstart](../sdk/quickstart.md) for details.

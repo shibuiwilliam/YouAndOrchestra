@@ -104,7 +104,7 @@ constraints:
 ## How Constraints Are Enforced
 
 1. **At generation time** -- constraint_checker validates notes during realization
-2. **At Critic Gate** -- 35 critique rules include constraint-related checks
+2. **At Critic Gate** -- 34 critique rules include constraint-related checks
 3. **Post-generation** -- `yao validate` runs constraint checking on existing output
 4. **In feedback loop** -- Conductor adapts spec when constraints are violated
 

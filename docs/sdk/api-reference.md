@@ -15,7 +15,7 @@ YaoAgent(
 )
 ```
 
-### Methods
+### Composition Methods
 
 All methods are async generators yielding `YaoEvent` subclasses.
 
@@ -32,6 +32,48 @@ All methods are async generators yielding `YaoEvent` subclasses.
 | `explain(query)` | `/explain` | Provenance query |
 | `chat(prompt)` | (free-form) | Any instruction |
 
+### Lifecycle Methods
+
+```python
+await agent.interrupt()
+# Abort the current conductor run at the next turn boundary.
+# Emits ConductorFinishedEvent(status="interrupted").
+
+agent.set_permission_mode(mode: str)
+# Change permission mode for subsequent operations.
+# Accepts: "default", "acceptEdits", "plan", "bypassPermissions", "dontAsk", "auto"
+```
+
+## Per-Subagent Configuration
+
+Each subagent gets role-specific tool allowlists and effort tuning via `yao_agent_definitions()`:
+
+| Subagent | Effort | Allowed Tools (subset) |
+|---|---|---|
+| Producer | high | All read + all yao_* tools |
+| Composer | default | Read, Glob, Grep + yao_compose, yao_load_spec, yao_explain |
+| Adversarial Critic | medium | Read, Glob, Grep (no Write, no Edit) |
+
+Tools and effort are parsed from `.claude/agents/*.md` front matter and enriched by `_AGENT_TOOLS` / `_AGENT_EFFORT` mappings.
+
+## Structured Error Payloads
+
+MCP tool errors include structured fields for agent-friendly error handling:
+
+```python
+# Example: RangeViolationError
+{
+    "error": "RangeViolationError",
+    "instrument": "violin",
+    "note": 30,
+    "valid_low": 55,
+    "valid_high": 103,
+    "message": "Note 30 is below violin range (55-103)"
+}
+```
+
+Domain errors (`SpecValidationError`, `RangeViolationError`, `ConstraintViolationError`) carry schema-friendly payloads so agents can reason about fixes directly.
+
 ## Lane B: Building Blocks
 
 ### `create_yao_mcp_server()`
@@ -40,7 +82,11 @@ Returns an `McpSdkServerConfig` with 15 in-process tools.
 
 ### `default_yao_options(project, *, cwd=None, extra_options=None)`
 
-Returns a `ClaudeAgentOptions` pre-configured for music production.
+Returns a `ClaudeAgentOptions` pre-configured for music production. Now fully wires in hooks, agents, and permissions:
+
+- `agents=yao_agent_definitions()` — programmatic subagent mirrors
+- `hooks=default_yao_hooks()` — lifecycle hooks
+- `can_use_tool=default_yao_permission` — permission predicate
 
 ### `yao_agent_definitions(*, agents_dir=None)`
 
