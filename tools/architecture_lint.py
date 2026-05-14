@@ -48,6 +48,7 @@ LAYER_MAP: dict[str, int] = {
     "annotate": 7,  # annotation UI uses reflect + render (like conductor)
     "subagents": 7,  # subagents coordinate across layers (like conductor)
     "conductor": 7,  # orchestrator: can import all layers (like cli)
+    "sdk": 8,  # SDK surface: above all layers, may import any layer
 }
 
 # These libraries can only be imported in specific modules
@@ -57,6 +58,8 @@ RESTRICTED_LIBRARIES: dict[str, set[str]] = {
     "librosa": {"verify", "perception"},
     "pyloudnorm": {"verify", "perception", "mix"},
     "pedalboard": {"sound_design", "mix"},
+    "claude_agent_sdk": {"sdk"},
+    "mcp": {"sdk"},
 }
 
 SRC_DIR = Path("src/yao")

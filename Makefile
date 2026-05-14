@@ -1,9 +1,9 @@
-.PHONY: install install-all setup-hooks test test-unit test-integration test-music test-golden test-subagent \
+.PHONY: install install-all install-sdk setup-hooks test test-unit test-integration test-music test-golden test-subagent \
 test-acoustic test-genre-coverage test-coupling test-diversity test-melody test-genres \
 lint format arch-lint meter-lint matrix-check feature-status markov-validate device-validate \
 validate-spec new-project compose render setup-soundfonts setup-references all-checks \
 honesty-check plan-consumption skill-grounding critic-coverage backend-honesty audit-monthly \
-profile-perf audit-genres calibrate-genres
+profile-perf audit-genres calibrate-genres sdk-test sdk-examples-test
 
 install:
 	pip install -e ".[dev]"
@@ -124,7 +124,16 @@ audit-monthly:
 	python tools/check_critic_coverage.py --json > docs/audit/latest-critic.json || true
 	@echo "Audit outputs saved to docs/audit/"
 
-all-checks: lint arch-lint matrix-check feature-status honesty-check plan-consumption skill-grounding critic-coverage backend-honesty sync-docs test test-golden test-coupling
+all-checks: lint arch-lint matrix-check feature-status honesty-check plan-consumption skill-grounding critic-coverage backend-honesty sync-docs test test-golden test-coupling sdk-test
+
+install-sdk:
+	pip install -e ".[dev,sdk]"
+
+sdk-test:
+	pytest tests/sdk/ -q
+
+sdk-examples-test:
+	pytest tests/sdk/scenarios/ -q
 
 new-project:
 	@test -n "$(NAME)" || (echo "Usage: make new-project NAME=my-song" && exit 1)

@@ -45,6 +45,9 @@ annotate = [
     "uvicorn>=0.27",
     "jinja2>=3.1",
 ]
+sdk = [
+    "claude-agent-sdk>=0.1.80",
+]
 
 [project.scripts]
 yao = "cli.main:cli"
@@ -96,6 +99,10 @@ module = [
     "transformers.*",
     "audiocraft",
     "audiocraft.*",
+    "claude_agent_sdk",
+    "claude_agent_sdk.*",
+    "mcp",
+    "mcp.*",
     "mido",
     "mido.*",
     "rtmidi",
