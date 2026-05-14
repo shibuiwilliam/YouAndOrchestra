@@ -1241,5 +1241,101 @@ def _find_soundfont() -> Path | None:
     return None
 
 
+# ── yao agent ──────────────────────────────────────────────────────────
+
+
+@cli.command("agent")
+@click.argument("prompt")
+@click.option("--project", "-p", default=None, help="Project name (auto-generated if omitted).")
+@click.option(
+    "--max-iterations",
+    "-n",
+    type=int,
+    default=3,
+    help="Max conductor iterations.",
+)
+def agent_command(prompt: str, project: str | None, max_iterations: int) -> None:
+    """Run a single SDK-driven agent invocation.
+
+    Like 'claude -p "..."' but pre-configured for music production.
+    Uses YaoAgent.chat() to pass the prompt through the full orchestra.
+
+    \b
+    Examples:
+      yao agent "create a calm piano piece in D minor for studying"
+      yao agent "compose a jazz ballad" --project my-jazz
+    """
+    try:
+        from yao.sdk import YaoAgent
+    except ImportError as exc:
+        raise click.ClickException('The Claude Agent SDK is required. Install with: pip install -e ".[sdk]"') from exc
+
+    import asyncio
+
+    proj = project or prompt[:30].lower().replace(" ", "-")
+
+    async def _run() -> None:
+        async with YaoAgent(project=proj) as agent:
+            async for event in agent.chat(prompt):
+                click.echo(f"  [{type(event).__name__}] {getattr(event, 'phase', '')}")
+
+    try:
+        asyncio.run(_run())
+    except Exception as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
+# ── yao serve ──────────────────────────────────────────────────────────
+
+
+@cli.command("serve")
+@click.option("--host", default="127.0.0.1", help="Bind host.")
+@click.option("--port", default=8765, type=int, help="Bind port.")
+def serve_command(host: str, port: int) -> None:
+    """Start a headless YaO server for web/bot clients.
+
+    Exposes a simple HTTP API backed by YaoAgent. Clients POST
+    a description and receive streaming events.
+
+    \b
+    Example:
+      yao serve --host 0.0.0.0 --port 8765
+    """
+    try:
+        from yao.sdk import YaoAgent
+    except ImportError as exc:
+        raise click.ClickException('The Claude Agent SDK is required. Install with: pip install -e ".[sdk]"') from exc
+
+    click.echo(f"YaO server starting on {host}:{port}")
+    click.echo("Endpoints:")
+    click.echo(f'  POST http://{host}:{port}/compose  (body: {{"description": "...", "project": "..."}})')
+    click.echo(f"  GET  http://{host}:{port}/health")
+
+    try:
+        import uvicorn
+        from fastapi import FastAPI
+
+        app = FastAPI(title="YaO Server")
+
+        @app.get("/health")
+        async def health() -> dict[str, str]:
+            return {"status": "ok", "service": "yao"}
+
+        @app.post("/compose")
+        async def compose(body: dict[str, Any]) -> dict[str, Any]:
+            desc = body.get("description", "")
+            proj = body.get("project", "server-session")
+            events_out: list[dict[str, str]] = []
+            async with YaoAgent(project=proj, permission_mode="bypassPermissions") as agent:
+                async for event in agent.conduct(desc, max_iterations=2):
+                    events_out.append({"type": type(event).__name__, "phase": getattr(event, "phase", "")})
+            return {"events": events_out, "count": len(events_out)}
+
+        uvicorn.run(app, host=host, port=port)
+    except ImportError:
+        click.echo("Install fastapi and uvicorn for the serve command:")
+        click.echo('  pip install -e ".[sdk,annotate]"')
+
+
 if __name__ == "__main__":
     cli()

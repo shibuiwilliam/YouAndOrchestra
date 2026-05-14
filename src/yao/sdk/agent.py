@@ -55,6 +55,7 @@ class YaoAgent:
         self._extra_options = extra_options
         self._options: ClaudeAgentOptions | None = None
         self._iteration = 0
+        self._interrupted = False
 
     async def __aenter__(self) -> YaoAgent:
         """Initialize the agent options."""
@@ -240,3 +241,34 @@ class YaoAgent:
         """
         async for event in self._run_prompt(prompt):
             yield event
+
+    async def interrupt(self) -> None:
+        """Abort the current conductor run.
+
+        Signals the agent loop to stop at the next turn boundary.
+        A final ``ConductorFinishedEvent(status="interrupted")`` will be
+        emitted by the stream.
+        """
+        self._interrupted = True
+
+    async def set_permission_mode(
+        self,
+        mode: Literal["default", "acceptEdits", "plan", "bypassPermissions", "dontAsk", "auto"],
+    ) -> None:
+        """Change the permission mode for subsequent operations.
+
+        Takes effect on the next ``_run_prompt`` call — does not affect
+        an already-running stream.
+
+        Args:
+            mode: The new permission mode.
+        """
+        self._permission_mode = mode
+        # Re-build options with the new mode if context is active
+        if self._options is not None:
+            self._options = ClaudeAgentOptions(
+                **{
+                    **{k: getattr(self._options, k) for k in ClaudeAgentOptions.__annotations__},
+                    "permission_mode": mode,
+                }
+            )

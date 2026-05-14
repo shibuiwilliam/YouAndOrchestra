@@ -14,6 +14,9 @@ from typing import Any
 
 from claude_agent_sdk import ClaudeAgentOptions
 
+from yao.sdk.agents import yao_agent_definitions
+from yao.sdk.hooks import default_yao_hooks
+from yao.sdk.permissions import default_yao_permission
 from yao.sdk.server import create_yao_mcp_server
 
 
@@ -43,6 +46,9 @@ def default_yao_options(
         system_prompt={"type": "preset", "preset": "claude_code"},
         setting_sources=["project"],
         mcp_servers={"yao": create_yao_mcp_server()},
+        agents=yao_agent_definitions(),
+        hooks=default_yao_hooks(),  # type: ignore[arg-type]  # str keys match Literal at runtime
+        can_use_tool=default_yao_permission,
         permission_mode="acceptEdits",
         cwd=resolved_cwd,
         effort="high",

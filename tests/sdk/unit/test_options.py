@@ -65,3 +65,23 @@ class TestDefaultYaoOptions:
         opts = default_yao_options("test-project", extra_options=extra)
         assert isinstance(opts.mcp_servers, dict)
         assert "yao" in opts.mcp_servers
+
+    def test_agents_wired(self) -> None:
+        """§5.3: agents=yao_agent_definitions() must be set."""
+        opts = default_yao_options("test-project")
+        assert opts.agents is not None
+        assert isinstance(opts.agents, dict)
+        assert "composer" in opts.agents
+
+    def test_hooks_wired(self) -> None:
+        """§5.3: hooks=default_yao_hooks() must be set."""
+        opts = default_yao_options("test-project")
+        assert opts.hooks is not None
+        assert "PreToolUse" in opts.hooks
+        assert "PostToolUse" in opts.hooks
+
+    def test_can_use_tool_wired(self) -> None:
+        """§5.3: can_use_tool=default_yao_permission must be set."""
+        opts = default_yao_options("test-project")
+        assert opts.can_use_tool is not None
+        assert callable(opts.can_use_tool)

@@ -87,9 +87,26 @@ def _ok(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def _err(exc: Exception) -> dict[str, Any]:
-    """Build an MCP error result from a YaOError."""
+    """Build an MCP error result with structured payload when possible.
+
+    For domain-specific errors (RangeViolationError, SpecValidationError),
+    includes structured fields so the agent can reason about the fix
+    (§6.4: "the violin can't play that low — let me transpose up").
+    """
+    from yao.errors import RangeViolationError, SpecValidationError
+
+    error_data: dict[str, Any] = {"error_type": type(exc).__name__, "message": str(exc)}
+
+    if isinstance(exc, RangeViolationError):
+        error_data["instrument"] = exc.instrument
+        error_data["note"] = exc.note
+        error_data["valid_low"] = exc.valid_low
+        error_data["valid_high"] = exc.valid_high
+    elif isinstance(exc, SpecValidationError):
+        error_data["field"] = exc.field
+
     return {
-        "content": [{"type": "text", "text": str(exc)}],
+        "content": [{"type": "text", "text": json.dumps(error_data, default=str)}],
         "isError": True,
     }
 

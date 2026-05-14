@@ -67,3 +67,45 @@ class TestYaoAgentDefinitions:
     def test_nonexistent_dir_returns_empty(self) -> None:
         defs = yao_agent_definitions(agents_dir=Path("/nonexistent"))
         assert defs == {}
+
+    def test_composer_has_restricted_tools(self) -> None:
+        """§7.2: Composer gets specific tool allowlist."""
+        defs = yao_agent_definitions()
+        composer = defs.get("composer")
+        assert composer is not None
+        assert composer.tools is not None
+        assert "mcp__yao__yao_compose" in composer.tools
+        assert "Read" in composer.tools
+
+    def test_critic_has_read_only_tools(self) -> None:
+        """§7.2: Critic is read-only, no write tools."""
+        defs = yao_agent_definitions()
+        critic = defs.get("adversarial-critic")
+        assert critic is not None
+        assert critic.tools is not None
+        assert "Read" in critic.tools
+        assert "Write" not in critic.tools
+        assert "Edit" not in critic.tools
+
+    def test_producer_has_full_access(self) -> None:
+        """§7.2: Producer gets Write, Edit, Agent, mcp__yao__*."""
+        defs = yao_agent_definitions()
+        producer = defs.get("producer")
+        assert producer is not None
+        assert producer.tools is not None
+        assert "Write" in producer.tools
+        assert "Agent" in producer.tools
+
+    def test_producer_effort_high(self) -> None:
+        """§7.3: Producer defaults to effort='high'."""
+        defs = yao_agent_definitions()
+        producer = defs.get("producer")
+        assert producer is not None
+        assert producer.effort == "high"
+
+    def test_critic_effort_medium(self) -> None:
+        """§7.3: Critic defaults to effort='medium'."""
+        defs = yao_agent_definitions()
+        critic = defs.get("adversarial-critic")
+        assert critic is not None
+        assert critic.effort == "medium"

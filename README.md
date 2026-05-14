@@ -32,7 +32,7 @@ The `/sketch` command walks you through a 6-turn dialogue to refine your idea in
 
 ---
 
-## Three Ways to Compose
+## Four Ways to Compose
 
 ### 1. Interactive sketch (recommended for exploration)
 
@@ -69,6 +69,36 @@ Three spec formats are available:
 - **Simple** — Flat YAML for quick experiments
 - **Detailed** — Multi-section spec with full control over melody, harmony, rhythm, arrangement, and production
 - **Composable** — Specs with `extends`, `overrides`, and reusable fragments
+
+### 4. Claude Agent SDK (programmatic)
+
+Drive YaO from any Python program — web apps, Discord bots, CI pipelines, Jupyter notebooks:
+
+```bash
+pip install -e ".[sdk]"
+export ANTHROPIC_API_KEY=sk-...
+```
+
+```python
+import asyncio
+from yao.sdk import YaoAgent
+from yao.sdk.events import IterationCompletedEvent, AudioReadyEvent
+
+async def main():
+    async with YaoAgent(project="my-song") as agent:
+        async for event in agent.conduct(
+            "a calm piano piece in D minor for studying, 90 seconds",
+            max_iterations=3,
+        ):
+            if isinstance(event, IterationCompletedEvent):
+                print(f"iter {event.iteration} -> {event.iteration_path}")
+            elif isinstance(event, AudioReadyEvent):
+                print(f"audio: {event.wav_path}")
+
+asyncio.run(main())
+```
+
+Same orchestra, same Conductor, same output — just a different venue. See [docs/sdk/](docs/sdk/) for the full API reference, deployment guides, and reference applications.
 
 ---
 
