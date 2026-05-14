@@ -37,10 +37,14 @@ except ImportError as _exc:
 
 from yao.sdk._options import default_yao_options
 from yao.sdk.agent import YaoAgent
+from yao.sdk.hooks import default_yao_hooks
+from yao.sdk.permissions import default_yao_permission
 from yao.sdk.server import create_yao_mcp_server
 
 __all__ = [
     "YaoAgent",
     "create_yao_mcp_server",
+    "default_yao_hooks",
     "default_yao_options",
+    "default_yao_permission",
 ]
