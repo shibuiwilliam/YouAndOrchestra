@@ -7,7 +7,7 @@ into typed ``YaoEvent`` subclasses that UIs can subscribe to.
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Union
 
 from claude_agent_sdk import (
     AssistantMessage,
@@ -39,10 +39,10 @@ _PHASE_NAMES = [
     "listening_simulation",
 ]
 
-Message = UserMessage | AssistantMessage | SystemMessage | ResultMessage | StreamEvent | RateLimitEvent
+_Message = Union[UserMessage, AssistantMessage, SystemMessage, ResultMessage, StreamEvent, RateLimitEvent]  # noqa: UP007
 
 
-def translate_message(msg: Message, iteration: int = 0) -> list[YaoEvent]:
+def translate_message(msg: _Message, iteration: int = 0) -> list[YaoEvent]:
     """Translate a single SDK message into zero or more YaoEvents.
 
     Args:

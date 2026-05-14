@@ -31,7 +31,8 @@ def list_project_sessions(
     Returns:
         List of session entries, most recent first.
     """
-    return list_sessions(directory=str(project_root))[:limit]
+    results: list[SDKSessionInfo] = list_sessions(directory=str(project_root))
+    return results[:limit]
 
 
 def tag_session_with_iteration(

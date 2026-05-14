@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from claude_agent_sdk import HookCallback, HookMatcher
+from claude_agent_sdk import HookMatcher
 from claude_agent_sdk.types import (
     HookContext,
     HookInput,
@@ -176,29 +176,27 @@ def default_yao_hooks() -> dict[str, list[HookMatcher]]:
     Returns:
         Hook configuration dict for ``ClaudeAgentOptions.hooks``.
     """
-    # Cast to HookCallback to satisfy mypy — our functions match the
-    # HookCallback protocol but return dict[str, Any] rather than
-    # the exact TypedDict union.
-    pre_validate: HookCallback = pre_compose_validate  # type: ignore[assignment]
-    post_prov: HookCallback = post_iteration_provenance  # type: ignore[assignment]
-    post_render: HookCallback = post_compose_render  # type: ignore[assignment]
-    post_critique: HookCallback = post_compose_critique  # type: ignore[assignment]
+    # Our hook functions match the HookCallback protocol at runtime.
+    pre_validate = pre_compose_validate
+    post_prov = post_iteration_provenance
+    post_render = post_compose_render
+    post_critique = post_compose_critique
 
     return {
         "PreToolUse": [
             HookMatcher(
                 matcher="mcp__yao__yao_compose|mcp__yao__yao_conduct",
-                hooks=[pre_validate],
+                hooks=[pre_validate],  # type: ignore[list-item]
             ),
         ],
         "PostToolUse": [
             HookMatcher(
                 matcher="mcp__yao__.*",
-                hooks=[post_prov],
+                hooks=[post_prov],  # type: ignore[list-item]
             ),
             HookMatcher(
                 matcher="mcp__yao__yao_compose|mcp__yao__yao_conduct",
-                hooks=[post_render, post_critique],
+                hooks=[post_render, post_critique],  # type: ignore[list-item]
             ),
         ],
     }

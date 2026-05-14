@@ -47,7 +47,7 @@ def default_yao_options(
         setting_sources=["project"],
         mcp_servers={"yao": create_yao_mcp_server()},
         agents=yao_agent_definitions(),
-        hooks=default_yao_hooks(),  # type: ignore[arg-type]  # str keys match Literal at runtime
+        hooks=default_yao_hooks(),  # type: ignore[arg-type]
         can_use_tool=default_yao_permission,
         permission_mode="acceptEdits",
         cwd=resolved_cwd,
