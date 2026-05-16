@@ -1,10 +1,10 @@
 # YaO v2.0 Phase 2 Status
 
-*Updated: 2026-05-16*
+*Updated: 2026-05-16 (final)*
 
 ## Current Task
 
-Phase 2 completion — expanding genre profiles from 8 to 30, adding per-genre composition templates, and aligning documentation.
+**Phase 2 COMPLETE.** All components implemented, tested, and committed.
 
 ## Architecture Decisions
 
@@ -125,13 +125,11 @@ The implementation took a **YAML-driven approach** rather than the Python-consta
 ## Open Questions for User
 
 - Should CLAUDE.md type names be updated to match actual implementation (KitPiece vs DrumPiece, etc.)?
-- Should we add genre profiles for j_pop, neoclassical, game_8bit_chiptune, and acoustic_folk to the specs/templates/genres/ directory?
 
 ## Known Issues / Regression Risks
 
-- CLAUDE.md and PROJECT.md have uncommitted v2.0 updates (large diff)
-- Documentation terminology diverges from implementation in some places
-- All existing tests pass (196 + 164 = 360 tests)
+- Documentation terminology diverges from implementation in some places (see Architecture Decisions table above)
+- All tests pass: 4022 total (3656 main + 6 arch-lint + 196 unit + 164 SDK)
 
 ## Phase 3+ (Not Started)
 
