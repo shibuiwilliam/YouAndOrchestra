@@ -1470,5 +1470,58 @@ def ab_test_command(
         click.echo(f"Results saved to {output_path}")
 
 
+# ── yao cover-art ─────────────────────────────────────────────────────
+
+
+@cli.command("cover-art")
+@click.argument("spec_path", type=click.Path(exists=True))
+@click.option("--output", "-o", default=None, help="Output image path (default: next to spec as cover.png).")
+@click.option("--style", default="", help="Additional visual style hint.")
+@click.option("--mood", default="", help="Override mood for the artwork.")
+@click.option("--model", default="gemini-2.0-flash-exp", help="Gemini model for image generation.")
+def cover_art_command(spec_path: str, output: str | None, style: str, mood: str, model: str) -> None:
+    """Generate album cover art for a composition using Gemini (Nano Banana).
+
+    Reads the composition spec to extract genre, mood, instruments, and tempo,
+    then generates a matching cover image via Google's Gemini image generation API.
+
+    Requires GOOGLE_API_KEY environment variable.
+
+    \b
+    Example:
+      yao cover-art specs/templates/genres/jazz/bebop-standard.yaml
+      yao cover-art my-project/composition.yaml --style "watercolor painting" --mood "nostalgic"
+      yao cover-art specs/templates/lofi-cafe.yaml -o artwork/cover.png
+    """
+    from yao.render.cover_art import CoverArtRequest, generate_cover_art
+
+    spec = _load_spec(Path(spec_path))
+
+    # Determine output path
+    out_path = Path(output) if output else Path(spec_path).parent / "cover.png"
+
+    # Build request from spec metadata
+    instruments = tuple(inst.name for inst in spec.instruments[:5])
+    genre = spec.effective_genre()
+    request = CoverArtRequest(
+        title=spec.title,
+        genre=genre,
+        mood=mood,
+        instruments=instruments,
+        tempo_bpm=spec.tempo_bpm,
+        key=spec.key,
+        style_hint=style,
+    )
+
+    click.echo(f'Generating cover art for "{spec.title}" (genre: {genre})...')
+    result = generate_cover_art(request, out_path, model=model)
+
+    if result.success:
+        click.echo(f"Cover art saved to: {result.image_path}")
+        click.echo(f"Prompt used: {result.prompt_used[:100]}...")
+    else:
+        raise click.ClickException(result.error_message)
+
+
 if __name__ == "__main__":
     cli()
