@@ -452,7 +452,8 @@ Do not introduce changes that exceed these budgets without discussion.
 
 ## Recent Changes
 
-* **2026-05-16**: Phase 4 complete: A/B testing framework, project fingerprinting, vocal synthesis bridge, DAW MCP bridge (Reaper TCP), yao improvise + yao ab-test CLI commands. All 4022 tests pass.
+* **2026-05-16**: Phase 5: 31 new tests (ab_test, project_fingerprint, vocal_synth_bridge), genre-development + drum-development guides, 4 user docs (improvise, ab-testing, daw-integration, vocal).
+* **2026-05-16**: Phase 4 complete: A/B testing framework, project fingerprinting, vocal synthesis bridge, DAW MCP bridge (Reaper TCP), yao improvise + yao ab-test CLI commands.
 * **2026-05-16**: Phase 3 complete: synth instruments expanded (4→24 GM synths), vocal schema (VocalSpec + vocal_lead role), outcome-based learning in Layer 7 (update_from_outcome).
 * **2026-05-16**: Phase 2 complete: 30 genre profiles, 34 templates, 45 skill files, genre distinguishability test expanded to 30 genres.
 * **2026-05-15**: PROJECT.md v2.0 and CLAUDE.md v2.0. Phase 2 (Diversity Foundation) kickoff.
