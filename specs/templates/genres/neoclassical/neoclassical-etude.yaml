@@ -1,0 +1,25 @@
+title: "Neoclassical Etude"
+key: "A minor"
+tempo_bpm: 100
+time_signature: "4/4"
+
+genre:
+  primary: neoclassical
+
+instruments:
+  - { name: piano, role: melody }
+  - { name: violin, role: counter_melody }
+  - { name: cello, role: bass }
+
+sections:
+  - { name: intro, bars: 4, dynamics: mp }
+  - { name: theme, bars: 8, dynamics: mf }
+  - { name: variation_1, bars: 8, dynamics: f }
+  - { name: variation_2, bars: 8, dynamics: mf }
+  - { name: recapitulation, bars: 8, dynamics: f }
+  - { name: coda, bars: 4, dynamics: mp }
+
+generation:
+  strategy: rule_based
+  seed: 2101
+  temperature: 0.3

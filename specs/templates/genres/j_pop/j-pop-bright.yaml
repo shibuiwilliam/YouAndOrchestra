@@ -1,0 +1,35 @@
+title: "J-Pop Bright"
+key: "C major"
+tempo_bpm: 140
+time_signature: "4/4"
+
+genre:
+  primary: j_pop
+
+instruments:
+  - { name: piano, role: melody }
+  - { name: electric_guitar, role: harmony }
+  - { name: bass, role: bass }
+  - { name: synth_pad, role: pad }
+
+drums:
+  pattern_family: "pop_8beat"
+  swing: 0.0
+  humanize_ms: 3
+
+sections:
+  - { name: intro, bars: 4, dynamics: mf }
+  - { name: a_melo, bars: 8, dynamics: mf }
+  - { name: b_melo, bars: 8, dynamics: f }
+  - { name: sabi, bars: 8, dynamics: ff }
+  - { name: a_melo, bars: 8, dynamics: mf }
+  - { name: b_melo, bars: 8, dynamics: f }
+  - { name: sabi, bars: 8, dynamics: ff }
+  - { name: bridge, bars: 4, dynamics: mp }
+  - { name: last_sabi, bars: 8, dynamics: ff }
+  - { name: outro, bars: 4, dynamics: mf }
+
+generation:
+  strategy: stochastic
+  seed: 2001
+  temperature: 0.5

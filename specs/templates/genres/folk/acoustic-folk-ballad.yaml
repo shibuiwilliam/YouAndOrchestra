@@ -1,0 +1,33 @@
+title: "Acoustic Folk Ballad"
+key: "G major"
+tempo_bpm: 100
+time_signature: "4/4"
+
+genre:
+  primary: acoustic_folk
+
+instruments:
+  - { name: acoustic_guitar, role: harmony }
+  - { name: violin, role: melody }
+  - { name: contrabass, role: bass }
+
+drums:
+  pattern_family: "pop_ballad"
+  swing: 0.52
+  humanize_ms: 8
+  ghost_notes_density: 0.1
+
+sections:
+  - { name: intro, bars: 4, dynamics: pp }
+  - { name: verse, bars: 8, dynamics: mp }
+  - { name: chorus, bars: 8, dynamics: mf }
+  - { name: verse, bars: 8, dynamics: mp }
+  - { name: chorus, bars: 8, dynamics: f }
+  - { name: bridge, bars: 4, dynamics: mp }
+  - { name: chorus, bars: 8, dynamics: f }
+  - { name: outro, bars: 4, dynamics: pp }
+
+generation:
+  strategy: stochastic
+  seed: 2301
+  temperature: 0.4
