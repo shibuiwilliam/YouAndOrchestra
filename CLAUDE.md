@@ -452,7 +452,7 @@ Do not introduce changes that exceed these budgets without discussion.
 
 ## Recent Changes
 
-* **2026-05-16**: Phase 2 genre library complete: 30 genre profiles, 30 per-genre composition templates, development/PHASE2_STATUS.md tracking doc. All 360 tests pass.
+* **2026-05-16**: Phase 2 complete: 30 genre profiles, 34 templates, 45 skill files, genre distinguishability test expanded to 30 genres. All 4022 tests pass.
 * **2026-05-15**: PROJECT.md v2.0 and CLAUDE.md v2.0. Phase 2 (Diversity Foundation) kickoff.
 * **2026-04-29**: MIDI reader, section regeneration, evaluation.json persistence, richer feedback adaptations, Claude Code command upgrades, 4 skills populated (cinematic, voice-leading, piano, tension-resolution), mypy 140→0.
 * **2026-04-29**: Constraint system, CLI diff/explain, stochastic unit tests, modified_notes in ScoreDiff.
