@@ -1,0 +1,31 @@
+title: "Trance Euphoria"
+key: "A minor"
+tempo_bpm: 140
+time_signature: "4/4"
+
+genre:
+  primary: electronic_trance
+
+instruments:
+  - { name: synth_lead, role: melody }
+  - { name: synth_pad, role: harmony }
+  - { name: synth_bass, role: bass }
+
+drums:
+  pattern_family: "four_on_the_floor"
+  swing: 0.0
+  humanize_ms: 1
+
+sections:
+  - { name: intro, bars: 8, dynamics: mp }
+  - { name: buildup_1, bars: 8, dynamics: mf }
+  - { name: drop_1, bars: 16, dynamics: ff }
+  - { name: breakdown, bars: 8, dynamics: pp }
+  - { name: buildup_2, bars: 8, dynamics: mf }
+  - { name: drop_2, bars: 16, dynamics: ff }
+  - { name: outro, bars: 8, dynamics: mp }
+
+generation:
+  strategy: stochastic
+  seed: 1601
+  temperature: 0.5

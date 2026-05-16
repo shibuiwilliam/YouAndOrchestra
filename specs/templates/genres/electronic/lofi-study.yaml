@@ -1,0 +1,30 @@
+title: "Lo-fi Study Session"
+key: "A minor"
+tempo_bpm: 78
+time_signature: "4/4"
+
+genre:
+  primary: lofi_hiphop
+
+instruments:
+  - { name: piano, role: melody }
+  - { name: electric_bass_finger, role: bass }
+
+drums:
+  pattern_family: "lofi_laidback"
+  swing: 0.6
+  humanize_ms: 10
+  ghost_notes_density: 0.4
+
+sections:
+  - { name: intro, bars: 4, dynamics: pp }
+  - { name: loop_a, bars: 8, dynamics: mp }
+  - { name: loop_b, bars: 8, dynamics: mp }
+  - { name: loop_a_var, bars: 8, dynamics: mp }
+  - { name: loop_b_var, bars: 8, dynamics: mp }
+  - { name: outro, bars: 4, dynamics: pp }
+
+generation:
+  strategy: stochastic
+  seed: 604
+  temperature: 0.5

@@ -1,0 +1,31 @@
+title: "Celtic Reel"
+key: "D major"
+tempo_bpm: 120
+time_signature: "4/4"
+
+genre:
+  primary: world_celtic
+
+instruments:
+  - { name: fiddle, role: melody }
+  - { name: tin_whistle, role: counter_melody }
+  - { name: acoustic_guitar, role: harmony }
+  - { name: bodhran, role: rhythm }
+
+drums:
+  pattern_family: "compound_6_8"
+  swing: 0.52
+  humanize_ms: 5
+
+sections:
+  - { name: intro, bars: 4, dynamics: mp }
+  - { name: tune_a, bars: 8, dynamics: mf }
+  - { name: tune_a_repeat, bars: 8, dynamics: f }
+  - { name: tune_b, bars: 8, dynamics: mf }
+  - { name: tune_b_repeat, bars: 8, dynamics: f }
+  - { name: outro, bars: 4, dynamics: mf }
+
+generation:
+  strategy: stochastic
+  seed: 1801
+  temperature: 0.5

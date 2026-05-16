@@ -1,0 +1,31 @@
+title: "Trap Dark"
+key: "C# minor"
+tempo_bpm: 145
+time_signature: "4/4"
+
+genre:
+  primary: hiphop_trap
+
+instruments:
+  - { name: synth_pad, role: harmony }
+  - { name: synth_bass, role: bass }
+
+drums:
+  pattern_family: "trap_half_time"
+  swing: 0.0
+  humanize_ms: 3
+  ghost_notes_density: 0.1
+
+sections:
+  - { name: intro, bars: 4, dynamics: mp }
+  - { name: verse, bars: 8, dynamics: mf }
+  - { name: hook, bars: 4, dynamics: f }
+  - { name: verse, bars: 8, dynamics: mf }
+  - { name: hook, bars: 4, dynamics: f }
+  - { name: drop, bars: 8, dynamics: ff }
+  - { name: outro, bars: 4, dynamics: mp }
+
+generation:
+  strategy: stochastic
+  seed: 502
+  temperature: 0.6

@@ -1,0 +1,30 @@
+title: "Bebop Standard"
+key: "Bb major"
+tempo_bpm: 200
+time_signature: "4/4"
+
+genre:
+  primary: jazz_bebop
+
+instruments:
+  - { name: saxophone, role: melody }
+  - { name: trumpet, role: counter_melody }
+  - { name: piano, role: harmony }
+  - { name: contrabass, role: bass }
+
+drums:
+  pattern_family: "jazz_swing_ride"
+  swing: 0.7
+  humanize_ms: 12
+  ghost_notes_density: 0.3
+
+sections:
+  - { name: head_in, bars: 8, dynamics: mf }
+  - { name: solo_1, bars: 16, dynamics: f }
+  - { name: solo_2, bars: 16, dynamics: f }
+  - { name: head_out, bars: 8, dynamics: mf }
+
+generation:
+  strategy: stochastic
+  seed: 101
+  temperature: 0.7

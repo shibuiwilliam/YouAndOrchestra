@@ -1,0 +1,28 @@
+title: "Dark Ambient Texture"
+key: "A minor"
+tempo_bpm: 60
+time_signature: "4/4"
+
+genre:
+  primary: ambient_dark
+
+instruments:
+  - { name: synth_pad, role: harmony }
+  - { name: cello, role: melody }
+
+drums:
+  pattern_family: "orchestral"
+  swing: 0.0
+  humanize_ms: 0
+
+sections:
+  - { name: intro, bars: 8, dynamics: ppp }
+  - { name: evolution_1, bars: 16, dynamics: pp }
+  - { name: transition, bars: 4, dynamics: pp }
+  - { name: evolution_2, bars: 16, dynamics: mp }
+  - { name: fade, bars: 8, dynamics: ppp }
+
+generation:
+  strategy: stochastic
+  seed: 1201
+  temperature: 0.8

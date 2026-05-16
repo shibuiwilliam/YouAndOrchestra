@@ -1,0 +1,23 @@
+title: "Romantic Nocturne"
+key: "Db major"
+tempo_bpm: 72
+time_signature: "4/4"
+
+genre:
+  primary: classical_romantic
+
+instruments:
+  - { name: piano, role: melody }
+
+sections:
+  - { name: intro, bars: 4, dynamics: pp }
+  - { name: theme_a, bars: 8, dynamics: mp }
+  - { name: theme_b, bars: 8, dynamics: mf }
+  - { name: development, bars: 8, dynamics: f }
+  - { name: theme_a_return, bars: 8, dynamics: mp }
+  - { name: coda, bars: 4, dynamics: pp }
+
+generation:
+  strategy: stochastic
+  seed: 1301
+  temperature: 0.4

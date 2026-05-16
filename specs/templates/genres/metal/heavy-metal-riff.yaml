@@ -1,0 +1,31 @@
+title: "Heavy Metal Riff"
+key: "E minor"
+tempo_bpm: 160
+time_signature: "4/4"
+
+genre:
+  primary: metal
+
+instruments:
+  - { name: electric_guitar, role: melody }
+  - { name: bass_guitar, role: bass }
+
+drums:
+  pattern_family: "metal_double_kick"
+  swing: 0.0
+  humanize_ms: 2
+
+sections:
+  - { name: intro, bars: 4, dynamics: f }
+  - { name: verse, bars: 8, dynamics: f }
+  - { name: prechorus, bars: 4, dynamics: f }
+  - { name: chorus, bars: 8, dynamics: ff }
+  - { name: verse, bars: 8, dynamics: f }
+  - { name: solo, bars: 8, dynamics: ff }
+  - { name: chorus, bars: 8, dynamics: ff }
+  - { name: outro, bars: 4, dynamics: fff }
+
+generation:
+  strategy: stochastic
+  seed: 1001
+  temperature: 0.6

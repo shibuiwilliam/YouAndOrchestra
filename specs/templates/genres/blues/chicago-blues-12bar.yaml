@@ -1,0 +1,32 @@
+title: "Chicago Blues 12-Bar"
+key: "E major"
+tempo_bpm: 110
+time_signature: "4/4"
+
+genre:
+  primary: blues_chicago
+
+instruments:
+  - { name: electric_guitar, role: melody }
+  - { name: harmonica, role: counter_melody }
+  - { name: bass, role: bass }
+  - { name: piano, role: harmony }
+
+drums:
+  pattern_family: "blues_shuffle"
+  swing: 0.62
+  humanize_ms: 8
+  ghost_notes_density: 0.2
+
+sections:
+  - { name: intro, bars: 4, dynamics: mp }
+  - { name: verse_1, bars: 12, dynamics: mf }
+  - { name: verse_2, bars: 12, dynamics: mf }
+  - { name: solo, bars: 12, dynamics: f }
+  - { name: verse_3, bars: 12, dynamics: f }
+  - { name: outro, bars: 4, dynamics: mp }
+
+generation:
+  strategy: stochastic
+  seed: 801
+  temperature: 0.5

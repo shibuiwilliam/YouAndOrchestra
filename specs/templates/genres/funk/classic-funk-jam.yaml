@@ -1,0 +1,33 @@
+title: "Classic Funk Jam"
+key: "E minor"
+tempo_bpm: 105
+time_signature: "4/4"
+
+genre:
+  primary: funk_classic
+
+instruments:
+  - { name: electric_guitar, role: rhythm }
+  - { name: bass_guitar, role: bass }
+  - { name: organ, role: harmony }
+  - { name: trumpet, role: melody }
+
+drums:
+  pattern_family: "funk_16th"
+  swing: 0.52
+  humanize_ms: 5
+  ghost_notes_density: 0.4
+
+sections:
+  - { name: intro, bars: 4, dynamics: mf }
+  - { name: groove, bars: 8, dynamics: f }
+  - { name: verse, bars: 8, dynamics: mf }
+  - { name: groove, bars: 8, dynamics: f }
+  - { name: bridge, bars: 4, dynamics: mf }
+  - { name: groove, bars: 8, dynamics: f }
+  - { name: outro, bars: 4, dynamics: mf }
+
+generation:
+  strategy: stochastic
+  seed: 701
+  temperature: 0.6

@@ -1,0 +1,28 @@
+title: "Cinematic Emotional"
+key: "Ab major"
+tempo_bpm: 68
+time_signature: "4/4"
+
+genre:
+  primary: cinematic
+
+instruments:
+  - { name: violin, role: melody }
+  - { name: cello, role: bass }
+  - { name: piano, role: harmony }
+  - { name: french_horn, role: counter_melody }
+  - { name: harp, role: pad }
+  - { name: flute, role: counter_melody }
+
+sections:
+  - { name: intro, bars: 4, dynamics: pp }
+  - { name: theme, bars: 8, dynamics: mp }
+  - { name: development, bars: 8, dynamics: f }
+  - { name: climax, bars: 4, dynamics: ff }
+  - { name: denouement, bars: 8, dynamics: mp }
+  - { name: coda, bars: 4, dynamics: pp }
+
+generation:
+  strategy: stochastic
+  seed: 1902
+  temperature: 0.4

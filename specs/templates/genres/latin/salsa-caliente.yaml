@@ -1,0 +1,34 @@
+title: "Salsa Caliente"
+key: "C major"
+tempo_bpm: 95
+time_signature: "4/4"
+
+genre:
+  primary: latin_bossa_nova
+
+instruments:
+  - { name: piano, role: harmony }
+  - { name: trumpet, role: melody }
+  - { name: trombone, role: counter_melody }
+  - { name: contrabass, role: bass }
+
+drums:
+  pattern_family: "salsa_basic"
+  swing: 0.52
+  humanize_ms: 5
+  ghost_notes_density: 0.2
+
+sections:
+  - { name: intro, bars: 4, dynamics: mf }
+  - { name: montuno, bars: 8, dynamics: f }
+  - { name: verse, bars: 8, dynamics: mf }
+  - { name: coro, bars: 8, dynamics: f }
+  - { name: mambo, bars: 8, dynamics: ff }
+  - { name: verse, bars: 8, dynamics: mf }
+  - { name: coro, bars: 8, dynamics: f }
+  - { name: outro, bars: 4, dynamics: mf }
+
+generation:
+  strategy: stochastic
+  seed: 902
+  temperature: 0.6

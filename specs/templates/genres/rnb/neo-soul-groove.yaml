@@ -1,0 +1,32 @@
+title: "Neo Soul Groove"
+key: "Eb major"
+tempo_bpm: 85
+time_signature: "4/4"
+
+genre:
+  primary: rnb_neo_soul
+
+instruments:
+  - { name: electric_piano, role: harmony }
+  - { name: bass_guitar, role: bass }
+  - { name: guitar, role: melody }
+
+drums:
+  pattern_family: "rnb_modern"
+  swing: 0.55
+  humanize_ms: 8
+  ghost_notes_density: 0.3
+
+sections:
+  - { name: intro, bars: 4, dynamics: mp }
+  - { name: verse, bars: 8, dynamics: mf }
+  - { name: prechorus, bars: 4, dynamics: mf }
+  - { name: chorus, bars: 8, dynamics: f }
+  - { name: verse, bars: 8, dynamics: mf }
+  - { name: chorus, bars: 8, dynamics: f }
+  - { name: outro, bars: 4, dynamics: mp }
+
+generation:
+  strategy: stochastic
+  seed: 1501
+  temperature: 0.5

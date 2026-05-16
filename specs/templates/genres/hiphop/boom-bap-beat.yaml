@@ -1,0 +1,30 @@
+title: "Boom Bap Beat"
+key: "F minor"
+tempo_bpm: 92
+time_signature: "4/4"
+
+genre:
+  primary: hiphop_boom_bap
+
+instruments:
+  - { name: electric_piano, role: melody }
+  - { name: bass, role: bass }
+
+drums:
+  pattern_family: "lofi_laidback"
+  swing: 0.55
+  humanize_ms: 10
+  ghost_notes_density: 0.3
+
+sections:
+  - { name: intro, bars: 4, dynamics: mp }
+  - { name: verse, bars: 16, dynamics: mf }
+  - { name: hook, bars: 8, dynamics: f }
+  - { name: verse, bars: 16, dynamics: mf }
+  - { name: hook, bars: 8, dynamics: f }
+  - { name: outro, bars: 4, dynamics: mp }
+
+generation:
+  strategy: stochastic
+  seed: 501
+  temperature: 0.5

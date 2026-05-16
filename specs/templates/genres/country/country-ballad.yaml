@@ -1,0 +1,34 @@
+title: "Country Ballad"
+key: "G major"
+tempo_bpm: 110
+time_signature: "4/4"
+
+genre:
+  primary: country_traditional
+
+instruments:
+  - { name: acoustic_guitar, role: harmony }
+  - { name: pedal_steel, role: melody }
+  - { name: bass_guitar, role: bass }
+  - { name: fiddle, role: counter_melody }
+
+drums:
+  pattern_family: "pop_ballad"
+  swing: 0.55
+  humanize_ms: 5
+  ghost_notes_density: 0.1
+
+sections:
+  - { name: intro, bars: 4, dynamics: mp }
+  - { name: verse, bars: 8, dynamics: mf }
+  - { name: chorus, bars: 8, dynamics: f }
+  - { name: verse, bars: 8, dynamics: mf }
+  - { name: chorus, bars: 8, dynamics: f }
+  - { name: bridge, bars: 4, dynamics: mp }
+  - { name: chorus, bars: 8, dynamics: f }
+  - { name: outro, bars: 4, dynamics: mp }
+
+generation:
+  strategy: stochastic
+  seed: 1401
+  temperature: 0.4

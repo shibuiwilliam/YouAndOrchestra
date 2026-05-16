@@ -1,0 +1,33 @@
+title: "Action Chase Scene"
+key: "D minor"
+tempo_bpm: 150
+time_signature: "4/4"
+
+genre:
+  primary: cinematic
+
+instruments:
+  - { name: violin, role: melody }
+  - { name: cello, role: bass }
+  - { name: french_horn, role: harmony }
+  - { name: trumpet, role: counter_melody }
+  - { name: timpani, role: rhythm }
+
+drums:
+  pattern_family: "orchestral"
+  swing: 0.0
+  humanize_ms: 3
+
+sections:
+  - { name: intro, bars: 4, dynamics: mp }
+  - { name: buildup, bars: 8, dynamics: f }
+  - { name: chase_1, bars: 8, dynamics: ff }
+  - { name: respite, bars: 4, dynamics: mp }
+  - { name: chase_2, bars: 8, dynamics: ff }
+  - { name: climax, bars: 4, dynamics: fff }
+  - { name: resolution, bars: 4, dynamics: mp }
+
+generation:
+  strategy: stochastic
+  seed: 1901
+  temperature: 0.6

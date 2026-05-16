@@ -1,0 +1,31 @@
+title: "Jazz Ballad Night"
+key: "Bb major"
+tempo_bpm: 65
+time_signature: "4/4"
+
+genre:
+  primary: jazz_ballad
+
+instruments:
+  - { name: piano, role: harmony }
+  - { name: contrabass, role: bass }
+  - { name: saxophone, role: melody }
+
+drums:
+  pattern_family: "ballad_brushed"
+  swing: 0.65
+  humanize_ms: 10
+  ghost_notes_density: 0.2
+
+sections:
+  - { name: intro, bars: 4, dynamics: pp }
+  - { name: head, bars: 8, dynamics: mp }
+  - { name: solo_piano, bars: 8, dynamics: mp }
+  - { name: solo_sax, bars: 8, dynamics: mf }
+  - { name: head_out, bars: 8, dynamics: mp }
+  - { name: coda, bars: 4, dynamics: pp }
+
+generation:
+  strategy: stochastic
+  seed: 203
+  temperature: 0.5

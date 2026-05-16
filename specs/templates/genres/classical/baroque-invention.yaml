@@ -1,0 +1,22 @@
+title: "Baroque Two-Part Invention"
+key: "C major"
+tempo_bpm: 96
+time_signature: "4/4"
+
+genre:
+  primary: classical_baroque
+
+instruments:
+  - { name: harpsichord, role: melody }
+
+sections:
+  - { name: exposition, bars: 8, dynamics: mf }
+  - { name: episode_1, bars: 4, dynamics: mf }
+  - { name: middle, bars: 8, dynamics: f }
+  - { name: episode_2, bars: 4, dynamics: mf }
+  - { name: recapitulation, bars: 8, dynamics: f }
+
+generation:
+  strategy: rule_based
+  seed: 1302
+  temperature: 0.3

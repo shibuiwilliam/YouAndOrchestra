@@ -1,0 +1,29 @@
+title: "Modal Exploration"
+key: "D dorian"
+tempo_bpm: 130
+time_signature: "4/4"
+
+genre:
+  primary: jazz_modal
+
+instruments:
+  - { name: saxophone, role: melody }
+  - { name: piano, role: harmony }
+  - { name: contrabass, role: bass }
+
+drums:
+  pattern_family: "jazz_swing_ride"
+  swing: 0.6
+  humanize_ms: 10
+  ghost_notes_density: 0.2
+
+sections:
+  - { name: intro, bars: 4, dynamics: pp }
+  - { name: theme_a, bars: 16, dynamics: mp }
+  - { name: theme_b, bars: 16, dynamics: mf }
+  - { name: coda, bars: 4, dynamics: pp }
+
+generation:
+  strategy: stochastic
+  seed: 202
+  temperature: 0.6

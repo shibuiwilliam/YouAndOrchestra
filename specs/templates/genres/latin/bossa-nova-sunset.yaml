@@ -1,0 +1,32 @@
+title: "Bossa Nova Sunset"
+key: "F major"
+tempo_bpm: 135
+time_signature: "4/4"
+
+genre:
+  primary: latin_bossa_nova
+
+instruments:
+  - { name: nylon_guitar, role: harmony }
+  - { name: piano, role: melody }
+  - { name: contrabass, role: bass }
+  - { name: flute, role: counter_melody }
+
+drums:
+  pattern_family: "bossa_nova"
+  swing: 0.52
+  humanize_ms: 6
+  ghost_notes_density: 0.2
+
+sections:
+  - { name: intro, bars: 4, dynamics: pp }
+  - { name: theme_a, bars: 8, dynamics: mp }
+  - { name: theme_b, bars: 8, dynamics: mf }
+  - { name: solo, bars: 8, dynamics: mf }
+  - { name: theme_a, bars: 8, dynamics: mp }
+  - { name: coda, bars: 4, dynamics: pp }
+
+generation:
+  strategy: stochastic
+  seed: 901
+  temperature: 0.5

@@ -1,0 +1,32 @@
+title: "Progressive Rock Suite"
+key: "E minor"
+tempo_bpm: 120
+time_signature: "4/4"
+
+genre:
+  primary: progressive_rock
+
+instruments:
+  - { name: electric_guitar, role: melody }
+  - { name: bass_guitar, role: bass }
+  - { name: keyboard, role: harmony }
+  - { name: synth_lead, role: counter_melody }
+
+drums:
+  pattern_family: "rock_driving"
+  swing: 0.0
+  humanize_ms: 5
+
+sections:
+  - { name: intro, bars: 4, dynamics: mp }
+  - { name: theme_a, bars: 8, dynamics: mf }
+  - { name: transition, bars: 4, dynamics: mf }
+  - { name: theme_b, bars: 8, dynamics: f, time_signature: "7/8" }
+  - { name: development, bars: 12, dynamics: ff }
+  - { name: theme_a_return, bars: 8, dynamics: mf }
+  - { name: coda, bars: 4, dynamics: f }
+
+generation:
+  strategy: stochastic
+  seed: 1701
+  temperature: 0.6
