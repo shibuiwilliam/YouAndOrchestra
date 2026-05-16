@@ -1,0 +1,70 @@
+# Genre Profile: Neo Soul
+# References:
+#   - Neo soul harmony: extended chords, 9ths, 11ths (Harrison, 2016)
+#   - Groove-based rhythm and Rhodes-centric texture (Danielsen, 2006)
+#   - Blues-influenced melodic vocabulary with gospel inflections (Brackett, 2009)
+#   - Analog warmth aesthetic and live-feel production (Neal, 1999)
+
+name: rnb_neo_soul
+
+chord_palette:
+  - Imaj9
+  - ii9
+  - iii7
+  - IVmaj9
+  - V9
+  - vi9
+  - iv9
+  - bVII9
+  - II9
+  - bVImaj7
+
+progression_n_grams:
+  "ii9,V9": 0.16
+  "V9,Imaj9": 0.14
+  "Imaj9,vi9": 0.12
+  "vi9,ii9": 0.12
+  "IVmaj9,iii7": 0.10
+  "iii7,vi9": 0.08
+  "Imaj9,IVmaj9": 0.08
+  "iv9,bVII9": 0.07
+  "bVII9,Imaj9": 0.07
+  "II9,V9": 0.06
+
+seventh_chord_probability: 0.85
+secondary_dominant_probability: 0.25
+modal_interchange_probability: 0.25
+
+melodic_contour_weights:
+  ascending: 0.20
+  descending: 0.25
+  arch: 0.30
+  valley: 0.15
+  flat: 0.10
+
+leap_probability: 0.25
+blue_note_probability: 0.20
+
+swing_ratio: 0.55
+syncopation_density: 0.50
+
+rhythm_template_weights:
+  sixteenth_notes: 0.30
+  eighth_notes: 0.25
+  quarter_notes: 0.15
+  dotted_eighth: 0.15
+  triplet_eighth: 0.15
+
+preferred_instruments:
+  - electric_piano
+  - bass_guitar
+  - drum_kit
+  - guitar
+  - synth_pad
+
+voicing_density_target: 5
+bass_motion_style: syncopated
+
+typical_dynamics_range: [mp, f]
+target_spectral_centroid: 0.35
+tempo_range: [70, 100]

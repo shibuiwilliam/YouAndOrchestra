@@ -1,0 +1,73 @@
+# Genre Profile: Bossa Nova
+# References:
+#   - Bossa nova harmony: jazz-influenced with Brazilian sensibility (Castro, 2000)
+#   - Nylon guitar patterns and syncopated bass (Jobim & Chediak, 1990)
+#   - Gentle syncopation and the bossa clave (Galm, 2010)
+#   - Extended chords and chromatic voice leading (Rawlins & Bahha, 2005)
+
+name: latin_bossa_nova
+
+chord_palette:
+  - Imaj7
+  - ii7
+  - V7
+  - iii7
+  - vi7
+  - IVmaj7
+  - bII7
+  - iv7
+  - II7
+  - bVImaj7
+  - bVII7
+
+progression_n_grams:
+  "ii7,V7": 0.18
+  "V7,Imaj7": 0.16
+  "Imaj7,vi7": 0.12
+  "vi7,ii7": 0.10
+  "Imaj7,IVmaj7": 0.08
+  "IVmaj7,iv7": 0.07
+  "iv7,Imaj7": 0.06
+  "iii7,vi7": 0.06
+  "II7,V7": 0.06
+  "bII7,Imaj7": 0.05
+  "Imaj7,bVII7": 0.06
+
+seventh_chord_probability: 0.90
+secondary_dominant_probability: 0.30
+modal_interchange_probability: 0.20
+
+melodic_contour_weights:
+  ascending: 0.20
+  descending: 0.25
+  arch: 0.30
+  valley: 0.15
+  flat: 0.10
+
+leap_probability: 0.20
+blue_note_probability: 0.05
+
+swing_ratio: 0.52
+syncopation_density: 0.50
+
+rhythm_template_weights:
+  eighth_notes: 0.30
+  sixteenth_notes: 0.25
+  quarter_notes: 0.15
+  dotted_eighth: 0.15
+  dotted_quarter: 0.10
+  half_notes: 0.05
+
+preferred_instruments:
+  - nylon_guitar
+  - piano
+  - contrabass
+  - drum_kit
+  - flute
+
+voicing_density_target: 5
+bass_motion_style: syncopated
+
+typical_dynamics_range: [pp, mf]
+target_spectral_centroid: 0.40
+tempo_range: [120, 145]

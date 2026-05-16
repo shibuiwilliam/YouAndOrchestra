@@ -1,0 +1,70 @@
+# Genre Profile: Modal Jazz
+# References:
+#   - Modal jazz theory: horizontal improvisation over static harmony (Russell, 1953)
+#   - Quartal voicings in modal jazz (Levine, 1995)
+#   - Dorian and mixolydian mode predominance (Jost, 1994)
+#   - Rubato phrasing and space as compositional element (Kernfeld, 2002)
+
+name: jazz_modal
+
+chord_palette:
+  - Imaj7
+  - ii7
+  - IVmaj7
+  - bVIImaj7
+  - v7
+  - bIIImaj7
+  - bVImaj7
+  - Isus4
+  - iv7
+
+progression_n_grams:
+  "Imaj7,Imaj7": 0.25
+  "ii7,ii7": 0.18
+  "Imaj7,ii7": 0.12
+  "ii7,Imaj7": 0.10
+  "Imaj7,bVIImaj7": 0.08
+  "bVIImaj7,Imaj7": 0.07
+  "Imaj7,IVmaj7": 0.06
+  "IVmaj7,Imaj7": 0.05
+  "ii7,bIIImaj7": 0.05
+  "bVImaj7,bVIImaj7": 0.04
+
+seventh_chord_probability: 0.90
+secondary_dominant_probability: 0.08
+modal_interchange_probability: 0.35
+
+melodic_contour_weights:
+  ascending: 0.20
+  descending: 0.20
+  arch: 0.25
+  valley: 0.15
+  flat: 0.20
+
+leap_probability: 0.25
+blue_note_probability: 0.15
+
+swing_ratio: 0.62
+syncopation_density: 0.45
+
+rhythm_template_weights:
+  eighth_notes: 0.25
+  quarter_notes: 0.25
+  triplet_eighth: 0.15
+  half_notes: 0.15
+  dotted_quarter: 0.10
+  whole_notes: 0.10
+
+preferred_instruments:
+  - saxophone
+  - trumpet
+  - piano
+  - contrabass
+  - drum_kit
+
+voicing_density_target: 4
+bass_motion_style: pedal
+
+typical_dynamics_range: [pp, mf]
+target_spectral_centroid: 0.35
+tempo_range: [100, 160]

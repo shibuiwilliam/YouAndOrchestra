@@ -1,0 +1,86 @@
+# Genre Profile: Romantic Era Classical
+# References:
+#   - Chromaticism and expressive modulation in Romantic harmony (Rosen, 1995)
+#   - Dynamic range expansion in 19th century orchestration (Berlioz & Strauss, 1905)
+#   - Sonata form evolution in Romantic period (Hepokoski & Darcy, 2006)
+#   - Orchestral color and programmatic expression (Bonds, 2006)
+
+name: classical_romantic
+
+chord_palette:
+  - I
+  - ii
+  - IV
+  - V
+  - V7
+  - vi
+  - iii
+  - bVI
+  - viio
+  - N6
+  - It6
+  - Fr6
+  - Gr6
+  - iv
+  - bII
+  - II7
+
+progression_n_grams:
+  "I,IV": 0.12
+  "IV,V": 0.12
+  "V,I": 0.15
+  "I,V": 0.10
+  "V7,I": 0.10
+  "I,vi": 0.08
+  "vi,ii": 0.07
+  "ii,V": 0.08
+  "I,bVI": 0.06
+  "bVI,V": 0.05
+  "iv,V": 0.04
+  "V,vi": 0.03
+
+seventh_chord_probability: 0.35
+secondary_dominant_probability: 0.25
+modal_interchange_probability: 0.30
+
+melodic_contour_weights:
+  ascending: 0.25
+  descending: 0.25
+  arch: 0.30
+  valley: 0.10
+  flat: 0.10
+
+leap_probability: 0.30
+blue_note_probability: 0.0
+
+swing_ratio: 0.5
+syncopation_density: 0.20
+
+rhythm_template_weights:
+  eighth_notes: 0.25
+  quarter_notes: 0.25
+  sixteenth_notes: 0.15
+  half_notes: 0.15
+  dotted_quarter: 0.10
+  whole_notes: 0.10
+
+preferred_instruments:
+  - violin
+  - viola
+  - cello
+  - contrabass
+  - flute
+  - oboe
+  - clarinet
+  - french_horn
+  - trumpet
+  - timpani
+  - piano
+  - harp
+
+voicing_density_target: 6
+bass_motion_style: root_fifth
+
+typical_dynamics_range: [pp, ff]
+target_spectral_centroid: 0.45
+tempo_range: [60, 140]

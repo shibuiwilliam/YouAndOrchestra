@@ -1,0 +1,67 @@
+# Genre Profile: Boom Bap Hip Hop
+# References:
+#   - Boom bap production: sample-based, jazz/soul sources (Schloss, 2014)
+#   - MPC swing and quantization as groove signature (D'Errico, 2015)
+#   - Extended chord voicings from jazz in hip hop sampling (Williams, 2014)
+#   - Layered sampling and chopping techniques (Katz, 2012)
+
+name: hiphop_boom_bap
+
+chord_palette:
+  - Imaj7
+  - ii7
+  - iii7
+  - IVmaj7
+  - V7
+  - vi7
+  - iv7
+  - bVII7
+  - bVImaj7
+
+progression_n_grams:
+  "ii7,V7": 0.16
+  "V7,Imaj7": 0.14
+  "Imaj7,vi7": 0.14
+  "vi7,ii7": 0.12
+  "IVmaj7,iii7": 0.10
+  "iv7,bVII7": 0.08
+  "bVII7,Imaj7": 0.08
+  "Imaj7,IVmaj7": 0.08
+  "iii7,vi7": 0.10
+
+seventh_chord_probability: 0.80
+secondary_dominant_probability: 0.10
+modal_interchange_probability: 0.20
+
+melodic_contour_weights:
+  ascending: 0.15
+  descending: 0.25
+  arch: 0.25
+  valley: 0.20
+  flat: 0.15
+
+leap_probability: 0.15
+blue_note_probability: 0.10
+
+swing_ratio: 0.58
+syncopation_density: 0.45
+
+rhythm_template_weights:
+  eighth_notes: 0.30
+  sixteenth_notes: 0.25
+  quarter_notes: 0.20
+  dotted_eighth: 0.15
+  triplet_eighth: 0.10
+
+preferred_instruments:
+  - drum_kit
+  - bass
+  - electric_piano
+  - sampler
+
+voicing_density_target: 4
+bass_motion_style: syncopated
+
+typical_dynamics_range: [mp, mf]
+target_spectral_centroid: 0.35
+tempo_range: [85, 100]

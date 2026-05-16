@@ -1,0 +1,68 @@
+# Genre Profile: Celtic / Irish Traditional
+# References:
+#   - Modal scales in Celtic music: dorian, mixolydian (Breathnach, 1971)
+#   - Ornamentation techniques: rolls, cuts, crans (Vallely, 1999)
+#   - Jig and reel dance rhythms (Cowdery, 1990)
+#   - Session performance practice and tune structures (Hamilton, 1999)
+
+name: world_celtic
+
+chord_palette:
+  - I
+  - IV
+  - V
+  - bVII
+  - ii
+  - vi
+  - bIII
+
+progression_n_grams:
+  "I,bVII": 0.18
+  "bVII,I": 0.15
+  "I,IV": 0.15
+  "IV,I": 0.12
+  "I,V": 0.10
+  "V,I": 0.10
+  "bVII,IV": 0.08
+  "I,ii": 0.06
+  "vi,bVII": 0.06
+
+seventh_chord_probability: 0.05
+secondary_dominant_probability: 0.02
+modal_interchange_probability: 0.25
+
+melodic_contour_weights:
+  ascending: 0.30
+  descending: 0.30
+  arch: 0.25
+  valley: 0.10
+  flat: 0.05
+
+leap_probability: 0.30
+blue_note_probability: 0.0
+
+swing_ratio: 0.52
+syncopation_density: 0.25
+
+rhythm_template_weights:
+  eighth_notes: 0.40
+  sixteenth_notes: 0.20
+  quarter_notes: 0.15
+  dotted_quarter: 0.15
+  triplet_eighth: 0.05
+  half_notes: 0.05
+
+preferred_instruments:
+  - fiddle
+  - tin_whistle
+  - acoustic_guitar
+  - bodhran
+  - harp
+  - uilleann_pipes
+
+voicing_density_target: 2
+bass_motion_style: root_fifth
+
+typical_dynamics_range: [mp, f]
+target_spectral_centroid: 0.50
+tempo_range: [80, 140]

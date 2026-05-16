@@ -1,0 +1,70 @@
+# Genre Profile: Roots Reggae
+# References:
+#   - One-drop rhythm and offbeat guitar skank (Manuel & Marshall, 2006)
+#   - Bass-heavy mix and dub production techniques (Veal, 2007)
+#   - Major-key optimism and Rastafarian musical aesthetics (Chang & Chen, 1998)
+#   - Reggae harmonic simplicity: I-IV-V with minor borrowings (Katz, 2003)
+
+name: reggae
+
+chord_palette:
+  - I
+  - IV
+  - V
+  - vi
+  - ii
+  - bVII
+  - bVI
+  - iii
+
+progression_n_grams:
+  "I,IV": 0.18
+  "IV,I": 0.15
+  "I,V": 0.14
+  "V,I": 0.12
+  "I,vi": 0.10
+  "vi,IV": 0.08
+  "IV,V": 0.08
+  "I,bVII": 0.07
+  "ii,V": 0.05
+  "bVII,I": 0.03
+
+seventh_chord_probability: 0.25
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.12
+
+melodic_contour_weights:
+  ascending: 0.20
+  descending: 0.25
+  arch: 0.25
+  valley: 0.15
+  flat: 0.15
+
+leap_probability: 0.20
+blue_note_probability: 0.10
+
+swing_ratio: 0.5
+syncopation_density: 0.55
+
+rhythm_template_weights:
+  eighth_notes: 0.35
+  quarter_notes: 0.25
+  sixteenth_notes: 0.15
+  dotted_quarter: 0.10
+  half_notes: 0.10
+  dotted_eighth: 0.05
+
+preferred_instruments:
+  - electric_guitar
+  - bass_guitar
+  - drum_kit
+  - organ
+  - trumpet
+  - trombone
+
+voicing_density_target: 3
+bass_motion_style: syncopated
+
+typical_dynamics_range: [mp, mf]
+target_spectral_centroid: 0.35
+tempo_range: [70, 90]

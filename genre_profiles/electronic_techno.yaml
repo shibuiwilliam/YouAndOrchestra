@@ -1,0 +1,63 @@
+# Genre Profile: Techno
+# References:
+#   - Repetitive structure and minimal harmonic content (Butler, 2006)
+#   - Industrial and mechanistic aesthetic in Detroit techno (Sicko, 2010)
+#   - Driving 4/4 kick and hypnotic pattern development (Reynolds, 2012)
+#   - Spectral minimalism and timbral evolution (Demers, 2010)
+
+name: electronic_techno
+
+chord_palette:
+  - i
+  - bVII
+  - bVI
+  - iv
+  - v
+  - bIII
+
+progression_n_grams:
+  "i,i": 0.35
+  "i,bVII": 0.15
+  "bVII,i": 0.12
+  "i,iv": 0.10
+  "iv,i": 0.08
+  "i,bVI": 0.08
+  "bVI,bVII": 0.06
+  "bVII,bVI": 0.06
+
+seventh_chord_probability: 0.10
+secondary_dominant_probability: 0.02
+modal_interchange_probability: 0.10
+
+melodic_contour_weights:
+  ascending: 0.20
+  descending: 0.20
+  arch: 0.15
+  valley: 0.10
+  flat: 0.35
+
+leap_probability: 0.15
+blue_note_probability: 0.0
+
+swing_ratio: 0.5
+syncopation_density: 0.25
+
+rhythm_template_weights:
+  sixteenth_notes: 0.35
+  eighth_notes: 0.30
+  quarter_notes: 0.20
+  thirty_second_notes: 0.10
+  half_notes: 0.05
+
+preferred_instruments:
+  - synth_lead
+  - synth_bass
+  - drum_kit
+  - synth_pad
+
+voicing_density_target: 2
+bass_motion_style: pedal
+
+typical_dynamics_range: [mf, f]
+target_spectral_centroid: 0.50
+tempo_range: [128, 140]

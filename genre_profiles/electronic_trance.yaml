@@ -1,0 +1,66 @@
+# Genre Profile: Trance
+# References:
+#   - Euphoric build-and-release structure in trance (Solberg, 2014)
+#   - Arpeggiated synth patterns and supersaw timbres (Snoman, 2014)
+#   - Emotional minor-key progressions: vi-IV-I-V (Hawkins, 2003)
+#   - Extended breakdowns and climactic drops (Butler, 2006)
+
+name: electronic_trance
+
+chord_palette:
+  - vi
+  - IV
+  - I
+  - V
+  - ii
+  - iii
+  - bVII
+  - bVI
+
+progression_n_grams:
+  "vi,IV": 0.20
+  "IV,I": 0.18
+  "I,V": 0.18
+  "V,vi": 0.15
+  "vi,bVII": 0.08
+  "bVII,I": 0.06
+  "I,IV": 0.05
+  "ii,V": 0.05
+  "IV,V": 0.05
+
+seventh_chord_probability: 0.15
+secondary_dominant_probability: 0.05
+modal_interchange_probability: 0.10
+
+melodic_contour_weights:
+  ascending: 0.30
+  descending: 0.15
+  arch: 0.35
+  valley: 0.10
+  flat: 0.10
+
+leap_probability: 0.25
+blue_note_probability: 0.0
+
+swing_ratio: 0.5
+syncopation_density: 0.20
+
+rhythm_template_weights:
+  sixteenth_notes: 0.35
+  eighth_notes: 0.30
+  quarter_notes: 0.15
+  dotted_eighth: 0.10
+  half_notes: 0.10
+
+preferred_instruments:
+  - synth_lead
+  - synth_pad
+  - synth_bass
+  - drum_kit
+
+voicing_density_target: 4
+bass_motion_style: root_fifth
+
+typical_dynamics_range: [mp, ff]
+target_spectral_centroid: 0.60
+tempo_range: [135, 150]

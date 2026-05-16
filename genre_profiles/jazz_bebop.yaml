@@ -1,0 +1,75 @@
+# Genre Profile: Bebop Jazz
+# References:
+#   - Bebop harmonic practice: rapid ii-V-I chains (Levine, 1995)
+#   - Bebop scales and chromatic approach tones (Baker, 1988)
+#   - Triplet swing at fast tempos (Pressing, 2002)
+#   - Rhythm section role in bebop: walking bass, ride cymbal (DeVeaux, 1997)
+#   - Contrafact composition over standard progressions (Owens, 1995)
+
+name: jazz_bebop
+
+chord_palette:
+  - Imaj7
+  - ii7
+  - V7
+  - iii7
+  - vi7
+  - IVmaj7
+  - bII7
+  - viio7
+  - II7
+  - VI7
+  - III7
+  - iv7
+  - subV7
+
+progression_n_grams:
+  "ii7,V7": 0.22
+  "V7,Imaj7": 0.18
+  "Imaj7,vi7": 0.10
+  "vi7,ii7": 0.12
+  "iii7,VI7": 0.08
+  "VI7,ii7": 0.07
+  "II7,V7": 0.08
+  "bII7,Imaj7": 0.05
+  "Imaj7,IVmaj7": 0.05
+  "III7,vi7": 0.05
+
+seventh_chord_probability: 0.95
+secondary_dominant_probability: 0.40
+modal_interchange_probability: 0.15
+
+melodic_contour_weights:
+  ascending: 0.25
+  descending: 0.30
+  arch: 0.25
+  valley: 0.10
+  flat: 0.10
+
+leap_probability: 0.35
+blue_note_probability: 0.20
+
+swing_ratio: 0.67
+syncopation_density: 0.65
+
+rhythm_template_weights:
+  eighth_notes: 0.40
+  sixteenth_notes: 0.15
+  triplet_eighth: 0.20
+  quarter_notes: 0.10
+  dotted_eighth: 0.10
+  half_notes: 0.05
+
+preferred_instruments:
+  - saxophone
+  - trumpet
+  - piano
+  - contrabass
+  - drum_kit
+
+voicing_density_target: 5
+bass_motion_style: walking
+
+typical_dynamics_range: [mp, ff]
+target_spectral_centroid: 0.45
+tempo_range: [160, 280]

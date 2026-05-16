@@ -1,0 +1,68 @@
+# Genre Profile: Heavy Metal
+# References:
+#   - Power chords and distortion-based harmony (Walser, 1993)
+#   - Phrygian and aeolian modal vocabulary in metal (Lilja, 2009)
+#   - Double bass drum and aggressive rhythmic patterns (Pillsbury, 2006)
+#   - Palm-muted riffing and gallop rhythms (Berger & Fales, 2005)
+
+name: metal
+
+chord_palette:
+  - i
+  - bII
+  - bIII
+  - iv
+  - v
+  - bVI
+  - bVII
+  - IV
+  - V
+
+progression_n_grams:
+  "i,bVII": 0.16
+  "bVII,bVI": 0.12
+  "bVI,bVII": 0.10
+  "i,bII": 0.12
+  "bII,i": 0.10
+  "i,iv": 0.10
+  "iv,v": 0.08
+  "i,bVI": 0.08
+  "i,bIII": 0.07
+  "bIII,iv": 0.07
+
+seventh_chord_probability: 0.05
+secondary_dominant_probability: 0.03
+modal_interchange_probability: 0.15
+
+melodic_contour_weights:
+  ascending: 0.25
+  descending: 0.30
+  arch: 0.20
+  valley: 0.15
+  flat: 0.10
+
+leap_probability: 0.35
+blue_note_probability: 0.15
+
+swing_ratio: 0.5
+syncopation_density: 0.35
+
+rhythm_template_weights:
+  sixteenth_notes: 0.35
+  eighth_notes: 0.30
+  quarter_notes: 0.10
+  thirty_second_notes: 0.10
+  dotted_eighth: 0.10
+  triplet_eighth: 0.05
+
+preferred_instruments:
+  - electric_guitar
+  - bass_guitar
+  - drum_kit
+
+voicing_density_target: 2
+bass_motion_style: root_fifth
+
+typical_dynamics_range: [f, fff]
+target_spectral_centroid: 0.55
+tempo_range: [120, 200]

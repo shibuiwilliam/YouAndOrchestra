@@ -1,0 +1,73 @@
+# Genre Profile: Baroque
+# References:
+#   - Continuo practice and figured bass realization (Arnold, 1965)
+#   - Terraced dynamics and affekt doctrine (Buelow, 2004)
+#   - Contrapuntal techniques: fugue, canon, imitation (Mann, 1987)
+#   - Dance suite forms and Baroque rhythm (Little & Jenne, 2001)
+
+name: classical_baroque
+
+chord_palette:
+  - I
+  - ii
+  - IV
+  - V
+  - V7
+  - vi
+  - iii
+  - viio
+  - I6
+  - ii6
+
+progression_n_grams:
+  "I,V": 0.15
+  "V,I": 0.18
+  "I,IV": 0.12
+  "IV,V": 0.12
+  "V7,I": 0.10
+  "I,vi": 0.08
+  "vi,ii": 0.06
+  "ii,V": 0.08
+  "iii,vi": 0.05
+  "IV,I": 0.06
+
+seventh_chord_probability: 0.25
+secondary_dominant_probability: 0.15
+modal_interchange_probability: 0.05
+
+melodic_contour_weights:
+  ascending: 0.25
+  descending: 0.30
+  arch: 0.25
+  valley: 0.10
+  flat: 0.10
+
+leap_probability: 0.30
+blue_note_probability: 0.0
+
+swing_ratio: 0.5
+syncopation_density: 0.15
+
+rhythm_template_weights:
+  eighth_notes: 0.30
+  sixteenth_notes: 0.25
+  quarter_notes: 0.20
+  half_notes: 0.10
+  dotted_quarter: 0.10
+  whole_notes: 0.05
+
+preferred_instruments:
+  - harpsichord
+  - violin
+  - viola
+  - cello
+  - flute
+  - oboe
+  - trumpet
+
+voicing_density_target: 4
+bass_motion_style: walking
+
+typical_dynamics_range: [mp, f]
+target_spectral_centroid: 0.50
+tempo_range: [60, 130]

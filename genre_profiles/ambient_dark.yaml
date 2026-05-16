@@ -1,0 +1,67 @@
+# Genre Profile: Dark Ambient
+# References:
+#   - Drone aesthetics and sustained timbral transformation (Murail, 2005)
+#   - Low-frequency drone and psychoacoustic tension (Kramer, 1988)
+#   - Spectral composition as primary parameter (Wishart, 1996)
+#   - Negative space and silence as compositional tool (Demers, 2010)
+
+name: ambient_dark
+
+chord_palette:
+  - I
+  - Isus2
+  - bII
+  - bVII
+  - v
+  - bVI
+  - bIII
+  - iv
+
+progression_n_grams:
+  "I,bII": 0.18
+  "I,bVII": 0.15
+  "bII,I": 0.12
+  "I,iv": 0.10
+  "iv,bVI": 0.10
+  "bVI,v": 0.08
+  "v,I": 0.08
+  "I,bIII": 0.07
+  "bVII,bVI": 0.06
+  "bIII,iv": 0.06
+
+seventh_chord_probability: 0.15
+secondary_dominant_probability: 0.0
+modal_interchange_probability: 0.40
+
+melodic_contour_weights:
+  ascending: 0.05
+  descending: 0.10
+  arch: 0.10
+  valley: 0.10
+  flat: 0.65
+
+leap_probability: 0.05
+blue_note_probability: 0.0
+
+swing_ratio: 0.5
+syncopation_density: 0.02
+
+rhythm_template_weights:
+  whole_notes: 0.50
+  half_notes: 0.25
+  dotted_half: 0.15
+  quarter_notes: 0.08
+  eighth_notes: 0.02
+
+preferred_instruments:
+  - synth_pad
+  - drone_synth
+  - cello
+  - reverb_piano
+
+voicing_density_target: 2
+bass_motion_style: pedal
+
+typical_dynamics_range: [ppp, mp]
+target_spectral_centroid: 0.15
+tempo_range: [40, 80]
