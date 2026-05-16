@@ -144,10 +144,22 @@ The implementation took a **YAML-driven approach** rather than the Python-consta
 | D3: Vocal/Lead | COMPLETE | VocalNote/LyricsLine IR existed. Added VocalSpec schema + vocal_lead role to CompositionSpec. |
 | Layer 7: Reflection | COMPLETE | UserStyleProfile with update_from() (annotation-based) + update_from_outcome() (accept/reject learning). |
 
-## Future (Phase 4+)
+## Phase 4 Status
 
-- DAW integration (MCP)
-- Live improvisation mode
-- Vocal synthesis engine integration (VOCALOID/CeVIO/NEUTRINO)
-- A/B testing framework for preference validation
-- Cross-project style consistency checking
+*Updated: 2026-05-16*
+
+| Component | Status | What was done |
+|---|---|---|
+| DAW Integration (MCP) | COMPLETE | DAWMCPBridge with Reaper TCP backend, MIDI import/export, DAWBackend ABC for extensibility |
+| Live Improvisation | COMPLETE | `yao improvise` CLI wired to RealtimeImprovisationEngine with role/genre/duration options |
+| Vocal Synthesis Bridge | COMPLETE | VocalSynthBridge ABC, NeutrinoBridge stub, MidiVocalFallback, engine registry |
+| A/B Testing Framework | COMPLETE | Hypothesis, Variant, ABTestResult, Cohen's d effect size, `yao ab-test` CLI command |
+| Cross-Project Style | COMPLETE | ProjectFingerprint, compute_fingerprint(), fingerprint_distance(), JSON persistence |
+
+## Future (Phase 5+)
+
+- Multi-DAW support (Ableton, Logic, Studio One)
+- NEUTRINO vocal synthesis integration (MusicXML pipeline)
+- Real-time MIDI port binding for improvisation (mido)
+- A/B test results dashboard
+- Cross-genre preference variance analysis

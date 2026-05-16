@@ -1337,5 +1337,138 @@ def serve_command(host: str, port: int) -> None:
         click.echo('  pip install -e ".[sdk,annotate]"')
 
 
+# ── yao improvise ──────────────────────────────────────────────────────
+
+
+@cli.command("improvise")
+@click.option("--role", default="accompanist", help="Improvisation role (accompanist, bassist).")
+@click.option("--genre", default="default", help="Genre for style guidance.")
+@click.option("--duration", default=60, type=int, help="Session duration in seconds.")
+def improvise_command(role: str, genre: str, duration: int) -> None:
+    """Start a live improvisation session.
+
+    Listens for MIDI input, generates responses via role handlers,
+    and outputs MIDI. Requires a MIDI controller connected.
+
+    \b
+    Example:
+      yao improvise --role bassist --genre jazz --duration 120
+    """
+    from yao.improvise.realtime_engine import RealtimeImprovisationEngine
+    from yao.improvise.role_handlers import ImprovisationRole
+
+    try:
+        imp_role = ImprovisationRole(role)
+    except ValueError:
+        roles = [r.value for r in ImprovisationRole]
+        raise click.ClickException(f"Unknown role '{role}'. Available: {roles}") from None
+
+    engine = RealtimeImprovisationEngine(role=imp_role, genre=genre)
+    click.echo(f"Starting improvisation session: role={role}, genre={genre}, duration={duration}s")
+    click.echo("Send MIDI input to generate responses. Press Ctrl+C to stop.")
+
+    engine.start()
+    try:
+        import time
+
+        time.sleep(duration)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        log = engine.stop()
+        click.echo(
+            f"\nSession ended. Events: {log.events_received}, "
+            f"Responses: {log.responses_sent}, "
+            f"Avg latency: {log.avg_latency_ms:.1f}ms"
+        )
+
+
+# ── yao ab-test ───────────────────────────────────────────────────────
+
+
+@cli.command("ab-test")
+@click.argument("spec_path", type=click.Path(exists=True))
+@click.option("--metric", default="overall", help="Evaluation metric to compare.")
+@click.option("--seeds", default=5, type=int, help="Number of seeds per variant.")
+@click.option("--param", "param_name", required=True, help="Parameter to vary (e.g., 'temperature').")
+@click.option("--control", "control_value", required=True, help="Control value for the parameter.")
+@click.option("--treatment", "treatment_value", required=True, help="Treatment value for the parameter.")
+@click.option("--output", "output_path", default=None, help="Path to save results JSON.")
+def ab_test_command(
+    spec_path: str,
+    metric: str,
+    seeds: int,
+    param_name: str,
+    control_value: str,
+    treatment_value: str,
+    output_path: str | None,
+) -> None:
+    """Run an A/B test comparing two generation configurations.
+
+    Generates multiple pieces under control and treatment conditions,
+    evaluates each, and reports which variant performs better.
+
+    \b
+    Example:
+      yao ab-test specs/templates/lofi-cafe.yaml \\
+        --param temperature --control 0.3 --treatment 0.7 \\
+        --metric overall --seeds 5
+    """
+    from yao.reflect.ab_test import (
+        Hypothesis,
+        Variant,
+        VariantResult,
+        run_ab_test,
+        save_ab_result,
+    )
+
+    spec = _load_spec(Path(spec_path))
+    hypothesis = Hypothesis(
+        name=f"{param_name}_comparison",
+        description=f"Does {param_name}={treatment_value} outperform {param_name}={control_value}?",
+        metric=metric,
+    )
+    variant_a = Variant(name="control", overrides={param_name: control_value})
+    variant_b = Variant(name="treatment", overrides={param_name: treatment_value})
+
+    result_a = VariantResult(variant=variant_a)
+    result_b = VariantResult(variant=variant_b)
+
+    generator = get_generator(spec.generation.strategy)
+
+    click.echo(f"Running A/B test: {param_name} [{control_value} vs {treatment_value}], {seeds} seeds each")
+
+    for seed in range(seeds):
+        # Control
+        ctrl_spec = spec.model_copy(update={"generation": spec.generation.model_copy(update={"seed": seed * 2})})
+        score_a, _ = generator.generate(ctrl_spec)
+        eval_a = evaluate_score(score_a, ctrl_spec)
+        score_val = getattr(eval_a, metric, 0.0) if hasattr(eval_a, metric) else 0.5
+        result_a.scores.append(float(score_val))
+        result_a.seeds_used.append(seed * 2)
+
+        # Treatment
+        treat_spec = spec.model_copy(update={"generation": spec.generation.model_copy(update={"seed": seed * 2 + 1})})
+        score_b, _ = generator.generate(treat_spec)
+        eval_b = evaluate_score(score_b, treat_spec)
+        score_val_b = getattr(eval_b, metric, 0.0) if hasattr(eval_b, metric) else 0.5
+        result_b.scores.append(float(score_val_b))
+        result_b.seeds_used.append(seed * 2 + 1)
+
+    result = run_ab_test(hypothesis, result_a, result_b)
+
+    click.echo(f"\n{'=' * 50}")
+    click.echo(f"Hypothesis: {hypothesis.description}")
+    click.echo(f"Control ({control_value}):   mean={result_a.mean:.4f} ± {result_a.stdev:.4f}")
+    click.echo(f"Treatment ({treatment_value}): mean={result_b.mean:.4f} ± {result_b.stdev:.4f}")
+    click.echo(f"Winner: {result.winner}")
+    click.echo(f"Effect size: {result.effect_size}")
+    click.echo(f"Confidence: {result.confidence}")
+
+    if output_path:
+        save_ab_result(result, Path(output_path))
+        click.echo(f"Results saved to {output_path}")
+
+
 if __name__ == "__main__":
     cli()
