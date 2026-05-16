@@ -18,14 +18,56 @@ from yao.schema.features import FeatureFlags
 from yao.schema.tonal_system import TonalSystem, promote_legacy_key
 
 
+class VocalSpec(BaseModel):
+    """Vocal line specification (optional, D3).
+
+    When present on an InstrumentSpec with role="vocal_lead", enables
+    singing-aware constraints: breath insertion, syllable density control,
+    and melisma frequency. The instrument serves as a vocal substitute
+    (e.g., alto_sax, synth_lead_voice, choir_aahs).
+
+    Attributes:
+        breathing_marks: Insert automatic breath rests every N bars.
+        syllable_density: Target notes per beat (0.3=sparse, 1.0=dense).
+        melisma_frequency: Probability of melismatic ornamentation (0.0-1.0).
+        range_override: Optional vocal range override as "low-high" MIDI.
+    """
+
+    breathing_marks: bool = True
+    syllable_density: float = 0.6
+    melisma_frequency: float = 0.1
+    range_override: str | None = None
+
+    @field_validator("syllable_density")
+    @classmethod
+    def syllable_density_valid(cls, v: float) -> float:
+        if not 0.0 <= v <= 2.0:
+            raise SpecValidationError(
+                f"syllable_density must be 0.0–2.0, got {v}",
+                field="vocal.syllable_density",
+            )
+        return v
+
+    @field_validator("melisma_frequency")
+    @classmethod
+    def melisma_frequency_valid(cls, v: float) -> float:
+        if not 0.0 <= v <= 1.0:
+            raise SpecValidationError(
+                f"melisma_frequency must be 0.0–1.0, got {v}",
+                field="vocal.melisma_frequency",
+            )
+        return v
+
+
 class InstrumentSpec(BaseModel):
     """Specification for a single instrument in the composition."""
 
     name: str
-    role: Literal["melody", "harmony", "bass", "rhythm", "pad", "counter_melody"]
+    role: Literal["melody", "harmony", "bass", "rhythm", "pad", "counter_melody", "vocal_lead"]
     counter_to: str | None = None
     density_factor: float = 0.5
     velocity_boost: int = 0
+    vocal: VocalSpec | None = None
 
     @field_validator("name")
     @classmethod

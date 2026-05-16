@@ -153,6 +153,90 @@ class UserStyleProfile:
             confidence = min(1.0, count / 10.0)
             self.add_preference(StylePreference("overall", preferred, confidence, count))
 
+    def update_from_outcome(
+        self,
+        score: ScoreIR,
+        accepted: bool,
+        evaluation_scores: dict[str, float] | None = None,
+    ) -> None:
+        """Update preferences from a generation outcome (accept/reject).
+
+        Learns from whether the user accepted or rejected a generated piece,
+        and optionally from automated evaluation scores. This enables
+        automated preference learning without explicit annotation.
+
+        Args:
+            score: The generated ScoreIR.
+            accepted: True if user accepted, False if rejected.
+            evaluation_scores: Optional dict of metric_name -> score (0.0-1.0).
+        """
+        all_notes = score.all_notes()
+        if not all_notes:
+            return
+
+        self.total_annotations += 1
+        weight = 1 if accepted else -1
+
+        # Learn tempo preference
+        tempo = score.tempo_bpm if hasattr(score, "tempo_bpm") else 120.0
+        existing_tempo = self.get_preference("tempo")
+        if existing_tempo:
+            old_avg = (existing_tempo.preferred_range[0] + existing_tempo.preferred_range[1]) / 2.0
+            old_count = existing_tempo.source_count
+            if accepted:
+                blended = (old_avg * old_count + tempo) / (old_count + 1)
+                margin = max(10.0, abs(tempo - blended) + 10.0)
+            else:
+                blended = old_avg
+                margin = max(10.0, (existing_tempo.preferred_range[1] - existing_tempo.preferred_range[0]) / 2.0)
+            count = old_count + 1
+        else:
+            blended = tempo
+            margin = 20.0
+            count = 1
+        confidence = min(1.0, count / 8.0)
+        self.add_preference(StylePreference("tempo", (blended - margin, blended + margin), confidence, count))
+
+        # Learn density preference from outcome
+        note_density = len(all_notes) / max(score.total_bars(), 1)
+        existing_density = self.get_preference("density")
+        if accepted:
+            if existing_density:
+                old_count = existing_density.source_count
+                old_avg = (existing_density.preferred_range[0] + existing_density.preferred_range[1]) / 2.0
+                blended_d = (old_avg * old_count + note_density) / (old_count + 1)
+                count_d = old_count + 1
+            else:
+                blended_d = note_density
+                count_d = 1
+            margin_d = blended_d * 0.3
+            confidence_d = min(1.0, count_d / 6.0)
+            self.add_preference(
+                StylePreference("density", (blended_d - margin_d, blended_d + margin_d), confidence_d, count_d)
+            )
+
+        # Learn from evaluation scores
+        if evaluation_scores:
+            for metric, value in evaluation_scores.items():
+                existing_metric = self.get_preference(f"eval_{metric}")
+                if existing_metric:
+                    old_count = existing_metric.source_count
+                    old_avg = (existing_metric.preferred_range[0] + existing_metric.preferred_range[1]) / 2.0
+                    blended_m = (old_avg * old_count + value * weight) / (old_count + abs(weight))
+                    count_m = old_count + 1
+                else:
+                    blended_m = value if accepted else 0.5
+                    count_m = 1
+                confidence_m = min(1.0, count_m / 5.0)
+                self.add_preference(
+                    StylePreference(
+                        f"eval_{metric}",
+                        (max(0.0, blended_m - 0.15), min(1.0, blended_m + 0.15)),
+                        confidence_m,
+                        count_m,
+                    )
+                )
+
     def save(self, path: Path) -> None:
         """Save profile to JSON.
 

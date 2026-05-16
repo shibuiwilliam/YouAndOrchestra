@@ -131,13 +131,23 @@ The implementation took a **YAML-driven approach** rather than the Python-consta
 - Documentation terminology diverges from implementation in some places (see Architecture Decisions table above)
 - All tests pass: 4022 total (3656 main + 6 arch-lint + 196 unit + 164 SDK)
 
-## Phase 3+ (Not Started)
+## Phase 3 Status
 
-- Synth / Electronic full expansion (C1)
-- Perception Substitute Layer full implementation (C2)
-- Arrangement Engine (D1)
-- AI Bridge (D2)
-- Vocal / Lead support (D3)
+*Updated: 2026-05-16*
+
+| Component | Status | What was done |
+|---|---|---|
+| C1: Synth/Electronic | COMPLETE | Expanded from 4 to 24 GM synth instruments (leads, pads, FX). CC automation via PerformanceLayer already existed. |
+| C2: Perception Layer | COMPLETE (existed) | 8 modules: StyleVector, MoodProfile, ReferenceMatcher, SurpriseAnalyzer, AudioPerceptionAnalyzer, ListeningSimulator, UseCaseEvaluator. references/catalog.yaml with 50+ entries. |
+| D1: Arrangement Engine | COMPLETE (existed) | 7 modules: ArrangementOperation ABC, reorchestrate, reharmonize, retempo, transpose, regroove. CLI: `yao arrange`. |
+| D2: AI Bridge | COMPLETE (existed) | ai_seed.py (Claude API motif expansion), stable_audio_bridge.py (texture generation). Feature-flagged. |
+| D3: Vocal/Lead | COMPLETE | VocalNote/LyricsLine IR existed. Added VocalSpec schema + vocal_lead role to CompositionSpec. |
+| Layer 7: Reflection | COMPLETE | UserStyleProfile with update_from() (annotation-based) + update_from_outcome() (accept/reject learning). |
+
+## Future (Phase 4+)
+
 - DAW integration (MCP)
 - Live improvisation mode
-- Reflection & Learning Layer (Layer 7) operational
+- Vocal synthesis engine integration (VOCALOID/CeVIO/NEUTRINO)
+- A/B testing framework for preference validation
+- Cross-project style consistency checking
