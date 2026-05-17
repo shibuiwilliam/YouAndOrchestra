@@ -26,12 +26,13 @@ Technical documentation for contributors and AI agents developing YaO.
 ## Current State
 
 - **Version:** 0.1.0
-- **Phase:** Phase 2 (Claude Agent SDK) complete. Diversity Foundation active.
+- **Phase:** Phase 5 (tests, guides, documentation) complete. All planned phases delivered. Post-phase additions: cover art generation (Gemini), multi-act composition support.
 - **Python:** 3.11+
-- **Source modules:** 285+ Python modules in `src/yao/` (including 14 SDK modules in `src/yao/sdk/`)
-- **Test files:** 256+ test files (including 17 SDK test files in `tests/sdk/`)
+- **Source modules:** 302 Python modules in `src/yao/` (including 14 SDK modules in `src/yao/sdk/`)
+- **Test files:** 332 test files (including SDK test files in `tests/sdk/`)
 - **Test categories:** unit (including `unit/coupling/`), integration, scenario, constraint, golden, acoustic regression, properties, genre coverage, subjective, tools, sdk (unit + integration + scenarios)
 - **Surfaces:** Claude Code (interactive), CLI (scriptable), Agent SDK (programmatic)
+- **Project specs:** 151 example projects in `specs/projects/`
 
 ### Generation
 
@@ -64,9 +65,12 @@ Technical documentation for contributors and AI agents developing YaO.
 
 - **Spec formats:** Simple (flat YAML), Detailed (11-section), and Composable (extends/overrides/fragments)
 - **Backends:** PythonOnlyBackend (CI default) + AnthropicAPIBackend (real LLM, structured output via tool use)
-- **Genre Skills:** 38 genres integrated into HarmonyPlanner + SpecCompiler + genre_fitness critique
-- **Subagents:** 7 roles (Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Producer)
-- **Slash commands:** 10 (compose, conduct, sketch, critique, regenerate-section, render, explain, arrange, pin, feedback)
+- **Genre Skills:** 30 genre profiles (46 skill files) integrated into HarmonyPlanner + SpecCompiler + genre_fitness critique
+- **Subagents:** 11 agent definitions (Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Producer, Conversation Director, Genre Specialist, Spec Compiler, + protocol)
+- **Cover Art:** Gemini-powered album art generation (`yao cover-art`), style-configurable, mood-matched
+- **Slash commands:** 11 (compose, conduct, sketch, critique, regenerate-section, render, explain, arrange, pin, feedback, cover-art)
+- **Genre skills:** 46 genre skill files in `.claude/skills/genres/`
+- **Genre templates:** 34 genre-specific templates in `specs/templates/genres/`
 - **StyleVector:** 6 copyright-safe features (histograms + statistics, never sequences)
 - **Sketch:** 6-turn interactive dialogue with state persistence (English + Japanese)
 - **Arrangement:** Source plan extraction, style vector transfer, preservation contracts, diff reports
@@ -74,7 +78,7 @@ Technical documentation for contributors and AI agents developing YaO.
 - **Perception:** Audio features (librosa + pyloudnorm), surprise scorer, listening simulator
 - **Groove:** GrooveProfile IR + GrooveApplicator (ensemble-wide microtiming)
 - **Conversation:** ConversationPlan + reactive fills + frequency clearance
-- **Rendering:** MIDI, WAV, MusicXML, LilyPond/PDF, Reaper RPP, Strudel
+- **Rendering:** MIDI, WAV, MusicXML, LilyPond/PDF, Reaper RPP, Strudel, cover art (PNG via Gemini)
 - **Mix:** Per-track EQ, compression, reverb + master chain (pedalboard-based)
 - **CI:** GitHub Actions + pre-commit hooks + 5 honesty check tools + weekly audio regression
 - **Provenance:** Append-only causal graph with record_id + caused_by edges
@@ -91,8 +95,14 @@ Technical documentation for contributors and AI agents developing YaO.
 - **Permissions:** `default_yao_permission()` callback protecting iterations, references, agent defs
 - **Subagent definitions:** `yao_agent_definitions()` with per-role tool allowlists and effort tuning
 - **Sessions:** Project-scoped sessions with tagging and forking
-- **Tests:** 164 SDK tests + 196 existing = 360 total, zero Phase 1 regressions
 - **Parity:** G1--G5 guarantees enforce identical behavior across all three surfaces
 - **Reference apps:** 5 examples (minimal, web/FastAPI, Discord bot, CI pipeline, Jupyter notebook)
 - **CLI integration:** `yao agent` (SDK-driven one-shot) and `yao serve` (headless HTTP server)
 - **Documentation:** 6 pages in `docs/sdk/` (overview, quickstart, API reference, Lane A vs B, deployment, parity)
+
+### Phases 3--5 (Complete)
+
+- **Phase 3:** Synth expansion (24 GM synth instruments), vocal schema (VocalSpec + vocal_lead role), outcome learning (UserStyleProfile)
+- **Phase 4:** DAW integration (DAWMCPBridge with Reaper TCP), live improvisation (`yao improvise`), vocal synthesis bridge (VocalSynthBridge ABC), A/B testing framework, cross-project style fingerprinting
+- **Phase 5:** Tests, guides, and documentation — comprehensive developer guides, test coverage expansion, documentation site
+- **Post-Phase:** Cover art generation via Google Gemini (`yao cover-art`, `src/yao/render/cover_art.py`), multi-act composition structures (three-act with piano cadenza demonstrated in ambient-v4 project)

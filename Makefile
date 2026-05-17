@@ -9,7 +9,7 @@ install:
 	pip install -e ".[dev]"
 
 install-all:
-	pip install -e ".[dev,neural,live,annotate]"
+	pip install -e ".[dev,neural,live,annotate,cover-art,sdk]"
 
 setup-hooks:
 	pre-commit install

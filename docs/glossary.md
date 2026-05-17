@@ -16,6 +16,8 @@ Terms used throughout the YaO codebase and documentation.
 
 **Composition** — A complete musical work. Preferred over "track" or "song" in YaO code.
 
+**Cadenza** — A virtuosic solo passage, typically for a single instrument, with heightened dramatic intensity. In YaO, cadenza sections can be specified with high density/tension values and limited `active_instruments`. See the ambient-v4 project for a piano cadenza example.
+
 **Conductor (human)** — The human project owner. Makes all final creative decisions (Principle 5).
 
 **Conductor (engine)** — YaO's agentic orchestration engine that automates the generate-evaluate-adapt-regenerate loop. See `yao.conductor.conductor.Conductor`.
@@ -23,6 +25,8 @@ Terms used throughout the YaO codebase and documentation.
 **ConversationPlan** — A plan specifying inter-instrument dialogue events (call-response, fill, tutti, solo break, trade). Produced by the ConversationDirector (Step 5.5). See `yao.ir.conversation`.
 
 **Constraint Violation** — An error raised when a musical rule is broken (e.g., note out of instrument range). See `yao.errors.ConstraintViolationError`.
+
+**Cover Art** — AI-generated album artwork for a composition. Generated via Google Gemini image generation, matched to the composition's mood, genre, and instruments. See `yao.render.cover_art` and `yao cover-art` CLI command.
 
 **Critic Gate** — A validation step between CPIR completion and Note Realization. The Adversarial Critic evaluates the plan before any notes are placed, preventing "fundamentally weak plan, beautifully realized" outcomes.
 
@@ -33,6 +37,8 @@ Terms used throughout the YaO codebase and documentation.
 **GrooveProfile** — Ensemble-wide microtiming and velocity pattern applied to all instruments. Defines 16th-position offsets, ghost probability, swing ratio, and jitter. See `yao.ir.groove`.
 
 **HarmonyPlan** — A component of the Musical Plan IR that specifies chord events and progressions for each section, before notes are placed. See `yao.ir.plan.harmony.HarmonyPlan`.
+
+**Multi-Act Structure** — A composition organized into distinct dramatic acts (e.g., ambient atmosphere → terrifying cadenza → tender return). Specified via section groupings in `composition.yaml` with contrasting density, tension, and active instruments per act. See the ambient-v4 project for a three-act example.
 
 **Hook** — A memorable musical fragment with a deployment strategy (rare, frequent, withhold-then-release, ascending repetition). See `yao.ir.hook`.
 

@@ -7,7 +7,10 @@ git clone https://github.com/shibuiwilliam/YouAndOrchestra
 cd YouAndOrchestra
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev,sdk]"
-make all-checks   # Should see ~2,900+ tests passing + 6 golden + 5 honesty tools
+# Optional: for cover art generation
+pip install -e ".[cover-art]"
+export GEMINI_API_KEY="your-key-here"  # from https://aistudio.google.com/apikey
+make all-checks   # Should see ~4,000+ tests passing + 6 golden + 5 honesty tools
 ```
 
 Requires **Python 3.11+**.
@@ -90,17 +93,17 @@ def test_my_feature() -> None:
 
 ```bash
 make all-checks        # Full pipeline (lint + arch-lint + tests + golden + honesty)
-make test              # All tests (~2,900+)
+make test              # All tests (~4,000+)
 make lint              # ruff + mypy strict
 make arch-lint         # Layer boundary enforcement (covers Layer 2.5 Coupling)
 make format            # Auto-format code (ruff)
 make test-melody       # Unit tests for the phrase-first melody pipeline
 make test-coupling     # Combination Stack tests (Layer 2.5)
-make test-genres       # Genre-specific scenario tests (38 genres)
+make test-genres       # Genre-specific scenario tests (30 genres)
 make test-golden       # Golden MIDI regression
 make test-diversity    # Diversity scenario tests
 make test-acoustic     # Audio feature regression (weekly CI)
-make test-genre-coverage  # Per-genre validation (38 genres)
+make test-genre-coverage  # Per-genre validation (30 genres)
 make markov-validate   # Validate Markov model YAMLs
 make device-validate   # Validate harmonic-device YAMLs
 make gesture-validate  # Validate idiomatic-gesture YAMLs
@@ -143,7 +146,7 @@ asyncio.run(main())
 ## Before Submitting
 
 ```bash
-make all-checks        # Must pass (2,900+ tests + 6 golden + 5 honesty tools)
+make all-checks        # Must pass (4,000+ tests + 6 golden + 5 honesty tools)
 ```
 
 ## Code Standards

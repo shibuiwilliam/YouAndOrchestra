@@ -1475,17 +1475,17 @@ def ab_test_command(
 
 @cli.command("cover-art")
 @click.argument("spec_path", type=click.Path(exists=True))
-@click.option("--output", "-o", default=None, help="Output image path (default: next to spec as cover.png).")
+@click.option("--output", "-o", default=None, help="Output image path (default: outputs/projects/<name>/cover.png).")
 @click.option("--style", default="", help="Additional visual style hint.")
 @click.option("--mood", default="", help="Override mood for the artwork.")
-@click.option("--model", default="gemini-2.0-flash-exp", help="Gemini model for image generation.")
+@click.option("--model", default="gemini-2.5-flash-image", help="Gemini model for image generation.")
 def cover_art_command(spec_path: str, output: str | None, style: str, mood: str, model: str) -> None:
     """Generate album cover art for a composition using Gemini (Nano Banana).
 
     Reads the composition spec to extract genre, mood, instruments, and tempo,
     then generates a matching cover image via Google's Gemini image generation API.
 
-    Requires GOOGLE_API_KEY environment variable.
+    Requires GEMINI_API_KEY environment variable.
 
     \b
     Example:
@@ -1497,8 +1497,17 @@ def cover_art_command(spec_path: str, output: str | None, style: str, mood: str,
 
     spec = _load_spec(Path(spec_path))
 
-    # Determine output path
-    out_path = Path(output) if output else Path(spec_path).parent / "cover.png"
+    # Determine output path — default to outputs/projects/<project>/cover.png
+    if output:
+        out_path = Path(output)
+    else:
+        spec_dir = Path(spec_path).resolve().parent
+        # If spec lives in specs/projects/<name>/, mirror to outputs/projects/<name>/
+        if spec_dir.parent.name == "projects" and spec_dir.parent.parent.name == "specs":
+            project_name = spec_dir.name
+        else:
+            project_name = spec.title.lower().replace(" ", "-")
+        out_path = Path(f"outputs/projects/{project_name}/cover.png")
 
     # Build request from spec metadata
     instruments = tuple(inst.name for inst in spec.instruments[:5])

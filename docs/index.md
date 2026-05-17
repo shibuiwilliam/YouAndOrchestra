@@ -9,9 +9,10 @@
 - **Multi-turn sketches** — describe a piece in plain language (English or Japanese), refine through dialogue
 - **Full composition pipeline** — 9-step plan-based generation from intent to rendered audio
 - **Combination Stack** — Coupling layer modules: chord-aware melody, voice-leading optimization, reharmonization, genre blending, and more
-- **Genre-aware** — 38 genre profiles shape every decision from chord palette to groove feel
+- **Genre-aware** — 30 genre profiles with 46 skill files shape every decision from chord palette to groove feel
 - **Adversarial critique** — 34 rules catch structural, harmonic, melodic, and rhythmic issues
 - **Pin-based feedback** — point at a specific bar and say what's wrong in natural language
+- **Cover art generation** — AI-generated album artwork via Google Gemini, matched to composition mood and genre
 - **Multiple output formats** — MIDI, WAV, MusicXML, LilyPond/PDF, Reaper RPP, Strudel
 
 ---
@@ -46,9 +47,10 @@ CompositionSpec
     → GrooveApplicator (20 profiles)
     → Performance (articulation + dynamics + microtiming + CC curves)
     → Renderer (MIDI / WAV / MusicXML / LilyPond / Reaper / Strudel)
+    → Cover Art (Gemini image generation, optional)
 ```
 
-**7 Subagents**: Producer, Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic
+**11 Agent Definitions**: Producer, Composer, Harmony Theorist, Rhythm Architect, Orchestrator, Mix Engineer, Adversarial Critic, Conversation Director, Genre Specialist, Spec Compiler (+ protocol)
 
 **9 Generation Strategies**: rule_based, stochastic, markov, twelve_tone, process_music, constraint_solver, loop_evolution, ai_seed, phrase_aware
 
@@ -63,16 +65,20 @@ CompositionSpec
 | Instruments | 46 (38 standard + 8 non-Western cultural) |
 | Scales | 33 including microtonal (14 standard + 19 extended: maqam, raga, gamelan, Japanese) |
 | Song Forms | 20 (AABA, verse-chorus, rondo, blues, J-pop, game BGM, ambient...) |
-| Drum Patterns | 15 (including non-4/4: waltz, 6/8, 5/4, 7/8) |
+| Drum Patterns | 35+ (including non-4/4: waltz, 6/8, 5/4, 7/8) |
 | Groove Profiles | 20 (jazz swing, bossa nova, afrobeat, samba, drum & bass...) |
 | Critique Rules | 34 across 15 categories |
-| Genre Skills | 38 covering classical, electronic, world, functional music |
+| Genre Profiles | 30 YAML-defined genre profiles with 46 skill files and 34 templates |
 | Harmonic Devices | 15 YAML-defined (jazz turnarounds, blues patterns, Coltrane changes...) |
 | Tonal Systems | 10 kinds (major/minor, modal, blues, pentatonic, atonal, drone, raga, maqam, microtonal, custom) |
 | Trajectory Dims | 5 (tension, density, predictability, brightness, register_height) |
 | Evaluation | 6-dimension scoring + melody-harmony alignment + voice-leading smoothness + 7 use-case evaluators |
 | Coupling | 11 modules: chord-aware melody, voice leading, reharmonization, genre blending, and more |
 | Perception | Audio features, surprise scoring, mood classification, reference matching |
+| Agents | 11 agent definitions (7 core orchestra + 4 specialized) |
+| Project Specs | 151 example projects across diverse genres |
+| Source Modules | 302 Python modules across 21+ sub-packages |
+| Test Files | 332 test files covering unit, integration, scenario, golden, genre coverage, SDK |
 
 ---
 
@@ -97,6 +103,11 @@ yao compose specs/templates/cinematic-3min.yaml --render-audio
 ### Targeted Feedback
 ```bash
 yao pin "verse:bar4:piano — too busy, simplify the left hand"
+```
+
+### Generate Cover Art
+```bash
+yao cover-art specs/projects/my-song/composition.yaml --style "watercolor"
 ```
 
 ### Arrange Existing MIDI

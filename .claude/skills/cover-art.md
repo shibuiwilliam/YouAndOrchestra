@@ -8,7 +8,7 @@ triggers:
   - cover image
   - album cover
 requires:
-  env: GOOGLE_API_KEY
+  env: GEMINI_API_KEY
   package: google-genai
 ---
 
@@ -37,7 +37,7 @@ The cover art generator reads a composition's metadata (genre, mood, tempo, key,
 ## CLI Usage
 
 ```bash
-# Basic — generates cover.png next to the spec
+# Basic — generates cover.png in outputs/projects/<name>/
 yao cover-art specs/templates/genres/jazz/bebop-standard.yaml
 
 # With style override
@@ -55,7 +55,7 @@ yao cover-art spec.yaml --model gemini-2.0-flash-exp
 1. Get a Google API key at https://aistudio.google.com/apikey
 2. Set the environment variable:
    ```bash
-   export GOOGLE_API_KEY="your-key-here"
+   export GEMINI_API_KEY="your-key-here"
    ```
 3. Install the dependency:
    ```bash
@@ -89,7 +89,7 @@ else:
 
 | Option | Default | Description |
 |---|---|---|
-| `--output`, `-o` | `cover.png` next to spec | Output image path |
+| `--output`, `-o` | `outputs/projects/<name>/cover.png` | Output image path |
 | `--style` | (none) | Visual style hint (e.g., "watercolor", "minimalist") |
 | `--mood` | (from spec) | Override mood for the artwork |
 | `--model` | `gemini-2.0-flash-exp` | Gemini model to use |

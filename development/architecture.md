@@ -44,7 +44,8 @@ The SDK surface (`src/yao/sdk/`, 14 modules) provides:
 |   ensemble constraints, acoustic divergence, constraint check |
 +--------------------------------------------------------------+
 | Layer 5: Rendering (render/)                                 |
-|   MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel        |
+|   MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel,       |
+|   Cover Art (Gemini image generation)                        |
 +--------------------------------------------------------------+
 | Layer 4.5: Performance Expression (generators/performance/)  |
 |   Articulation, dynamics curves, microtiming, CC curves      |
@@ -179,7 +180,7 @@ Conductor Feedback Loop (up to 3 iterations + audio loop)
 ## Package Layout
 
 ```
-src/yao/           285 Python modules
+src/yao/           302 Python modules
   constants/       Layer 0: 46 instruments, 33 scales, 20 forms, 30 chords, 15 harmonic devices (103+ YAML files)
   schema/          Layer 1: 28 Pydantic model files (simple + detailed + composable specs, genre profiles, features.py)
   sketch/          Layer 1.5: NL compiler (3-stage), emotion vocab, dialogue (5 files)
@@ -191,7 +192,7 @@ src/yao/           285 Python modules
   verify/          Layer 6: Evaluator, 34 critique rules, constraints, melody_harmony_alignment, voice_leading_smoothness (25+ modules including critique subsystem)
   reflect/         Layer 7: Provenance, style profile (6 files)
   conductor/       Orchestration: Generate-evaluate-adapt loop (11 modules)
-  subagents/       7 subagent implementations
+  subagents/       9 subagent implementations (7 core + conversation director, genre specialist)
   agents/          Backend protocol: PythonOnly, Anthropic API (6 files)
   arrange/         Arrangement: Style ops, extraction, diff (12 files)
   feedback/        Feedback: Pin, NL translator, regenerator (4 files)

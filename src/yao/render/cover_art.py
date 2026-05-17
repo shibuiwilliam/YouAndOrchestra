@@ -5,7 +5,7 @@ Generates cover art for compositions based on their musical characteristics
 generation API (Nano Banana).
 
 Requires: pip install -e ".[cover-art]" (google-genai package)
-Requires: GOOGLE_API_KEY environment variable set
+Requires: GEMINI_API_KEY environment variable set
 
 Belongs to Layer 5 (Rendering).
 """
@@ -134,11 +134,11 @@ def _build_prompt(request: CoverArtRequest) -> str:
 def generate_cover_art(
     request: CoverArtRequest,
     output_path: Path,
-    model: str = "gemini-2.0-flash-exp",
+    model: str = "gemini-2.5-flash-image",
 ) -> CoverArtResult:
     """Generate cover art for a composition using Gemini image generation.
 
-    Requires the GOOGLE_API_KEY environment variable to be set.
+    Requires the GEMINI_API_KEY environment variable to be set.
     Install the dependency: pip install -e ".[cover-art]"
 
     Args:
@@ -150,17 +150,17 @@ def generate_cover_art(
         CoverArtResult with the path to the generated image.
     """
     # Check API key
-    api_key = os.environ.get("GOOGLE_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         return CoverArtResult(
             success=False,
-            error_message="GOOGLE_API_KEY environment variable is not set. "
+            error_message="GEMINI_API_KEY environment variable is not set. "
             "Get a key at https://aistudio.google.com/apikey",
         )
 
     # Check dependency
     try:
-        from google import genai  # type: ignore[import-not-found]
+        from google import genai
     except ImportError:
         return CoverArtResult(
             success=False,
@@ -179,34 +179,42 @@ def generate_cover_art(
 
     # Generate image
     try:
+        from google.genai import types
+
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
             model=model,
-            contents=[prompt],
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+            ),
         )
 
         # Extract and save image
         if response.candidates:
-            for part in response.candidates[0].content.parts:
-                if hasattr(part, "inline_data") and part.inline_data is not None:
-                    # Save image bytes
-                    output_path.parent.mkdir(parents=True, exist_ok=True)
-                    image_bytes = part.inline_data.data
-                    output_path.write_bytes(image_bytes)
-                    logger.info("cover_art_saved", path=str(output_path))
-                    return CoverArtResult(
-                        image_path=output_path,
-                        prompt_used=prompt,
-                        model=model,
-                        success=True,
-                    )
+            content = response.candidates[0].content
+            if content is not None and content.parts is not None:
+                for part in content.parts:
+                    if hasattr(part, "inline_data") and part.inline_data is not None:
+                        # Save image bytes
+                        output_path.parent.mkdir(parents=True, exist_ok=True)
+                        image_bytes = part.inline_data.data
+                        if image_bytes is not None:
+                            output_path.write_bytes(image_bytes)
+                            logger.info("cover_art_saved", path=str(output_path))
+                            return CoverArtResult(
+                                image_path=output_path,
+                                prompt_used=prompt,
+                                model=model,
+                                success=True,
+                            )
 
         # No image in response — might be text-only
-        text_parts = (
-            [p.text for p in response.candidates[0].content.parts if hasattr(p, "text") and p.text]
-            if response.candidates
-            else []
-        )
+        text_parts: list[str] = []
+        if response.candidates:
+            content = response.candidates[0].content
+            if content is not None and content.parts is not None:
+                text_parts = [p.text for p in content.parts if hasattr(p, "text") and p.text]
 
         return CoverArtResult(
             prompt_used=prompt,

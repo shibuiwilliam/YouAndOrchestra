@@ -91,14 +91,14 @@ class TestGenerateCoverArt:
 
         # Ensure no API key is set
         env = os.environ.copy()
-        env.pop("GOOGLE_API_KEY", None)
+        env.pop("GEMINI_API_KEY", None)
         os.environ.clear()
         os.environ.update(env)
 
         request = CoverArtRequest(title="Test")
         result = generate_cover_art(request, tmp_path / "test.png")
         assert not result.success
-        assert "GOOGLE_API_KEY" in result.error_message
+        assert "GEMINI_API_KEY" in result.error_message
 
     def test_result_dataclass_defaults(self) -> None:
         """CoverArtResult should have sensible defaults."""

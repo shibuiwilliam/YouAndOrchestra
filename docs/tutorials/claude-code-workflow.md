@@ -86,6 +86,14 @@ Queries the provenance log to show the chain of decisions that led to a specific
 
 Renders the latest iteration to WAV using FluidSynth.
 
+### `/cover-art` — Generate album artwork
+
+```
+/cover-art rainy-afternoon
+```
+
+Generates AI album cover art via Google Gemini, matched to the composition's mood, genre, and instruments. Supports visual style hints (e.g., "watercolor", "minimalist", "dark cosmic abstract"). Requires `GEMINI_API_KEY`.
+
 ### `/arrange` — Transform an existing piece
 
 ```
@@ -175,11 +183,16 @@ Claude: [Regenerates only loop_a with new seed, preserves everything else]
         New iteration at v002. Diff:
         Modified: 23 notes, Added: 5, Removed: 3
         Contour variety improved (0.35 -> 0.52)
+
+You: /cover-art puzzle-bgm
+
+Claude: [Generates cover art via Gemini]
+        Cover art saved to: outputs/projects/puzzle-bgm/cover.png
 ```
 
 ---
 
-## The Orchestra: 7 Subagents
+## The Orchestra: 11 Agent Definitions
 
 Behind the scenes, Claude Code can invoke specialized subagents:
 
@@ -192,16 +205,19 @@ Behind the scenes, Claude Code can invoke specialized subagents:
 | **Orchestrator** | Assigns instruments, voicings, frequency spacing |
 | **Mix Engineer** | Manages stereo placement, dynamics, frequency balance |
 | **Adversarial Critic** | Finds weaknesses — never praises |
+| **Conversation Director** | Plans inter-instrument dialogue (call-response, fills, tutti) |
+| **Genre Specialist** | Genre-specific knowledge and idiomatic patterns |
+| **Spec Compiler** | Translates natural language to YAML specifications |
 
 ---
 
 ## Domain Skills
 
-YaO includes 55 domain knowledge skills that Claude Code can draw on:
+YaO includes 60+ domain knowledge skills that Claude Code can draw on:
 
 | Category | Skills |
 |---|---|
-| Genres (38) | cinematic, jazz, jazz_swing, jazz_ballad, bebop, rock, rock_classic, pop, pop_western, pop_japan, electronic (edm_house, synthwave), ambient, deep_house, lo_fi_hiphop, lofi_hiphop, funk, blues, hip_hop, hiphop, baroque, romantic, orchestral_classical, neoclassical, acoustic_folk, game_8bit_chiptune, game_bgm_rpg, film_score_dramatic, bossa_nova, celtic_traditional, arab_maqam, indian_classical_hindustani, j_pop |
+| Genres (46) | cinematic, jazz, jazz_swing, jazz_ballad, bebop, rock, rock_classic, pop, pop_western, pop_japan, electronic (edm_house, synthwave, trance, techno), ambient, dark_ambient, deep_house, lo_fi_hiphop, lofi_hiphop, funk, blues, hip_hop, hiphop, hiphop_trap, baroque, romantic, orchestral_classical, neoclassical, acoustic_folk, game_8bit_chiptune, game_bgm_rpg, film_score_dramatic, bossa_nova, celtic_traditional, arab_maqam, indian_classical_hindustani, j_pop, metal, country, reggae, progressive_rock, rnb_neo_soul, and more |
 | Cultures (3) | Japanese, Middle Eastern, Indian Classical |
 | Theory (6) | Voice leading, Microtonal, Process music, Twelve-tone, Reharmonization, Modulation |
 | Instruments (2) | Piano, Idiomatic gestures |
@@ -226,6 +242,7 @@ outputs/projects/<name>/iterations/v001/
 +-- provenance.json    # Why every decision was made (with caused_by causal edges)
 +-- critique.md        # Adversarial critique (if /critique was run)
 +-- audio.wav          # Rendered audio (if --render-audio or /render was used)
++-- cover.png          # AI-generated cover art (if /cover-art was run)
 ```
 
 ---

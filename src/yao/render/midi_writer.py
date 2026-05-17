@@ -229,6 +229,8 @@ _INSTRUMENT_ALIASES: dict[str, str] = {
     "bass_guitar": "electric_bass_pick",
     "strings_section": "strings_ensemble",
     "bass": "contrabass",
+    "upright_bass": "contrabass",
+    "bass_saxophone": "baritone_sax",
     "euphonium": "tuba",
     "piano_chords": "piano",
     "piano_bass": "piano",

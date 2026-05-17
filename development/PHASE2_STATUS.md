@@ -1,10 +1,10 @@
-# YaO v2.0 Phase 2 Status
+# YaO v2.0 Phase Status
 
 *Updated: 2026-05-16 (final)*
 
 ## Current Task
 
-**Phase 2 COMPLETE.** All components implemented, tested, and committed.
+**All phases (2--5) COMPLETE.** All components implemented, tested, and committed.
 
 ## Architecture Decisions
 
@@ -129,7 +129,7 @@ The implementation took a **YAML-driven approach** rather than the Python-consta
 ## Known Issues / Regression Risks
 
 - Documentation terminology diverges from implementation in some places (see Architecture Decisions table above)
-- All tests pass: 4022 total (3656 main + 6 arch-lint + 196 unit + 164 SDK)
+- All tests pass across 332 test files covering unit, integration, scenario, constraint, golden, acoustic regression, genre coverage, SDK, and more
 
 ## Phase 3 Status
 
@@ -156,10 +156,33 @@ The implementation took a **YAML-driven approach** rather than the Python-consta
 | A/B Testing Framework | COMPLETE | Hypothesis, Variant, ABTestResult, Cohen's d effect size, `yao ab-test` CLI command |
 | Cross-Project Style | COMPLETE | ProjectFingerprint, compute_fingerprint(), fingerprint_distance(), JSON persistence |
 
-## Future (Phase 5+)
+## Phase 5 Status
+
+*Updated: 2026-05-16*
+
+| Component | Status | What was done |
+|---|---|---|
+| Developer Guides | COMPLETE | 11 guides in `.claude/guides/` covering architecture, coding conventions, music engineering, testing, workflow, drum/genre development, neural bridge, cookbook, matrix discipline |
+| Documentation Site | COMPLETE | 39 pages across 7 sections in `docs/`: guides, design, getting-started, sdk, tutorials, reference |
+| Test Expansion | COMPLETE | 332 test files with comprehensive coverage; genre coverage tests for all 30 profiles |
+| Genre Ecosystem | COMPLETE | 30 genre profiles (YAML), 46 genre skill files, 34 genre templates, 151 example project specs |
+
+## Post-Phase Additions (2026-05-17)
+
+| Component | Status | What was done |
+|---|---|---|
+| Cover Art Generation | COMPLETE | `src/yao/render/cover_art.py`, Gemini image generation, `yao cover-art` CLI command, `--style`/`--mood` options, `/cover-art` slash command |
+| Multi-Act Compositions | DEMONSTRATED | Three-act structure (ambient → cadenza → return) validated in ambient-v4 project; 13-section, 50-bar, 240s piece with 9 instruments |
+| Percussion-Only Compositions | DEMONSTRATED | Drums-only spec (primal-trio) with bass drum, snare, tenor drum; 96 bars at 174 BPM; validated through conductor pipeline |
+
+## Future Directions
 
 - Multi-DAW support (Ableton, Logic, Studio One)
 - NEUTRINO vocal synthesis integration (MusicXML pipeline)
 - Real-time MIDI port binding for improvisation (mido)
 - A/B test results dashboard
 - Cross-genre preference variance analysis
+- Multi-model orchestration (different LLMs for different subagents)
+- Community reference library (shared StyleVector format)
+- Video sync (align music to visual cues)
+- Full microtonal MIDI rendering (MPE-based per-note pitch bend)

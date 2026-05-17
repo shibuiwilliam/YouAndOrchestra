@@ -84,15 +84,37 @@ Introduced the Combination & Coupling layer with 11 modules:
 
 Coupling infrastructure is in place: `src/yao/coupling/` contains 11 modules, `src/yao/ir/harmonic_melody_constraints.py` defines core IR types, `src/yao/schema/features.py` provides feature flags, and `src/yao/verify/melody_harmony_alignment.py` + `voice_leading_smoothness.py` provide evaluation metrics.
 
-### Upcoming Work
+---
 
-| Focus | Key Deliverables |
+## Phase 3: Engine Expansion -- COMPLETE (2026-05-16)
+
+| Component | Key Deliverable |
 |---|---|
-| Genre Diversification | 15+ pitch Markov models, rhythm Markov generator, harmonic devices library, modulation planner |
-| Structural Diversity | Phrase-shape generator, theme recurrence graph, variable harmonic rhythm |
-| Cross-Cutting Diversity | Genre vector n-way blending, idiomatic gestures, polyrhythm engine |
-| Advanced Ensemble | Listening agents, corpus learning, metric modulation, microtonal melody |
-| Production Integration | DAW integration, live improvisation, user preference learning |
+| C1: Synth/Electronic | Expanded from 4 to 24 GM synth instruments (leads, pads, FX) |
+| C2: Perception Layer | 8 modules: StyleVector, MoodProfile, ReferenceMatcher, SurpriseAnalyzer, AudioPerceptionAnalyzer, ListeningSimulator, UseCaseEvaluator |
+| D1: Arrangement Engine | 7 modules: ArrangementOperation ABC, reorchestrate, reharmonize, retempo, transpose, regroove |
+| D2: AI Bridge | ai_seed.py (Claude API motif expansion), stable_audio_bridge.py (texture generation). Feature-flagged |
+| D3: Vocal/Lead | VocalNote/LyricsLine IR, VocalSpec schema, vocal_lead role |
+| Layer 7: Reflection | UserStyleProfile with update_from() and update_from_outcome() |
+
+## Phase 4: Production Integration -- COMPLETE (2026-05-16)
+
+| Component | Key Deliverable |
+|---|---|
+| DAW Integration (MCP) | DAWMCPBridge with Reaper TCP backend, MIDI import/export, DAWBackend ABC |
+| Live Improvisation | `yao improvise` CLI wired to RealtimeImprovisationEngine |
+| Vocal Synthesis Bridge | VocalSynthBridge ABC, NeutrinoBridge stub, MidiVocalFallback |
+| A/B Testing Framework | Hypothesis, Variant, ABTestResult, Cohen's d effect size, `yao ab-test` CLI |
+| Cross-Project Style | ProjectFingerprint, compute_fingerprint(), fingerprint_distance() |
+
+## Phase 5: Tests, Guides & Documentation -- COMPLETE (2026-05-16)
+
+| Component | Key Deliverable |
+|---|---|
+| Developer Guides | 11 guides in `.claude/guides/` (architecture, coding, music engineering, testing, workflow, drum/genre development, neural, cookbook, matrix discipline) |
+| Documentation Site | 39 documentation pages across 7 sections (guides, design, getting-started, sdk, tutorials, reference) |
+| Test Expansion | 332 test files with comprehensive coverage across all phases |
+| Genre Coverage | 30 genre profiles, 46 genre skill files, 34 genre templates |
 
 ---
 
@@ -108,7 +130,8 @@ Coupling infrastructure is in place: `src/yao/coupling/` contains 11 modules, `s
 | Production Features | ~1,748 |
 | Combination Stack Foundation | ~2,157 |
 | Phase 2 SDK (complete) | ~2,823 |
-| Current (Diversity Foundation in progress) | **~2,900+** |
+| Diversity Foundation | ~2,900+ |
+| Phases 3--5 (complete) | **~4,000+** |
 
 ---
 
@@ -116,8 +139,8 @@ Coupling infrastructure is in place: `src/yao/coupling/` contains 11 modules, `s
 
 Everything below is implemented, tested, and verified by CI honesty tools:
 
-- 285+ Python source modules (including 11 coupling modules + 14 SDK modules)
-- 256+ test files with ~2,900+ tests (including `tests/unit/coupling/` with 12 test files + `tests/sdk/` with 17 test files)
+- 302 Python source modules (including 11 coupling modules + 14 SDK modules)
+- 332 test files with ~4,000+ tests (including `tests/unit/coupling/` + `tests/sdk/`)
 - 9 generation strategies + 8 melodic strategies
 - 34 critique rules across 15 categories
 - 46 instruments (9 families), 33 scales, 20 forms, 30 chords
@@ -125,20 +148,30 @@ Everything below is implemented, tested, and verified by CI honesty tools:
 - 25 melodic profile YAMLs, 31 rhythm template YAMLs
 - 15 harmonic device YAMLs (jazz turnarounds, blues patterns, Coltrane changes, etc.)
 - 29 Markov model YAMLs organized by type: 14 pitch, 12 rhythm, 3 contour
-- 38 genre profiles, 3 culture skills
-- 7 subagents, 10 slash commands
-- 6 output formats (MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel)
+- 30 genre profiles, 46 genre skill files, 34 genre templates, 3 culture skills
+- 11 agent definitions, 11 slash commands (including cover-art)
+- 7 output formats (MIDI, WAV, MusicXML, LilyPond, Reaper RPP, Strudel, cover art PNG)
 - 7 use-case evaluators (YouTube BGM, Game BGM, Ad, Study, Meditation, Workout, Cinematic)
 - 5 honesty check tools enforced in CI
 - Mix chain with per-track EQ, compression, reverb + master (pedalboard-based)
 - Multilingual spec compilation (English + Japanese)
-- 110+ example project specs across diverse genres
+- 151 example project specs across diverse genres
 - Feature flags schema (`src/yao/schema/features.py`) for gating Combination Stack modules
 - New evaluation metrics: melody-harmony alignment, voice-leading smoothness
 - Agent SDK surface: `YaoAgent` facade (Lane A) + raw SDK access (Lane B), 15 in-process MCP tools, 9 streaming events, 9 typed results
 - 5 SDK reference applications (minimal, web, Discord, CI, notebook)
 - 6 SDK documentation pages in `docs/sdk/`
 - G1--G5 surface parity guarantees enforced in CI
+
+---
+
+## Post-Phase Additions (2026-05-17)
+
+| Feature | Key Deliverable |
+|---|---|
+| Cover Art Generation | `src/yao/render/cover_art.py`, Gemini-powered album art, `yao cover-art` CLI, `/cover-art` slash command, style/mood configuration |
+| Multi-Act Compositions | Three-act structure demonstrated: ambient soundscape → piano cadenza (terror) → return and fade. 13 sections, 50 bars, 9 instruments (ambient-v4) |
+| Percussion-Only Pieces | Drums-only composition pipeline: bass drum + snare + tenor drum, 96 bars at 174 BPM, polyrhythmic interlocking patterns (primal-trio) |
 
 ---
 

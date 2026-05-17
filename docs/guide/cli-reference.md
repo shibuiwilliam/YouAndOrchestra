@@ -133,6 +133,23 @@ Apply human feedback from a `feedback.yaml` file to regenerate a composition.
 | `-f, --feedback` | — | Path to feedback.yaml file (required) |
 | `-n, --max-iterations` | 3 | Max conductor iterations |
 
+### `yao cover-art <spec.yaml>`
+
+Generate album cover art for a composition using Google Gemini image generation. The prompt is derived from the spec's title, genre, mood, instruments, and trajectory.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `-o, --output` | `outputs/projects/<name>/cover.png` | Output image path |
+| `--style` | (none) | Visual style hint (e.g., "watercolor", "minimalist", "dark cosmic abstract") |
+| `--mood` | (from spec) | Override mood for the artwork |
+| `--model` | `gemini-2.5-flash-image` | Gemini model to use |
+
+Requires `GEMINI_API_KEY` environment variable and `pip install -e ".[cover-art]"`.
+
+```bash
+yao cover-art specs/projects/ambient-v4/composition.yaml --style "dark cosmic abstract"
+```
+
 ---
 
 ## SDK-Driven Commands
