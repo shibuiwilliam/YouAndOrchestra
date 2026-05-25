@@ -9,11 +9,14 @@ Belongs to Layer 4 (Perception).
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Protocol
 
 import numpy as np
+import numpy.typing as npt
 
 from yao.ir.score_ir import ScoreIR
+
+_NDFloat = npt.NDArray[np.floating[Any]]
 
 
 class FeatureExtractor(Protocol):
@@ -25,7 +28,7 @@ class FeatureExtractor(Protocol):
     name: str
     feature_dim: int
 
-    def extract(self, score: ScoreIR) -> np.ndarray:
+    def extract(self, score: ScoreIR) -> _NDFloat:
         """Extract feature vector from a ScoreIR.
 
         Args:
@@ -81,7 +84,7 @@ def list_extractors() -> list[str]:
     return sorted(_REGISTRY.keys())
 
 
-def extract_all(score: ScoreIR) -> dict[str, np.ndarray]:
+def extract_all(score: ScoreIR) -> dict[str, _NDFloat]:
     """Run all registered extractors on a score.
 
     Args:
@@ -93,7 +96,7 @@ def extract_all(score: ScoreIR) -> dict[str, np.ndarray]:
     return {name: ext.extract(score) for name, ext in sorted(_REGISTRY.items())}
 
 
-def extract_concatenated(score: ScoreIR) -> np.ndarray:
+def extract_concatenated(score: ScoreIR) -> _NDFloat:
     """Run all extractors and concatenate into a single feature vector.
 
     Args:

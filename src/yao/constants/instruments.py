@@ -109,5 +109,11 @@ INSTRUMENT_RANGES: dict[str, InstrumentRange] = {
     "tabla": InstrumentRange("tabla", 36, 72, 115, "percussion"),
     "oud": InstrumentRange("oud", 43, 79, 25, "strings"),
     "ney": InstrumentRange("ney", 55, 86, 72, "woodwind"),
+    # Chinese traditional
+    "guzheng": InstrumentRange("guzheng", 48, 96, 107, "strings"),
+    "erhu": InstrumentRange("erhu", 55, 86, 40, "strings"),
+    "dizi": InstrumentRange("dizi", 62, 86, 73, "woodwind"),
+    "pipa": InstrumentRange("pipa", 45, 76, 104, "strings"),
+    "bianzhong": InstrumentRange("bianzhong", 48, 84, 14, "percussion"),
 }
 """All known instrument ranges. Key is the canonical instrument name."""

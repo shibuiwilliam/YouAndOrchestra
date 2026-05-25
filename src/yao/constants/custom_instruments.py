@@ -221,6 +221,122 @@ _CUSTOM_INSTRUMENTS: dict[str, CustomInstrument] = {
             'Source: Kudsi Erguner, "Journeys of a Sufi Musician" (2005).'
         ),
     ),
+    # Chinese traditional
+    "guzheng": CustomInstrument(
+        name="guzheng",
+        midi_low=48,
+        midi_high=96,
+        gm_program=107,
+        cultural_origin="chinese",
+        idiomatic_techniques=(
+            "yao-zhi (tremolo by rapidly plucking with right hand)",
+            "hua-zhi (glissando sweeping across strings)",
+            "an (pitch bend by pressing string left of bridge)",
+            "dian (staccato pluck with fingertip)",
+            "gou-tuo (alternating inward/outward pluck for melodic runs)",
+        ),
+        typical_velocity_range=(30, 110),
+        typical_scales=("pentatonic_gong", "pentatonic_shang", "pentatonic_yu"),
+        notes=(
+            "The guzheng is a 21-string Chinese zither with movable bridges. "
+            "It is one of the oldest Chinese instruments, central to both solo "
+            "and ensemble music. Tuned to pentatonic scales with pitch bending "
+            "enabling chromatic and microtonal inflections. The Japanese koto "
+            "is historically derived from the guzheng."
+        ),
+    ),
+    "erhu": CustomInstrument(
+        name="erhu",
+        midi_low=55,
+        midi_high=86,
+        gm_program=40,
+        cultural_origin="chinese",
+        idiomatic_techniques=(
+            "rou-xian (vibrato by oscillating left-hand finger pressure)",
+            "hua-yin (portamento slide between notes)",
+            "dun-gong (staccato bowing)",
+            "lian-gong (legato connected bowing)",
+            "pao-yin (thrown bow for accented attack)",
+        ),
+        typical_velocity_range=(35, 100),
+        typical_scales=("pentatonic_gong", "pentatonic_shang", "pentatonic_yu"),
+        notes=(
+            "The erhu is a two-string bowed instrument with no fingerboard; "
+            "the player presses strings without touching the neck. Its vocal, "
+            "expressive tone is often compared to the human voice. Central to "
+            "Chinese opera, folk, and classical ensemble music. Range spans "
+            "approximately three octaves with skilled players."
+        ),
+    ),
+    "dizi": CustomInstrument(
+        name="dizi",
+        midi_low=62,
+        midi_high=86,
+        gm_program=73,
+        cultural_origin="chinese",
+        idiomatic_techniques=(
+            "li-yin (grace note ornament)",
+            "da-yin (tongued articulation)",
+            "hua-she (tongue flutter/tremolo)",
+            "die-yin (rapid finger trill)",
+            "mo-yin (membrane vibrato from the di-mo buzzing membrane)",
+        ),
+        typical_velocity_range=(35, 95),
+        typical_scales=("pentatonic_gong", "pentatonic_shang", "pentatonic_yu"),
+        notes=(
+            "The dizi is a transverse bamboo flute distinguished by its di-mo, "
+            "a thin membrane covering one hole that produces a characteristic "
+            "bright, buzzing timbre. Two main types: qudi (longer, for kunqu "
+            "opera) and bangdi (shorter, brighter, for northern folk music). "
+            "One of the earliest Chinese instruments, dating back 8000+ years."
+        ),
+    ),
+    "pipa": CustomInstrument(
+        name="pipa",
+        midi_low=45,
+        midi_high=76,
+        gm_program=104,
+        cultural_origin="chinese",
+        idiomatic_techniques=(
+            "lun-zhi (tremolo by rolling all five fingers in rapid succession)",
+            "tan-tiao (alternating outward/inward single plucks)",
+            "sao (rapid downward sweep across strings)",
+            "ban (percussive slap on strings against frets)",
+            "tui-la (pitch bend by pushing/pulling string laterally)",
+        ),
+        typical_velocity_range=(30, 120),
+        typical_scales=("pentatonic_gong", "pentatonic_shang", "pentatonic_yu"),
+        notes=(
+            "The pipa is a four-string pear-shaped lute with 12-26 frets. "
+            "Known for both lyrical sustained passages and dramatic percussive "
+            "techniques. A cornerstone of Chinese classical and court music "
+            "since the Han dynasty. Its wide dynamic range spans from delicate "
+            "single notes to powerful strummed chords."
+        ),
+    ),
+    "bianzhong": CustomInstrument(
+        name="bianzhong",
+        midi_low=48,
+        midi_high=84,
+        gm_program=14,
+        cultural_origin="chinese",
+        idiomatic_techniques=(
+            "zheng-gu (center strike for fundamental tone)",
+            "ce-gu (side strike for a note a third higher)",
+            "dan-ji (single ceremonial strike with wooden mallet)",
+            "lian-ji (successive strikes across bells for melodic passage)",
+            "yu-yin (letting bell ring to full natural decay)",
+        ),
+        typical_velocity_range=(40, 95),
+        typical_scales=("pentatonic_gong", "pentatonic_shang"),
+        notes=(
+            "Bianzhong are ancient Chinese bronze bell chimes, typically 65 "
+            "bells arranged in a frame spanning five octaves. Each bell produces "
+            "two pitches depending on strike location. Central to yayue court "
+            "ritual music. The most famous set is from the tomb of Marquis Yi "
+            "of Zeng (433 BCE), demonstrating sophisticated tuning systems."
+        ),
+    ),
 }
 
 

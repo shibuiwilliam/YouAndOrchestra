@@ -586,7 +586,7 @@ class TestEdgeCases:
         assert spec.emotion.valence == 0.5
         assert spec.melody.contour == "arch"
         assert spec.rhythm.groove == "straight"
-        assert spec.drums.pattern_family == "basic"
+        assert spec.drums is None
         assert spec.production.use_case == "general"
         assert spec.constraints == []
 

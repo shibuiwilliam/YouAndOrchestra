@@ -15,11 +15,15 @@ from __future__ import annotations
 import math
 from collections import Counter
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 from yao.ir.score_ir import ScoreIR
 from yao.perception.feature_extractors import register_extractor
+
+_NDFloat = npt.NDArray[np.floating[Any]]
 
 
 @dataclass
@@ -36,7 +40,7 @@ class VoiceLeadingSmoothness:
     name: str = "voice_leading_smoothness"
     feature_dim: int = 1
 
-    def extract(self, score: ScoreIR) -> np.ndarray:
+    def extract(self, score: ScoreIR) -> _NDFloat:
         """Extract voice leading smoothness as average semitone movement.
 
         Args:
@@ -92,7 +96,7 @@ class MotivicDensity:
     name: str = "motivic_density"
     feature_dim: int = 1
 
-    def extract(self, score: ScoreIR) -> np.ndarray:
+    def extract(self, score: ScoreIR) -> _NDFloat:
         """Extract motivic density as recurring trigram count per 8 bars.
 
         Args:
@@ -136,7 +140,7 @@ class SurpriseIndex:
     name: str = "surprise_index"
     feature_dim: int = 1
 
-    def extract(self, score: ScoreIR) -> np.ndarray:
+    def extract(self, score: ScoreIR) -> _NDFloat:
         """Extract surprise index as normalized interval entropy.
 
         Args:
@@ -189,7 +193,7 @@ class RegisterDistribution:
     name: str = "register_distribution"
     feature_dim: int = 12
 
-    def extract(self, score: ScoreIR) -> np.ndarray:
+    def extract(self, score: ScoreIR) -> _NDFloat:
         """Extract register distribution as 12-bin octave histogram.
 
         Args:
@@ -228,7 +232,7 @@ class TemporalCentroid:
     name: str = "temporal_centroid"
     feature_dim: int = 1
 
-    def extract(self, score: ScoreIR) -> np.ndarray:
+    def extract(self, score: ScoreIR) -> _NDFloat:
         """Extract temporal centroid as normalized position.
 
         Args:
@@ -272,7 +276,7 @@ class GroovePocket:
     name: str = "groove_pocket"
     feature_dim: int = 3
 
-    def extract(self, score: ScoreIR) -> np.ndarray:
+    def extract(self, score: ScoreIR) -> _NDFloat:
         """Extract groove pocket features from timing offsets.
 
         Args:
@@ -327,7 +331,7 @@ class ChordComplexity:
     name: str = "chord_complexity"
     feature_dim: int = 1
 
-    def extract(self, score: ScoreIR) -> np.ndarray:
+    def extract(self, score: ScoreIR) -> _NDFloat:
         """Extract chord complexity as average pitch classes per beat.
 
         Args:

@@ -80,6 +80,7 @@ class TestRenderMidiToWav:
 
         with (
             patch("shutil.which", return_value="/usr/bin/fluidsynth"),
+            patch("yao.render.audio_renderer._find_default_soundfont", return_value=None),
             pytest.raises(RenderError, match="No SoundFont found"),
         ):
             render_midi_to_wav(midi_file, tmp_path / "out.wav")

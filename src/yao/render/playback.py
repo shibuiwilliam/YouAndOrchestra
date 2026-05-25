@@ -12,11 +12,16 @@ from __future__ import annotations
 import platform
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 import structlog
 
 from yao.errors import RenderError
+
+_NDFloat = npt.NDArray[np.floating[Any]]
+_NDAny = npt.NDArray[Any]
 
 logger = structlog.get_logger()
 
@@ -28,7 +33,7 @@ DEFAULT_SAMPLE_RATE = 44100
 
 
 def play_wav_inline(
-    audio: np.ndarray,
+    audio: _NDAny,
     sample_rate: int = DEFAULT_SAMPLE_RATE,
     *,
     target_lufs: float = DEFAULT_TARGET_LUFS,
@@ -85,10 +90,10 @@ def play_wav_external(wav_path: Path) -> None:
 
 
 def normalize_loudness(
-    audio: np.ndarray,
+    audio: _NDAny,
     *,
     target_lufs: float = DEFAULT_TARGET_LUFS,
-) -> np.ndarray:
+) -> _NDAny:
     """Normalize audio loudness to a target LUFS level.
 
     Uses pyloudnorm if available for ITU-R BS.1770 compliant measurement.
@@ -110,7 +115,7 @@ def normalize_loudness(
     return _rms_normalize(audio, target_lufs)
 
 
-def _rms_normalize(audio: np.ndarray, target_lufs: float) -> np.ndarray:
+def _rms_normalize(audio: _NDAny, target_lufs: float) -> _NDAny:
     """Simple RMS-based normalization fallback.
 
     Approximates LUFS as RMS dBFS (not standards-compliant but usable).
@@ -136,5 +141,5 @@ def _rms_normalize(audio: np.ndarray, target_lufs: float) -> np.ndarray:
     if audio.dtype in (np.float32, np.float64):
         normalized = np.clip(normalized, -1.0, 1.0)
 
-    out: np.ndarray = normalized.astype(audio.dtype)
+    out: _NDAny = normalized.astype(audio.dtype)
     return out

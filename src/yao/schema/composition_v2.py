@@ -770,7 +770,7 @@ class CompositionSpecV2(BaseModel):
     melody: MelodySpec = Field(default_factory=MelodySpec)
     harmony: HarmonySpec = Field(default_factory=HarmonySpec)
     rhythm: RhythmSpec = Field(default_factory=RhythmSpec)
-    drums: DrumsSpec = Field(default_factory=DrumsSpec)
+    drums: DrumsSpec | None = None
     arrangement: ArrangementSpecV2
     production: ProductionSpecV2 = Field(default_factory=ProductionSpecV2)
     constraints: list[ConstraintSpecV2] = Field(default_factory=list)
