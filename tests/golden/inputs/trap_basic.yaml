@@ -1,0 +1,38 @@
+version: "2"
+
+identity:
+  title: "Golden Trap"
+  duration_sec: 32
+  loopable: false
+
+global:
+  key: "D minor"
+  bpm: 140
+  time_signature: "4/4"
+  genre: "hiphop_trap"
+
+form:
+  sections:
+    - id: intro
+      bars: 4
+      density: 0.3
+    - id: drop
+      bars: 8
+      density: 0.8
+      climax: true
+    - id: outro
+      bars: 4
+      density: 0.4
+
+harmony:
+  chord_palette: ["i", "bVI", "bVII", "iv"]
+
+arrangement:
+  instruments:
+    piano:
+      role: melody
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.5

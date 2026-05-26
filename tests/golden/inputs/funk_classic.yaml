@@ -1,0 +1,38 @@
+version: "2"
+
+identity:
+  title: "Golden Funk"
+  duration_sec: 32
+  loopable: false
+
+global:
+  key: "A minor"
+  bpm: 105
+  time_signature: "4/4"
+  genre: "funk_classic"
+
+form:
+  sections:
+    - id: groove
+      bars: 8
+      density: 0.7
+    - id: hook
+      bars: 4
+      density: 0.9
+      climax: true
+    - id: breakdown
+      bars: 4
+      density: 0.4
+
+harmony:
+  chord_palette: ["I7", "IV7", "V7"]
+
+arrangement:
+  instruments:
+    electric_guitar:
+      role: melody
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.5

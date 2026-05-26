@@ -1,0 +1,38 @@
+version: "2"
+
+identity:
+  title: "Golden House"
+  duration_sec: 48
+  loopable: false
+
+global:
+  key: "F minor"
+  bpm: 126
+  time_signature: "4/4"
+  genre: "electronic_house"
+
+form:
+  sections:
+    - id: buildup
+      bars: 8
+      density: 0.5
+    - id: drop
+      bars: 8
+      density: 0.9
+      climax: true
+    - id: breakdown
+      bars: 4
+      density: 0.3
+
+harmony:
+  chord_palette: ["i", "VI", "VII", "iv"]
+
+arrangement:
+  instruments:
+    piano:
+      role: melody
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.5

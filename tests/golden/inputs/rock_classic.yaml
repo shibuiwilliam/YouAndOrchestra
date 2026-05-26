@@ -1,0 +1,40 @@
+version: "2"
+
+identity:
+  title: "Golden Rock"
+  duration_sec: 48
+  loopable: false
+
+global:
+  key: "E minor"
+  bpm: 125
+  time_signature: "4/4"
+  genre: "rock_classic"
+
+form:
+  sections:
+    - id: verse
+      bars: 8
+      density: 0.5
+    - id: chorus
+      bars: 8
+      density: 0.8
+      climax: true
+    - id: outro
+      bars: 4
+      density: 0.3
+
+harmony:
+  chord_palette: ["I", "IV", "V", "bVII"]
+  cadence:
+    chorus: "authentic"
+
+arrangement:
+  instruments:
+    electric_guitar:
+      role: melody
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.5

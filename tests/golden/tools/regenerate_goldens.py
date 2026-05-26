@@ -43,6 +43,11 @@ GOLDEN_MATRIX: list[tuple[str, int, str]] = [
     ("pop_basic.yaml", 42, "stochastic"),
     ("cinematic_basic.yaml", 42, "rule_based"),
     ("cinematic_basic.yaml", 42, "stochastic"),
+    ("rock_classic.yaml", 42, "stochastic"),
+    ("funk_classic.yaml", 42, "stochastic"),
+    ("trap_basic.yaml", 42, "stochastic"),
+    ("house_basic.yaml", 42, "stochastic"),
+    ("jazz_bebop.yaml", 42, "stochastic"),
 ]
 
 

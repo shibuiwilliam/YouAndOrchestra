@@ -1,0 +1,38 @@
+version: "2"
+
+identity:
+  title: "Golden Jazz"
+  duration_sec: 48
+  loopable: false
+
+global:
+  key: "Bb major"
+  bpm: 160
+  time_signature: "4/4"
+  genre: "jazz_bebop"
+
+form:
+  sections:
+    - id: head
+      bars: 8
+      density: 0.6
+    - id: solo
+      bars: 8
+      density: 0.8
+      climax: true
+    - id: head_out
+      bars: 8
+      density: 0.5
+
+harmony:
+  chord_palette: ["IImaj7", "V7", "Imaj7", "vi7"]
+
+arrangement:
+  instruments:
+    piano:
+      role: melody
+
+generation:
+  strategy: stochastic
+  seed: 42
+  temperature: 0.5
