@@ -299,27 +299,28 @@ class Conductor:
                             sections=tuple(merged_sections),
                         )
 
+            # Resolve genre context for drum auto-attach
+            from yao.generators.genre_resolver import resolve_genre
+
+            genre_ctx = resolve_genre(current_spec.genre, combined_provenance)
+
             # Generate drum hits if spec has drums or genre requires drums
             drum_hits: list[DrumHit] = []
-            effective_drums = current_spec.drums
-            if effective_drums is None:
-                from yao.generators.drum_patterner import drums_spec_from_genre
-
-                effective_drums = drums_spec_from_genre(current_spec.genre)
-                if effective_drums is not None:
-                    combined_provenance.record(
-                        layer="generator",
-                        operation="drums_auto_attached",
-                        parameters={
-                            "genre": current_spec.genre,
-                            "pattern_family": effective_drums.pattern_family,
-                        },
-                        source="Conductor.compose_from_spec",
-                        rationale=(
-                            f"Genre '{current_spec.genre}' requires drums; auto-attached "
-                            f"'{effective_drums.pattern_family}' from genre profile."
-                        ),
-                    )
+            effective_drums = current_spec.drums if current_spec.drums is not None else genre_ctx.default_drums
+            if effective_drums is not None and current_spec.drums is None:
+                combined_provenance.record(
+                    layer="generator",
+                    operation="drums_auto_attached",
+                    parameters={
+                        "genre": current_spec.genre,
+                        "pattern_family": effective_drums.pattern_family,
+                    },
+                    source="Conductor.compose_from_spec",
+                    rationale=(
+                        f"Genre '{current_spec.genre}' requires drums; auto-attached "
+                        f"'{effective_drums.pattern_family}' from genre profile."
+                    ),
+                )
             if effective_drums is not None:
                 from yao.generators.drum_patterner import generate_drum_hits
 

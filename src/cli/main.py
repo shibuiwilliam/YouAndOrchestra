@@ -189,33 +189,41 @@ def compose(
             output_dir = next_iteration_dir(project_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # 3. Generate (use registry to select generator by spec config)
+        # 3. Resolve genre context (must run before generation)
+        from yao.generators.genre_resolver import inject_theme_recall, resolve_genre
+        from yao.reflect.provenance import ProvenanceLog
+
+        pre_prov = ProvenanceLog()
+        genre_ctx = resolve_genre(spec.genre, pre_prov)
+
+        # 3b. Auto-inject theme recall for thematic coherence
+        spec = inject_theme_recall(spec, pre_prov)
+
+        # 4. Generate (use registry to select generator by spec config)
         strategy = spec.generation.strategy
         click.echo(f"Generating: {spec.title} ({spec.key}, {spec.tempo_bpm} BPM, strategy={strategy})")
         generator = get_generator(strategy)
         score, provenance = generator.generate(spec, traj)
+        for record in pre_prov.records:
+            provenance.add(record)
 
-        # 4. Generate drum hits if spec has drums or genre requires drums
+        # 5. Generate drum hits if spec has drums or genre requires drums
         drum_hit_list = None
-        effective_drums = spec.drums
-        if effective_drums is None:
-            from yao.generators.drum_patterner import drums_spec_from_genre
-
-            effective_drums = drums_spec_from_genre(spec.genre)
-            if effective_drums is not None:
-                provenance.record(
-                    layer="generator",
-                    operation="drums_auto_attached",
-                    parameters={
-                        "genre": spec.genre,
-                        "pattern_family": effective_drums.pattern_family,
-                    },
-                    source="cli.compose",
-                    rationale=(
-                        f"Genre '{spec.genre}' requires drums; auto-attached "
-                        f"'{effective_drums.pattern_family}' from genre profile."
-                    ),
-                )
+        effective_drums = spec.drums if spec.drums is not None else genre_ctx.default_drums
+        if effective_drums is not None and spec.drums is None:
+            provenance.record(
+                layer="generator",
+                operation="drums_auto_attached",
+                parameters={
+                    "genre": spec.genre,
+                    "pattern_family": effective_drums.pattern_family,
+                },
+                source="cli.compose",
+                rationale=(
+                    f"Genre '{spec.genre}' requires drums; auto-attached "
+                    f"'{effective_drums.pattern_family}' from genre profile."
+                ),
+            )
         if effective_drums is not None:
             from yao.generators.drum_patterner import generate_drum_hits
             from yao.ir.trajectory import MultiDimensionalTrajectory
