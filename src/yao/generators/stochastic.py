@@ -23,6 +23,7 @@ from yao.constants.genre_profile import GenreProfile, genre_chord_sequence, get_
 from yao.constants.instruments import INSTRUMENT_RANGES
 from yao.constants.music import CHORD_INTERVALS, DYNAMICS_TO_VELOCITY
 from yao.generators.base import GeneratorBase
+from yao.generators.genre_adapter import GenreBias, biased_contour, resolve_genre_bias, should_add_blue_note
 from yao.generators.registry import register_generator
 from yao.ir.motif import Motif, invert, retrograde, transpose
 from yao.ir.notation import parse_key, scale_notes
@@ -232,6 +233,7 @@ class StochasticGenerator(GeneratorBase):
         genre_profile: GenreProfile | None = None,
     ) -> list[Section]:
         """Generate all sections with controlled randomness."""
+        genre_bias = resolve_genre_bias(genre_profile) if genre_profile is not None else None
         sections: list[Section] = []
         current_bar = 0
         # Store primary melody per section for cross-section recall
@@ -365,6 +367,7 @@ class StochasticGenerator(GeneratorBase):
                         chord_pattern=chord_pattern,
                         rng=instr_rng,
                         temperature=temperature,
+                        genre_bias=genre_bias,
                     )
                     # Capture first melody instrument's output
                     if melody_index == 0:
@@ -476,6 +479,7 @@ class StochasticGenerator(GeneratorBase):
         chord_pattern: list[int],
         rng: random.Random,
         temperature: float,
+        genre_bias: GenreBias | None = None,
     ) -> list[Note]:
         """Generate notes for one instrument part."""
         if role == "melody":
@@ -491,6 +495,7 @@ class StochasticGenerator(GeneratorBase):
                 chord_pattern=chord_pattern,
                 rng=rng,
                 temperature=temperature,
+                genre_bias=genre_bias,
             )
         if role == "bass":
             return self._generate_bass(
@@ -563,14 +568,21 @@ class StochasticGenerator(GeneratorBase):
         chord_pattern: list[int],
         rng: random.Random,
         temperature: float,
+        genre_bias: GenreBias | None = None,
     ) -> list[Note]:
         """Generate melody with contour shaping and interval variety.
+
+        When genre_bias is provided, melodic contour, leap probability,
+        blue note injection, and rhythm density are biased by genre profile.
 
         Trajectory response (Rule #7):
         - tension: higher tension → higher register (octave offset) + more leaps
         - density: higher density → more subdivided rhythms (more notes per bar)
         - register_height: shifts base octave up/down
         """
+        from yao.generators.genre_adapter import DEFAULT_BIAS, biased_rhythm_pool
+
+        bias = genre_bias if genre_bias is not None else DEFAULT_BIAS
         octave = self._target_octave(instrument, "melody")
 
         # Register height trajectory shifts the base octave
@@ -588,8 +600,11 @@ class StochasticGenerator(GeneratorBase):
         beats_per_bar = bars_to_beats(1, time_signature)
         scale_idx = len(all_scale) // 3  # start in lower-middle
 
-        # Select contour for this section
-        contour = self._choose_contour(section_spec.name, temperature, rng)
+        # Select contour: genre-biased if bias is available
+        if genre_bias is not None:
+            contour = biased_contour(bias, rng)
+        else:
+            contour = self._choose_contour(section_spec.name, temperature, rng)
 
         for bar in range(bars):
             bar_start = bars_to_beats(start_bar + bar, time_signature)
@@ -598,7 +613,11 @@ class StochasticGenerator(GeneratorBase):
             density = 0.5
             if trajectory is not None:
                 density = trajectory.value_at("density", start_bar + bar)
-            rhythm = self._density_aware_rhythm(rng, density)
+            # Genre-biased rhythm selection
+            if genre_bias is not None:
+                rhythm = biased_rhythm_pool(bias, _MELODY_RHYTHM_POOL, rng)
+            else:
+                rhythm = self._density_aware_rhythm(rng, density)
 
             velocity = self._compute_velocity(section_spec, start_bar + bar, trajectory)
 
@@ -633,9 +652,22 @@ class StochasticGenerator(GeneratorBase):
                     contour,
                     tension=bar_tension,
                 )
+
+                # Genre-biased leap/step adjustment
+                if genre_bias is not None:
+                    from yao.generators.genre_adapter import biased_movement_step
+
+                    movement = biased_movement_step(bias, rng, movement, temperature)
+
                 scale_idx = max(0, min(len(all_scale) - 1, scale_idx + movement))
 
                 pitch = all_scale[scale_idx]
+
+                # Genre-biased blue note injection
+                if genre_bias is not None and should_add_blue_note(bias, rng):
+                    from yao.generators.genre_adapter import apply_blue_note
+
+                    pitch = apply_blue_note(pitch, rng)
                 if not self._is_in_range(pitch, instrument):
                     # Bounce back into range
                     original_pitch = pitch
