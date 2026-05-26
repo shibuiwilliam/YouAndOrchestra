@@ -68,3 +68,6 @@ bass_motion_style: pedal
 typical_dynamics_range: [pp, mf]
 target_spectral_centroid: 0.35
 tempo_range: [100, 160]
+
+default_drum_pattern: jazz_swing_ride
+requires_drums: true

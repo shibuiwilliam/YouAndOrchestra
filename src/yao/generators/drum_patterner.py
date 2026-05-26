@@ -25,6 +25,31 @@ from yao.schema.composition import CompositionSpec, DrumsSpec, SectionSpec
 PATTERNS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "drum_patterns"
 
 
+def drums_spec_from_genre(genre_name: str) -> DrumsSpec | None:
+    """Build a DrumsSpec from a genre profile's default drum pattern.
+
+    Returns None if the genre has no default drum pattern or requires_drums is False.
+
+    Args:
+        genre_name: Genre identifier (e.g., "rock_classic").
+
+    Returns:
+        DrumsSpec with genre-appropriate defaults, or None.
+    """
+    from yao.constants.genre_profile import get_genre_profile
+
+    profile = get_genre_profile(genre_name)
+    if profile is None or not profile.requires_drums or profile.default_drum_pattern is None:
+        return None
+
+    return DrumsSpec(
+        pattern_family=profile.default_drum_pattern,
+        swing=max(0.0, (profile.swing_ratio - 0.5) * 2.0),
+        humanize_ms=5.0,
+        ghost_notes_density=0.0,
+    )
+
+
 def load_pattern(family: str) -> DrumPattern:
     """Load a drum pattern from the YAML library.
 

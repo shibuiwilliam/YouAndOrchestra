@@ -73,3 +73,6 @@ bass_motion_style: walking
 typical_dynamics_range: [mp, ff]
 target_spectral_centroid: 0.45
 tempo_range: [160, 280]
+
+default_drum_pattern: jazz_swing_ride
+requires_drums: true

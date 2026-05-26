@@ -61,3 +61,6 @@ bass_motion_style: pedal
 typical_dynamics_range: [mf, f]
 target_spectral_centroid: 0.50
 tempo_range: [128, 140]
+
+default_drum_pattern: techno_minimal
+requires_drums: true

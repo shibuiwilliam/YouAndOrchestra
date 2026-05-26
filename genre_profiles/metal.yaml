@@ -66,3 +66,6 @@ bass_motion_style: root_fifth
 typical_dynamics_range: [f, fff]
 target_spectral_centroid: 0.55
 tempo_range: [120, 200]
+
+default_drum_pattern: metal_double_kick
+requires_drums: true

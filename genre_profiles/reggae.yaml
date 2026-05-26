@@ -68,3 +68,6 @@ bass_motion_style: syncopated
 typical_dynamics_range: [mp, mf]
 target_spectral_centroid: 0.35
 tempo_range: [70, 90]
+
+default_drum_pattern: reggae_one_drop
+requires_drums: true

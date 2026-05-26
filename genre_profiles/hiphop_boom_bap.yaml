@@ -65,3 +65,6 @@ bass_motion_style: syncopated
 typical_dynamics_range: [mp, mf]
 target_spectral_centroid: 0.35
 tempo_range: [85, 100]
+
+default_drum_pattern: lofi_laidback
+requires_drums: true

@@ -82,3 +82,6 @@ target_spectral_centroid: 0.25
 
 # Tempo — characteristically slow (Bruner, 2021)
 tempo_range: [60, 90]
+
+default_drum_pattern: lofi_laidback
+requires_drums: true

@@ -71,3 +71,6 @@ bass_motion_style: syncopated
 typical_dynamics_range: [pp, mf]
 target_spectral_centroid: 0.40
 tempo_range: [120, 145]
+
+default_drum_pattern: bossa_nova
+requires_drums: true

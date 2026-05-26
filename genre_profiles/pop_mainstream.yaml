@@ -66,3 +66,6 @@ bass_motion_style: root_fifth
 typical_dynamics_range: [mp, f]
 target_spectral_centroid: 0.55
 tempo_range: [100, 130]
+
+default_drum_pattern: pop_8beat
+requires_drums: true

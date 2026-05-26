@@ -83,3 +83,6 @@ target_spectral_centroid: 0.65
 
 # Tempo — moderate to upbeat
 tempo_range: [100, 180]
+
+default_drum_pattern: pop_8beat
+requires_drums: true

@@ -66,3 +66,6 @@ bass_motion_style: root_fifth
 typical_dynamics_range: [mf, ff]
 target_spectral_centroid: 0.55
 tempo_range: [110, 140]
+
+default_drum_pattern: rock_backbeat
+requires_drums: true

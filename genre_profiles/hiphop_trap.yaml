@@ -64,3 +64,6 @@ bass_motion_style: pedal
 typical_dynamics_range: [mp, f]
 target_spectral_centroid: 0.40
 tempo_range: [130, 170]
+
+default_drum_pattern: trap_half_time
+requires_drums: true

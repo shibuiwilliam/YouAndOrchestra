@@ -299,18 +299,38 @@ class Conductor:
                             sections=tuple(merged_sections),
                         )
 
-            # Generate drum hits if spec has drums
+            # Generate drum hits if spec has drums or genre requires drums
             drum_hits: list[DrumHit] = []
-            if current_spec.drums is not None:
+            effective_drums = current_spec.drums
+            if effective_drums is None:
+                from yao.generators.drum_patterner import drums_spec_from_genre
+
+                effective_drums = drums_spec_from_genre(current_spec.genre)
+                if effective_drums is not None:
+                    combined_provenance.record(
+                        layer="generator",
+                        operation="drums_auto_attached",
+                        parameters={
+                            "genre": current_spec.genre,
+                            "pattern_family": effective_drums.pattern_family,
+                        },
+                        source="Conductor.compose_from_spec",
+                        rationale=(
+                            f"Genre '{current_spec.genre}' requires drums; auto-attached "
+                            f"'{effective_drums.pattern_family}' from genre profile."
+                        ),
+                    )
+            if effective_drums is not None:
                 from yao.generators.drum_patterner import generate_drum_hits
 
+                drum_spec = current_spec.model_copy(update={"drums": effective_drums})
                 traj_ir = (
                     MultiDimensionalTrajectory.from_spec(trajectory)
                     if trajectory
                     else MultiDimensionalTrajectory.default()
                 )
                 drum_hits, drum_prov = generate_drum_hits(
-                    current_spec,
+                    drum_spec,
                     trajectory=traj_ir,
                     seed=current_spec.generation.seed or 42,
                 )

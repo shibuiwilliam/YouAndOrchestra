@@ -101,6 +101,10 @@ class GenreProfile:
     target_spectral_centroid: float = 0.5
     tempo_range: tuple[float, float] = (80.0, 140.0)
 
+    # Drum defaults — auto-attached when spec.drums is None
+    default_drum_pattern: str | None = None
+    requires_drums: bool = False
+
     @classmethod
     def from_yaml(cls, data: dict[str, Any]) -> GenreProfile:
         """Construct a GenreProfile from a parsed YAML dict.
@@ -171,6 +175,8 @@ class GenreProfile:
             typical_dynamics_range=dynamics_tuple,
             target_spectral_centroid=float(data.get("target_spectral_centroid", 0.5)),
             tempo_range=tempo_tuple,
+            default_drum_pattern=data.get("default_drum_pattern"),
+            requires_drums=bool(data.get("requires_drums", False)),
         )
 
 

@@ -195,21 +195,42 @@ def compose(
         generator = get_generator(strategy)
         score, provenance = generator.generate(spec, traj)
 
-        # 4. Generate drum hits if spec has drums
+        # 4. Generate drum hits if spec has drums or genre requires drums
         drum_hit_list = None
-        if spec.drums is not None:
+        effective_drums = spec.drums
+        if effective_drums is None:
+            from yao.generators.drum_patterner import drums_spec_from_genre
+
+            effective_drums = drums_spec_from_genre(spec.genre)
+            if effective_drums is not None:
+                provenance.record(
+                    layer="generator",
+                    operation="drums_auto_attached",
+                    parameters={
+                        "genre": spec.genre,
+                        "pattern_family": effective_drums.pattern_family,
+                    },
+                    source="cli.compose",
+                    rationale=(
+                        f"Genre '{spec.genre}' requires drums; auto-attached "
+                        f"'{effective_drums.pattern_family}' from genre profile."
+                    ),
+                )
+        if effective_drums is not None:
             from yao.generators.drum_patterner import generate_drum_hits
             from yao.ir.trajectory import MultiDimensionalTrajectory
 
+            # Temporarily inject drums into spec for generate_drum_hits
+            drum_spec = spec.model_copy(update={"drums": effective_drums})
             traj_ir = MultiDimensionalTrajectory.from_spec(traj) if traj else MultiDimensionalTrajectory.default()
             drum_hit_list, drum_prov = generate_drum_hits(
-                spec,
+                drum_spec,
                 trajectory=traj_ir,
                 seed=spec.generation.seed or 42,
             )
             for record in drum_prov.records:
                 provenance.add(record)
-            click.echo(f"Drums: {len(drum_hit_list)} hits ({spec.drums.pattern_family})")
+            click.echo(f"Drums: {len(drum_hit_list)} hits ({effective_drums.pattern_family})")
 
         # 5. Write MIDI
         midi_path = output_dir / "full.mid"

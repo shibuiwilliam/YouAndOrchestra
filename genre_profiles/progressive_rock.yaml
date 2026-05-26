@@ -74,3 +74,6 @@ bass_motion_style: syncopated
 typical_dynamics_range: [p, ff]
 target_spectral_centroid: 0.55
 tempo_range: [80, 160]
+
+default_drum_pattern: rock_driving
+requires_drums: true

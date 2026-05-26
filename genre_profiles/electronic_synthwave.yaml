@@ -65,3 +65,6 @@ bass_motion_style: arpeggiated
 typical_dynamics_range: [mp, f]
 target_spectral_centroid: 0.50
 tempo_range: [100, 130]
+
+default_drum_pattern: pop_dance
+requires_drums: true

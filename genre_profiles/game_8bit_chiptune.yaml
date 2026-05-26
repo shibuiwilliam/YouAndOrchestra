@@ -79,3 +79,6 @@ target_spectral_centroid: 0.85
 
 # Tempo — fast, matching high-energy gameplay (Kamp et al., 2016)
 tempo_range: [120, 200]
+
+default_drum_pattern: chiptune
+requires_drums: true
