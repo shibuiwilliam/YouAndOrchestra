@@ -68,3 +68,4 @@ tempo_range: [85, 100]
 
 default_drum_pattern: lofi_laidback
 requires_drums: true
+default_groove: lofi_hiphop

@@ -338,6 +338,36 @@ class Conductor:
                 for record in drum_prov.records:
                     combined_provenance.add(record)
 
+            # Auto-apply groove from genre profile
+            if genre_ctx.profile and genre_ctx.profile.default_groove:
+                from yao.generators.groove_applicator import apply_groove
+                from yao.ir.groove import load_groove
+
+                try:
+                    groove_profile = load_groove(genre_ctx.profile.default_groove)
+                    score, groove_prov = apply_groove(
+                        score,
+                        groove_profile,
+                        seed=current_spec.generation.seed or 42,
+                    )
+                    for record in groove_prov.records:
+                        combined_provenance.add(record)
+                    combined_provenance.record(
+                        layer="generator",
+                        operation="groove_auto_applied",
+                        parameters={
+                            "groove": genre_ctx.profile.default_groove,
+                            "genre": current_spec.genre,
+                        },
+                        source="Conductor.compose_from_spec",
+                        rationale=(
+                            f"Auto-applied groove '{genre_ctx.profile.default_groove}' "
+                            f"from genre '{current_spec.genre}' profile."
+                        ),
+                    )
+                except FileNotFoundError:
+                    pass  # Groove optional — skip if not found
+
             # Performance Expression (v3.0 Wave 3.1)
             from yao.generators.performance.pipeline import realize_performance
 

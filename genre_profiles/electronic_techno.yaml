@@ -64,3 +64,4 @@ tempo_range: [128, 140]
 
 default_drum_pattern: techno_minimal
 requires_drums: true
+default_groove: edm_4onfloor

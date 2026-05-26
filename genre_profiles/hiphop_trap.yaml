@@ -67,3 +67,4 @@ tempo_range: [130, 170]
 
 default_drum_pattern: trap_half_time
 requires_drums: true
+default_groove: trap_double_time

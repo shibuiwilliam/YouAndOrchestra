@@ -76,3 +76,4 @@ tempo_range: [160, 280]
 
 default_drum_pattern: jazz_swing_ride
 requires_drums: true
+default_groove: jazz_swing

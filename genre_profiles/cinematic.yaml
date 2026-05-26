@@ -86,3 +86,4 @@ target_spectral_centroid: 0.45
 
 # Tempo — varies widely; moderate for emotional, fast for action
 tempo_range: [60, 160]
+default_groove: cinematic_legato

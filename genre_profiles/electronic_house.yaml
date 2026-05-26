@@ -67,3 +67,4 @@ tempo_range: [120, 130]
 
 default_drum_pattern: four_on_the_floor
 requires_drums: true
+default_groove: edm_4onfloor

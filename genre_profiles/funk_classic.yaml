@@ -71,3 +71,4 @@ tempo_range: [95, 115]
 
 default_drum_pattern: funk_16th
 requires_drums: true
+default_groove: funk_16th

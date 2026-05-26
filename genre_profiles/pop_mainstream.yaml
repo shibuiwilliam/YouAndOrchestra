@@ -69,3 +69,4 @@ tempo_range: [100, 130]
 
 default_drum_pattern: pop_8beat
 requires_drums: true
+default_groove: pop_straight

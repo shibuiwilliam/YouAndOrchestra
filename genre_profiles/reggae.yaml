@@ -71,3 +71,4 @@ tempo_range: [70, 90]
 
 default_drum_pattern: reggae_one_drop
 requires_drums: true
+default_groove: reggae_one_drop

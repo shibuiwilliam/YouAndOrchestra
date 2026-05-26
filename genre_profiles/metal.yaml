@@ -69,3 +69,4 @@ tempo_range: [120, 200]
 
 default_drum_pattern: metal_double_kick
 requires_drums: true
+default_groove: rock_backbeat

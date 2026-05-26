@@ -74,3 +74,4 @@ tempo_range: [120, 145]
 
 default_drum_pattern: bossa_nova
 requires_drums: true
+default_groove: bossa_nova

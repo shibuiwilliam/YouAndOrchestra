@@ -105,6 +105,9 @@ class GenreProfile:
     default_drum_pattern: str | None = None
     requires_drums: bool = False
 
+    # Groove default — auto-applied as post-processing when no groove override
+    default_groove: str | None = None
+
     @classmethod
     def from_yaml(cls, data: dict[str, Any]) -> GenreProfile:
         """Construct a GenreProfile from a parsed YAML dict.
@@ -177,6 +180,7 @@ class GenreProfile:
             tempo_range=tempo_tuple,
             default_drum_pattern=data.get("default_drum_pattern"),
             requires_drums=bool(data.get("requires_drums", False)),
+            default_groove=data.get("default_groove"),
         )
 
 

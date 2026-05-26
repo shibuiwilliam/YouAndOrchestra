@@ -93,3 +93,4 @@ tempo_range: [50, 80]
 
 default_drum_pattern: ballad_brushed
 requires_drums: true
+default_groove: jazz_swing

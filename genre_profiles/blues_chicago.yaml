@@ -69,3 +69,4 @@ tempo_range: [80, 130]
 
 default_drum_pattern: blues_shuffle
 requires_drums: true
+default_groove: shuffle_blues

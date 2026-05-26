@@ -69,3 +69,4 @@ tempo_range: [110, 140]
 
 default_drum_pattern: rock_backbeat
 requires_drums: true
+default_groove: rock_backbeat

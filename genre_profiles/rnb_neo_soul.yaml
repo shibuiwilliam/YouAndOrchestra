@@ -71,3 +71,4 @@ tempo_range: [70, 100]
 
 default_drum_pattern: rnb_modern
 requires_drums: true
+default_groove: lofi_hiphop

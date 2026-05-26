@@ -85,3 +85,4 @@ target_spectral_centroid: 0.20
 
 # Tempo — very slow or beatless; when metered, extremely slow
 tempo_range: [40, 80]
+default_groove: ambient_fluid

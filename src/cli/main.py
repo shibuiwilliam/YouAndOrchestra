@@ -240,7 +240,33 @@ def compose(
                 provenance.add(record)
             click.echo(f"Drums: {len(drum_hit_list)} hits ({effective_drums.pattern_family})")
 
-        # 5. Write MIDI
+        # 5a. Auto-apply groove from genre profile
+        if genre_ctx.profile and genre_ctx.profile.default_groove:
+            from yao.generators.groove_applicator import apply_groove
+            from yao.ir.groove import load_groove
+
+            try:
+                groove_profile = load_groove(genre_ctx.profile.default_groove)
+                score, groove_prov = apply_groove(score, groove_profile, seed=spec.generation.seed or 42)
+                for record in groove_prov.records:
+                    provenance.add(record)
+                provenance.record(
+                    layer="generator",
+                    operation="groove_auto_applied",
+                    parameters={
+                        "groove": genre_ctx.profile.default_groove,
+                        "genre": spec.genre,
+                    },
+                    source="cli.compose",
+                    rationale=(
+                        f"Auto-applied groove '{genre_ctx.profile.default_groove}' from genre '{spec.genre}' profile."
+                    ),
+                )
+                click.echo(f"Groove: {genre_ctx.profile.default_groove}")
+            except FileNotFoundError:
+                pass  # No groove file — skip silently (groove is optional)
+
+        # 5b. Write MIDI
         midi_path = output_dir / "full.mid"
         write_midi(score, midi_path, drum_hits=drum_hit_list)
         click.echo(f"MIDI written: {midi_path}")
