@@ -178,8 +178,9 @@ class RuleBasedNoteRealizerV2(NoteRealizerBase):
         sections: list[Section] = []
         beats_per_bar = self._beats_per_bar(ctx.time_signature)
 
+        carry_pitch = 60  # Carries across sections for melodic continuity
         for section_plan in plan.form.sections:
-            section_notes = self._realize_section(
+            section_notes, carry_pitch = self._realize_section(
                 section_plan=section_plan,
                 plan=plan,
                 key_root=key_root,
@@ -188,6 +189,7 @@ class RuleBasedNoteRealizerV2(NoteRealizerBase):
                 melody_instrument=melody_instrument,
                 rng=rng,
                 provenance=provenance,
+                carry_pitch=carry_pitch,
             )
             sections.append(
                 Section(
@@ -216,8 +218,14 @@ class RuleBasedNoteRealizerV2(NoteRealizerBase):
         melody_instrument: str,
         rng: random.Random,
         provenance: ProvenanceLog,
-    ) -> list[Note]:
-        """Realize a single section into notes."""
+        carry_pitch: int = 60,
+    ) -> tuple[list[Note], int]:
+        """Realize a single section into notes.
+
+        Returns:
+            Tuple of (notes, last_pitch) where last_pitch is carried to the
+            next section for melodic continuity.
+        """
         notes: list[Note] = []
         section_start_beat = section_plan.start_bar * beats_per_bar
         section_end_beat = section_plan.end_bar() * beats_per_bar
@@ -258,7 +266,7 @@ class RuleBasedNoteRealizerV2(NoteRealizerBase):
         # Fill remaining beats with chord-based melody
         beat = section_start_beat
         note_duration = 1.0 / max(notes_per_beat, 0.5)
-        last_pitch = 60  # Middle C default
+        last_pitch = carry_pitch
 
         while beat < section_end_beat:
             # Skip beats occupied by motifs
@@ -312,7 +320,7 @@ class RuleBasedNoteRealizerV2(NoteRealizerBase):
             last_pitch = pitch
             beat += note_duration
 
-        return notes
+        return notes, last_pitch
 
     def _realize_motif_placement(
         self,

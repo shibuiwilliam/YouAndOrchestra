@@ -134,8 +134,9 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         beats_per_bar = self._beats_per_bar(ctx.time_signature)
 
         sections: list[Section] = []
+        carry_pitch = 60  # Carries across sections for continuity
         for section_plan in plan.form.sections:
-            section_notes = self._realize_section(
+            section_notes, carry_pitch = self._realize_section(
                 section_plan=section_plan,
                 plan=plan,
                 key_root=key_root,
@@ -146,6 +147,7 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 temperature=temperature,
                 provenance=provenance,
                 genre_profile=genre_profile,
+                carry_pitch=carry_pitch,
             )
             sections.append(
                 Section(
@@ -176,8 +178,14 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         temperature: float,
         provenance: ProvenanceLog,
         genre_profile: GenreProfile | None = None,
-    ) -> list[Note]:
-        """Realize a section with stochastic variation."""
+        carry_pitch: int = 60,
+    ) -> tuple[list[Note], int]:
+        """Realize a section with stochastic variation and motif-driven fill.
+
+        Returns:
+            Tuple of (notes, last_pitch) where last_pitch is carried to the
+            next section for melodic continuity.
+        """
         notes: list[Note] = []
         section_start_beat = section_plan.start_bar * beats_per_bar
         section_end_beat = section_plan.end_bar() * beats_per_bar
@@ -194,6 +202,12 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
 
         base_velocity = _tension_to_velocity(section_plan.target_tension)
         notes_per_beat = _density_to_notes_per_beat(section_plan.target_density)
+
+        # Extract motif interval shape for fill continuation
+        motif_intervals: list[int] = []
+        if plan.motif and plan.motif.seeds:
+            primary_seed = plan.motif.seeds[0]
+            motif_intervals = list(primary_seed.interval_shape)
 
         # Motif placements first
         motif_beats: set[float] = set()
@@ -213,10 +227,11 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 motif_beats.add(n.start_beat)
             notes.extend(motif_notes)
 
-        # Fill with stochastic melody
+        # Fill with motif-shape-aware melody (not random walk)
         beat = section_start_beat
-        last_pitch = 60
+        last_pitch = carry_pitch
         base_duration = 1.0 / max(notes_per_beat, 0.5)
+        fill_step_index = 0  # Cycles through motif intervals for fill
 
         while beat < section_end_beat:
             if any(abs(beat - mb) < 0.25 for mb in motif_beats):
@@ -241,16 +256,19 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                     direction = _contour_direction(phrase.contour, position)
                     break
 
-            # Stochastic pitch choice
-            pitch = self._choose_pitch_stochastic(
-                chord_pitches,
-                last_pitch,
-                direction,
-                rng,
-                temperature,
-                key_root,
-                scale_type,
+            # Motif-driven pitch choice: use motif intervals to bias fill
+            pitch = self._choose_pitch_motif_aware(
+                chord_pitches=chord_pitches,
+                last_pitch=last_pitch,
+                direction=direction,
+                rng=rng,
+                temperature=temperature,
+                key_root=key_root,
+                scale_type=scale_type,
+                motif_intervals=motif_intervals,
+                fill_step_index=fill_step_index,
             )
+            fill_step_index += 1
 
             # Stochastic velocity
             vel_base = int(base_velocity * (0.7 + 0.3 * current_chord.tension_level))
@@ -283,7 +301,7 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
             last_pitch = pitch
             beat += duration
 
-        return notes
+        return notes, last_pitch
 
     def _realize_motif(
         self,
@@ -351,7 +369,7 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
 
         return notes
 
-    def _choose_pitch_stochastic(
+    def _choose_pitch_motif_aware(
         self,
         chord_pitches: list[int],
         last_pitch: int,
@@ -360,14 +378,23 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         temperature: float,
         key_root: str,
         scale_type: str,
+        motif_intervals: list[int],
+        fill_step_index: int,
     ) -> int:
-        """Choose a pitch with temperature-controlled randomness."""
+        """Choose a pitch biased by motif interval shape for thematic continuity.
+
+        When motif intervals are available, the fill preferentially follows the
+        motif's interval contour (cycling through it with variations controlled
+        by temperature). This keeps the fill thematically related rather than
+        producing a random walk. Falls back to chord-tone-biased selection when
+        no motif is available.
+        """
         from yao.constants.music import SCALE_INTERVALS
 
         if not chord_pitches:
             return last_pitch
 
-        # Build candidate set: chord tones + scale passing tones based on temperature
+        # Build candidate set: chord tones + scale passing tones
         candidates: list[int] = []
         for p in chord_pitches:
             for octave_shift in (-12, 0, 12):
@@ -375,7 +402,6 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 if 48 <= c <= 84:
                     candidates.append(c)
 
-        # Add passing tones (non-chord scale degrees) based on temperature
         if temperature > 0.2 and scale_type in SCALE_INTERVALS:
             from yao.ir.notation import note_name_to_midi
 
@@ -390,7 +416,18 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         if not candidates:
             candidates = chord_pitches
 
-        # Score and select
+        # Compute motif-suggested target pitch
+        motif_target: int | None = None
+        if motif_intervals:
+            idx = fill_step_index % len(motif_intervals)
+            suggested_interval = motif_intervals[idx]
+            # Add temperature-scaled variation to the interval
+            if temperature > 0.1 and rng.random() < temperature * 0.4:
+                suggested_interval += rng.choice([-1, 0, 1])
+            motif_target = last_pitch + suggested_interval
+
+        # Score candidates
+        chord_pcs = {p % 12 for p in chord_pitches}
         scored: list[tuple[float, int]] = []
         for c in candidates:
             interval = abs(c - last_pitch)
@@ -400,10 +437,13 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 dir_score = 2.0
             elif direction == 0:
                 dir_score = 1.0
-            # Chord tone bonus
-            chord_bonus = 2.0 if c % 12 in [p % 12 for p in chord_pitches] else 0.0
-            total = step_score + dir_score + chord_bonus
-            # Temperature adds noise to scores
+            chord_bonus = 2.0 if c % 12 in chord_pcs else 0.0
+            # Motif proximity bonus: reward candidates near motif target
+            motif_bonus = 0.0
+            if motif_target is not None:
+                dist = abs(c - motif_target)
+                motif_bonus = max(0.0, 4.0 - dist)  # Strong bonus for exact match
+            total = step_score + dir_score + chord_bonus + motif_bonus
             total += rng.gauss(0, temperature * 3)
             scored.append((total, c))
 
