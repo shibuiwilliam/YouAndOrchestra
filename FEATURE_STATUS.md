@@ -1,6 +1,6 @@
 # YaO Feature Status
 
-> Last verified: 2026-05-05 by full codebase audit (208 source files, 213 test files, 2285 test functions)
+> Last verified: 2026-05-26 by codebase audit (306 source files, 227+ test files, 3720+ test functions)
 > This file is the **single source of truth** for what YaO can do.
 > README.md, CLAUDE.md, and PROJECT.md link here instead of restating capabilities.
 
@@ -41,7 +41,9 @@
 | rule_based generator | ✅ | tests/unit/test_generator.py (9 tests) | Deterministic; trajectory: tension → velocity only |
 | stochastic generator | ✅ | tests/unit/test_stochastic.py (28 tests) | seed / temperature / contour; trajectory: tension → pitch+leaps, density → rhythm, register_height → octave |
 | Generator registry | ✅ | tests/unit/test_generator.py | @register_generator decorator |
-| drum_patterner | ✅ | tests/unit/generators/test_drum_patterner.py (10 tests) | 15 genre patterns in drum_patterns/ (8 base + 5 non-4/4 + chiptune + game_drive); swing, ghost notes, trajectory density |
+| drum_patterner | ✅ | tests/unit/generators/test_drum_patterner.py (10 tests), tests/integration/test_compose_with_drums.py (6 tests) | 36 genre patterns in drum_patterns/; **auto-attaches drums from genre profile** when spec.drums unset (22 beat genres); swing, ghost notes, trajectory density |
+| genre_adapter | ✅ | tests/scenarios/test_genre_deep_consumption.py (3 tests) | Translates GenreProfile → generation biases (contour, leap, blue note, syncopation, rhythm); injected into stochastic generator |
+| genre_resolver | ✅ | tests/scenarios/test_default_behavior_guarantees.py (7 tests) | Resolves genre at pipeline top; provides drums, tempo, instruments, biases; auto-injects theme recall (A→A′ form) |
 | counter_melody | ✅ | tests/unit/generators/test_counter_melody.py (8 tests) | Species counterpoint; contrary motion preferred; density_factor control |
 | markov generator | ✅ | tests/unit/test_markov.py (24 tests) | n-gram bigram transitions on scale degrees; diatonic + pentatonic models; temperature scaling; trajectory coupling (tension/density/register_height); lazy-loaded YAML models |
 | twelve_tone generator | ✅ | tests/unit/generators/test_twelve_tone.py (10 tests) | 12-tone serial: P/I/R/RI row transformations; auto-generated or specified row; per-section transform cycling |
@@ -63,7 +65,7 @@
 | Form Planner | ✅ | tests/unit/generators/plan/test_form_planner.py (6 tests) | Song form selection from 20 forms; section planning with bar lengths |
 | Harmony Planner | ✅ | tests/unit/generators/plan/test_harmony_planner.py (10 tests) | Chord progression generation; genre-aware chord palette; tension arc integration |
 | Motivic Planner | ✅ | tests/unit/generators/plan/test_motivic_planner.py (9 tests) | Motif extraction and placement; MotifPlan with ≥3 placements per motif |
-| Note Realizers (v2) | ✅ | tests/unit/generators/note/ (36 tests) | Rule-based v2 (11 tests), Stochastic v2 (8 tests), original realizers preserved |
+| Note Realizers (v2) | ✅ | tests/unit/generators/note/ (36 tests), tests/integration/test_section_continuity.py (2 tests) | Rule-based v2 (11 tests), Stochastic v2 (8 tests); **section pitch continuity** (carry_pitch); **motif-driven fill** (interval shape bias) |
 
 ## IR (Intermediate Representation)
 
@@ -117,6 +119,7 @@
 |---|---|---|---|
 | Melody-Harmony Alignment (§12.9) | ✅ | tests/unit/verify/test_melody_harmony_alignment.py (5 tests) | AlignmentReport (overall + downbeat); target >= 0.7 overall, >= 0.85 downbeat |
 | Voice-Leading Smoothness (§12.10) | ✅ | tests/unit/verify/test_voice_leading_smoothness.py (7 tests) | VoiceLeadingReport (total motion, avg, max leap); target <= 1.5x minimum |
+| Thematic Coherence | ✅ | tests/unit/verify/test_thematic_coherence.py (5 tests) | ThematicCoherenceReport: section correlation, first/last similarity (A→A′), contour preservation; overall score [0,1] |
 
 ## Rendering
 
@@ -170,7 +173,7 @@
 | Generate-evaluate-adapt loop | ✅ | tests/unit/test_conductor.py (16 tests) | compose_from_description, compose_from_spec |
 | Section-level regeneration | ✅ | tests/unit/test_conductor.py | regenerate_section via v2 pipeline |
 | Critic integration in loop | ✅ | tests/unit/test_conductor.py | CRITIQUE_RULES.run_all() called; findings → adaptations |
-| Feedback adaptations (evaluator) | ✅ | tests/unit/test_feedback.py (13 tests) | Temperature, strategy, dynamics adaptations |
+| Feedback adaptations (evaluator) | ✅ | tests/unit/test_feedback.py (13 tests) | Temperature, strategy, dynamics, **theme recall injection**, genre instrument/tempo adaptations |
 | Feedback adaptations (critic findings) | ✅ | tests/unit/test_feedback.py | section_monotony, climax_absence, harmonic_monotony, cliche_progression, intent_divergence |
 | SpecCompiler (NL → spec) | 🟢 | tests/unit/sketch/ (74 tests), tests/integration/test_spec_compiler_ja.py (3 tests) | Three-stage fallback (LLM → Keyword → Default); Japanese emotion vocabulary (50+ words, valence×arousal); English 23 keywords preserved; auto language detection; LLM stage ready but requires AnthropicAPIBackend (Wave 1.2); Provenance recorded |
 | Multi-candidate Orchestrator | ✅ | tests/unit/conductor/test_multi_candidate.py (11 tests) | N candidates parallel via ThreadPool; critic severity ranking (critical=10,major=3,minor=1); producer top-1 select; opt-in via n_candidates param |
