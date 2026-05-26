@@ -432,4 +432,43 @@ def _adaptation_for_finding(
             reason=f"Critic: {finding.issue}. Trying new seed for better intent alignment.",
         )
 
+    if rule_id in ("melody.motif_recurrence", "motif_absence", "memorability.low_hook"):
+        # Theme/memorability issue: inject theme recall on the last section
+        sections = list(spec.sections)
+        if len(sections) >= 3 and sections[-1].recall_melody_from is None:
+            return SpecAdaptation(
+                field="sections.recall_melody_from.last",
+                old_value="None",
+                new_value=sections[0].name,
+                reason=(
+                    f"Critic: {finding.issue}. Injecting theme recall on "
+                    f"last section ('{sections[-1].name}') to recall "
+                    f"'{sections[0].name}' melody."
+                ),
+            )
+        # Fallback: lower temperature to strengthen motif adherence
+        new_temp = max(current_temp - 0.1, 0.1)
+        return SpecAdaptation(
+            field="generation.temperature",
+            old_value=str(current_temp),
+            new_value=str(new_temp),
+            reason=f"Critic: {finding.issue}. Lowering temperature for stronger motif adherence.",
+        )
+
+    if rule_id == "genre.instrumentation_mismatch":
+        return SpecAdaptation(
+            field="instruments",
+            old_value="current",
+            new_value="add_core_instruments",
+            reason=f"Critic: {finding.issue}. Adding genre-typical instruments.",
+        )
+
+    if rule_id == "genre.tempo_mismatch":
+        return SpecAdaptation(
+            field="tempo_bpm",
+            old_value=str(spec.tempo_bpm),
+            new_value="genre_default",
+            reason=f"Critic: {finding.issue}. Adjusting tempo toward genre range.",
+        )
+
     return None
