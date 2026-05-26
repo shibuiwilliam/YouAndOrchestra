@@ -190,13 +190,20 @@ def compose(
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # 3. Resolve genre context (must run before generation)
-        from yao.generators.genre_resolver import inject_theme_recall, resolve_genre
+        from yao.generators.genre_resolver import (
+            enrich_instruments_from_genre,
+            inject_theme_recall,
+            resolve_genre,
+        )
         from yao.reflect.provenance import ProvenanceLog
 
         pre_prov = ProvenanceLog()
         genre_ctx = resolve_genre(spec.genre, pre_prov)
 
-        # 3b. Auto-inject theme recall for thematic coherence
+        # 3b. Auto-enrich instruments from genre profile
+        spec = enrich_instruments_from_genre(spec, genre_ctx, pre_prov)
+
+        # 3c. Auto-inject theme recall for thematic coherence
         spec = inject_theme_recall(spec, pre_prov)
 
         # 4. Generate (use registry to select generator by spec config)

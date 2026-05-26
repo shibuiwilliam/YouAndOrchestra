@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from yao.constants.genre_profile import GenreProfile, get_genre_profile
 from yao.generators.genre_adapter import GenreBias, resolve_genre_bias
 from yao.reflect.provenance import ProvenanceLog
-from yao.schema.composition import CompositionSpec, DrumsSpec
+from yao.schema.composition import CompositionSpec, DrumsSpec, InstrumentSpec
 
 
 @dataclass(frozen=True)
@@ -179,3 +179,71 @@ def inject_theme_recall(
     )
 
     return spec.model_copy(update={"sections": updated_sections})
+
+
+# Default instrument set — when spec only has these, it's considered generic
+_DEFAULT_INSTRUMENTS = frozenset({"piano"})
+
+# Role assignment rules for genre instruments
+_BASS_KEYWORDS = frozenset({"bass", "bass_guitar", "upright_bass", "synth_bass", "electric_bass"})
+
+
+def enrich_instruments_from_genre(
+    spec: CompositionSpec,
+    genre_ctx: ResolvedGenreContext,
+    provenance: ProvenanceLog,
+) -> CompositionSpec:
+    """Auto-populate instruments from genre profile when spec has only defaults.
+
+    Only activates when the spec's instrument set is a single generic
+    instrument (e.g., just "piano") and the genre profile provides
+    preferred_instruments. Preserves existing instruments if they appear
+    intentional (multiple instruments or non-default names).
+
+    Args:
+        spec: The composition spec.
+        genre_ctx: Resolved genre context.
+        provenance: Provenance log.
+
+    Returns:
+        Updated spec with genre-appropriate instruments, or unchanged.
+    """
+    if genre_ctx.is_default or not genre_ctx.preferred_instruments:
+        return spec
+
+    # Only replace if the user specified a single default instrument
+    current_names = {i.name for i in spec.instruments}
+    if len(spec.instruments) > 1 or not current_names.issubset(_DEFAULT_INSTRUMENTS):
+        return spec
+
+    from typing import Literal
+
+    instruments: list[InstrumentSpec] = []
+    for i, name in enumerate(genre_ctx.preferred_instruments[:5]):
+        role: Literal["melody", "harmony", "bass", "rhythm", "pad", "counter_melody", "vocal_lead"]
+        if i == 0:
+            role = "melody"
+        elif name.lower() in _BASS_KEYWORDS:
+            role = "bass"
+        elif i == len(genre_ctx.preferred_instruments[:5]) - 1:
+            role = "pad"
+        else:
+            role = "harmony"
+        instruments.append(InstrumentSpec(name=name, role=role))
+
+    provenance.record(
+        layer="generator",
+        operation="instruments_auto_populated",
+        parameters={
+            "genre": genre_ctx.genre_name,
+            "original": [i.name for i in spec.instruments],
+            "enriched": [i.name for i in instruments],
+        },
+        source="genre_resolver.enrich_instruments_from_genre",
+        rationale=(
+            f"Spec had only default instruments ({current_names}); "
+            f"replaced with {len(instruments)} genre-typical instruments."
+        ),
+    )
+
+    return spec.model_copy(update={"instruments": instruments})
