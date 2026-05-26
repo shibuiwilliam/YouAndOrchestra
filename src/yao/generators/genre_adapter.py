@@ -14,6 +14,10 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import yaml
 
 from yao.constants.genre_profile import ContourType, GenreProfile
 
@@ -228,3 +232,97 @@ def clamp_tempo_to_genre(
     """
     low, high = bias.tempo_range
     return requested_bpm, not (low <= requested_bpm <= high)
+
+
+# ── Genre bigram loader ──────────────────────────────────────────────
+
+_BIGRAM_DIR = Path(__file__).resolve().parent / "markov_models" / "pitch"
+
+# Mapping from genre profile name to bigram model file stem
+_GENRE_TO_BIGRAM: dict[str, str] = {
+    "rock_classic": "pentatonic_bigram",
+    "progressive_rock": "classical_bigram",
+    "metal": "pentatonic_bigram",
+    "pop_mainstream": "diatonic_bigram",
+    "j_pop": "jpop_bigram",
+    "funk_classic": "pentatonic_bigram",
+    "hiphop_boom_bap": "pentatonic_bigram",
+    "hiphop_trap": "pentatonic_bigram",
+    "lofi_hiphop": "pentatonic_bigram",
+    "electronic_house": "diatonic_bigram",
+    "electronic_techno": "diatonic_bigram",
+    "electronic_trance": "diatonic_bigram",
+    "electronic_synthwave": "diatonic_bigram",
+    "reggae": "pentatonic_bigram",
+    "latin_bossa_nova": "latin_bossa_bigram",
+    "rnb_neo_soul": "pentatonic_bigram",
+    "blues_chicago": "blues_bigram",
+    "country_traditional": "pentatonic_bigram",
+    "jazz_bebop": "bebop_jazz_bigram",
+    "jazz_modal": "modal_dorian_bigram",
+    "jazz_ballad": "bebop_jazz_bigram",
+    "ambient": "ambient_bigram",
+    "cinematic": "classical_bigram",
+    "classical_baroque": "classical_bigram",
+    "classical_romantic": "classical_bigram",
+    "neoclassical": "classical_bigram",
+    "world_celtic": "celtic_modal_bigram",
+}
+
+_bigram_cache: dict[str, dict[int, dict[int, float]]] = {}
+
+
+def load_bigram(genre_name: str) -> dict[int, dict[int, float]] | None:
+    """Load a pitch bigram transition table for a genre.
+
+    Args:
+        genre_name: Genre profile name (e.g., "jazz_bebop").
+
+    Returns:
+        Transition table: {current_degree: {next_degree: probability}},
+        or None if no bigram model exists for this genre.
+    """
+    bigram_id = _GENRE_TO_BIGRAM.get(genre_name)
+    if bigram_id is None:
+        return None
+
+    if bigram_id in _bigram_cache:
+        return _bigram_cache[bigram_id]
+
+    path = _BIGRAM_DIR / f"{bigram_id}.yaml"
+    if not path.exists():
+        return None
+
+    with open(path) as f:
+        data: Any = yaml.safe_load(f) or {}
+
+    raw_transitions = data.get("transitions", {})
+    transitions: dict[int, dict[int, float]] = {}
+    for from_deg, to_probs in raw_transitions.items():
+        transitions[int(from_deg)] = {int(k): float(v) for k, v in to_probs.items()}
+
+    _bigram_cache[bigram_id] = transitions
+    return transitions
+
+
+def bigram_next_degree(
+    transitions: dict[int, dict[int, float]],
+    current_degree: int,
+    rng: random.Random,
+) -> int:
+    """Sample the next scale degree from a bigram transition table.
+
+    Args:
+        transitions: Bigram transition table.
+        current_degree: Current scale degree (0-6).
+        rng: Random generator.
+
+    Returns:
+        Next scale degree (0-6).
+    """
+    row = transitions.get(current_degree % 7)
+    if not row:
+        return rng.randint(0, 6)
+    degrees = list(row.keys())
+    weights = [row[d] for d in degrees]
+    return rng.choices(degrees, weights=weights, k=1)[0]

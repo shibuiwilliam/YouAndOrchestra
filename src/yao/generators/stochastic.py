@@ -234,6 +234,12 @@ class StochasticGenerator(GeneratorBase):
     ) -> list[Section]:
         """Generate all sections with controlled randomness."""
         genre_bias = resolve_genre_bias(genre_profile) if genre_profile is not None else None
+
+        # Load genre-specific pitch bigram model if available
+        from yao.generators.genre_adapter import load_bigram
+
+        genre_bigram = load_bigram(spec.genre) if spec.genre else None
+
         sections: list[Section] = []
         current_bar = 0
         # Store primary melody per section for cross-section recall
@@ -368,6 +374,7 @@ class StochasticGenerator(GeneratorBase):
                         rng=instr_rng,
                         temperature=temperature,
                         genre_bias=genre_bias,
+                        genre_bigram=genre_bigram,
                     )
                     # Capture first melody instrument's output
                     if melody_index == 0:
@@ -480,6 +487,7 @@ class StochasticGenerator(GeneratorBase):
         rng: random.Random,
         temperature: float,
         genre_bias: GenreBias | None = None,
+        genre_bigram: dict[int, dict[int, float]] | None = None,
     ) -> list[Note]:
         """Generate notes for one instrument part."""
         if role == "melody":
@@ -496,6 +504,7 @@ class StochasticGenerator(GeneratorBase):
                 rng=rng,
                 temperature=temperature,
                 genre_bias=genre_bias,
+                genre_bigram=genre_bigram,
             )
         if role == "bass":
             return self._generate_bass(
@@ -569,6 +578,7 @@ class StochasticGenerator(GeneratorBase):
         rng: random.Random,
         temperature: float,
         genre_bias: GenreBias | None = None,
+        genre_bigram: dict[int, dict[int, float]] | None = None,
     ) -> list[Note]:
         """Generate melody with contour shaping and interval variety.
 
@@ -643,21 +653,35 @@ class StochasticGenerator(GeneratorBase):
                 if beat_offset + dur > beats_per_bar + 0.001:
                     break
 
-                # Movement: step, leap, or repeat (temperature + tension control)
-                movement = self._choose_movement(
-                    rng,
-                    temperature,
-                    bar,
-                    bars,
-                    contour,
-                    tension=bar_tension,
-                )
+                # Movement: bigram-driven or contour-based
+                if genre_bigram is not None and rng.random() < 0.6:
+                    # Bigram-driven: sample next scale degree from genre model
+                    from yao.generators.genre_adapter import bigram_next_degree
 
-                # Genre-biased leap/step adjustment
-                if genre_bias is not None:
-                    from yao.generators.genre_adapter import biased_movement_step
+                    current_degree = scale_idx % 7
+                    next_degree = bigram_next_degree(genre_bigram, current_degree, rng)
+                    # Map degree change to scale index movement
+                    movement = next_degree - current_degree
+                    # Wrap around for large jumps
+                    if movement > 4:
+                        movement -= 7
+                    elif movement < -4:
+                        movement += 7
+                else:
+                    movement = self._choose_movement(
+                        rng,
+                        temperature,
+                        bar,
+                        bars,
+                        contour,
+                        tension=bar_tension,
+                    )
 
-                    movement = biased_movement_step(bias, rng, movement, temperature)
+                    # Genre-biased leap/step adjustment
+                    if genre_bias is not None:
+                        from yao.generators.genre_adapter import biased_movement_step
+
+                        movement = biased_movement_step(bias, rng, movement, temperature)
 
                 scale_idx = max(0, min(len(all_scale) - 1, scale_idx + movement))
 
