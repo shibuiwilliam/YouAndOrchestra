@@ -1,6 +1,6 @@
 # YaO Feature Status
 
-> Last verified: 2026-05-26 by codebase audit (306 source files, 227+ test files, 3720+ test functions)
+> Last verified: 2026-05-26 by codebase audit (306 source files, 230+ test files, 3732+ test functions)
 > This file is the **single source of truth** for what YaO can do.
 > README.md, CLAUDE.md, and PROJECT.md link here instead of restating capabilities.
 
@@ -45,7 +45,7 @@
 | genre_adapter | ✅ | tests/scenarios/test_genre_deep_consumption.py (3 tests) | Translates GenreProfile → generation biases (contour, leap, blue note, syncopation, rhythm); injected into stochastic generator |
 | genre_resolver | ✅ | tests/scenarios/test_default_behavior_guarantees.py (7 tests) | Resolves genre at pipeline top; provides drums, tempo, instruments, biases; auto-injects theme recall (A→A′ form) |
 | counter_melody | ✅ | tests/unit/generators/test_counter_melody.py (8 tests) | Species counterpoint; contrary motion preferred; density_factor control |
-| markov generator | ✅ | tests/unit/test_markov.py (24 tests) | n-gram bigram transitions on scale degrees; diatonic + pentatonic models; temperature scaling; trajectory coupling (tension/density/register_height); lazy-loaded YAML models |
+| markov generator | ✅ | tests/unit/test_markov.py (24 tests) | n-gram bigram transitions on scale degrees; diatonic + pentatonic models; temperature scaling; trajectory coupling; **15 bigram models now wired into default stochastic generator** (60% probability per note) |
 | twelve_tone generator | ✅ | tests/unit/generators/test_twelve_tone.py (10 tests) | 12-tone serial: P/I/R/RI row transformations; auto-generated or specified row; per-section transform cycling |
 | process_music generator | ✅ | tests/unit/generators/test_process_music.py (9 tests) | Process music: phasing/additive/subtractive; cell auto-generation from key; temperature controls process type |
 | constraint solver generator | ✅ | tests/unit/generators/test_constraint_solver.py (6 tests) | Backtracking CSP; key+range+stepwise constraints; 5s timeout; GenerationTimeoutError |
@@ -56,7 +56,7 @@
 | Reactive Fills | ✅ | tests/unit/generators/test_reactive_fills.py (9 tests) | detect_fill_opportunities (gap ≥ 1.0 beat); generate_reactive_fills (2-4 note fills, ≤ 1 bar, within range); ≥60% fill rate; provenance |
 | Frequency Clearance | ✅ | tests/unit/generators/test_frequency_clearance.py (14 tests) | Symbolic collision detection (±3 semitones + time overlap); octave displacement; never silences; primary voice unchanged |
 | Conversation Director | ✅ | tests/unit/generators/test_conversation_director.py (6 tests) | generate_conversation_plan from spec or inferred from ArrangementPlan; does NOT modify notes; produces ConversationPlan only; provenance recorded |
-| GrooveApplicator | ✅ | tests/unit/generators/test_groove_applicator.py (12 tests), tests/scenarios/test_groove_changes_feel.py (4 tests) | apply_groove(score_ir, groove) → (ScoreIR, ProvenanceLog); per-note 16th subdivision → offset+velocity; drums-only mode; seeded jitter |
+| GrooveApplicator | ✅ | tests/unit/generators/test_groove_applicator.py (12 tests), tests/scenarios/test_groove_changes_feel.py (4 tests), test_groove_auto_apply.py (3 tests) | **Auto-applied from genre profile** in cli compose and conductor; 23 genres mapped to groove profiles; per-note 16th subdivision → offset+velocity |
 
 ## Planning
 
