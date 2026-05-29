@@ -87,7 +87,7 @@ def write_stems(
 
 
 # Keywords that indicate a drum/percussion instrument
-_DRUM_KEYWORDS = ("drum", "breakbeat", "percussion", "kit", "hi_hat", "snare", "kick")
+_DRUM_KEYWORDS = ("drum", "breakbeat", "percussion", "kit", "hi_hat", "snare", "kick", "castanet")
 
 # Fuzzy mapping for instrument names not in the GM table
 _INSTRUMENT_ALIASES: dict[str, str] = {

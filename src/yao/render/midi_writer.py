@@ -213,7 +213,7 @@ def write_midi(
 
 
 # Keywords that indicate a drum/percussion instrument
-_DRUM_KEYWORDS = ("drum", "breakbeat", "percussion", "kit", "hi_hat", "snare", "kick", "cymbal", "gong")
+_DRUM_KEYWORDS = ("drum", "breakbeat", "percussion", "kit", "hi_hat", "snare", "kick", "cymbal", "gong", "castanet")
 
 # Fuzzy mapping for instrument names not in the GM table
 _INSTRUMENT_ALIASES: dict[str, str] = {
@@ -276,6 +276,8 @@ _DRUM_INSTRUMENT_TO_GM_PITCH: dict[str, int] = {
     "rim": 37,
     "tambourine": 54,
     "shaker": 70,
+    "castanet": 85,
+    "castanets": 85,
 }
 
 
