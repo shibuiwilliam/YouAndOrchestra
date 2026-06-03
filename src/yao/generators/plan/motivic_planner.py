@@ -40,14 +40,59 @@ _RHYTHM_TEMPLATES: list[tuple[float, ...]] = [
     (1.0, 0.5, 0.5, 1.0, 1.0),  # 4 beats: varied
 ]
 
-# Section role → transformation strategy
+# Section role → transformation weights (expanded for v2.1)
+_ROLE_TRANSFORM_WEIGHTS: dict[str, dict[MotifTransform, float]] = {
+    "intro": {
+        MotifTransform.IDENTITY: 0.4,
+        MotifTransform.AUGMENTATION: 0.2,
+        MotifTransform.FRAGMENT: 0.2,
+        MotifTransform.ORNAMENT_REMOVE: 0.2,
+    },
+    "verse": {
+        MotifTransform.IDENTITY: 0.25,
+        MotifTransform.ORNAMENT_ADD: 0.20,
+        MotifTransform.RHYTHM_DISPLACE: 0.15,
+        MotifTransform.SEQUENCE_UP: 0.10,
+        MotifTransform.INTERVAL_FILL: 0.10,
+        MotifTransform.OCTAVE_DISPLACE: 0.10,
+        MotifTransform.EXPAND: 0.10,
+    },
+    "chorus": {
+        MotifTransform.IDENTITY: 0.30,
+        MotifTransform.EXPAND: 0.20,
+        MotifTransform.OCTAVE_DISPLACE: 0.15,
+        MotifTransform.ORNAMENT_ADD: 0.15,
+        MotifTransform.SEQUENCE_UP: 0.10,
+        MotifTransform.QUESTION_ANSWER: 0.10,
+    },
+    "bridge": {
+        MotifTransform.INVERSION: 0.20,
+        MotifTransform.FRAGMENT: 0.20,
+        MotifTransform.INTERVAL_LEAP: 0.15,
+        MotifTransform.RETROGRADE: 0.15,
+        MotifTransform.VARIED_INTERVALS: 0.15,
+        MotifTransform.OCTAVE_DISPLACE: 0.15,
+    },
+    "development": {
+        MotifTransform.FRAGMENT: 0.25,
+        MotifTransform.SEQUENCE_UP: 0.15,
+        MotifTransform.SEQUENCE_DOWN: 0.10,
+        MotifTransform.VARIED_INTERVALS: 0.15,
+        MotifTransform.EXPAND: 0.15,
+        MotifTransform.CONTRACT: 0.10,
+        MotifTransform.EXTEND: 0.10,
+    },
+    "outro": {
+        MotifTransform.IDENTITY: 0.4,
+        MotifTransform.AUGMENTATION: 0.2,
+        MotifTransform.FRAGMENT: 0.2,
+        MotifTransform.ORNAMENT_REMOVE: 0.2,
+    },
+}
+
+# Legacy compat: simple list for sections not in weights
 _ROLE_TRANSFORMS: dict[str, list[MotifTransform]] = {
-    "intro": [MotifTransform.IDENTITY, MotifTransform.AUGMENTATION],
-    "verse": [MotifTransform.IDENTITY, MotifTransform.SEQUENCE_UP],
-    "chorus": [MotifTransform.IDENTITY, MotifTransform.SEQUENCE_UP],
-    "bridge": [MotifTransform.INVERSION, MotifTransform.RETROGRADE, MotifTransform.VARIED_INTERVALS],
-    "development": [MotifTransform.INVERSION, MotifTransform.RETROGRADE, MotifTransform.DIMINUTION],
-    "outro": [MotifTransform.IDENTITY, MotifTransform.AUGMENTATION],
+    role: list(weights.keys()) for role, weights in _ROLE_TRANSFORM_WEIGHTS.items()
 }
 
 
@@ -104,7 +149,7 @@ class MotivicPlanner(PlanGeneratorBase):
             )
             seeds.append(secondary_seed)
 
-        # Place motifs across sections
+        # Place motifs across sections with motif schedule
         beats_per_bar = 4.0  # Default; ideally from spec
         current_beat = 0.0
 
@@ -112,56 +157,56 @@ class MotivicPlanner(PlanGeneratorBase):
             section_start_beat = current_beat
             section_beats = section.bars * beats_per_bar
             role = section.id.lower()
-
-            # Determine transformation for this section
-            available_transforms = _ROLE_TRANSFORMS.get(role, _ROLE_TRANSFORMS.get("verse", [MotifTransform.IDENTITY]))
-            transform = rng.choice(available_transforms)
-
-            # Final section: return to identity for closure
             is_final = i == len(form_sections) - 1
-            if is_final:
-                transform = MotifTransform.IDENTITY
 
-            # Primary motif placement
-            placements.append(
-                MotifPlacement(
-                    motif_id="M1",
-                    section_id=section.id,
-                    start_beat=section_start_beat,
-                    transform=transform,
-                    transposition=self._section_transposition(i, len(form_sections), rng),
-                    intensity=0.0 if transform == MotifTransform.IDENTITY else 0.3,
-                )
-            )
+            # Motif schedule: 2-8 placements per section based on length
+            n_presentations = max(2, min(8, section.bars // 2))
+            interval = section_beats / n_presentations
 
-            # Additional placement midway through longer sections
-            if section.bars >= 8:  # noqa: PLR2004
-                mid_beat = section_start_beat + section_beats / 2
-                second_transform = rng.choice(available_transforms)
+            role_weights = _ROLE_TRANSFORM_WEIGHTS.get(role, _ROLE_TRANSFORM_WEIGHTS.get("verse", {}))
+
+            for j in range(n_presentations):
+                # First presentation: IDENTITY (theme statement)
+                if j == 0:
+                    transform = MotifTransform.IDENTITY
+                # Last presentation: return to IDENTITY for closure
+                elif j == n_presentations - 1:
+                    transform = (
+                        MotifTransform.IDENTITY if (is_final or rng.random() < 0.5) else MotifTransform.ORNAMENT_REMOVE
+                    )
+                # Middle presentations: weighted random from role
+                else:
+                    transform = self._weighted_choice(role_weights, rng)
+
+                transposition = self._section_transposition(i, len(form_sections), rng)
+                if role == "bridge" and 0 < j < n_presentations - 1:
+                    transposition += rng.choice([0, 2, -2, 3, -3, 5])
+
                 placements.append(
                     MotifPlacement(
                         motif_id="M1",
                         section_id=section.id,
-                        start_beat=mid_beat,
-                        transform=second_transform,
-                        transposition=self._section_transposition(i, len(form_sections), rng) + rng.choice([0, 2, -2]),
-                        intensity=0.2,
+                        start_beat=section_start_beat + j * interval,
+                        transform=transform,
+                        transposition=transposition,
+                        intensity=0.0 if transform == MotifTransform.IDENTITY else 0.3,
                     )
                 )
 
             # Secondary motif in non-primary sections
             if len(seeds) > 1 and role in ("bridge", "verse", "development"):
-                secondary_beat = section_start_beat + section_beats * 0.25
-                placements.append(
-                    MotifPlacement(
-                        motif_id="M2",
-                        section_id=section.id,
-                        start_beat=secondary_beat,
-                        transform=MotifTransform.IDENTITY,
-                        transposition=0,
-                        intensity=0.0,
+                n_secondary = 2 if role in ("bridge", "development") else 1
+                for k in range(n_secondary):
+                    placements.append(
+                        MotifPlacement(
+                            motif_id="M2",
+                            section_id=section.id,
+                            start_beat=section_start_beat + section_beats * (0.3 + 0.35 * k),
+                            transform=MotifTransform.IDENTITY if k == 0 else self._weighted_choice(role_weights, rng),
+                            transposition=0,
+                            intensity=0.0,
+                        )
                     )
-                )
 
             current_beat += section_beats
 
@@ -225,6 +270,14 @@ class MotivicPlanner(PlanGeneratorBase):
             origin_section=origin_section,
             character=character,
         )
+
+    def _weighted_choice(self, weights: dict[MotifTransform, float], rng: random.Random) -> MotifTransform:
+        """Select a transform using weighted random choice."""
+        if not weights:
+            return MotifTransform.IDENTITY
+        keys = list(weights.keys())
+        vals = list(weights.values())
+        return rng.choices(keys, weights=vals, k=1)[0]
 
     def _section_transposition(self, section_idx: int, total_sections: int, rng: random.Random) -> int:
         """Determine transposition for a section's motif placement.
