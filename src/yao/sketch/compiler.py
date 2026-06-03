@@ -300,7 +300,11 @@ class SpecCompiler:
 
         desc_lower = description.lower()
         sections = self._build_sections(total_bars, desc_lower)
-        trajectory = self._build_trajectory(total_bars, desc_lower if lang == "en" else description)
+        trajectory = self._build_trajectory(
+            total_bars,
+            desc_lower if lang == "en" else description,
+            genre=genre,
+        )
 
         stage = "keyword_ja" if lang == "ja" else "keyword_en"
         self._provenance.record(
@@ -765,38 +769,95 @@ class SpecCompiler:
 
         return sections
 
-    def _build_trajectory(self, total_bars: int, description: str) -> TrajectorySpec:
-        """Build a trajectory from the description."""
+    # Genre-aware trajectory shapes: (relative_position [0..1], tension [0..1])
+    _GENRE_TRAJECTORY_SHAPES: dict[str, list[tuple[float, float]]] = {
+        # Ambient: flat
+        "ambient": [(0.0, 0.25), (0.5, 0.40), (1.0, 0.30)],
+        "ambient_dark": [(0.0, 0.30), (0.5, 0.45), (1.0, 0.35)],
+        # Cinematic: arch
+        "cinematic": [(0.0, 0.20), (0.66, 0.95), (1.0, 0.20)],
+        # Classical
+        "neoclassical": [(0.0, 0.30), (0.50, 0.70), (1.0, 0.35)],
+        "classical_baroque": [(0.0, 0.50), (0.50, 0.65), (1.0, 0.50)],
+        "classical_romantic": [(0.0, 0.25), (0.66, 0.85), (1.0, 0.30)],
+        # EDM: build-drop
+        "electronic_house": [
+            (0.0, 0.40),
+            (0.30, 0.60),
+            (0.45, 0.90),
+            (0.50, 0.30),
+            (0.75, 0.95),
+            (1.0, 0.55),
+        ],
+        "electronic_techno": [(0.0, 0.50), (0.50, 0.75), (1.0, 0.60)],
+        "electronic_trance": [(0.0, 0.30), (0.40, 0.60), (0.50, 0.85), (0.70, 0.95), (1.0, 0.50)],
+        "electronic_synthwave": [(0.0, 0.40), (0.50, 0.70), (1.0, 0.50)],
+        # Hip-hop: loop-flat
+        "hiphop_boom_bap": [(0.0, 0.50), (0.50, 0.55), (1.0, 0.50)],
+        "hiphop_trap": [(0.0, 0.50), (0.50, 0.65), (1.0, 0.55)],
+        "lofi_hiphop": [(0.0, 0.30), (0.50, 0.40), (1.0, 0.30)],
+        # Rock: gradual build
+        "rock_classic": [(0.0, 0.45), (0.40, 0.65), (0.70, 0.90), (1.0, 0.75)],
+        "metal": [(0.0, 0.55), (0.30, 0.75), (0.70, 0.95), (1.0, 0.80)],
+        "progressive_rock": [(0.0, 0.30), (0.40, 0.70), (0.70, 0.85), (1.0, 0.60)],
+        # Jazz: undulation
+        "jazz_ballad": [(0.0, 0.35), (0.40, 0.65), (0.70, 0.45), (1.0, 0.40)],
+        "jazz_bebop": [(0.0, 0.55), (0.50, 0.80), (1.0, 0.60)],
+        "jazz_modal": [(0.0, 0.40), (0.50, 0.60), (1.0, 0.40)],
+        # Pop
+        "pop_mainstream": [(0.0, 0.40), (0.50, 0.80), (0.80, 0.95), (1.0, 0.60)],
+        "j_pop": [(0.0, 0.35), (0.50, 0.80), (0.80, 0.90), (1.0, 0.55)],
+        # Other
+        "funk_classic": [(0.0, 0.55), (0.50, 0.75), (1.0, 0.65)],
+        "blues_chicago": [(0.0, 0.40), (0.50, 0.65), (1.0, 0.50)],
+        "country_traditional": [(0.0, 0.40), (0.50, 0.65), (1.0, 0.50)],
+        "acoustic_folk": [(0.0, 0.35), (0.50, 0.55), (1.0, 0.40)],
+        "world_celtic": [(0.0, 0.40), (0.50, 0.65), (1.0, 0.45)],
+        "latin_bossa_nova": [(0.0, 0.45), (0.50, 0.55), (1.0, 0.45)],
+        "reggae": [(0.0, 0.50), (0.50, 0.55), (1.0, 0.50)],
+        "rnb_neo_soul": [(0.0, 0.40), (0.50, 0.65), (1.0, 0.50)],
+        "game_8bit_chiptune": [(0.0, 0.50), (0.50, 0.75), (1.0, 0.55)],
+    }
+
+    def _build_trajectory(
+        self,
+        total_bars: int,
+        description: str,
+        genre: str = "",
+    ) -> TrajectorySpec:
+        """Build a trajectory from the description, with genre-aware defaults."""
         desc_lower = description.lower()
         peak_bar = total_bars * 2 // 3
 
+        # Explicit user intent overrides genre defaults
         if any(w in desc_lower for w in ("build", "crescendo", "rising")):
             waypoints = [
                 Waypoint(bar=0, value=0.2),
                 Waypoint(bar=total_bars, value=0.9),
             ]
-        elif any(
-            w in desc_lower for w in ("calm", "peaceful", "ambient", "gentle", "穏やか", "安らぎ", "静か", "癒し")
-        ):
+        elif any(w in desc_lower for w in ("calm", "peaceful", "gentle", "穏やか", "安らぎ", "静か", "癒し")):
             waypoints = [
                 Waypoint(bar=0, value=0.2),
                 Waypoint(bar=total_bars // 2, value=0.35),
                 Waypoint(bar=total_bars, value=0.2),
             ]
-        elif any(
-            w in desc_lower for w in ("dramatic", "epic", "intense", "climax", "壮大", "ドラマチック", "激しい", "壮厳")
-        ):
+        elif any(w in desc_lower for w in ("dramatic", "intense", "climax", "壮大", "ドラマチック", "激しい", "壮厳")):
             waypoints = [
                 Waypoint(bar=0, value=0.2),
                 Waypoint(bar=peak_bar, value=0.95),
                 Waypoint(bar=total_bars, value=0.15),
             ]
         else:
-            waypoints = [
-                Waypoint(bar=0, value=0.3),
-                Waypoint(bar=peak_bar, value=0.7),
-                Waypoint(bar=total_bars, value=0.25),
-            ]
+            # Genre-aware default
+            shape = self._GENRE_TRAJECTORY_SHAPES.get(genre)
+            if shape:
+                waypoints = [Waypoint(bar=int(rel * total_bars), value=val) for rel, val in shape]
+            else:
+                waypoints = [
+                    Waypoint(bar=0, value=0.3),
+                    Waypoint(bar=peak_bar, value=0.7),
+                    Waypoint(bar=total_bars, value=0.25),
+                ]
 
         return TrajectorySpec(
             tension=TrajectoryDimension(type="linear", waypoints=waypoints),
