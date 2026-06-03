@@ -1,74 +1,59 @@
-# Genre Profile: Classic Funk
-# References:
-#   - Funk rhythmic theory: "The One" and 16th-note grid (Stewart, 2000)
-#   - Syncopated bass paradigms in funk (Danielsen, 2006)
-#   - Dominant 7th/9th chord usage in funk harmony (Vincent, 1996)
-#   - Polyrhythmic layering and interlocking parts (Pressing, 2002)
-
 name: funk_classic
-
 chord_palette:
-  - I7
-  - I9
-  - IV7
-  - IV9
-  - V7
-  - ii7
-  - bVII7
-  - vi7
-
+- I7
+- I9
+- IV7
+- IV9
+- V7
+- ii7
+- bVII7
+- vi7
 progression_n_grams:
-  "I7,I7": 0.22
-  "I9,I9": 0.15
-  "I7,IV7": 0.14
-  "IV7,I7": 0.12
-  "I7,bVII7": 0.08
-  "bVII7,I7": 0.07
-  "I7,V7": 0.06
-  "IV9,I9": 0.06
-  "ii7,V7": 0.05
-  "I7,vi7": 0.05
-
+  I7,I7: 0.22
+  I9,I9: 0.15
+  I7,IV7: 0.14
+  IV7,I7: 0.12
+  I7,bVII7: 0.08
+  bVII7,I7: 0.07
+  I7,V7: 0.06
+  IV9,I9: 0.06
+  ii7,V7: 0.05
+  I7,vi7: 0.05
 seventh_chord_probability: 0.85
-secondary_dominant_probability: 0.10
+secondary_dominant_probability: 0.1
 modal_interchange_probability: 0.12
-
 melodic_contour_weights:
-  ascending: 0.20
-  descending: 0.20
-  arch: 0.20
+  ascending: 0.2
+  descending: 0.2
+  arch: 0.2
   valley: 0.15
   flat: 0.25
-
 leap_probability: 0.25
-blue_note_probability: 0.30
-
+blue_note_probability: 0.3
 swing_ratio: 0.52
 syncopation_density: 0.75
-
 rhythm_template_weights:
-  sixteenth_notes: 0.40
+  sixteenth_notes: 0.4
   eighth_notes: 0.25
   quarter_notes: 0.15
-  dotted_eighth: 0.10
+  dotted_eighth: 0.1
   dotted_quarter: 0.05
   half_notes: 0.05
-
 preferred_instruments:
-  - electric_guitar
-  - bass_guitar
-  - drum_kit
-  - organ
-  - trumpet
-  - trombone
-
+- electric_guitar_muted
+- slap_bass
+- organ
+- trumpet
+- trombone
 voicing_density_target: 4
 bass_motion_style: syncopated
-
-typical_dynamics_range: [mf, f]
-target_spectral_centroid: 0.50
-tempo_range: [95, 115]
-
+typical_dynamics_range:
+- mf
+- f
+target_spectral_centroid: 0.5
+tempo_range:
+- 95
+- 115
 default_drum_pattern: funk_16th
 requires_drums: true
 default_groove: funk_16th

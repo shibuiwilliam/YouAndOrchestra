@@ -1,7 +1,7 @@
 .PHONY: install install-all install-sdk setup-hooks test test-unit test-integration test-music test-golden test-subagent \
 test-acoustic test-genre-coverage test-coupling test-diversity test-melody test-genres \
 lint format arch-lint meter-lint matrix-check feature-status markov-validate device-validate \
-validate-spec new-project compose render setup-soundfonts setup-references all-checks \
+validate-spec new-project compose render setup-soundfonts setup-references all-checks validate-genre-instruments \
 honesty-check plan-consumption skill-grounding critic-coverage backend-honesty audit-monthly \
 profile-perf audit-genres calibrate-genres sdk-test sdk-examples-test
 
@@ -124,7 +124,10 @@ audit-monthly:
 	python tools/check_critic_coverage.py --json > docs/audit/latest-critic.json || true
 	@echo "Audit outputs saved to docs/audit/"
 
-all-checks: lint arch-lint matrix-check feature-status honesty-check plan-consumption skill-grounding critic-coverage backend-honesty sync-docs test test-golden test-coupling sdk-test
+validate-genre-instruments:
+	python tools/validate_genre_instruments.py
+
+all-checks: lint arch-lint matrix-check feature-status honesty-check plan-consumption skill-grounding critic-coverage backend-honesty sync-docs validate-genre-instruments test test-golden test-coupling sdk-test
 
 install-sdk:
 	pip install -e ".[dev,sdk]"

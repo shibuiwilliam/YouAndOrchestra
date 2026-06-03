@@ -1,71 +1,56 @@
-# Genre Profile: Synthwave / Retrowave
-# References:
-#   - 1980s synth-pop production revival aesthetics (Harper, 2017)
-#   - Analog synthesizer timbres and arpeggiated sequences (Collins, 2013)
-#   - Minor-key melancholy and neon noir aesthetics (Born & Haworth, 2018)
-#   - Gated reverb drums and sidechain bass pulsing (Snoman, 2014)
-
 name: electronic_synthwave
-
 chord_palette:
-  - i
-  - bVI
-  - bVII
-  - iv
-  - bIII
-  - V
-  - v
-  - II
-
+- i
+- bVI
+- bVII
+- iv
+- bIII
+- V
+- v
+- II
 progression_n_grams:
-  "i,bVI": 0.18
-  "bVI,bVII": 0.16
-  "bVII,i": 0.14
-  "i,bIII": 0.10
-  "bIII,bVI": 0.08
-  "i,iv": 0.10
-  "iv,bVI": 0.08
-  "i,V": 0.08
-  "V,i": 0.08
-
+  i,bVI: 0.18
+  bVI,bVII: 0.16
+  bVII,i: 0.14
+  i,bIII: 0.1
+  bIII,bVI: 0.08
+  i,iv: 0.1
+  iv,bVI: 0.08
+  i,V: 0.08
+  V,i: 0.08
 seventh_chord_probability: 0.15
 secondary_dominant_probability: 0.05
-modal_interchange_probability: 0.20
-
+modal_interchange_probability: 0.2
 melodic_contour_weights:
   ascending: 0.25
-  descending: 0.20
-  arch: 0.30
+  descending: 0.2
+  arch: 0.3
   valley: 0.15
-  flat: 0.10
-
+  flat: 0.1
 leap_probability: 0.25
 blue_note_probability: 0.0
-
 swing_ratio: 0.5
-syncopation_density: 0.20
-
+syncopation_density: 0.2
 rhythm_template_weights:
-  sixteenth_notes: 0.30
+  sixteenth_notes: 0.3
   eighth_notes: 0.35
   quarter_notes: 0.15
-  dotted_eighth: 0.10
-  half_notes: 0.10
-
+  dotted_eighth: 0.1
+  half_notes: 0.1
 preferred_instruments:
-  - synth_lead
-  - synth_pad
-  - synth_bass
-  - drum_kit
-  - electric_guitar
-
+- synth_lead_saw
+- synth_pad_warm
+- synth_bass
+- electric_guitar_clean
 voicing_density_target: 4
 bass_motion_style: arpeggiated
-
-typical_dynamics_range: [mp, f]
-target_spectral_centroid: 0.50
-tempo_range: [100, 130]
-
+typical_dynamics_range:
+- mp
+- f
+target_spectral_centroid: 0.5
+tempo_range:
+- 100
+- 130
 default_drum_pattern: pop_dance
 requires_drums: true
 default_groove: pop_straight

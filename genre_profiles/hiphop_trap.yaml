@@ -1,70 +1,55 @@
-# Genre Profile: Trap
-# References:
-#   - 808 bass and hi-hat roll patterns (Miller, 2016)
-#   - Half-time feel at double-time BPM (Adams, 2015)
-#   - Dark minor-key harmonic language in trap (Kajikawa, 2015)
-#   - Sparse melodic content and textural production (D'Errico, 2015)
-
 name: hiphop_trap
-
 chord_palette:
-  - i
-  - bVI
-  - bVII
-  - iv
-  - bIII
-  - v
-  - bII
-
+- i
+- bVI
+- bVII
+- iv
+- bIII
+- v
+- bII
 progression_n_grams:
-  "i,bVI": 0.20
-  "bVI,bVII": 0.15
-  "bVII,i": 0.15
-  "i,iv": 0.12
-  "iv,bVI": 0.10
-  "i,bIII": 0.08
-  "bIII,iv": 0.08
-  "i,bII": 0.06
-  "bII,i": 0.06
-
+  i,bVI: 0.2
+  bVI,bVII: 0.15
+  bVII,i: 0.15
+  i,iv: 0.12
+  iv,bVI: 0.1
+  i,bIII: 0.08
+  bIII,iv: 0.08
+  i,bII: 0.06
+  bII,i: 0.06
 seventh_chord_probability: 0.15
 secondary_dominant_probability: 0.02
-modal_interchange_probability: 0.10
-
+modal_interchange_probability: 0.1
 melodic_contour_weights:
   ascending: 0.15
   descending: 0.25
-  arch: 0.20
+  arch: 0.2
   valley: 0.15
   flat: 0.25
-
-leap_probability: 0.20
+leap_probability: 0.2
 blue_note_probability: 0.08
-
 swing_ratio: 0.5
 syncopation_density: 0.35
-
 rhythm_template_weights:
-  sixteenth_notes: 0.30
-  thirty_second_notes: 0.20
-  eighth_notes: 0.20
+  sixteenth_notes: 0.3
+  thirty_second_notes: 0.2
+  eighth_notes: 0.2
   quarter_notes: 0.15
-  triplet_sixteenth: 0.10
+  triplet_sixteenth: 0.1
   half_notes: 0.05
-
 preferred_instruments:
-  - synth_bass
-  - drum_kit
-  - synth_lead
-  - synth_pad
-
+- synth_bass
+- synth_lead_saw
+- synth_pad_warm
 voicing_density_target: 2
 bass_motion_style: pedal
-
-typical_dynamics_range: [mp, f]
-target_spectral_centroid: 0.40
-tempo_range: [130, 170]
-
+typical_dynamics_range:
+- mp
+- f
+target_spectral_centroid: 0.4
+tempo_range:
+- 130
+- 170
 default_drum_pattern: trap_half_time
 requires_drums: true
 default_groove: trap_double_time

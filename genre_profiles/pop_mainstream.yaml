@@ -1,72 +1,56 @@
-# Genre Profile: Mainstream Pop
-# References:
-#   - The four-chord paradigm: I-V-vi-IV (de Clercq & Temperley, 2011)
-#   - Millennial whoop and pentatonic hook design (Nobile, 2015)
-#   - Pop production: compressed dynamics, layered vocals (Serrà et al., 2012)
-#   - Verse-prechorus-chorus form as pop standard (Summach, 2012)
-
 name: pop_mainstream
-
 chord_palette:
-  - I
-  - IV
-  - V
-  - vi
-  - ii
-  - iii
-  - bVII
-
+- I
+- IV
+- V
+- vi
+- ii
+- iii
+- bVII
 progression_n_grams:
-  "I,V": 0.18
-  "V,vi": 0.16
-  "vi,IV": 0.18
-  "IV,I": 0.14
-  "I,IV": 0.10
-  "IV,V": 0.08
-  "ii,V": 0.06
-  "I,vi": 0.05
-  "vi,V": 0.05
-
-seventh_chord_probability: 0.10
+  I,V: 0.18
+  V,vi: 0.16
+  vi,IV: 0.18
+  IV,I: 0.14
+  I,IV: 0.1
+  IV,V: 0.08
+  ii,V: 0.06
+  I,vi: 0.05
+  vi,V: 0.05
+seventh_chord_probability: 0.1
 secondary_dominant_probability: 0.05
 modal_interchange_probability: 0.08
-
 melodic_contour_weights:
   ascending: 0.25
-  descending: 0.20
+  descending: 0.2
   arch: 0.35
-  valley: 0.10
-  flat: 0.10
-
+  valley: 0.1
+  flat: 0.1
 leap_probability: 0.25
 blue_note_probability: 0.05
-
 swing_ratio: 0.5
 syncopation_density: 0.25
-
 rhythm_template_weights:
   eighth_notes: 0.35
   quarter_notes: 0.25
   sixteenth_notes: 0.15
-  dotted_eighth: 0.10
-  half_notes: 0.10
+  dotted_eighth: 0.1
+  half_notes: 0.1
   dotted_quarter: 0.05
-
 preferred_instruments:
-  - vocal_synth
-  - electric_guitar
-  - bass
-  - drum_kit
-  - synth_pad
-  - piano
-
+- electric_guitar_clean
+- electric_bass_finger
+- synth_pad_warm
+- piano
 voicing_density_target: 4
 bass_motion_style: root_fifth
-
-typical_dynamics_range: [mp, f]
+typical_dynamics_range:
+- mp
+- f
 target_spectral_centroid: 0.55
-tempo_range: [100, 130]
-
+tempo_range:
+- 100
+- 130
 default_drum_pattern: pop_8beat
 requires_drums: true
 default_groove: pop_straight

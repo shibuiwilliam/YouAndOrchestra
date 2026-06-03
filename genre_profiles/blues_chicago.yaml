@@ -1,72 +1,56 @@
-# Genre Profile: Chicago Blues
-# References:
-#   - 12-bar blues form and dominant 7th harmony (Titon, 1994)
-#   - Blue notes: b3, b5, b7 over major tonality (Jaffe, 2011)
-#   - Chicago blues electric band instrumentation (Rowe, 1975)
-#   - Shuffle rhythm and triplet feel in blues (Evans, 1982)
-
 name: blues_chicago
-
 chord_palette:
-  - I7
-  - IV7
-  - V7
-  - bVII
-  - iv7
-  - bIII
-  - II7
-  - bVI
-
+- I7
+- IV7
+- V7
+- bVII
+- iv7
+- bIII
+- II7
+- bVI
 progression_n_grams:
-  "I7,I7": 0.18
-  "I7,IV7": 0.18
-  "IV7,I7": 0.15
-  "I7,V7": 0.12
-  "V7,IV7": 0.10
-  "IV7,IV7": 0.08
-  "V7,I7": 0.08
-  "II7,V7": 0.06
-  "I7,bVII": 0.05
-
-seventh_chord_probability: 0.80
+  I7,I7: 0.18
+  I7,IV7: 0.18
+  IV7,I7: 0.15
+  I7,V7: 0.12
+  V7,IV7: 0.1
+  IV7,IV7: 0.08
+  V7,I7: 0.08
+  II7,V7: 0.06
+  I7,bVII: 0.05
+seventh_chord_probability: 0.8
 secondary_dominant_probability: 0.15
-modal_interchange_probability: 0.20
-
+modal_interchange_probability: 0.2
 melodic_contour_weights:
   ascending: 0.15
-  descending: 0.30
+  descending: 0.3
   arch: 0.25
   valley: 0.15
   flat: 0.15
-
 leap_probability: 0.25
-blue_note_probability: 0.40
-
+blue_note_probability: 0.4
 swing_ratio: 0.62
-syncopation_density: 0.40
-
+syncopation_density: 0.4
 rhythm_template_weights:
-  triplet_eighth: 0.30
+  triplet_eighth: 0.3
   eighth_notes: 0.25
-  quarter_notes: 0.20
-  sixteenth_notes: 0.10
-  dotted_quarter: 0.10
+  quarter_notes: 0.2
+  sixteenth_notes: 0.1
+  dotted_quarter: 0.1
   half_notes: 0.05
-
 preferred_instruments:
-  - electric_guitar
-  - harmonica
-  - bass
-  - drum_kit
-  - piano
-
+- electric_guitar_clean
+- electric_bass_finger
+- piano
 voicing_density_target: 3
 bass_motion_style: walking
-
-typical_dynamics_range: [mp, f]
+typical_dynamics_range:
+- mp
+- f
 target_spectral_centroid: 0.42
-tempo_range: [80, 130]
-
+tempo_range:
+- 80
+- 130
 default_drum_pattern: blues_shuffle
 requires_drums: true
 default_groove: shuffle_blues

@@ -1,80 +1,65 @@
-# Genre Profile: Progressive Rock
-# References:
-#   - Asymmetric meters and formal complexity (Macan, 1997)
-#   - Fusion of classical and rock harmonic vocabularies (Holm-Hudson, 2002)
-#   - Extended instrumental sections and through-composed forms (Covach, 1997)
-#   - Keyboard-driven arrangement and symphonic textures (Stump, 1997)
-
 name: progressive_rock
-
 chord_palette:
-  - I
-  - IV
-  - V
-  - vi
-  - ii
-  - iii
-  - bVII
-  - bVI
-  - bIII
-  - Imaj7
-  - ii7
-  - Isus4
-
+- I
+- IV
+- V
+- vi
+- ii
+- iii
+- bVII
+- bVI
+- bIII
+- Imaj7
+- ii7
+- Isus4
 progression_n_grams:
-  "I,bVII": 0.12
-  "bVII,IV": 0.10
-  "IV,I": 0.10
-  "I,IV": 0.10
-  "V,vi": 0.08
-  "vi,IV": 0.08
-  "I,bVI": 0.07
-  "bVI,bVII": 0.07
-  "ii,V": 0.08
-  "V,I": 0.10
-  "bIII,bVII": 0.05
-  "I,iii": 0.05
-
-seventh_chord_probability: 0.40
+  I,bVII: 0.12
+  bVII,IV: 0.1
+  IV,I: 0.1
+  I,IV: 0.1
+  V,vi: 0.08
+  vi,IV: 0.08
+  I,bVI: 0.07
+  bVI,bVII: 0.07
+  ii,V: 0.08
+  V,I: 0.1
+  bIII,bVII: 0.05
+  I,iii: 0.05
+seventh_chord_probability: 0.4
 secondary_dominant_probability: 0.15
-modal_interchange_probability: 0.30
-
+modal_interchange_probability: 0.3
 melodic_contour_weights:
   ascending: 0.25
   descending: 0.25
   arch: 0.25
   valley: 0.15
-  flat: 0.10
-
+  flat: 0.1
 leap_probability: 0.35
 blue_note_probability: 0.05
-
 swing_ratio: 0.5
-syncopation_density: 0.40
-
+syncopation_density: 0.4
 rhythm_template_weights:
   eighth_notes: 0.25
   sixteenth_notes: 0.25
   quarter_notes: 0.15
   triplet_eighth: 0.15
-  dotted_quarter: 0.10
-  half_notes: 0.10
-
+  dotted_quarter: 0.1
+  half_notes: 0.1
 preferred_instruments:
-  - electric_guitar
-  - bass_guitar
-  - drum_kit
-  - keyboard
-  - mellotron
-  - synth_lead
-
+- electric_guitar_clean
+- electric_bass_finger
+- piano
+- synth_pad_choir
+- synth_lead_saw
 voicing_density_target: 4
 bass_motion_style: syncopated
-
-typical_dynamics_range: [p, ff]
+typical_dynamics_range:
+- p
+- ff
 target_spectral_centroid: 0.55
-tempo_range: [80, 160]
-
+tempo_range:
+- 80
+- 160
 default_drum_pattern: rock_driving
 requires_drums: true
 default_groove: rock_backbeat

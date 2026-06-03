@@ -1,72 +1,57 @@
-# Genre Profile: Traditional Country
-# References:
-#   - Nashville number system and I-IV-V harmony (Neal, 2013)
-#   - Train beat and boom-chick rhythm patterns (Peterson, 1997)
-#   - Pedal steel and fiddle as defining timbres (Malone & Stricklin, 2003)
-#   - Country song form: verse-chorus with bridge (Stimeling, 2011)
-
 name: country_traditional
-
 chord_palette:
-  - I
-  - IV
-  - V
-  - V7
-  - vi
-  - ii
-  - I7
-
+- I
+- IV
+- V
+- V7
+- vi
+- ii
+- I7
 progression_n_grams:
-  "I,IV": 0.20
-  "IV,V": 0.15
-  "V,I": 0.18
-  "I,V": 0.15
-  "V7,I": 0.10
-  "I,vi": 0.07
-  "vi,IV": 0.05
-  "ii,V": 0.05
-  "IV,I": 0.05
-
-seventh_chord_probability: 0.20
+  I,IV: 0.2
+  IV,V: 0.15
+  V,I: 0.18
+  I,V: 0.15
+  V7,I: 0.1
+  I,vi: 0.07
+  vi,IV: 0.05
+  ii,V: 0.05
+  IV,I: 0.05
+seventh_chord_probability: 0.2
 secondary_dominant_probability: 0.08
 modal_interchange_probability: 0.05
-
 melodic_contour_weights:
   ascending: 0.25
   descending: 0.25
-  arch: 0.30
-  valley: 0.10
-  flat: 0.10
-
+  arch: 0.3
+  valley: 0.1
+  flat: 0.1
 leap_probability: 0.25
-blue_note_probability: 0.10
-
+blue_note_probability: 0.1
 swing_ratio: 0.55
-syncopation_density: 0.20
-
+syncopation_density: 0.2
 rhythm_template_weights:
-  eighth_notes: 0.30
-  quarter_notes: 0.30
-  sixteenth_notes: 0.10
+  eighth_notes: 0.3
+  quarter_notes: 0.3
+  sixteenth_notes: 0.1
   dotted_quarter: 0.15
-  half_notes: 0.10
+  half_notes: 0.1
   dotted_eighth: 0.05
-
 preferred_instruments:
-  - acoustic_guitar
-  - pedal_steel
-  - fiddle
-  - bass_guitar
-  - drum_kit
-  - piano
-
+- acoustic_guitar_steel
+- electric_guitar_clean
+- violin
+- electric_bass_finger
+- piano
 voicing_density_target: 3
 bass_motion_style: root_fifth
-
-typical_dynamics_range: [mp, f]
+typical_dynamics_range:
+- mp
+- f
 target_spectral_centroid: 0.45
-tempo_range: [100, 140]
-
+tempo_range:
+- 100
+- 140
 default_drum_pattern: rock_backbeat
 requires_drums: true
 default_groove: rock_backbeat

@@ -1,70 +1,55 @@
-# Genre Profile: Trance
-# References:
-#   - Euphoric build-and-release structure in trance (Solberg, 2014)
-#   - Arpeggiated synth patterns and supersaw timbres (Snoman, 2014)
-#   - Emotional minor-key progressions: vi-IV-I-V (Hawkins, 2003)
-#   - Extended breakdowns and climactic drops (Butler, 2006)
-
 name: electronic_trance
-
 chord_palette:
-  - vi
-  - IV
-  - I
-  - V
-  - ii
-  - iii
-  - bVII
-  - bVI
-
+- vi
+- IV
+- I
+- V
+- ii
+- iii
+- bVII
+- bVI
 progression_n_grams:
-  "vi,IV": 0.20
-  "IV,I": 0.18
-  "I,V": 0.18
-  "V,vi": 0.15
-  "vi,bVII": 0.08
-  "bVII,I": 0.06
-  "I,IV": 0.05
-  "ii,V": 0.05
-  "IV,V": 0.05
-
+  vi,IV: 0.2
+  IV,I: 0.18
+  I,V: 0.18
+  V,vi: 0.15
+  vi,bVII: 0.08
+  bVII,I: 0.06
+  I,IV: 0.05
+  ii,V: 0.05
+  IV,V: 0.05
 seventh_chord_probability: 0.15
 secondary_dominant_probability: 0.05
-modal_interchange_probability: 0.10
-
+modal_interchange_probability: 0.1
 melodic_contour_weights:
-  ascending: 0.30
+  ascending: 0.3
   descending: 0.15
   arch: 0.35
-  valley: 0.10
-  flat: 0.10
-
+  valley: 0.1
+  flat: 0.1
 leap_probability: 0.25
 blue_note_probability: 0.0
-
 swing_ratio: 0.5
-syncopation_density: 0.20
-
+syncopation_density: 0.2
 rhythm_template_weights:
   sixteenth_notes: 0.35
-  eighth_notes: 0.30
+  eighth_notes: 0.3
   quarter_notes: 0.15
-  dotted_eighth: 0.10
-  half_notes: 0.10
-
+  dotted_eighth: 0.1
+  half_notes: 0.1
 preferred_instruments:
-  - synth_lead
-  - synth_pad
-  - synth_bass
-  - drum_kit
-
+- synth_lead_saw
+- synth_pad_warm
+- synth_bass
 voicing_density_target: 4
 bass_motion_style: root_fifth
-
-typical_dynamics_range: [mp, ff]
-target_spectral_centroid: 0.60
-tempo_range: [135, 150]
-
+typical_dynamics_range:
+- mp
+- ff
+target_spectral_centroid: 0.6
+tempo_range:
+- 135
+- 150
 default_drum_pattern: four_on_the_floor
 requires_drums: true
 default_groove: edm_4onfloor
