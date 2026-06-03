@@ -321,6 +321,34 @@ class Conductor:
                         f"'{effective_drums.pattern_family}' from genre profile."
                     ),
                 )
+            # Safety net: if genre resolution failed to provide drums but
+            # tempo/instrumentation suggests drums are needed
+            if effective_drums is None and self._needs_drum_safety_net(current_spec):
+                fallback_pattern = self._safety_net_drum_pattern(current_spec)
+                if fallback_pattern is not None:
+                    from yao.schema.composition import DrumsSpec
+
+                    effective_drums = DrumsSpec(
+                        pattern_family=fallback_pattern,
+                        swing=0.0,
+                        humanize_ms=5.0,
+                        ghost_notes_density=0.0,
+                    )
+                    combined_provenance.record(
+                        layer="generator",
+                        operation="drums_safety_net",
+                        parameters={
+                            "genre": current_spec.genre,
+                            "pattern": fallback_pattern,
+                        },
+                        source="Conductor.compose_from_spec",
+                        rationale=(
+                            f"Genre '{current_spec.genre}' did not resolve to a profile "
+                            f"with default_drum_pattern, but tempo/instrumentation suggests "
+                            f"drums are needed. Auto-attaching '{fallback_pattern}' as fallback."
+                        ),
+                    )
+
             if effective_drums is not None:
                 from yao.generators.drum_patterner import generate_drum_hits
 
@@ -800,6 +828,43 @@ class Conductor:
 
         compiler = SpecCompiler()
         return compiler.compile(description, project_name)
+
+    def _needs_drum_safety_net(self, spec: CompositionSpec) -> bool:
+        """Check if drums are likely needed when genre profile didn't provide them."""
+        genre_lower = (spec.genre or "").lower()
+        # Genres that explicitly don't need drums
+        no_drum_genres = {
+            "ambient",
+            "ambient_dark",
+            "neoclassical",
+            "classical_baroque",
+            "classical_romantic",
+            "acoustic_folk",
+            "world_celtic",
+        }
+        if genre_lower in no_drum_genres:
+            return False
+        return spec.tempo_bpm >= 60  # noqa: PLR2004
+
+    def _safety_net_drum_pattern(self, spec: CompositionSpec) -> str | None:
+        """Select a safe default drum pattern based on tempo."""
+        from pathlib import Path
+
+        patterns_dir = Path(__file__).resolve().parent.parent.parent.parent / "drum_patterns"
+        if spec.tempo_bpm < 80:  # noqa: PLR2004
+            candidates = ["pop_ballad", "ballad_brushed", "pop_8beat"]
+        elif spec.tempo_bpm < 110:  # noqa: PLR2004
+            candidates = ["pop_8beat", "rock_backbeat"]
+        elif spec.tempo_bpm < 140:  # noqa: PLR2004
+            candidates = ["pop_8beat", "rock_backbeat", "four_on_the_floor"]
+        else:
+            candidates = ["four_on_the_floor", "rock_driving", "pop_8beat"]
+
+        for name in candidates:
+            if (patterns_dir / f"{name}.yaml").exists():
+                return name
+        # Ultimate fallback
+        return "pop_8beat"
 
 
 def _v1_to_v2_for_critic(spec: CompositionSpec) -> CompositionSpecV2:
