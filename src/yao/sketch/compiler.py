@@ -15,9 +15,15 @@ from typing import Literal
 
 import structlog
 
+from yao.genre.normalization import (
+    _GENRE_ALIASES,
+    _JA_GENRE_ALIASES,
+    normalize_genre_with_fallback,
+)
 from yao.reflect.provenance import ProvenanceLog
 from yao.schema.composition import (
     CompositionSpec,
+    DrumsSpec,
     GenerationConfig,
     InstrumentSpec,
     SectionSpec,
@@ -99,7 +105,7 @@ _JA_INSTRUMENT_KEYWORDS: dict[str, list[tuple[str, _RoleType]]] = {
     ],
     "ギター": [("acoustic_guitar_nylon", "melody")],
     "フルート": [("flute", "melody")],
-    "サックス": [("saxophone_alto", "melody")],
+    "サックス": [("alto_sax", "melody")],
     "シンセ": [("synth_pad_warm", "pad"), ("synth_lead_saw", "melody")],
 }
 
@@ -314,6 +320,8 @@ class SpecCompiler:
             rationale=f"Keyword compile ({lang}): key={key}, tempo={tempo}, genre={genre}",
         )
 
+        drums = self._infer_drums_from_genre(genre, tempo)
+
         spec = CompositionSpec(
             title=project_name.replace("-", " ").title(),
             genre=genre,
@@ -323,10 +331,39 @@ class SpecCompiler:
             total_bars=total_bars,
             instruments=instruments,
             sections=sections,
+            drums=drums,
             generation=GenerationConfig(strategy="stochastic", seed=42, temperature=0.5),
         )
 
+        if drums is not None:
+            self._provenance.record(
+                layer="sketch",
+                operation="drums_auto_attached",
+                parameters={
+                    "genre": genre,
+                    "pattern_family": drums.pattern_family,
+                },
+                source="SpecCompiler._keyword_compile",
+                rationale=f"Auto-attached drums '{drums.pattern_family}' from genre '{genre}'.",
+            )
+
         return spec, trajectory
+
+    def _infer_drums_from_genre(self, genre: str, tempo: float) -> DrumsSpec | None:
+        """Derive DrumsSpec from genre profile if drums are required."""
+        from yao.constants.genre_profile import get_genre_profile
+
+        profile = get_genre_profile(genre)
+        if profile is None or not profile.requires_drums:
+            return None
+        pattern = profile.default_drum_pattern or "pop_8beat"
+        swing = max(0.0, (profile.swing_ratio - 0.5) * 2.0)
+        return DrumsSpec(
+            pattern_family=pattern,
+            swing=swing,
+            humanize_ms=5.0,
+            ghost_notes_density=0.0,
+        )
 
     # ── Japanese parsing ────────────────────────────────────────────────
 
@@ -372,17 +409,8 @@ class SpecCompiler:
             lo, hi = profile.tempo_range
             tempo = (lo + hi) / 2
 
-        # Enrich instruments if they're still the default (piano + acoustic_bass)
-        is_default_instruments = (
-            len(instruments) == 2  # noqa: PLR2004
-            and instruments[0].name == "piano"
-            and instruments[1].name == "acoustic_bass"
-        )
-        if is_default_instruments and profile.preferred_instruments:
-            instruments = []
-            for i, name in enumerate(profile.preferred_instruments[:4]):
-                role: _RoleType = "melody" if i == 0 else ("bass" if "bass" in name else "harmony")
-                instruments.append(InstrumentSpec(name=name, role=role))
+        # Instrument enrichment is now handled by _infer_instruments (genre-driven).
+        # _enrich_from_skill only touches key and tempo.
 
         self._provenance.record(
             layer="sketch",
@@ -452,12 +480,15 @@ class SpecCompiler:
         if min_match:
             duration = float(min_match.group(1)) * 60
 
-        # Genre (check English genre keywords in Japanese text too)
-        genre = "general"
-        for kw, g in _GENRE_KEYWORDS.items():
-            if kw in description.lower():
-                genre = g
+        # Genre: check Japanese aliases first, then English aliases
+        genre = "pop_mainstream"
+        for ja_kw, profile_id in _JA_GENRE_ALIASES.items():
+            if ja_kw in description:
+                genre = profile_id
                 break
+        else:
+            # Fall back to English keyword detection
+            genre = self._infer_genre(description.lower())
 
         if emotions:
             self._provenance.record(
@@ -493,9 +524,9 @@ class SpecCompiler:
 
         key = self._infer_key(desc_lower)
         tempo = self._infer_tempo(desc_lower)
-        instruments = self._infer_instruments(desc_lower)
-        duration = self._infer_duration(desc_lower)
         genre = self._infer_genre(desc_lower)
+        instruments = self._infer_instruments(desc_lower, detected_genre=genre)
+        duration = self._infer_duration(desc_lower)
 
         return key, tempo, instruments, duration, genre
 
@@ -550,22 +581,115 @@ class SpecCompiler:
                 return bpm
         return 120.0
 
-    def _infer_instruments(self, desc_lower: str) -> list[InstrumentSpec]:
-        """Infer instruments from keyword matching."""
+    def _infer_instruments(
+        self,
+        desc_lower: str,
+        detected_genre: str = "",
+    ) -> list[InstrumentSpec]:
+        """Infer instruments from genre profile + explicit keyword mentions.
+
+        Priority:
+        1. Genre profile's preferred_instruments (up to 4)
+        2. User-mentioned instruments added on top
+        3. Fallback to piano + bass if nothing else
+        """
+        from yao.constants.genre_profile import get_genre_profile
+        from yao.constants.instruments import INSTRUMENT_RANGES
+
         instruments: list[InstrumentSpec] = []
-        matched = False
-        for keyword, instr_list in _INSTRUMENT_KEYWORDS.items():
-            if keyword in desc_lower:
-                for name, role in instr_list:
-                    if not any(i.name == name for i in instruments):
+        seen_names: set[str] = set()
+
+        # Phase 1: Genre profile instruments
+        profile = get_genre_profile(detected_genre) if detected_genre else None
+        if profile and profile.preferred_instruments:
+            for i, name in enumerate(profile.preferred_instruments[:4]):
+                if name not in INSTRUMENT_RANGES:
+                    continue
+                role = self._infer_role_for_instrument(name, position=i)
+                instruments.append(InstrumentSpec(name=name, role=role))
+                seen_names.add(name)
+
+        # Phase 2: Explicit user mentions
+        mention_map: dict[str, list[str]] = {
+            "electric piano": ["electric_piano_rhodes"],
+            "rhodes": ["electric_piano_rhodes"],
+            "wurli": ["electric_piano_wurli"],
+            "distorted guitar": ["electric_guitar_distorted"],
+            "electric guitar": ["electric_guitar_overdrive"],
+            "acoustic guitar": ["acoustic_guitar_steel"],
+            "nylon guitar": ["acoustic_guitar_nylon"],
+            "upright bass": ["upright_bass"],
+            "synth bass": ["synth_bass"],
+            "alto sax": ["alto_sax"],
+            "tenor sax": ["tenor_sax"],
+            "saxophone": ["alto_sax"],
+            "piano": ["piano"],
+            "organ": ["hammond_organ"],
+            "guitar": [],
+            "bass": ["electric_bass_finger"],
+            "808": ["synth_bass_sub"],
+            "violin": ["violin"],
+            "viola": ["viola"],
+            "cello": ["cello"],
+            "contrabass": ["contrabass"],
+            "strings": ["strings_ensemble"],
+            "orchestra": ["strings_ensemble", "french_horn"],
+            "horn": ["french_horn"],
+            "trumpet": ["trumpet"],
+            "trombone": ["trombone"],
+            "flute": ["flute"],
+            "clarinet": ["clarinet"],
+            "oboe": ["oboe"],
+            "synth": ["synth_lead_saw", "synth_pad_warm"],
+            "pad": ["synth_pad_warm"],
+            "lead": ["synth_lead_saw"],
+            "vibraphone": ["vibraphone"],
+            "marimba": ["marimba"],
+        }
+
+        # Disambiguate "guitar" by context
+        if "guitar" in desc_lower:
+            if any(w in desc_lower for w in ("rock", "metal", "punk", "distorted", "heavy")):
+                mention_map["guitar"] = ["electric_guitar_distorted"]
+            elif any(w in desc_lower for w in ("jazz", "clean", "blues")):
+                mention_map["guitar"] = ["electric_guitar_clean"]
+            elif any(w in desc_lower for w in ("country", "folk", "acoustic")):
+                mention_map["guitar"] = ["acoustic_guitar_steel"]
+            else:
+                mention_map["guitar"] = ["acoustic_guitar_steel"]
+
+        # Longest keywords first
+        for kw in sorted(mention_map.keys(), key=len, reverse=True):
+            if kw in desc_lower:
+                for name in mention_map[kw]:
+                    if name in INSTRUMENT_RANGES and name not in seen_names:
+                        role = self._infer_role_for_instrument(name, position=len(instruments))
                         instruments.append(InstrumentSpec(name=name, role=role))
-                matched = True
-        if not matched:
+                        seen_names.add(name)
+
+        # Phase 3: Fallback
+        if not instruments:
             instruments = [
                 InstrumentSpec(name="piano", role="melody"),
-                InstrumentSpec(name="acoustic_bass", role="bass"),
+                InstrumentSpec(name="electric_bass_finger", role="bass"),
             ]
-        return instruments
+
+        return instruments[:6]
+
+    def _infer_role_for_instrument(self, name: str, position: int) -> _RoleType:
+        """Infer a role for an instrument based on name and position."""
+        from yao.constants.instruments import INSTRUMENT_RANGES
+
+        if name not in INSTRUMENT_RANGES:
+            return "melody"
+        family = INSTRUMENT_RANGES[name].family
+        if family == "bass":
+            return "bass"
+        if name.startswith("synth_pad"):
+            return "pad"
+        if name in ("strings_ensemble",) and position > 0:
+            return "harmony"
+        return "melody" if position == 0 else "harmony"
 
     def _infer_duration(self, desc_lower: str) -> float:
         """Extract duration from description text."""
@@ -579,11 +703,28 @@ class SpecCompiler:
         return duration_seconds
 
     def _infer_genre(self, desc_lower: str) -> str:
-        """Detect genre from description keywords."""
-        for keyword, genre in _GENRE_KEYWORDS.items():
-            if keyword in desc_lower:
-                return genre
-        return "general"
+        """Detect genre from description keywords and normalize to registry ID.
+
+        Uses _GENRE_ALIASES for keyword detection (longest match first to
+        avoid partial match issues like "lo-fi" vs "fi"), then falls back
+        to direct registered ID matching.
+        """
+        from yao.constants.genre_profile import all_genre_profiles
+
+        # Longest keywords first to avoid partial-match issues
+        sorted_aliases = sorted(_GENRE_ALIASES.keys(), key=len, reverse=True)
+        for kw in sorted_aliases:
+            if f" {kw} " in f" {desc_lower} " or desc_lower == kw:
+                registered_id = _GENRE_ALIASES[kw]
+                if registered_id in all_genre_profiles():
+                    return registered_id
+
+        # Direct registered ID match
+        for genre_id in all_genre_profiles():
+            if genre_id in desc_lower:
+                return genre_id
+
+        return normalize_genre_with_fallback("", fallback="pop_mainstream")
 
     def _build_sections(self, total_bars: int, desc_lower: str) -> list[SectionSpec]:
         """Build section structure from total bars."""

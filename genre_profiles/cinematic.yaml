@@ -62,11 +62,11 @@ rhythm_template_weights:
 
 # Orchestration
 preferred_instruments:
-  - violin
-  - viola
-  - cello
-  - contrabass
+  - strings_ensemble
+  - piano
   - french_horn
+  - cello
+  - timpani
   - trumpet
   - trombone
   - timpani

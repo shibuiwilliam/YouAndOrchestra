@@ -144,7 +144,7 @@ _JA_SAMPLES = [
         "project": "passionate-jazz",
         "expect_mode": "minor",
         "expect_tempo_range": (100, 150),
-        "expect_instruments": ["saxophone_alto", "piano"],
+        "expect_instruments": ["alto_sax", "piano"],
         "expect_duration": None,
     },
     {

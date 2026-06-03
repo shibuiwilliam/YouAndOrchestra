@@ -74,11 +74,10 @@ class TestInstrumentSelection:
         names = [i.name for i in spec.instruments]
         assert "piano" in names
 
-    def test_classical_keyword_gives_trio(self) -> None:
+    def test_classical_keyword_gives_strings(self) -> None:
         compiler = SpecCompiler()
         spec, _ = compiler.compile("a classical sonata", "test-classical")
         names = [i.name for i in spec.instruments]
-        assert "piano" in names
         assert "violin" in names
         assert "cello" in names
 
@@ -89,12 +88,12 @@ class TestInstrumentSelection:
         assert len(names) >= 3  # noqa: PLR2004
         assert "strings_ensemble" in names
 
-    def test_no_keyword_defaults_to_piano_bass(self) -> None:
+    def test_no_keyword_defaults_to_genre_instruments(self) -> None:
         compiler = SpecCompiler()
         spec, _ = compiler.compile("a piece of music", "test-default-inst")
         names = [i.name for i in spec.instruments]
-        assert "piano" in names
-        assert "acoustic_bass" in names
+        # With genre-driven instruments, defaults come from the resolved genre
+        assert len(names) >= 1
 
 
 class TestDurationExtraction:
@@ -124,12 +123,12 @@ class TestGenreDetection:
     def test_jazz(self) -> None:
         compiler = SpecCompiler()
         spec, _ = compiler.compile("a jazz piano piece", "test-jazz")
-        assert spec.genre == "jazz"
+        assert spec.genre == "jazz_ballad"
 
-    def test_no_genre_defaults_to_general(self) -> None:
+    def test_no_genre_defaults_to_pop(self) -> None:
         compiler = SpecCompiler()
         spec, _ = compiler.compile("a piece of music", "test-gen")
-        assert spec.genre == "general"
+        assert spec.genre == "pop_mainstream"
 
 
 class TestSectionBuilding:
