@@ -33,9 +33,14 @@ INSTRUMENT_RANGES: dict[str, InstrumentRange] = {
     # Keyboard
     "piano": InstrumentRange("piano", 21, 108, 0, "keyboard"),
     "electric_piano": InstrumentRange("electric_piano", 28, 103, 4, "keyboard"),
+    "electric_piano_rhodes": InstrumentRange("electric_piano_rhodes", 28, 103, 4, "keyboard"),
+    "electric_piano_wurli": InstrumentRange("electric_piano_wurli", 28, 103, 5, "keyboard"),
     "harpsichord": InstrumentRange("harpsichord", 29, 89, 6, "keyboard"),
+    "clavinet": InstrumentRange("clavinet", 36, 84, 7, "keyboard"),
     "celesta": InstrumentRange("celesta", 60, 108, 8, "keyboard"),
     "organ": InstrumentRange("organ", 36, 96, 19, "keyboard"),
+    "hammond_organ": InstrumentRange("hammond_organ", 36, 96, 16, "keyboard"),
+    "rock_organ": InstrumentRange("rock_organ", 36, 96, 18, "keyboard"),
     # Strings
     "violin": InstrumentRange("violin", 55, 103, 40, "strings"),
     "viola": InstrumentRange("viola", 48, 93, 41, "strings"),
@@ -47,11 +52,20 @@ INSTRUMENT_RANGES: dict[str, InstrumentRange] = {
     "acoustic_guitar_nylon": InstrumentRange("acoustic_guitar_nylon", 40, 84, 24, "guitar"),
     "acoustic_guitar_steel": InstrumentRange("acoustic_guitar_steel", 40, 84, 25, "guitar"),
     "electric_guitar_clean": InstrumentRange("electric_guitar_clean", 40, 88, 27, "guitar"),
+    "electric_guitar_muted": InstrumentRange("electric_guitar_muted", 40, 88, 28, "guitar"),
+    "electric_guitar_overdrive": InstrumentRange("electric_guitar_overdrive", 40, 88, 29, "guitar"),
+    "electric_guitar_distorted": InstrumentRange("electric_guitar_distorted", 40, 88, 30, "guitar"),
+    "electric_guitar_harmonics": InstrumentRange("electric_guitar_harmonics", 40, 88, 31, "guitar"),
     # Bass
+    "upright_bass": InstrumentRange("upright_bass", 28, 60, 32, "bass"),
     "acoustic_bass": InstrumentRange("acoustic_bass", 28, 60, 32, "bass"),
     "electric_bass_finger": InstrumentRange("electric_bass_finger", 28, 65, 33, "bass"),
     "electric_bass_pick": InstrumentRange("electric_bass_pick", 28, 65, 34, "bass"),
+    "fretless_bass": InstrumentRange("fretless_bass", 28, 65, 35, "bass"),
+    "slap_bass": InstrumentRange("slap_bass", 28, 65, 36, "bass"),
     "synth_bass": InstrumentRange("synth_bass", 24, 72, 38, "bass"),
+    "synth_bass_sub": InstrumentRange("synth_bass_sub", 24, 60, 38, "bass"),
+    "synth_bass_acid": InstrumentRange("synth_bass_acid", 24, 72, 39, "bass"),
     # Brass
     "trumpet": InstrumentRange("trumpet", 55, 82, 56, "brass"),
     "trombone": InstrumentRange("trombone", 40, 72, 57, "brass"),
@@ -67,6 +81,8 @@ INSTRUMENT_RANGES: dict[str, InstrumentRange] = {
     "alto_sax": InstrumentRange("alto_sax", 49, 80, 65, "saxophone"),
     "tenor_sax": InstrumentRange("tenor_sax", 44, 75, 66, "saxophone"),
     "baritone_sax": InstrumentRange("baritone_sax", 36, 69, 67, "saxophone"),
+    # Synth — Plucked (GM program 84)
+    "pluck_synth": InstrumentRange("pluck_synth", 36, 96, 84, "synth"),
     # Synth — Leads (GM programs 80-87)
     "synth_lead_square": InstrumentRange("synth_lead_square", 24, 108, 80, "synth"),
     "synth_lead_saw": InstrumentRange("synth_lead_saw", 24, 108, 81, "synth"),
