@@ -55,3 +55,11 @@ tempo_range:
 default_drum_pattern: rock_backbeat
 requires_drums: true
 default_groove: rock_backbeat
+
+motif_transformation_weights:
+  identity: 0.30
+  ornament_add: 0.15
+  rhythm_displace: 0.15
+  octave_displace: 0.10
+  sequence_up: 0.15
+  question_answer: 0.15

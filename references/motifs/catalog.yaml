@@ -1,9 +1,59 @@
 # Motif Library Catalog
 # Each entry references a JSON file containing a reusable motif.
+# All motifs are original compositions owned by the YaO project.
 # Motifs can be referenced in composition specs via:
 #   motifs:
 #     primary:
 #       source: library
-#       id: ascending_fifth
+#       id: pop_hook_ascending_third
 #
-motifs: []
+motifs:
+  - id: pop_hook_ascending_third
+    label: "Ascending Third Hook"
+    genre_tags: [pop_mainstream, j_pop, rock_classic]
+    description: "Tonic to mediant to dominant, classic pop hook contour"
+
+  - id: pop_hook_descending_fifth
+    label: "Descending Fifth Resolution"
+    genre_tags: [pop_mainstream, j_pop]
+    description: "Dominant to tonic descending leap with returning step"
+
+  - id: bebop_chromatic_enclosure
+    label: "Bebop Chromatic Enclosure"
+    genre_tags: [jazz_bebop, jazz_ballad]
+    description: "Chromatic approach from above and below to chord tone"
+
+  - id: rock_power_motif
+    label: "Rock Power Riff"
+    genre_tags: [rock_classic, metal]
+    description: "Root-fifth-octave motion with rhythmic punch"
+
+  - id: hiphop_3note_loop
+    label: "Hip-hop Three-Note Loop"
+    genre_tags: [hiphop_boom_bap, lofi_hiphop, hiphop_trap]
+    description: "Three-note descending pentatonic figure, loopable"
+
+  - id: bossa_5note_clave
+    label: "Bossa Five-Note Clave Motif"
+    genre_tags: [latin_bossa_nova]
+    description: "Five-note motif aligned with 2-3 clave"
+
+  - id: ambient_breath_motif
+    label: "Ambient Breathing Motif"
+    genre_tags: [ambient, ambient_dark, neoclassical]
+    description: "Two-note sustained breath, slowly drifting"
+
+  - id: cinematic_heroic_4th
+    label: "Cinematic Heroic Fourth"
+    genre_tags: [cinematic, classical_romantic]
+    description: "Ascending perfect fourth into descending stepwise resolution"
+
+  - id: funk_syncopated_riff
+    label: "Funk Syncopated Riff"
+    genre_tags: [funk_classic, rnb_neo_soul]
+    description: "Syncopated 16th-note pentatonic figure"
+
+  - id: blues_bent_3rd
+    label: "Blues Bent Third"
+    genre_tags: [blues_chicago, rnb_neo_soul]
+    description: "Minor third bend with descending pentatonic"

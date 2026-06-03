@@ -54,3 +54,11 @@ tempo_range:
 default_drum_pattern: pop_8beat
 requires_drums: true
 default_groove: pop_straight
+
+motif_transformation_weights:
+  identity: 0.30
+  ornament_add: 0.15
+  rhythm_displace: 0.20
+  octave_displace: 0.10
+  expand: 0.10
+  question_answer: 0.15

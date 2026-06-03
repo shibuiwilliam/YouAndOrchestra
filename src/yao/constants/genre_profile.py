@@ -108,6 +108,9 @@ class GenreProfile:
     # Groove default — auto-applied as post-processing when no groove override
     default_groove: str | None = None
 
+    # Motif transformation weights — per-genre override for MotivicPlanner
+    motif_transformation_weights: dict[str, float] = field(default_factory=dict)
+
     @classmethod
     def from_yaml(cls, data: dict[str, Any]) -> GenreProfile:
         """Construct a GenreProfile from a parsed YAML dict.
@@ -181,6 +184,7 @@ class GenreProfile:
             default_drum_pattern=data.get("default_drum_pattern"),
             requires_drums=bool(data.get("requires_drums", False)),
             default_groove=data.get("default_groove"),
+            motif_transformation_weights=data.get("motif_transformation_weights", {}),
         )
 
 

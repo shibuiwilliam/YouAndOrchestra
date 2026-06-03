@@ -84,3 +84,14 @@ bass_motion_style: root_fifth
 typical_dynamics_range: [pp, ff]
 target_spectral_centroid: 0.45
 tempo_range: [60, 140]
+
+motif_transformation_weights:
+  identity: 0.15
+  augmentation: 0.10
+  diminution: 0.10
+  inversion: 0.10
+  sequence_up: 0.15
+  sequence_down: 0.10
+  ornament_add: 0.10
+  expand: 0.10
+  fragment: 0.10

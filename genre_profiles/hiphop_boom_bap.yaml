@@ -54,3 +54,10 @@ tempo_range:
 default_drum_pattern: lofi_laidback
 requires_drums: true
 default_groove: lofi_hiphop
+
+motif_transformation_weights:
+  identity: 0.45
+  rhythm_displace: 0.20
+  ornament_add: 0.10
+  fragment: 0.15
+  octave_displace: 0.10

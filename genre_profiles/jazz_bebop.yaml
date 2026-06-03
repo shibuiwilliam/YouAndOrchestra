@@ -61,3 +61,12 @@ tempo_range:
 default_drum_pattern: jazz_swing_ride
 requires_drums: true
 default_groove: jazz_swing
+
+motif_transformation_weights:
+  identity: 0.10
+  ornament_add: 0.25
+  rhythm_displace: 0.20
+  interval_fill: 0.15
+  fragment: 0.10
+  sequence_up: 0.10
+  expand: 0.10
