@@ -111,7 +111,7 @@ _GENRE_ALIASES: dict[str, str] = {
     "americana": "country_traditional",
     "folk": "acoustic_folk",
     "singer-songwriter": "acoustic_folk",
-    "acoustic": "acoustic_folk",
+    "acoustic folk": "acoustic_folk",
     "celtic": "world_celtic",
     "irish": "world_celtic",
     "scottish": "world_celtic",
