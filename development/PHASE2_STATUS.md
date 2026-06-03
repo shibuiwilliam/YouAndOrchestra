@@ -1,10 +1,22 @@
 # YaO v2.0 Phase Status
 
-*Updated: 2026-05-16 (final)*
+*Updated: 2026-06-03*
 
 ## Current Task
 
 **All phases (2--5) COMPLETE.** All components implemented, tested, and committed.
+
+### v2.1: Genre & Variation Refinement (2026-06-03)
+
+Resolved genre ID mismatch (F-1) and melody repetition (F-7/F-8) bottlenecks:
+
+- **Genre normalization**: 60+ aliases mapping user-facing genre names to registered profile IDs
+- **Instrument alignment**: 15 new GM instruments + 30 profile YAMLs normalized
+- **11 paraphrase motif transforms**: ornament, displace, fragment, expand, etc.
+- **Motif schedule**: 2-8 placements per section with role-specific transform distributions
+- **Genre-aware trajectories**: 30 genre-specific tension curve shapes
+- **Drum auto-attach**: SpecCompiler + Conductor safety net for unresolved genres
+- **12 genre fidelity tests** + **3 motif recurrence tests**
 
 ## Architecture Decisions
 
