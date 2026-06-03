@@ -17,6 +17,7 @@ from typing import Any
 class MotifTransform(StrEnum):
     """Transformation applied to a motif to create a variation."""
 
+    # Original transforms (v1.0)
     IDENTITY = "identity"
     SEQUENCE_UP = "sequence_up"
     SEQUENCE_DOWN = "sequence_down"
@@ -26,6 +27,18 @@ class MotifTransform(StrEnum):
     DIMINUTION = "diminution"
     VARIED_RHYTHM = "varied_rhythm"
     VARIED_INTERVALS = "varied_intervals"
+    # Paraphrase transforms (v2.1) — perceptually "same but different"
+    ORNAMENT_ADD = "ornament_add"
+    ORNAMENT_REMOVE = "ornament_remove"
+    RHYTHM_DISPLACE = "rhythm_displace"
+    INTERVAL_FILL = "interval_fill"
+    INTERVAL_LEAP = "interval_leap"
+    OCTAVE_DISPLACE = "octave_displace"
+    EXPAND = "expand"
+    CONTRACT = "contract"
+    FRAGMENT = "fragment"
+    EXTEND = "extend"
+    QUESTION_ANSWER = "question_answer"
 
 
 @dataclass(frozen=True)
