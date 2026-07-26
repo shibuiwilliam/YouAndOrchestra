@@ -124,6 +124,28 @@ def _adaptation_for_metric(
                 reason=f"Contour too erratic ({score.detail}). Decreasing temperature for smoother contour.",
             )
 
+    if metric == "motif_recall_strength":
+        if score.score > score.target + score.tolerance:
+            # Too repetitive — increase temperature for more melodic variety
+            new_temp = min(current_temp + 0.15, 1.0)
+            return SpecAdaptation(
+                field="generation.temperature",
+                old_value=str(current_temp),
+                new_value=str(new_temp),
+                reason=f"Melody too repetitive ({score.detail}). Increasing temperature for more variation.",
+            )
+        if score.score < score.target - score.tolerance:
+            # Too varied — decrease temperature for more motif coherence
+            new_temp = max(current_temp - 0.15, 0.05)
+            return SpecAdaptation(
+                field="generation.temperature",
+                old_value=str(current_temp),
+                new_value=str(new_temp),
+                reason=(
+                    f"Motif recall too weak ({score.detail}). Decreasing temperature for stronger thematic coherence."
+                ),
+            )
+
     if metric == "section_contrast" and score.score < score.target - score.tolerance:
         return _differentiate_dynamics(spec)
 

@@ -244,6 +244,8 @@ class StochasticGenerator(GeneratorBase):
         current_bar = 0
         # Store primary melody per section for cross-section recall
         section_melodies: dict[str, tuple[list[Note], int]] = {}
+        # Track notes per section per role for cross-section recall (all roles)
+        section_role_notes: dict[str, dict[str, tuple[list[Note], int]]] = {}
 
         for section_spec in spec.sections:
             section_start = current_bar
@@ -320,6 +322,7 @@ class StochasticGenerator(GeneratorBase):
                         section_spec=section_spec,
                         trajectory=trajectory,
                         rng=instr_rng,
+                        role="counter_melody",
                     )
                 elif recalled_melody and melody_index >= 0:
                     # Use recalled melody for all melody instruments in this section
@@ -333,6 +336,7 @@ class StochasticGenerator(GeneratorBase):
                         section_spec=section_spec,
                         trajectory=trajectory,
                         rng=instr_rng,
+                        role="melody",
                     )
                 elif is_unison_follower and primary_melody_notes:
                     # Unison: replay the same melody directly (melody_index=0)
@@ -346,6 +350,7 @@ class StochasticGenerator(GeneratorBase):
                         section_spec=section_spec,
                         trajectory=trajectory,
                         rng=instr_rng,
+                        role="melody",
                     )
                 elif melody_index > 0 and primary_melody_notes:
                     notes = self._generate_melody_from_motif(
@@ -358,6 +363,44 @@ class StochasticGenerator(GeneratorBase):
                         section_spec=section_spec,
                         trajectory=trajectory,
                         rng=instr_rng,
+                        role="melody",
+                    )
+                elif (
+                    section_spec.recall_melody_from
+                    and section_spec.recall_melody_from in section_role_notes
+                    and instr_spec.role in section_role_notes[section_spec.recall_melody_from]
+                    and melody_index < 0
+                ):
+                    # Role-based recall: recall same role's notes from source
+                    # section and apply motif transformation for variation
+                    src_notes, src_start = section_role_notes[section_spec.recall_melody_from][instr_spec.role]
+                    beat_offset = bars_to_beats(
+                        section_start - src_start,
+                        spec.time_signature,
+                    )
+                    role_recalled = [
+                        Note(
+                            pitch=n.pitch,
+                            start_beat=n.start_beat + beat_offset,
+                            duration_beats=n.duration_beats,
+                            velocity=n.velocity,
+                            instrument=n.instrument,
+                        )
+                        for n in src_notes
+                    ]
+                    # Use instrument index for varied transformations
+                    role_transform_idx = active_instruments.index(instr_spec) + 1
+                    notes = self._generate_melody_from_motif(
+                        seed_notes=role_recalled,
+                        instrument=instr_spec.name,
+                        melody_index=role_transform_idx,
+                        start_bar=section_start,
+                        bars=section_spec.bars,
+                        time_signature=section_spec.time_signature or spec.time_signature,
+                        section_spec=section_spec,
+                        trajectory=trajectory,
+                        rng=instr_rng,
+                        role=instr_spec.role,
                     )
                 else:
                     notes = self._generate_part(
@@ -379,6 +422,14 @@ class StochasticGenerator(GeneratorBase):
                     # Capture first melody instrument's output
                     if melody_index == 0:
                         primary_melody_notes = notes
+
+                # Store per-role notes for cross-section recall
+                if section_spec.name not in section_role_notes:
+                    section_role_notes[section_spec.name] = {}
+                section_role_notes[section_spec.name][instr_spec.role] = (
+                    list(notes),
+                    section_start,
+                )
 
                 # Apply velocity boost if specified
                 if instr_spec.velocity_boost != 0:
@@ -756,6 +807,7 @@ class StochasticGenerator(GeneratorBase):
         section_spec: SectionSpec,
         trajectory: TrajectorySpec | None,
         rng: random.Random,
+        role: str = "melody",
     ) -> list[Note]:
         """Generate a melody derived from the primary melody via motif transformations.
 
@@ -772,6 +824,7 @@ class StochasticGenerator(GeneratorBase):
             section_spec: Section specification.
             trajectory: Optional trajectory.
             rng: Per-instrument RNG.
+            role: Instrument role for target octave selection.
 
         Returns:
             List of transformed notes for this instrument.
@@ -788,12 +841,20 @@ class StochasticGenerator(GeneratorBase):
         if melody_index == 0:
             transformed = seed_motif
         else:
-            transformations = [invert, retrograde]
-            transform_fn = transformations[(melody_index - 1) % len(transformations)]
-            transformed = transform_fn(seed_motif)
+            # Cycle through pitch-altering transformations for varied intervals
+            idx = (melody_index - 1) % 3
+            if idx == 0:
+                transformed = invert(seed_motif)
+            elif idx == 1:
+                transformed = retrograde(seed_motif)
+            else:
+                # Retrograde inversion — combines both for maximum variation
+                transformed = invert(retrograde(seed_motif))
 
         # Determine target octave range for this instrument
-        target_octave = self._target_octave(instrument, "melody")
+        # Map role to octave category: bass stays low, melody/rhythm/harmony stay mid
+        octave_role = "bass" if role == "bass" else ("chord" if role in ("harmony", "pad") else "melody")
+        target_octave = self._target_octave(instrument, octave_role)
         target_center = target_octave * 12 + 12 + 6  # center of target octave (MIDI)
 
         # Calculate pitch shift to move transformed notes into target range
