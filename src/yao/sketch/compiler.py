@@ -336,7 +336,10 @@ class SpecCompiler:
             instruments=instruments,
             sections=sections,
             drums=drums,
-            generation=GenerationConfig(strategy="stochastic", seed=42, temperature=0.5),
+            # Freshly-authored specs get thematic recurrence by default so the
+            # primary melody states and restates a theme across the form.
+            # Existing spec files (flag absent) are unaffected.
+            generation=GenerationConfig(strategy="stochastic", seed=42, temperature=0.5, thematic_development=True),
         )
 
         if drums is not None:

@@ -166,11 +166,18 @@ class GenerationConfig(BaseModel):
         strategy: Generator name (e.g., "rule_based", "stochastic").
         seed: Random seed for reproducibility (stochastic generators).
         temperature: Variation control (0.0=conservative, 1.0=adventurous).
+        thematic_development: When True, the Conductor auto-populates
+            ``recall_melody_from`` on "return" sections (by name stem, e.g.
+            ``A`` / ``A_prime`` / ``A_doublePrime``) so the primary melody
+            states a theme and restates/develops it across the form instead
+            of generating an independent line per section. Additive and
+            disabled by default — no existing behavior changes when off.
     """
 
     strategy: str = "rule_based"
     seed: int | None = None
     temperature: float = 0.5
+    thematic_development: bool = False
 
     @field_validator("temperature")
     @classmethod

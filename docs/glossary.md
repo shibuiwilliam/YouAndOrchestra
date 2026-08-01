@@ -54,6 +54,14 @@ Terms used throughout the YaO codebase and documentation.
 
 **Motif** — The smallest musically meaningful unit — a short melodic/rhythmic fragment. See `yao.ir.motif.Motif`.
 
+**Motif Development Index** — Evaluation metric (v2.x): the maximum aligned pitch-sequence similarity between any two sections' lead melodies. High when a theme genuinely returns (A→A′); an in-key random walk fails it. See `yao.verify.evaluator._compute_motif_development`.
+
+**Thematic Development / Recall** — When enabled (`generation.thematic_development`), "return" sections (matched by name stem — `A`, `A_prime`, `A_doublePrime`) automatically restate/develop the theme instead of generating an independent line. Honored by the v2 realizers via `recall_melody_from`. See `yao.generators.thematic_recall`.
+
+**Walking Bass** — A quarter-note bass line (root on the downbeat, chord tones through the bar, chromatic approach into the next root) rendered for genres whose profile sets `bass_motion_style: walking`. See `yao.generators.note.accompaniment.realize_walking_bass`.
+
+**v2 Realizer** — The default, plan-consuming note realizer (`stochastic_v2` / `rule_based_v2`) reached via `generators.note.base.resolve_realizer_name`. Produces theme development, voice-led density-aware arrangement, walking bass, and authentic cadences directly from the MusicalPlan — superseding the deprecated random-walk generators.
+
 **CPIR / MPIR (Musical Plan IR)** — The middle-layer abstraction between specification and note generation. Contains SongFormPlan, HarmonyPlan, MotifPlan, PhrasePlan, HookPlan, ArrangementPlan, ConversationPlan. Layer 3a in the architecture. See `yao.ir.plan.musical_plan.MusicalPlan`.
 
 **Music Lint** — Automated detection of musical constraint violations (range errors, parallel fifths, etc.). See `yao.verify.music_lint`.

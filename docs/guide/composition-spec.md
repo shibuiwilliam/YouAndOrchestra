@@ -31,8 +31,13 @@ sections:                       # At least one required
 generation:                     # Optional
   strategy: "stochastic"        # rule_based, stochastic, markov, phrase_aware, twelve_tone,
                                 # process_music, constraint_satisfaction, loop_evolution, ai_seed
+                                # NOTE: rule_based / stochastic now route to the plan-consuming
+                                # v2 realizers (theme development, voice-led arrangement, cadences).
   seed: 42                      # Integer, for reproducibility
   temperature: 0.5              # 0.0–1.0, variation control
+  thematic_development: false   # When true, "return" sections (A, A', A'') restate/develop the
+                                # theme automatically. Default OFF; on for freshly-authored specs
+                                # from /sketch and NL /conduct. See docs/STATUS.md.
 ```
 
 ## Detailed Format (11-section)

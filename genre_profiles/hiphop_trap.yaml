@@ -53,3 +53,8 @@ tempo_range:
 default_drum_pattern: trap_half_time
 requires_drums: true
 default_groove: trap_double_time
+
+# Genre-appropriate evaluation: beat-driven genre — weight rhythm/structure
+# over melodic/harmonic sophistication (P2.4).
+evaluation:
+  percussion_centric: true

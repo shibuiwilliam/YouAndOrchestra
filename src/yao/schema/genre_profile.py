@@ -189,6 +189,9 @@ class GenreEvaluationSection(BaseModel):
     weights: dict[str, float] = {}
     bonus_metrics: list[dict[str, Any]] = []
     percussion_centric: bool = False
+    # Static-texture genres (ambient/drone) are intentionally low-contrast;
+    # the contrast metric should not penalize them.
+    static_texture: bool = False
 
     model_config = {"extra": "allow"}
 

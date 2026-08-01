@@ -319,11 +319,17 @@ def check_genre_skills_integration(result: HonestyCheckResult) -> None:
 
 
 def check_note_realizer_plan_consumption(result: HonestyCheckResult) -> None:
-    """Check that NoteRealizers consume MusicalPlan, not just convert to v1."""
+    """Check that NoteRealizers consume MusicalPlan, not just convert to v1.
+
+    The legacy discard realizers (``note/rule_based.py``, ``note/stochastic.py``)
+    were deleted in the v2.x program; the default realizers are now the
+    plan-consuming ``rule_based_v2`` / ``stochastic_v2``. This verifies the
+    active realizer does not fall back to ``_plan_to_v1_spec``.
+    """
     result.checked += 1
-    path = REPO_ROOT / "src" / "yao" / "generators" / "note" / "rule_based.py"
+    path = REPO_ROOT / "src" / "yao" / "generators" / "note" / "rule_based_v2.py"
     if not path.exists():
-        result.findings.append(HonestyFinding("rule_based generator", str(path), 0, "File not found", "error"))
+        result.findings.append(HonestyFinding("rule_based_v2 realizer", str(path), 0, "File not found", "error"))
         return
 
     source = path.read_text(encoding="utf-8")

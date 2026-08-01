@@ -18,11 +18,14 @@ from pathlib import Path
 from typing import Literal
 
 from yao.errors import VerificationError
-from yao.ir.score_ir import ScoreIR
+from yao.ir.plan.musical_plan import MusicalPlan
+from yao.ir.score_ir import ScoreIR, Section
+from yao.ir.voicing import Voicing
 from yao.schema.composition import CompositionSpec
 from yao.schema.genre_profile import UnifiedGenreProfile
 from yao.schema.tonal_system import TonalSystem
 from yao.schema.trajectory import TrajectorySpec
+from yao.verify.aesthetic import evaluate_aesthetics
 from yao.verify.metric_goal import MetricGoal, MetricGoalType, evaluate_metric
 
 # Dimension weights for user-facing quality score.
@@ -49,6 +52,13 @@ class EvaluationScore:
         target: Expected target score.
         tolerance: Acceptable deviation from target.
         detail: Human-readable explanation.
+        goal_passed: Authoritative pass/fail from the MetricGoal evaluation.
+            When set, it takes precedence over the legacy symmetric
+            ``abs(score - target) <= tolerance`` check. This is required for
+            directional goals (AT_LEAST/AT_MOST) and non-scalar goals
+            (MATCH_CURVE/RELATIVE_ORDER/DIVERSITY) where the symmetric check
+            is wrong. ``None`` preserves v1 behavior for scores constructed
+            without a goal.
     """
 
     dimension: Literal["structure", "melody", "harmony", "aesthetic", "arrangement", "acoustics"]
@@ -57,11 +67,18 @@ class EvaluationScore:
     target: float
     tolerance: float
     detail: str
+    goal_passed: bool | None = None
 
     @property
     def passed(self) -> bool:
-        """Whether the score meets the evaluation goal."""
-        # Use a small epsilon to avoid floating-point boundary failures
+        """Whether the score meets the evaluation goal.
+
+        Prefers the authoritative ``goal_passed`` (from ``evaluate_metric``)
+        when available; otherwise falls back to the legacy symmetric check.
+        """
+        if self.goal_passed is not None:
+            return self.goal_passed
+        # Legacy fallback: symmetric tolerance check with float epsilon.
         return abs(self.score - self.target) <= self.tolerance + 1e-9
 
 
@@ -216,7 +233,11 @@ def _score_via_goal(
         target = 0.5
         tolerance = 0.5
 
-    # Override passed from MetricGoal result (more accurate than tolerance check)
+    # Carry the authoritative pass/fail from the MetricGoal evaluation.
+    # The legacy symmetric target/tolerance mapping cannot represent
+    # directional (AT_LEAST/AT_MOST) or non-scalar goals correctly; the
+    # else-branch (MATCH_CURVE/RELATIVE_ORDER/DIVERSITY) would otherwise
+    # always "pass". EvaluationScore.passed honors goal_passed when set.
     score_val = value
     detail = result.explanation
 
@@ -227,6 +248,7 @@ def _score_via_goal(
         target=target,
         tolerance=tolerance,
         detail=detail,
+        goal_passed=result.passed,
     )
 
 
@@ -362,6 +384,96 @@ def _compute_motif_recall(score: ScoreIR, window_size: int = 4) -> float | None:
     recurring = sum(1 for p in all_patterns if pattern_counts[p] > 1)
 
     return recurring / len(all_patterns)
+
+
+def _section_lead_pitches(section: Section) -> list[int]:
+    """Return the pitch sequence of a section's lead (most-note) part."""
+    lead = max(section.parts, key=lambda p: len(p.notes), default=None)
+    if lead is None:
+        return []
+    return [n.pitch for n in sorted(lead.notes, key=lambda n: n.start_beat)]
+
+
+def _compute_motif_development(score: ScoreIR, min_notes: int = 4) -> float | None:
+    """Measure whether a stated theme actually returns across sections.
+
+    Computes the maximum aligned pitch-sequence similarity between any two
+    distinct sections' lead melodies. A developed/recurring form (A→A′) scores
+    near 1.0; an in-key random walk with no returning material scores low
+    (empirically ≤0.3) — so, unlike histogram-based coherence, a random walk
+    genuinely *fails* this metric.
+
+    Args:
+        score: The ScoreIR to analyze.
+        min_notes: Minimum lead-melody notes for a section to count.
+
+    Returns:
+        Max cross-section similarity in [0, 1], or None when fewer than two
+        sections have enough melodic material to compare.
+    """
+    seqs = [p for p in (_section_lead_pitches(s) for s in score.sections) if len(p) >= min_notes]
+    if len(seqs) < 2:  # noqa: PLR2004
+        return None
+
+    best = 0.0
+    for i in range(len(seqs)):
+        for j in range(i + 1, len(seqs)):
+            a, b = seqs[i], seqs[j]
+            n = min(len(a), len(b))
+            if n == 0:
+                continue
+            similarity = sum(1 for k in range(n) if a[k] == b[k]) / n
+            best = max(best, similarity)
+    return best
+
+
+# Average per-transition voice motion (semitones) at/above which harmony is
+# considered to jump rather than connect. Block root-position triads move ~18;
+# voice-led motion is ~1–2. Maps avg motion → smoothness in [0, 1].
+_VL_MAX_MOTION = 15.0
+_HARMONY_ROLES = frozenset({"harmony", "pad", "rhythm"})
+
+
+def _compute_voice_leading_smoothness(score: ScoreIR, spec: CompositionSpec) -> float | None:
+    """Score how smoothly the harmony parts connect their chords.
+
+    Extracts each harmony/pad instrument's chord voicings (notes grouped by
+    onset) and measures average per-transition voice motion via
+    ``evaluate_voice_leading_smoothness``. Voice-led harmony moves ~1–2
+    semitones/transition (→ high score); block root-position lurches ~18
+    (→ low score).
+
+    Args:
+        score: The realized ScoreIR.
+        spec: The composition spec (used to identify harmony-role instruments).
+
+    Returns:
+        Smoothness in [0, 1], or None when there is no chordal harmony part
+        with at least two voicings.
+    """
+    from yao.verify.voice_leading_smoothness import evaluate_voice_leading_smoothness
+
+    harmony_instruments = {i.name for i in spec.instruments if i.role in _HARMONY_ROLES}
+    if not harmony_instruments:
+        return None
+
+    voicings: list[Voicing] = []
+    for section in score.sections:
+        for part in section.parts:
+            if part.instrument not in harmony_instruments:
+                continue
+            by_onset: dict[float, list[int]] = {}
+            for note in part.notes:
+                by_onset.setdefault(round(note.start_beat, 3), []).append(note.pitch)
+            for _onset, pitches in sorted(by_onset.items()):
+                if len(pitches) >= 2:  # noqa: PLR2004
+                    voicings.append(Voicing(pitches=tuple(sorted(pitches))))
+
+    if len(voicings) < 2:  # noqa: PLR2004
+        return None
+
+    avg_motion = evaluate_voice_leading_smoothness(voicings).average_motion
+    return max(0.0, min(1.0, 1.0 - avg_motion / _VL_MAX_MOTION))
 
 
 def evaluate_melody(score: ScoreIR) -> list[EvaluationScore]:
@@ -591,11 +703,73 @@ def evaluate_rhythm(score: ScoreIR) -> list[EvaluationScore]:
     return results
 
 
+def evaluate_aesthetic_dimension(
+    score: ScoreIR, plan: MusicalPlan, static_texture: bool = False
+) -> list[EvaluationScore]:
+    """Evaluate Huron-ITPRA aesthetic metrics (surprise/memorability/contrast/pacing).
+
+    Wires the previously-orphaned ``verify/aesthetic.py`` into the report so the
+    ``aesthetic`` dimension (0.20 weight) reflects real musical signal instead
+    of contributing nothing. All four metrics are in [0, 1].
+
+    Thresholds (empirically calibrated so competent output passes and
+    degenerate output — no recurrence, ignored tension arc, identical
+    sections — fails):
+      - surprise_index: moderate is ideal (Huron); TARGET_BAND 0.5 ±0.35.
+      - memorability_index: recurring material; AT_LEAST 0.15.
+      - contrast_index: some sectional differentiation; AT_LEAST 0.01
+        (near-zero means every section is effectively identical).
+      - pacing_index: realized tension tracks the plan; AT_LEAST 0.4.
+
+    Args:
+        score: The realized ScoreIR.
+        plan: The MusicalPlan the score was realized from (surprise,
+            memorability, and pacing require it).
+
+    Returns:
+        Four aesthetic EvaluationScores.
+    """
+    report = evaluate_aesthetics(score, plan)
+    scores = [
+        _score_via_goal(
+            "aesthetic",
+            "surprise_index",
+            report.surprise,
+            MetricGoal(type=MetricGoalType.TARGET_BAND, target=0.5, tolerance=0.35),
+        ),
+        _score_via_goal(
+            "aesthetic",
+            "memorability_index",
+            report.memorability,
+            MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.15),
+        ),
+        _score_via_goal(
+            "aesthetic",
+            "pacing_index",
+            report.pacing,
+            MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.4),
+        ),
+    ]
+    # Static-texture genres (ambient/drone) are intentionally low-contrast, so
+    # the contrast metric is omitted for them rather than dragging the score.
+    if not static_texture:
+        scores.append(
+            _score_via_goal(
+                "aesthetic",
+                "contrast_index",
+                report.contrast,
+                MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.01),
+            )
+        )
+    return scores
+
+
 def evaluate_score(
     score: ScoreIR,
     spec: CompositionSpec,
     trajectory: TrajectorySpec | None = None,
     genre_profile: UnifiedGenreProfile | None = None,
+    plan: MusicalPlan | None = None,
 ) -> EvaluationReport:
     """Run all evaluators on a ScoreIR.
 
@@ -606,16 +780,23 @@ def evaluate_score(
         genre_profile: Optional genre profile for dynamic weight override.
             When provided, evaluation.weights from the profile are used
             instead of the default _DIMENSION_WEIGHTS.
+        plan: Optional MusicalPlan. When provided, the aesthetic dimension
+            (surprise/memorability/contrast/pacing) is evaluated so the 0.20
+            aesthetic weight contributes real signal. When None (e.g. the
+            phrase_aware path or legacy callers), aesthetic is skipped — no
+            behavior change for existing callers.
 
     Returns:
         Complete EvaluationReport.
     """
-    # Resolve dimension weights from genre profile
+    # Resolve dimension weights from genre profile. Either explicit weights OR
+    # the percussion_centric flag triggers an override (previously the flag was
+    # ignored unless explicit weights were also present — a latent bug).
     weights: dict[str, float] | None = None
-    if genre_profile is not None and genre_profile.evaluation.weights:
+    if genre_profile is not None and (genre_profile.evaluation.weights or genre_profile.evaluation.percussion_centric):
         weights = dict(_DIMENSION_WEIGHTS)  # copy defaults
         weights.update(genre_profile.evaluation.weights)
-        # percussion_centric: reduce melody/harmony, boost rhythm
+        # percussion_centric: reduce melody/harmony, boost rhythm/structure.
         if genre_profile.evaluation.percussion_centric:
             weights["melody"] = 0.05
             weights["harmony"] = 0.05
@@ -630,4 +811,32 @@ def evaluate_score(
     tonal_sys = spec.effective_tonal_system() if spec is not None else None
     report.scores.extend(evaluate_harmony(score, tonal_system=tonal_sys))
     report.scores.extend(evaluate_rhythm(score))
+    if plan is not None:
+        static_texture = bool(genre_profile and genre_profile.evaluation.static_texture)
+        report.scores.extend(evaluate_aesthetic_dimension(score, plan, static_texture=static_texture))
+        # Thematic development: does a stated theme actually return? A random
+        # walk fails this; a developed A→A′ form passes. Plan-gated (like
+        # aesthetic) to stay additive for legacy plan-less callers.
+        motif_dev = _compute_motif_development(score)
+        if motif_dev is not None:
+            report.scores.append(
+                _score_via_goal(
+                    "melody",
+                    "motif_development_index",
+                    motif_dev,
+                    MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.5),
+                )
+            )
+        # Harmonic craft: do the harmony parts connect smoothly (voice-led)
+        # rather than lurch to root position on every change?
+        vl_smoothness = _compute_voice_leading_smoothness(score, spec)
+        if vl_smoothness is not None:
+            report.scores.append(
+                _score_via_goal(
+                    "harmony",
+                    "voice_leading_smoothness",
+                    vl_smoothness,
+                    MetricGoal(type=MetricGoalType.AT_LEAST, min_value=0.5),
+                )
+            )
     return report

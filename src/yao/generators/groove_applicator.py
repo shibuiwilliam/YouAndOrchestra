@@ -78,6 +78,41 @@ def _ms_to_beats(ms: float, bpm: float) -> float:
     return seconds_to_beats(seconds, bpm)
 
 
+# Off-beat 8th notes sit half a beat after the downbeat (0.5, 1.5, 2.5, ...).
+_OFFBEAT_8TH_FRACTION = 0.5
+_OFFBEAT_TOLERANCE = 0.01
+
+
+def _swing_shift_beats(start_beat: float, swing: float) -> float:
+    """Return the swing delay (in beats) for a note at ``start_beat``.
+
+    Swing delays the off-beat 8th notes of each beat, giving the long-short
+    pairing that produces a triplet/shuffle feel. Only off-beat 8ths (the
+    "and" of each beat) are shifted; downbeats and on-grid 16ths are left
+    alone. This mirrors ``drum_patterner._apply_swing`` so pitched
+    instruments and drums swing consistently.
+
+    Unlike ``microtiming`` (bounded to ±50 ms as a humanization feel), swing
+    is a structural subdivision shift and is intentionally larger; it is
+    bounded instead by the validated ``swing_ratio`` range.
+
+    Args:
+        start_beat: Absolute beat position of the note.
+        swing: Normalized swing amount, ``(swing_ratio - 0.5) * 2.0`` in
+            [0, 1]. 0.0 = straight (no shift).
+
+    Returns:
+        Delay in beats to add to ``start_beat`` (0.0 if not an off-beat 8th).
+    """
+    if swing <= 0.0:
+        return 0.0
+    fractional = start_beat % 1.0
+    if abs(fractional - _OFFBEAT_8TH_FRACTION) < _OFFBEAT_TOLERANCE:
+        # 0.5 → 0.5 + swing * 0.25 (matches the drum swing convention).
+        return swing * 0.25
+    return 0.0
+
+
 def apply_groove(
     score_ir: ScoreIR,
     groove: GrooveProfile,
@@ -110,7 +145,12 @@ def apply_groove(
     num, den = parse_time_signature(score_ir.time_signature)
     bpb = beats_per_bar_from_sig(num, den)
 
+    # Normalize swing_ratio (0.5=straight .. 0.75=hard) to a [0,1] amount,
+    # consistent with DrumsSpec.swing = (swing_ratio - 0.5) * 2.0.
+    swing_amount = max(0.0, min(1.0, (groove.swing_ratio - 0.5) * 2.0))
+
     adjusted_count = 0
+    swung_count = 0
     new_sections: list[Section] = []
 
     for section in score_ir.sections:
@@ -125,9 +165,16 @@ def apply_groove(
 
             new_notes: list[Note] = []
             for note in part.notes:
+                # Grid position for microtiming lookup uses the ORIGINAL onset
+                # so swing does not shift which 16th cell a note reads.
                 pos_16th = _beat_to_16th_position(note.start_beat, bpb)
 
-                # Microtiming offset
+                # Structural swing: delay off-beat 8ths (long-short feel).
+                swing_beats = _swing_shift_beats(note.start_beat, swing_amount)
+                if swing_beats > 0.0:
+                    swung_count += 1
+
+                # Microtiming offset (humanization feel, ±50 ms bounded).
                 offset_ms = groove.microtiming_at(pos_16th)
                 # Add jitter
                 if groove.timing_jitter_sigma > 0:
@@ -135,7 +182,7 @@ def apply_groove(
                     offset_ms += jitter_ms
 
                 offset_beats = _ms_to_beats(offset_ms, score_ir.tempo_bpm)
-                new_start = max(0.0, note.start_beat + offset_beats)
+                new_start = max(0.0, note.start_beat + swing_beats + offset_beats)
 
                 # Velocity multiplier
                 vel_mult = groove.velocity_mult_at(pos_16th)
@@ -180,6 +227,8 @@ def apply_groove(
         parameters={
             "groove_name": groove.name,
             "swing_ratio": groove.swing_ratio,
+            "swing_amount": round(swing_amount, 4),
+            "swung_notes": swung_count,
             "timing_jitter_sigma": groove.timing_jitter_sigma,
             "apply_to_all_instruments": groove.apply_to_all_instruments,
             "seed": seed,
@@ -189,6 +238,7 @@ def apply_groove(
             f"Applied ensemble groove '{groove.name}' to "
             f"{adjusted_count} notes across "
             f"{'all instruments' if groove.apply_to_all_instruments else 'drums only'}"
+            f"; swung {swung_count} off-beat 8th(s) at swing_ratio={groove.swing_ratio}"
         ),
     )
 

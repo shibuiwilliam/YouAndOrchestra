@@ -14,7 +14,7 @@ import pytest
 
 from tests.golden.comparison import assert_midi_match
 from tests.golden.tools.regenerate_goldens import GOLDEN_MATRIX, golden_filename
-from yao.generators.note.base import NOTE_REALIZERS
+from yao.generators.note.base import NOTE_REALIZERS, resolve_realizer_name
 from yao.generators.plan.orchestrator import PlanOrchestrator
 from yao.ir.trajectory import MultiDimensionalTrajectory
 from yao.reflect.provenance import ProvenanceLog
@@ -39,7 +39,9 @@ def _generate_midi(spec_name: str, seed: int, realizer: str, output_path: Path) 
         intent,
         prov,
     )
-    note_realizer = NOTE_REALIZERS[realizer]()
+    # Route legacy strategy names to their v2 realizers (P1.1/P4.4); the
+    # golden fixture names stay stable while the content is v2 output.
+    note_realizer = NOTE_REALIZERS[resolve_realizer_name(realizer)]()
     score = note_realizer.realize(plan, seed=seed, temperature=0.5, provenance=prov)
     write_midi(score, output_path)
 

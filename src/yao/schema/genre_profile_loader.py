@@ -149,10 +149,30 @@ def _adapt_system1(data: dict[str, Any]) -> UnifiedGenreProfile:
         instrumentation=GenreInstrumentationSection(
             preferred=data.get("preferred_instruments", []),
         ),
+        evaluation=_extract_evaluation(data),
         voicing_density_target=data.get("voicing_density_target", 4),
         bass_motion_style=data.get("bass_motion_style", "root_fifth"),
         typical_dynamics_range=data.get("typical_dynamics_range", ("mp", "f")),
         target_spectral_centroid=data.get("target_spectral_centroid", 0.5),
+    )
+
+
+def _extract_evaluation(data: dict[str, Any]) -> Any:
+    """Build a GenreEvaluationSection from an optional ``evaluation`` block.
+
+    Lets a genre YAML declare how it should be *judged* (dimension weights,
+    ``percussion_centric``) so genre-appropriate evaluation reaches
+    ``evaluate_score``. Absent → default (neutral) evaluation.
+    """
+    from yao.schema.genre_profile import GenreEvaluationSection
+
+    ev = data.get("evaluation")
+    if not isinstance(ev, dict):
+        return GenreEvaluationSection()
+    return GenreEvaluationSection(
+        weights={str(k): float(v) for k, v in ev.get("weights", {}).items()},
+        percussion_centric=bool(ev.get("percussion_centric", False)),
+        static_texture=bool(ev.get("static_texture", False)),
     )
 
 

@@ -169,7 +169,11 @@ Output generation.
 Analysis, critique, and evaluation.
 
 - Music lint (parallel fifths, voice leading)
-- Evaluator (6-dimension + genre-driven dynamic weights)
+- Evaluator (6-dimension + genre-driven dynamic weights). **v2.x:** the `aesthetic` dimension is
+  wired (surprise/memorability/contrast/pacing), plus `motif_development_index` (does a theme
+  return?) and `voice_leading_smoothness` — both calibrated so an in-key random walk *fails* them.
+  Genre-aware weighting: `percussion_centric` (beat genres) and `static_texture` (ambient omits the
+  contrast penalty). The loop keeps the **best** iteration and never logs no-op adaptations.
 - 34 critique rules across 15 categories (structural, harmonic, melodic, rhythmic, arrangement, emotional, memorability, genre_fitness + groove, surprise, hook, dynamics, conversation, metric_drift, tension, acoustic divergence)
 - Melody-harmony alignment metric (`verify/melody_harmony_alignment.py`)
 - Voice-leading smoothness metric (`verify/voice_leading_smoothness.py`)

@@ -35,6 +35,18 @@ _MINOR_DIATONIC_QUALITY: dict[int, str] = {
     6: "maj",  # VII (natural minor)
 }
 
+# The church modes are rotations of the major scale, so their diatonic triad
+# qualities are rotations of the major pattern. Previously every mode fell back
+# to the major table (making all modal chords major — wrong).
+_MODE_DIATONIC_QUALITY: dict[str, dict[int, str]] = {
+    "dorian": {0: "min", 1: "min", 2: "maj", 3: "maj", 4: "min", 5: "dim", 6: "maj"},
+    "phrygian": {0: "min", 1: "maj", 2: "maj", 3: "min", 4: "dim", 5: "maj", 6: "min"},
+    "lydian": {0: "maj", 1: "maj", 2: "min", 3: "dim", 4: "maj", 5: "min", 6: "min"},
+    "mixolydian": {0: "maj", 1: "min", 2: "dim", 3: "maj", 4: "min", 5: "min", 6: "maj"},
+    "aeolian": _MINOR_DIATONIC_QUALITY,  # natural minor
+    "locrian": {0: "dim", 1: "maj", 2: "min", 3: "min", 4: "maj", 5: "maj", 6: "min"},
+}
+
 # Roman numeral labels
 _ROMAN_NUMERALS: list[str] = ["I", "II", "III", "IV", "V", "VI", "VII"]
 
@@ -141,6 +153,8 @@ def diatonic_quality(degree: int, scale_type: str) -> str:
 
     if scale_type in ("minor", "harmonic_minor", "melodic_minor"):
         return _MINOR_DIATONIC_QUALITY[degree]
+    if scale_type in _MODE_DIATONIC_QUALITY:
+        return _MODE_DIATONIC_QUALITY[scale_type][degree]
     return _MAJOR_DIATONIC_QUALITY[degree]
 
 

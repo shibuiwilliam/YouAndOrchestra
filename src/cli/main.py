@@ -23,7 +23,7 @@ import yao.generators.rule_based as _rb  # noqa: F401
 import yao.generators.stochastic as _st  # noqa: F401
 import yao.generators.twelve_tone as _tt  # noqa: F401
 from yao.errors import RenderError, SpecValidationError, YaOError
-from yao.generators.registry import get_generator
+from yao.generators.legacy_adapter import generate_via_v2_pipeline
 from yao.render.audio_renderer import render_midi_to_wav
 from yao.render.iteration import next_iteration_dir
 from yao.render.midi_writer import write_midi
@@ -206,11 +206,13 @@ def compose(
         # 3c. Auto-inject theme recall for thematic coherence
         spec = inject_theme_recall(spec, pre_prov)
 
-        # 4. Generate (use registry to select generator by spec config)
+        # 4. Generate via the plan-consuming v2 pipeline (same as the
+        # Conductor) so `compose` gets theme development, cross-section recall,
+        # voice-led density-aware arrangement, walking bass, and authentic
+        # cadences — not the deprecated random-walk generator (P1.1/P4.4).
         strategy = spec.generation.strategy
         click.echo(f"Generating: {spec.title} ({spec.key}, {spec.tempo_bpm} BPM, strategy={strategy})")
-        generator = get_generator(strategy)
-        score, provenance = generator.generate(spec, traj)
+        score, _plan, provenance = generate_via_v2_pipeline(spec, traj)
         for record in pre_prov.records:
             provenance.add(record)
 
@@ -447,8 +449,7 @@ def evaluate(project_name: str) -> None:
     else:
         # Fallback: re-generate if MIDI not found
         click.echo("No MIDI found, re-generating for evaluation...")
-        generator = get_generator(spec.generation.strategy)
-        score, _ = generator.generate(spec, traj)
+        score, _plan, _prov = generate_via_v2_pipeline(spec, traj)
 
     eval_report = evaluate_score(score, spec, traj)
     click.echo(eval_report.summary())
@@ -556,9 +557,8 @@ def diff_cmd(spec_path: Path, seed_a: int, seed_b: int) -> None:
         spec_a = spec.model_copy(update={"generation": gen_a, "title": title_a})
         spec_b = spec.model_copy(update={"generation": gen_b, "title": title_b})
 
-        generator = get_generator("stochastic")
-        score_a, _ = generator.generate(spec_a)
-        score_b, _ = generator.generate(spec_b)
+        score_a, _plan_a, _prov_a = generate_via_v2_pipeline(spec_a)
+        score_b, _plan_b, _prov_b = generate_via_v2_pipeline(spec_b)
 
         result = diff_scores(score_a, score_b)
         click.echo(format_diff(result))
@@ -574,8 +574,7 @@ def explain(spec_path: Path, query: str | None) -> None:
     """Explain the provenance of a composition's generation decisions."""
     try:
         spec = _load_spec(spec_path)
-        generator = get_generator(spec.generation.strategy)
-        _, provenance = generator.generate(spec)
+        _score, _plan, provenance = generate_via_v2_pipeline(spec)
 
         if query:
             records = provenance.query_by_operation(query)
@@ -799,8 +798,7 @@ def preview(spec_path: Path, seed: int, soundfont: Path | None, save: Path | Non
     try:
         gen_config = spec.generation.model_copy(update={"seed": seed})
         gen_spec = spec.model_copy(update={"generation": gen_config})
-        generator = get_generator(gen_spec.generation.strategy)
-        score, prov = generator.generate(gen_spec)
+        score, _plan, prov = generate_via_v2_pipeline(gen_spec)
     except YaOError as e:
         raise click.ClickException(str(e)) from e
 
@@ -885,8 +883,7 @@ def watch(spec_path: Path, seed: int, soundfont: Path | None) -> None:
             spec = _load_spec(resolved)
             gen_config = spec.generation.model_copy(update={"seed": seed})
             gen_spec = spec.model_copy(update={"generation": gen_config})
-            generator = get_generator(gen_spec.generation.strategy)
-            score, _ = generator.generate(gen_spec)
+            score, _plan, _prov = generate_via_v2_pipeline(gen_spec)
 
             # Evaluate and show score
             eval_report = evaluate_score(score, gen_spec)
@@ -1496,14 +1493,12 @@ def ab_test_command(
     result_a = VariantResult(variant=variant_a)
     result_b = VariantResult(variant=variant_b)
 
-    generator = get_generator(spec.generation.strategy)
-
     click.echo(f"Running A/B test: {param_name} [{control_value} vs {treatment_value}], {seeds} seeds each")
 
     for seed in range(seeds):
         # Control
         ctrl_spec = spec.model_copy(update={"generation": spec.generation.model_copy(update={"seed": seed * 2})})
-        score_a, _ = generator.generate(ctrl_spec)
+        score_a, _plan_a, _prov_a = generate_via_v2_pipeline(ctrl_spec)
         eval_a = evaluate_score(score_a, ctrl_spec)
         score_val = getattr(eval_a, metric, 0.0) if hasattr(eval_a, metric) else 0.5
         result_a.scores.append(float(score_val))
@@ -1511,7 +1506,7 @@ def ab_test_command(
 
         # Treatment
         treat_spec = spec.model_copy(update={"generation": spec.generation.model_copy(update={"seed": seed * 2 + 1})})
-        score_b, _ = generator.generate(treat_spec)
+        score_b, _plan_b, _prov_b = generate_via_v2_pipeline(treat_spec)
         eval_b = evaluate_score(score_b, treat_spec)
         score_val_b = getattr(eval_b, metric, 0.0) if hasattr(eval_b, metric) else 0.5
         result_b.scores.append(float(score_val_b))

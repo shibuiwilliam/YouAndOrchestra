@@ -6,6 +6,15 @@ YaO is an agentic music production environment built on [Claude Code](https://do
 
 > Your vision. Your taste. Your soul. -- and an Orchestra ready to listen, respond, and surprise.
 
+> **Latest (v2.x quality program).** The plan-consuming realizer is now the default for **every** command
+> (`compose`, `conduct`, `evaluate`, `ab-test`, `explain`, `regenerate-section`, `morph`). By default YaO now
+> **states a theme and develops it** (cross-section recall), arranges it with **voice-led, density-aware
+> harmony**, gives beat-driven genres a **walking bass**, **resolves home with an authentic cadence**, and
+> renders correct **major / minor / modal** harmony. Evaluation measures real craft — `motif_development_index`,
+> `voice_leading_smoothness`, and the wired aesthetic dimension — with **genre-aware weighting**
+> (percussion-centric beats; static-texture ambient not penalized for low contrast). See
+> [`docs/STATUS.md`](docs/STATUS.md) for ground truth and [`PROJECT_IMPROVEMENT.md`](PROJECT_IMPROVEMENT.md) for the program.
+
 ---
 
 ## Quick Start
@@ -300,11 +309,16 @@ Every composition is automatically evaluated across 6 dimensions:
 | Dimension | Weight | What It Measures |
 |---|---|---|
 | Structure | 20% | Section contrast, bar count, rhythm variety |
-| Melody | 25% | Pitch range, stepwise motion, contour variety |
-| Harmony | 20% | Pitch class variety, consonance ratio |
-| Aesthetic | 20% | Surprise, memorability, contrast, pacing |
+| Melody | 25% | Pitch range, stepwise motion, contour variety, **motif development** (does a theme return?) |
+| Harmony | 20% | Pitch class variety, consonance ratio, **voice-leading smoothness** |
+| Aesthetic | 20% | Surprise, memorability, contrast, pacing (Huron ITPRA — now wired, not a placeholder) |
 | Arrangement | 10% | Texture variety, register separation |
 | Acoustics | 5% | Spectral balance, LUFS compliance |
+
+Dimension weights are **genre-aware**: percussion-centric genres (hip-hop, EDM, funk) weight rhythm/structure
+over melody/harmony; static-texture genres (ambient) omit the contrast penalty. `motif_development_index` and
+`voice_leading_smoothness` are calibrated so an in-key random walk *fails* them and developed, voice-led output
+passes.
 
 ### Acoustic Evaluation
 
@@ -593,7 +607,7 @@ make setup-soundfonts
 
 ```bash
 make all-checks     # Full quality pipeline
-make test           # All tests (3,702 tests across 285 files)
+make test           # All tests (4,000+ tests)
 make lint           # ruff + mypy strict
 make arch-lint      # Layer boundary enforcement (AST-based)
 make test-coupling  # Combination Stack tests
@@ -628,10 +642,12 @@ CI runs on every push and PR: lint, architecture lint, unit/integration/scenario
 
 | Document | Purpose |
 |---|---|
+| [docs/STATUS.md](docs/STATUS.md) | **Ground-truth ledger** — what actually exists on disk (read before trusting file/type references) |
 | [FEATURE_STATUS.md](FEATURE_STATUS.md) | Single source of truth for all capabilities |
 | [PROJECT.md](PROJECT.md) | Full architecture and design |
 | [CLAUDE.md](CLAUDE.md) | Development rules, current phase, escalation guide |
-| [IMPROVEMENT.md](IMPROVEMENT.md) | Gap analysis and roadmap |
+| [PROJECT_IMPROVEMENT.md](PROJECT_IMPROVEMENT.md) | The v2.x quality re-examination + program |
+| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Increment-by-increment delivery log |
 | [development/](development/) | API reference, generator guide, spec system, testing strategy, contributing |
 | [docs/](docs/) | User guides for CLI, composition specs, constraints, improvisation, A/B testing, DAW integration, vocals |
 

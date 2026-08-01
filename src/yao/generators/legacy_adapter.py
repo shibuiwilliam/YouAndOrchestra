@@ -10,7 +10,7 @@ Belongs to Layer 2 (Generation).
 from __future__ import annotations
 
 import yao.generators.note  # noqa: F401 — trigger realizer registration
-from yao.generators.note.base import NOTE_REALIZERS
+from yao.generators.note.base import NOTE_REALIZERS, resolve_realizer_name
 from yao.generators.plan.orchestrator import PlanOrchestrator
 from yao.ir.plan.musical_plan import MusicalPlan
 from yao.ir.score_ir import ScoreIR
@@ -44,9 +44,7 @@ def _v1_to_v2(spec: CompositionSpec) -> CompositionSpecV2:
         }
         for s in spec.sections
     ]
-    # Map v1 roles to v2-allowed roles (v2 doesn't have counter_melody)
-    _role_map = {"counter_melody": "melody"}
-    instruments = {inst.name: {"role": _role_map.get(inst.role, inst.role)} for inst in spec.instruments}
+    instruments = {inst.name: {"role": inst.role} for inst in spec.instruments}
 
     # Estimate duration
     total_bars = sum(s.bars for s in spec.sections)
@@ -125,11 +123,8 @@ def generate_via_v2_pipeline(
     """
     plan, provenance = build_plan_from_v1(spec, trajectory)
 
-    strategy = spec.generation.strategy
-    if strategy not in NOTE_REALIZERS:
-        # Fall back to rule_based if strategy not registered as realizer
-        strategy = "rule_based"
-
+    # Route legacy strategies to the plan-consuming v2 realizers (P1.1).
+    strategy = resolve_realizer_name(spec.generation.strategy)
     realizer = NOTE_REALIZERS[strategy]()
     seed = spec.generation.seed if spec.generation.seed is not None else 42
     temperature = spec.generation.temperature

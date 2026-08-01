@@ -16,6 +16,13 @@ import random
 from typing import TYPE_CHECKING
 
 from yao.constants.genre_profile import GenreProfile, get_genre_profile
+from yao.generators.note.accompaniment import (
+    build_recall_map,
+    develop_melody,
+    genre_melodic_variation,
+    instrument_roles,
+    realize_accompaniment_for_role,
+)
 from yao.generators.note.base import NoteRealizerBase, register_note_realizer
 from yao.generators.note.rule_based_v2 import (
     _apply_motif_transform,
@@ -24,8 +31,6 @@ from yao.generators.note.rule_based_v2 import (
     _parse_key,
     _tension_to_velocity,
 )
-from yao.ir.harmony import ChordFunction
-from yao.ir.harmony import realize as realize_chord
 from yao.ir.note import Note
 from yao.ir.plan.harmony import ChordEvent
 from yao.ir.plan.motif import MotifPlacement
@@ -108,19 +113,11 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
             rationale=f"V2 stochastic plan consumption (seed={seed}, temp={temperature}).",
         )
 
-        # Determine instruments
-        if plan.arrangement and plan.arrangement.assignments:
-            melody_assigns = [a for a in plan.arrangement.assignments if a.role == "melody"]
-            instruments = (
-                [a.instrument for a in melody_assigns]
-                if melody_assigns
-                else [plan.arrangement.assignments[0].instrument]
-            )
-        elif ctx.instruments:
-            instruments = [name for name, _role in ctx.instruments]
-        else:
-            instruments = ["piano"]
-        melody_instrument = instruments[0]
+        # Determine instruments WITH roles so non-melody instruments get
+        # accompaniment rendered from the chord plan (not dropped).
+        roster = instrument_roles(plan)
+        melody_names = [name for name, role in roster if role == "melody"]
+        melody_instrument = melody_names[0] if melody_names else roster[0][0]
 
         if plan.drums:
             provenance.record(
@@ -133,28 +130,103 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
 
         beats_per_bar = self._beats_per_bar(ctx.time_signature)
 
+        # Cross-section thematic recall: return sections restate the theme
+        # (honors ``recall_melody_from`` from the v1 spec, matching the legacy
+        # generator so ``thematic_development`` works on the v2 path too).
+        recall_map = build_recall_map(original_spec)
+        realized_melodies: dict[str, tuple[list[Note], float]] = {}
+        recall_counts: dict[str, int] = {}
+        allow_blue = bool(genre_profile and genre_profile.blue_note_probability > 0.0)
+
         sections: list[Section] = []
         carry_pitch = 60  # Carries across sections for continuity
         for section_plan in plan.form.sections:
-            section_notes, carry_pitch = self._realize_section(
-                section_plan=section_plan,
-                plan=plan,
-                key_root=key_root,
-                scale_type=scale_type,
-                beats_per_bar=beats_per_bar,
-                melody_instrument=melody_instrument,
-                rng=rng,
-                temperature=temperature,
-                provenance=provenance,
-                genre_profile=genre_profile,
-                carry_pitch=carry_pitch,
+            section_start_beat = section_plan.start_bar * beats_per_bar
+            recall_source = recall_map.get(section_plan.id)
+            if recall_source is not None and recall_source in realized_melodies:
+                src_notes, src_start = realized_melodies[recall_source]
+                recall_counts[recall_source] = recall_counts.get(recall_source, 0) + 1
+                variation = genre_melodic_variation(genre_profile, recall_counts[recall_source])
+                recall_chords = [ce for ce in plan.harmony.chord_events if ce.section_id == section_plan.id]
+                # Develop the theme (genre-aware variation) rather than copying it
+                # note-for-note — an exact restatement reads as monotony. The
+                # opening/closing notes anchor the theme so it stays recognizable.
+                section_notes = develop_melody(
+                    src_notes,
+                    src_start,
+                    section_start_beat,
+                    melody_instrument,
+                    key_root=key_root,
+                    scale_type=scale_type,
+                    section_chords=recall_chords,
+                    variation=variation,
+                    rng=rng,
+                    allow_blue=allow_blue,
+                )
+                if section_notes:
+                    carry_pitch = section_notes[-1].pitch
+                provenance.record(
+                    layer="generator",
+                    operation="thematic_recall_v2",
+                    parameters={
+                        "section": section_plan.id,
+                        "recalls": recall_source,
+                        "variation": round(variation, 3),
+                        "recall_index": recall_counts[recall_source],
+                    },
+                    source="StochasticNoteRealizerV2.realize",
+                    rationale=(
+                        f"Section '{section_plan.id}' develops the theme from "
+                        f"'{recall_source}' (variation={variation:.2f})."
+                    ),
+                )
+            else:
+                section_notes, carry_pitch = self._realize_section(
+                    section_plan=section_plan,
+                    plan=plan,
+                    key_root=key_root,
+                    scale_type=scale_type,
+                    beats_per_bar=beats_per_bar,
+                    melody_instrument=melody_instrument,
+                    rng=rng,
+                    temperature=temperature,
+                    provenance=provenance,
+                    genre_profile=genre_profile,
+                    carry_pitch=carry_pitch,
+                )
+            realized_melodies[section_plan.id] = (section_notes, section_start_beat)
+
+            section_chords = [ce for ce in plan.harmony.chord_events if ce.section_id == section_plan.id]
+            base_velocity = _tension_to_velocity(section_plan.target_tension)
+
+            walking_bass = bool(genre_profile and getattr(genre_profile, "bass_motion_style", "") == "walking")
+            velocity_boosts: dict[str, int] = (
+                {i.name: i.velocity_boost for i in original_spec.instruments} if original_spec else {}
             )
+            parts: list[Part] = [Part(instrument=melody_instrument, notes=tuple(section_notes))]
+            for name, role in roster:
+                if name == melody_instrument:
+                    continue  # already rendered as the lead melody
+                acc_notes = realize_accompaniment_for_role(
+                    role=role,
+                    instrument=name,
+                    section_chords=section_chords,
+                    key_root=key_root,
+                    scale_type=scale_type,
+                    base_velocity=base_velocity,
+                    beats_per_bar=beats_per_bar,
+                    density=section_plan.target_density,
+                    walking_bass=walking_bass,
+                    velocity_boost=velocity_boosts.get(name, 0),
+                )
+                parts.append(Part(instrument=name, notes=tuple(acc_notes)))
+
             sections.append(
                 Section(
                     name=section_plan.id,
                     start_bar=section_plan.start_bar,
                     end_bar=section_plan.end_bar(),
-                    parts=(Part(instrument=melody_instrument, notes=tuple(section_notes)),),
+                    parts=tuple(parts),
                 )
             )
 
@@ -203,11 +275,15 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         base_velocity = _tension_to_velocity(section_plan.target_tension)
         notes_per_beat = _density_to_notes_per_beat(section_plan.target_density)
 
-        # Extract motif interval shape for fill continuation
+        # Extract motif interval shape for fill continuation, scaled by the
+        # genre leap factor so the fill matches the (compressed/expanded) motif
+        # and doesn't reintroduce wide leaps the motif realization removed.
+        leap_prob = float(getattr(genre_profile, "leap_probability", 0.3)) if genre_profile else 0.3
+        leap_scale = max(0.5, min(1.2, 0.5 + leap_prob * 1.6))
         motif_intervals: list[int] = []
         if plan.motif and plan.motif.seeds:
             primary_seed = plan.motif.seeds[0]
-            motif_intervals = list(primary_seed.interval_shape)
+            motif_intervals = [int(round(iv * leap_scale)) for iv in primary_seed.interval_shape]
 
         # Motif placements first
         motif_beats: set[float] = set()
@@ -222,6 +298,7 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 section_chords,
                 rng,
                 temperature,
+                genre_profile,
             )
             for n in motif_notes:
                 motif_beats.add(n.start_beat)
@@ -267,6 +344,7 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 scale_type=scale_type,
                 motif_intervals=motif_intervals,
                 fill_step_index=fill_step_index,
+                genre_profile=genre_profile,
             )
             fill_step_index += 1
 
@@ -314,8 +392,16 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         section_chords: list[ChordEvent],
         rng: random.Random,
         temperature: float,
+        genre_profile: GenreProfile | None = None,
     ) -> list[Note]:
-        """Realize a motif with stochastic micro-variations."""
+        """Realize a motif with stochastic micro-variations.
+
+        The motif's interval shape is scaled by a genre leap factor so the same
+        seed reads as gentle and stepwise in ambient/downtempo genres and as
+        wide and angular in jazz/classical — without changing the motif's
+        contour (direction of each interval is preserved), so the theme and its
+        recalls stay recognizably the same idea.
+        """
         if plan.motif is None:
             return []
         seed_motif = plan.motif.seed_by_id(placement.motif_id)
@@ -339,13 +425,22 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
 
         root_pitch += placement.transposition
 
+        # Genre leap factor: compress interval magnitudes for stepwise genres,
+        # keep them wide for leapy ones (contour/sign preserved).
+        leap_prob = float(getattr(genre_profile, "leap_probability", 0.3)) if genre_profile else 0.3
+        leap_scale = max(0.5, min(1.2, 0.5 + leap_prob * 1.6))
+
         notes: list[Note] = []
         beat = placement.start_beat
         current_pitch = root_pitch
 
         for i, dur in enumerate(rhythm):
             if i < len(intervals):
-                current_pitch = root_pitch + intervals[i]
+                scaled_iv = int(round(intervals[i] * leap_scale))
+                # Preserve contour: never let scaling flip a real interval to 0.
+                if intervals[i] != 0 and scaled_iv == 0:
+                    scaled_iv = 1 if intervals[i] > 0 else -1
+                current_pitch = root_pitch + scaled_iv
             # Stochastic micro-variation on pitch
             if temperature > 0.3 and rng.random() < temperature * 0.3:
                 current_pitch += rng.choice([-1, 1])
@@ -380,6 +475,7 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         scale_type: str,
         motif_intervals: list[int],
         fill_step_index: int,
+        genre_profile: GenreProfile | None = None,
     ) -> int:
         """Choose a pitch biased by motif interval shape for thematic continuity.
 
@@ -388,11 +484,25 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         by temperature). This keeps the fill thematically related rather than
         producing a random walk. Falls back to chord-tone-biased selection when
         no motif is available.
+
+        Genre character is layered on top: ``leap_probability`` decides whether
+        this step reaches for a wider interval (jazz leaps vs. ambient steps),
+        and ``blue_note_probability`` adds b3/b5/b7 candidates with a bonus so
+        blues/jazz melodies pick up idiomatic colour. Both are no-ops when the
+        genre profile is absent, so non-genre generation is unchanged.
         """
         from yao.constants.music import SCALE_INTERVALS
+        from yao.ir.notation import note_name_to_midi
 
         if not chord_pitches:
             return last_pitch
+
+        leap_prob = float(getattr(genre_profile, "leap_probability", 0.0)) if genre_profile else 0.0
+        blue_prob = float(getattr(genre_profile, "blue_note_probability", 0.0)) if genre_profile else 0.0
+        blue_pcs: set[int] = set()
+        if blue_prob > 0.0:
+            root_pc = note_name_to_midi(f"{key_root}4") % 12
+            blue_pcs = {(root_pc + off) % 12 for off in (3, 6, 10)}
 
         # Build candidate set: chord tones + scale passing tones
         candidates: list[int] = []
@@ -402,19 +512,28 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
                 if 48 <= c <= 84:
                     candidates.append(c)
 
-        if temperature > 0.2 and scale_type in SCALE_INTERVALS:
-            from yao.ir.notation import note_name_to_midi
-
-            root = note_name_to_midi(f"{key_root}4")
+        root = note_name_to_midi(f"{key_root}4")
+        if temperature > 0.2 and scale_type in SCALE_INTERVALS:  # noqa: PLR2004
             scale = SCALE_INTERVALS[scale_type]
             for interval in scale:
                 for octave in (-12, 0, 12):
                     p = root + interval + octave
-                    if 48 <= p <= 84 and p not in candidates and rng.random() < temperature * 0.5:
+                    if 48 <= p <= 84 and p not in candidates and rng.random() < temperature * 0.5:  # noqa: PLR2004
                         candidates.append(p)
+
+        # Blue-note candidates (b3/b5/b7) for genres that use them.
+        for off in (3, 6, 10) if blue_pcs else ():
+            for octave in (-12, 0, 12):
+                p = root + off + octave
+                if 48 <= p <= 84 and p not in candidates:  # noqa: PLR2004
+                    candidates.append(p)
 
         if not candidates:
             candidates = chord_pitches
+
+        # Genre leap character: decide once per note whether to reach for a
+        # wider interval instead of the default stepwise preference.
+        want_leap = leap_prob > 0.0 and rng.random() < leap_prob
 
         # Compute motif-suggested target pitch
         motif_target: int | None = None
@@ -422,16 +541,29 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
             idx = fill_step_index % len(motif_intervals)
             suggested_interval = motif_intervals[idx]
             # Add temperature-scaled variation to the interval
-            if temperature > 0.1 and rng.random() < temperature * 0.4:
+            if temperature > 0.1 and rng.random() < temperature * 0.4:  # noqa: PLR2004
                 suggested_interval += rng.choice([-1, 0, 1])
+            # Register fold: an all-ascending motif shape cycled as a target
+            # marches the fill up to the ceiling (a monotony/leap artifact).
+            # Reflect the interval's direction when we drift out of a central
+            # tessitura so the melody breathes up and down instead.
+            if last_pitch >= 71 and suggested_interval > 0 or last_pitch <= 55 and suggested_interval < 0:  # noqa: PLR2004
+                suggested_interval = -suggested_interval
             motif_target = last_pitch + suggested_interval
 
         # Score candidates
         chord_pcs = {p % 12 for p in chord_pitches}
         scored: list[tuple[float, int]] = []
+        # Target interval size: leaping notes reach for ~a fifth, otherwise
+        # stepwise. Scoring the *distance from target* (not just "small is
+        # good") means low-leap genres genuinely favour steps and octave-
+        # displaced candidates are penalised — so ambient stays stepwise while
+        # jazz/classical leap. Previously all intervals >=5 scored equally,
+        # which let every genre leap indiscriminately.
+        target_interval = 6 if want_leap else 2
         for c in candidates:
             interval = abs(c - last_pitch)
-            step_score = max(0.0, 5.0 - interval)
+            step_score = max(0.0, 5.0 - abs(interval - target_interval))
             dir_score = 0.0
             if direction > 0 and c > last_pitch or direction < 0 and c < last_pitch:
                 dir_score = 2.0
@@ -443,7 +575,9 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
             if motif_target is not None:
                 dist = abs(c - motif_target)
                 motif_bonus = max(0.0, 4.0 - dist)  # Strong bonus for exact match
-            total = step_score + dir_score + chord_bonus + motif_bonus
+            # Blue-note colour bonus (scaled by how bluesy the genre is).
+            blue_bonus = blue_prob * 4.0 if c % 12 in blue_pcs else 0.0
+            total = step_score + dir_score + chord_bonus + motif_bonus + blue_bonus
             total += rng.gauss(0, temperature * 3)
             scored.append((total, c))
 
@@ -477,24 +611,15 @@ class StochasticNoteRealizerV2(NoteRealizerBase):
         return preceding[-1] if preceding else (chords[0] if chords else None)
 
     def _realize_chord_pitches(self, chord_event: ChordEvent, key_root: str, scale_type: str) -> list[int]:
-        """Convert a ChordEvent's roman numeral to MIDI pitches."""
-        from yao.ir.harmony import diatonic_quality
+        """Convert a ChordEvent's roman numeral to MIDI pitches.
 
-        roman_map = {"i": 0, "ii": 1, "iii": 2, "iv": 3, "v": 4, "vi": 5, "vii": 6}
-        cleaned = chord_event.roman.strip().replace("b", "").replace("#", "")
-        base = cleaned.rstrip("7").rstrip("maj").rstrip("dim").rstrip("aug")
-        degree = roman_map.get(base.lower(), 0)
-        quality = diatonic_quality(degree, scale_type)
-        if "7" in chord_event.roman:
-            quality = "dom7" if quality == "maj" else "min7"
+        Delegates to the shared ``accompaniment.chord_pitches`` so melody,
+        harmony, and bass agree on chord content (including the harmonic-minor
+        major-V) — avoiding a melody/harmony clash at cadences.
+        """
+        from yao.generators.note.accompaniment import chord_pitches
 
-        try:
-            return realize_chord(ChordFunction(degree=degree, quality=quality), key_root, scale_type, octave=4)
-        except Exception:
-            from yao.ir.notation import note_name_to_midi
-
-            root = note_name_to_midi(f"{key_root}4")
-            return [root, root + 4, root + 7]
+        return chord_pitches(chord_event, key_root, scale_type)
 
     def _beats_per_bar(self, time_signature: str) -> float:
         """Extract beats per bar from time signature string."""

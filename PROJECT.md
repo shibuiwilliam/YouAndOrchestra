@@ -29,6 +29,35 @@ The five major additions in v2.0 are:
 4. **Extended Harmonic and Melodic Vocabulary** — altered dominants, quartal, power chords, idiomatic phrases
 5. **Genre-Aware Evaluation and Iteration** — Conductor adapts based on genre-specific quality criteria
 
+### 0.2 The v2.x Quality Program (delivered 2026-07-26)
+
+> A 19-increment program re-centered YaO on musical craft (see `PROJECT_IMPROVEMENT.md`,
+> `IMPLEMENTATION_PLAN.md`, and the ground-truth ledger `docs/STATUS.md`). The core finding: the strongest
+> generative "brain" (the plan-consuming realizer) was built but unplugged while a random-walk generator was the
+> default. It is now the default for **every** command.
+
+What the default pipeline now produces, and how it is judged:
+
+- **States a theme and develops it** — cross-section thematic recall (`generation.thematic_development`), so
+  return sections restate the theme instead of wandering.
+- **Voice-led, density-aware arrangement** — melody + harmony + bass; harmony connects with minimal voice
+  motion and no unexempted parallels; busier sections get busier accompaniment (section contrast).
+- **Walking bass** for genres whose profile sets `bass_motion_style: walking` (jazz, blues, baroque).
+- **Authentic V–I cadences** at the piece end (harmony planner) + descriptive half-cadence annotation;
+  harmonic-minor **major-V** (leading tone) and **mode-correct** `diatonic_quality`.
+- **Real, calibrated evaluation** — the aesthetic dimension is wired (was a placeholder); `motif_development_index`
+  and `voice_leading_smoothness` are calibrated so an in-key random walk *fails* them; the directional metric
+  bug is fixed; the loop keeps the best iteration and never logs a no-op adaptation as applied.
+- **Genre-aware weighting** — `percussion_centric` (beat-driven genres), `static_texture` (ambient omits the
+  contrast penalty).
+
+The deprecated legacy note realizers were deleted; the legacy generators are `.. deprecated::` (test fixtures
+only). Quality on representative specs rose from ~6.6 to ~8.0 and, more importantly, output is *musically
+coherent* in ways surface statistics can't fake.
+
+**Status note:** §10 (Perception Substitute Layer) and the Layer-7 learning claims are *designed, not
+operational* — see the correction in §10 and `docs/STATUS.md`.
+
 ---
 
 ## 1. Metaphor: You and Orchestra
@@ -673,6 +702,17 @@ For genres where sidechain pumping is signature (house, trance, future bass), th
 ---
 
 ## 10. Perception Substitute Layer (Layer 4)
+
+> ⚠️ **STATUS CORRECTION (2026-07-26): this layer is DESIGNED, NOT OPERATIONAL.**
+> `perception/reference_matcher.py`, `style_vector.py`, and `psych_mapper.py`
+> exist but are **inert** — reachable only from unit tests, never wired into the
+> generation/selection loop. The reference library is self-generated (not a
+> rights-cleared corpus). Layer 7 learning (`reflect/style_profile.py`
+> `update_from_outcome`/`bias`) is likewise implemented-but-uncalled. Treat this
+> section as *aspirational*; see `docs/STATUS.md`. Recommendation from the
+> improvement program: either ingest a real public-domain corpus and wire
+> `StyleVector` similarity into candidate selection, or formally descope this
+> layer — do not ship a "hall of mirrors" that compares the system to itself.
 
 v1.0 had this layer designed but empty. v2.0 implements it with three components.
 

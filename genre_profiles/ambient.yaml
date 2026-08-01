@@ -65,3 +65,7 @@ motif_transformation_weights:
   fragment: 0.20
   ornament_remove: 0.15
   octave_displace: 0.15
+
+# Ambient is intentionally static/low-contrast — omit the contrast penalty.
+evaluation:
+  static_texture: true

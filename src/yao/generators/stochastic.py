@@ -1,5 +1,15 @@
 """Stochastic generator — controlled randomness for musically varied compositions.
 
+.. deprecated::
+    NOT IN THE PRODUCTION PATH. Every user-facing command (compose, conduct,
+    evaluate, ab-test, explain, regenerate-section, morph) now routes through
+    the plan-consuming v2 realizers via
+    ``generators.legacy_adapter.generate_via_v2_pipeline`` /
+    ``note.base.resolve_realizer_name``. This class survives only as a
+    test fixture and as the "random-walk baseline" for metric-discrimination
+    tests (e.g. ``test_motif_development.py``). Do not use it for generation.
+    See PROJECT_IMPROVEMENT.md §P1.1/§P4.4 and ``docs/STATUS.md``.
+
 Extends the rule-based approach with:
 - Melodic contour shaping (arch, ascending, descending, wave)
 - Interval variety (leaps, steps, rests)

@@ -19,11 +19,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "src"))
 
 # Trigger registrations
-import yao.generators.note.rule_based as _nrb  # noqa: F401, E402
-import yao.generators.note.stochastic as _nst  # noqa: F401, E402
 import yao.generators.rule_based as _rb  # noqa: F401, E402
 import yao.generators.stochastic as _st  # noqa: F401, E402
-from yao.generators.note.base import NOTE_REALIZERS  # noqa: E402
+from yao.generators.note.base import NOTE_REALIZERS, resolve_realizer_name  # noqa: E402
 from yao.generators.plan.orchestrator import PlanOrchestrator  # noqa: E402
 from yao.ir.trajectory import MultiDimensionalTrajectory  # noqa: E402
 from yao.reflect.provenance import ProvenanceLog  # noqa: E402
@@ -81,7 +79,7 @@ def generate_one(spec_name: str, seed: int, realizer: str) -> Path:
         prov,
     )
 
-    note_realizer = NOTE_REALIZERS[realizer]()
+    note_realizer = NOTE_REALIZERS[resolve_realizer_name(realizer)]()
     score = note_realizer.realize(plan, seed=seed, temperature=0.5, provenance=prov)
 
     out_path = EXPECTED_DIR / golden_filename(spec_name, seed, realizer)

@@ -7,6 +7,7 @@ the Conductor to autonomously iterate without human intervention.
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 
 from yao.schema.composition import CompositionSpec
@@ -360,6 +361,23 @@ def apply_adaptations(
             updates["sections"] = new_sections
         elif adaptation.field == "total_bars":
             updates["total_bars"] = int(adaptation.new_value)
+        elif adaptation.field == "sections.recall_melody_from.last":
+            # Inject theme recall on the last section (new_value = source name).
+            prior_sections = updates.get("sections")
+            base_sections = prior_sections if prior_sections is not None else spec.sections
+            new_sections = list(base_sections)  # type: ignore[call-overload]
+            if new_sections:
+                new_sections[-1] = new_sections[-1].model_copy(
+                    update={"recall_melody_from": adaptation.new_value},
+                )
+                updates["sections"] = new_sections
+        elif adaptation.field == "tempo_bpm":
+            # Only concrete numeric targets are applied here; sentinel values
+            # (e.g. "genre_default") are not resolvable at this layer and are
+            # reported as dropped by ``is_adaptation_applicable`` rather than
+            # silently ignored.
+            with contextlib.suppress(TypeError, ValueError):
+                updates["tempo_bpm"] = float(adaptation.new_value)
 
     if gen_updates:
         new_gen = spec.generation.model_copy(update=gen_updates)
@@ -369,6 +387,46 @@ def apply_adaptations(
         return spec
 
     return spec.model_copy(update=updates)
+
+
+def is_adaptation_applicable(
+    adaptation: SpecAdaptation,
+    spec: CompositionSpec,
+) -> bool:
+    """Report whether ``apply_adaptations`` can actually act on an adaptation.
+
+    ``apply_adaptations`` silently ignores fields it does not handle. That is
+    a violation of the "no silent fallbacks" rule when the caller records the
+    adaptation as *applied* in provenance. This predicate lets the caller
+    distinguish genuinely-applied adaptations from unsupported ones so the
+    latter can be recorded as ``adaptation_dropped`` instead.
+
+    Args:
+        adaptation: The proposed adaptation.
+        spec: The spec it would be applied to (for value-dependent checks).
+
+    Returns:
+        True if applying it would (or reliably could) mutate the spec.
+    """
+    field = adaptation.field
+    if field in ("generation.temperature", "generation.strategy", "generation.seed"):
+        return True
+    if field in ("sections.dynamics", "total_bars", "sections.recall_melody_from.last"):
+        return True
+    if field.startswith("sections.dynamics."):
+        try:
+            idx = int(field.split(".")[-1])
+        except ValueError:
+            return False
+        return 0 <= idx < len(spec.sections)
+    if field == "tempo_bpm":
+        # Only numeric targets are resolvable at this layer.
+        try:
+            float(adaptation.new_value)
+        except (TypeError, ValueError):
+            return False
+        return True
+    return False
 
 
 def suggest_adaptations_from_findings(

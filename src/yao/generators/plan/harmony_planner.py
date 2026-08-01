@@ -8,11 +8,15 @@ Belongs to Layer 2 (Generation).
 
 from __future__ import annotations
 
+import random
 import re
+import zlib
+from dataclasses import replace
 from typing import Any
 
 from yao.constants.genre_profile import GenreProfile, get_genre_profile
 from yao.generators.plan.base import PlanGeneratorBase, register_plan_generator
+from yao.generators.thematic_recall import _section_stem
 from yao.ir.plan.harmony import (
     CadenceRole,
     ChordEvent,
@@ -138,6 +142,76 @@ def _select_chord_by_tension(
     return palette[position % len(palette)]
 
 
+def _genre_progression(
+    palette: list[str],
+    n_grams: dict[tuple[str, str], float],
+    length: int,
+    start_roman: str,
+    rng: random.Random,
+) -> list[str]:
+    """Genre-idiomatic roman-level progression via a first-order Markov walk.
+
+    Walks the genre's ``progression_n_grams`` (roman → roman, so chord quality
+    like ``ii7``/``Imaj7`` is preserved) starting from ``start_roman``. Where a
+    chord has no outgoing transition, steps to the next palette entry (avoiding
+    an immediate repeat) so the line keeps moving instead of stalling. This is
+    what makes each section's harmony *flow* like the genre rather than cycling
+    the flat palette identically in every section.
+
+    Args:
+        palette: The genre/spec chord palette (roman numerals with quality).
+        n_grams: ``{(from_roman, to_roman): weight}`` transition table.
+        length: Number of chords to produce.
+        start_roman: The section's opening chord.
+        rng: Seeded RNG (seed derives from the section stem for reproducibility
+            and cross-section coherence).
+
+    Returns:
+        A list of roman numerals of length ``length``.
+    """
+    if not palette:
+        return []
+    transitions: dict[str, list[tuple[str, float]]] = {}
+    for (frm, to), weight in n_grams.items():
+        transitions.setdefault(frm, []).append((to, weight))
+    seq = [start_roman if start_roman in palette else palette[0]]
+    for _ in range(max(0, length - 1)):
+        current = seq[-1]
+        options = transitions.get(current)
+        if options:
+            chords, weights = zip(*options, strict=True)
+            seq.append(rng.choices(list(chords), weights=list(weights), k=1)[0])
+        elif current in palette and len(palette) > 1:
+            seq.append(palette[(palette.index(current) + 1) % len(palette)])
+        else:
+            seq.append(palette[0])
+    return seq
+
+
+def _contrast_start_chord(palette: list[str], variant: int) -> str:
+    """Choose a section's opening chord by contrast rank.
+
+    The home material (``variant`` 0) opens on the palette's first chord (its
+    tonic); each successive *distinct* section opens on a progressively more
+    distant palette chord, so a bridge does not begin on the same chord the
+    verse did. Same-stem returns share a variant, so they share a start.
+
+    Args:
+        palette: The chord palette.
+        variant: 0 for home material, 1+ for each contrasting section.
+
+    Returns:
+        The opening roman numeral.
+    """
+    if not palette or variant <= 0:
+        return palette[0] if palette else "I"
+    step = max(1, len(palette) // 3)
+    idx = (variant * step) % len(palette)
+    if palette[idx] == palette[0]:
+        idx = (idx + 1) % len(palette)
+    return palette[idx]
+
+
 @register_plan_generator("rule_based_harmony")
 class RuleBasedHarmonyPlanner(PlanGeneratorBase):
     """Deterministic harmony planner using spec chord palette and cadences."""
@@ -205,12 +279,42 @@ class RuleBasedHarmonyPlanner(PlanGeneratorBase):
         beats_per_bar = _parse_beats_per_bar(spec.global_.time_signature)
         current_bar = 0
 
+        # Section-aware harmonic variation (anti-monotony): drive each section's
+        # progression from the genre's n-gram transitions, seeded by the section
+        # *stem*. Distinct stems (verse vs. bridge) get distinct, contrasting
+        # progressions; same-stem returns (A / A') share a seed and opening
+        # chord, so their harmony matches — a coherent return, not a fourth
+        # identical loop. Genres without n-grams keep the exact palette-cycling
+        # behavior (no change).
+        base_seed = spec.generation.seed if spec.generation.seed is not None else 42
+        genre_ngrams: dict[tuple[str, str], float] = dict(genre_profile.progression_n_grams) if genre_profile else {}
+        use_genre_prog = bool(genre_ngrams) and len(palette) > 1
+        stem_variant: dict[str, int] = {}
+        for s in spec.form.sections:
+            stem = _section_stem(s.id)
+            if stem not in stem_variant:
+                stem_variant[stem] = len(stem_variant)
+
         for section_spec in spec.form.sections:
             section_id = section_spec.id
             section_bars = section_spec.bars
 
             # Determine chords per bar from harmonic rhythm
             chords_per_bar = _parse_chords_per_bar(spec_rhythms.get(section_id, ""))
+
+            # Precompute this section's genre progression (if applicable).
+            section_prog: list[str] | None = None
+            if use_genre_prog:
+                section_stem = _section_stem(section_id)
+                variant = stem_variant.get(section_stem, 0)
+                sec_seed = base_seed ^ (zlib.crc32(section_stem.encode()) & 0xFFFFFFFF)
+                section_prog = _genre_progression(
+                    palette,
+                    genre_ngrams,
+                    section_bars * chords_per_bar,
+                    _contrast_start_chord(palette, variant),
+                    random.Random(sec_seed),
+                )
 
             for bar in range(section_bars):
                 absolute_bar = current_bar + bar
@@ -221,9 +325,13 @@ class RuleBasedHarmonyPlanner(PlanGeneratorBase):
                     chord_beat = bar_beat + chord_idx * (beats_per_bar / chords_per_bar)
                     chord_dur = beats_per_bar / chords_per_bar
 
-                    # Pick chord from palette, biased by tension
+                    # Pick chord: genre-idiomatic progression when available, but
+                    # still honour the trajectory — climaxes inject tension chords.
                     position = bar * chords_per_bar + chord_idx
-                    roman = _select_chord_by_tension(palette, position, tension)
+                    if section_prog is not None and position < len(section_prog) and tension < _TENSION_VERY_HIGH:
+                        roman = section_prog[position]
+                    else:
+                        roman = _select_chord_by_tension(palette, position, tension)
 
                     # Determine cadence role for last chord in section
                     cadence_role = None
@@ -244,6 +352,51 @@ class RuleBasedHarmonyPlanner(PlanGeneratorBase):
                     )
 
             current_bar += section_bars
+
+        # Authentic cadence for harmonic closure: end the piece on the tonic
+        # (I), approached by the dominant (V) — unless the spec already set an
+        # explicit cadence for the final section. Without this the final chord
+        # is tension-picked and the piece rarely resolves home.
+        if spec.form.sections and chord_events:
+            final_section_id = spec.form.sections[-1].id
+            if final_section_id not in cadences:
+                final_idxs = sorted(
+                    (i for i, ce in enumerate(chord_events) if ce.section_id == final_section_id),
+                    key=lambda i: chord_events[i].start_beat,
+                )
+                if final_idxs:
+                    last_i = final_idxs[-1]
+                    chord_events[last_i] = replace(
+                        chord_events[last_i],
+                        roman="I",
+                        function=HarmonicFunction.TONIC,
+                        cadence_role=CadenceRole.AUTHENTIC,
+                    )
+                    if len(final_idxs) >= 2:  # noqa: PLR2004
+                        pen_i = final_idxs[-2]
+                        chord_events[pen_i] = replace(
+                            chord_events[pen_i],
+                            roman="V",
+                            function=HarmonicFunction.DOMINANT,
+                        )
+                    cadences[final_section_id] = CadenceRole.AUTHENTIC
+
+        # Descriptive half cadences: annotate (without changing chords) any
+        # non-final section that already ends on a dominant-function chord as a
+        # HALF cadence, so the form's cadential structure is explicit for
+        # analysis/critique. Prescriptive half cadences (forcing V) need
+        # phrase-period structure and are intentionally not done here.
+        final_id = spec.form.sections[-1].id if spec.form.sections else None
+        by_section: dict[str, list[int]] = {}
+        for i, ce in enumerate(chord_events):
+            by_section.setdefault(ce.section_id, []).append(i)
+        for section_id, idxs in by_section.items():
+            if section_id == final_id or section_id in cadences:
+                continue
+            last_i = max(idxs, key=lambda i: chord_events[i].start_beat)
+            if chord_events[last_i].function == HarmonicFunction.DOMINANT and chord_events[last_i].cadence_role is None:
+                chord_events[last_i] = replace(chord_events[last_i], cadence_role=CadenceRole.HALF)
+                cadences[section_id] = CadenceRole.HALF
 
         # Tension resolution points: end of each section
         resolution_points = [

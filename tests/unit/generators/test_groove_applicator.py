@@ -229,3 +229,82 @@ class TestGrooveApplicator:
         assert grooved.tempo_bpm == score.tempo_bpm
         assert grooved.time_signature == score.time_signature
         assert grooved.key == score.key
+
+
+class TestSwingApplication:
+    """Swing (swing_ratio) must actually shift off-beat 8th notes (P0.3).
+
+    Regression for the swing dead-wire: swing_ratio was recorded to
+    provenance but never applied to pitched-note timing.
+    """
+
+    def _offbeat_score(self) -> ScoreIR:
+        """A single part with notes on every 8th (beats 0, 0.5, 1, 1.5, ...)."""
+        notes = tuple(
+            Note(
+                pitch=60,
+                start_beat=i * 0.5,
+                duration_beats=0.25,
+                velocity=80,
+                instrument="piano",
+            )
+            for i in range(8)
+        )
+        section = Section(
+            name="s",
+            start_bar=0,
+            end_bar=1,
+            parts=(Part(instrument="piano", notes=notes),),
+        )
+        return ScoreIR(
+            title="swing",
+            tempo_bpm=120.0,
+            time_signature="4/4",
+            key="C major",
+            sections=(section,),
+        )
+
+    def test_offbeat_eighths_are_delayed(self) -> None:
+        """Off-beat 8ths (0.5, 1.5, ...) shift later; downbeats stay put."""
+        score = self._offbeat_score()
+        # No microtiming/jitter so we isolate the swing effect.
+        groove = _make_groove(microtiming={}, velocity_pattern={}, swing_ratio=0.667)
+        grooved, _ = apply_groove(score, groove)
+
+        starts = sorted(n.start_beat for n in grooved.all_notes())
+        # swing_amount = (0.667 - 0.5) * 2 = 0.334; shift = 0.334 * 0.25 ≈ 0.0835
+        expected_shift = (0.667 - 0.5) * 2.0 * 0.25
+        # On-beat notes (0.0, 1.0, 2.0, 3.0) unchanged.
+        for onbeat in (0.0, 1.0, 2.0, 3.0):
+            assert any(abs(s - onbeat) < 1e-6 for s in starts), f"on-beat {onbeat} missing/moved"
+        # Off-beat notes moved to 0.5+shift, 1.5+shift, ...
+        for offbeat in (0.5, 1.5, 2.5, 3.5):
+            target = offbeat + expected_shift
+            assert any(abs(s - target) < 1e-6 for s in starts), f"off-beat {offbeat} not swung to {target}"
+
+    def test_straight_groove_leaves_offbeats_unchanged(self) -> None:
+        """swing_ratio=0.5 (straight) shifts nothing."""
+        score = self._offbeat_score()
+        groove = _make_groove(microtiming={}, velocity_pattern={}, swing_ratio=0.5)
+        grooved, _ = apply_groove(score, groove)
+
+        orig = sorted(n.start_beat for n in score.all_notes())
+        got = sorted(n.start_beat for n in grooved.all_notes())
+        assert orig == got
+
+    def test_swing_recorded_in_provenance(self) -> None:
+        """Provenance reports how many off-beats were swung."""
+        score = self._offbeat_score()
+        groove = _make_groove(microtiming={}, velocity_pattern={}, swing_ratio=0.667)
+        _, prov = apply_groove(score, groove)
+        rec = next(r for r in prov.records if r.operation == "groove_application")
+        assert rec.parameters["swung_notes"] == 4
+        assert rec.parameters["swing_amount"] > 0.0
+
+    def test_swing_is_deterministic(self) -> None:
+        """Same inputs → identical swung output."""
+        score = self._offbeat_score()
+        groove = _make_groove(microtiming={}, velocity_pattern={}, swing_ratio=0.6)
+        a, _ = apply_groove(score, groove, seed=1)
+        b, _ = apply_groove(score, groove, seed=1)
+        assert [n.start_beat for n in a.all_notes()] == [n.start_beat for n in b.all_notes()]

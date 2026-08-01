@@ -4,6 +4,12 @@ This is the MVP generator for Phase 0. It produces musically valid
 compositions using simple rules: scale-based melodies, root-note bass lines,
 and diatonic chord progressions. No randomness — fully deterministic for
 a given spec, which enables golden tests.
+
+.. deprecated::
+    NOT IN THE PRODUCTION PATH — superseded by the plan-consuming v2 realizers
+    (``rule_based_v2``). Every user-facing command routes through
+    ``generate_via_v2_pipeline`` now. This class survives only as a test
+    fixture. See PROJECT_IMPROVEMENT.md §P1.1/§P4.4 and ``docs/STATUS.md``.
 """
 
 from __future__ import annotations

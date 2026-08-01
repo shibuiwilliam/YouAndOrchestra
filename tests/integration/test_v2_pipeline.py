@@ -6,8 +6,6 @@ legacy adapter correctly bridges v1 specs to the v2 pipeline.
 
 from __future__ import annotations
 
-import yao.generators.note.rule_based as _nrb  # noqa: F401
-import yao.generators.note.stochastic as _nst  # noqa: F401
 import yao.generators.rule_based as _rb  # noqa: F401
 import yao.generators.stochastic as _st  # noqa: F401
 from yao.generators.legacy_adapter import build_plan_from_v1, generate_via_v2_pipeline
@@ -67,7 +65,7 @@ class TestV2Pipeline:
         prov = ProvenanceLog()
 
         plan = PlanOrchestrator().build_plan(spec, traj, intent, prov)
-        realizer = NOTE_REALIZERS["rule_based"]()
+        realizer = NOTE_REALIZERS["rule_based_v2"]()
         score = realizer.realize(plan, seed=42, temperature=0.5, provenance=prov)
 
         assert score.title
@@ -81,7 +79,7 @@ class TestV2Pipeline:
         prov = ProvenanceLog()
 
         plan = PlanOrchestrator().build_plan(spec, traj, intent, prov)
-        realizer = NOTE_REALIZERS["stochastic"]()
+        realizer = NOTE_REALIZERS["stochastic_v2"]()
         score = realizer.realize(plan, seed=42, temperature=0.5, provenance=prov)
 
         assert len(score.all_notes()) > 0
@@ -95,7 +93,7 @@ class TestV2Pipeline:
         for _ in range(2):
             prov = ProvenanceLog()
             plan = PlanOrchestrator().build_plan(spec, traj, intent, prov)
-            realizer = NOTE_REALIZERS["stochastic"]()
+            realizer = NOTE_REALIZERS["stochastic_v2"]()
             score = realizer.realize(plan, seed=42, temperature=0.5, provenance=prov)
             scores.append(score)
 
@@ -159,5 +157,9 @@ class TestRegistries:
         assert "rule_based_harmony" in PLAN_GENERATORS
 
     def test_note_realizers_registered(self) -> None:
-        assert "rule_based" in NOTE_REALIZERS
-        assert "stochastic" in NOTE_REALIZERS
+        # Only the plan-consuming v2 realizers remain; legacy discard realizers
+        # were retired (P4.4). Legacy strategy names route to these.
+        assert "rule_based_v2" in NOTE_REALIZERS
+        assert "stochastic_v2" in NOTE_REALIZERS
+        assert "stochastic" not in NOTE_REALIZERS
+        assert "rule_based" not in NOTE_REALIZERS

@@ -2,6 +2,14 @@
 
 > *Read this file at session start. Detailed guides are in `.claude/guides/`.*
 > *In case of conflict: CLAUDE.md > PROJECT.md > other docs.*
+>
+> ⚠️ **BEFORE trusting any file path or type name below, read [`docs/STATUS.md`](docs/STATUS.md).**
+> Parts of this document (the Key directories/types block, §19 genre evaluators,
+> DrumNote/DrumPart, VoicingStyle, phrase_library, and the note realizers) describe
+> a system that differs from what is on disk. `docs/STATUS.md` is the ground-truth
+> ledger and **wins** for "does X exist / how does it actually work." The default
+> generation path is now the plan-consuming **v2 realizer** (theme development,
+> cross-section recall, voice-led arrangement, walking bass, authentic cadences).
 
 ---
 
@@ -195,7 +203,12 @@ v2.0 deepens each principle (see PROJECT.md §2.1). When you face a tradeoff tha
 
 ## Current Phase
 
-**Phase 2 — Diversity Foundation** (months 1–3 of v2.0)
+**Phase 2 — Diversity Foundation** (months 1–3 of v2.0), plus the **v2.x Quality Program** (Increments 1–19, delivered 2026-07-26).
+
+> The v2.x program re-centered YaO on musical craft: the plan-consuming realizer is the default across all
+> commands, producing theme development, voice-led density-aware arrangement, walking bass, and authentic
+> cadences, judged by real calibrated metrics with genre-aware weighting. The lists below predate that program
+> and describe some components by names that differ on disk — **`docs/STATUS.md` is the ground truth.**
 
 ### What EXISTS (carried from Phase 1)
 
@@ -452,6 +465,9 @@ Do not introduce changes that exceed these budgets without discussion.
 
 ## Recent Changes
 
+* **2026-07-28**: **Section-aware genre harmony** (anti-monotony, harmonic axis). Every section used to cycle the *identical* palette progression (`position` reset per section); now each section's chords come from a roman-level Markov walk over the genre's `progression_n_grams` (quality preserved), seeded by the section name-stem — so verse/bridge/chorus get **contrasting** progressions (different opening chords) while same-stem returns (A / A′) share harmony (coherent A-B-A form, 1/4 → 4/4 distinct section progressions). Climaxes still inject tension chords; the final authentic cadence still resolves home; genres without n-grams keep palette cycling. New: `harmony_planner._genre_progression`, `_contrast_start_chord`. 11 goldens regenerated; +6 tests (`tests/unit/generators/test_harmonic_variation.py`).
+* **2026-07-27**: **Genre-aware melodic variation** (anti-monotony). Return sections now *develop* the theme (`accompaniment.develop_melody` + `genre_melodic_variation`) instead of exact `restate_melody` copies — cross-section similarity drops from a monotonous 1.00 to a genre-appropriate ~0.6–0.96 (jazz reworks freely, ambient stays near-intact), staying above the `motif_development_index` floor and intensifying with each successive return. The within-section fill and motif realization now honour genre `leap_probability` (leap-scaled interval target: stepwise ambient vs. angular classical) and `blue_note_probability` (b3/b5/b7 colour), with a register fold that stops a rising motif shape marching to the ceiling. 11 goldens regenerated; +8 tests (`tests/unit/generators/test_melodic_variation.py`). `restate_melody` retained for exact-copy callers.
+* **2026-07-26**: **v2.x Quality Program (Increments 1–19).** The plan-consuming **v2 realizer is now the default for every command** (`compose`, `conduct`, `evaluate`, `ab-test`, `explain`, `regenerate-section`, `morph`) via `note.base.resolve_realizer_name` + `generate_via_v2_pipeline`. Delivered: automatic thematic recurrence (`generation.thematic_development`), voice-led density-aware arrangement (melody+harmony+bass), walking bass (`bass_motion_style: walking`), authentic V–I cadences (harmony planner) + descriptive half cadences, harmonic-minor major-V and mode-correct `diatonic_quality`. Evaluation: aesthetic dimension wired, `motif_development_index` + `voice_leading_smoothness` added, directional `passed` fixed, keep-best iteration, no silent no-op adaptations, swing applied; genre-aware weighting (`percussion_centric`, `static_texture`). Legacy **note realizers deleted**; legacy `StochasticGenerator`/`RuleBasedGenerator` marked `.. deprecated::` (test-only). Docs: added `docs/STATUS.md` (ground truth). ~4000 tests green. See `PROJECT_IMPROVEMENT.md`, `IMPLEMENTATION_PLAN.md`, `docs/STATUS.md`.
 * **2026-05-16**: Phase 5: 31 new tests (ab_test, project_fingerprint, vocal_synth_bridge), genre-development + drum-development guides, 4 user docs (improvise, ab-testing, daw-integration, vocal).
 * **2026-05-16**: Phase 4 complete: A/B testing framework, project fingerprinting, vocal synthesis bridge, DAW MCP bridge (Reaper TCP), yao improvise + yao ab-test CLI commands.
 * **2026-05-16**: Phase 3 complete: synth instruments expanded (4→24 GM synths), vocal schema (VocalSpec + vocal_lead role), outcome-based learning in Layer 7 (update_from_outcome).

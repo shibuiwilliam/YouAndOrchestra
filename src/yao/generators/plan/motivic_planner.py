@@ -149,8 +149,12 @@ class MotivicPlanner(PlanGeneratorBase):
             )
             seeds.append(secondary_seed)
 
-        # Place motifs across sections with motif schedule
-        beats_per_bar = 4.0  # Default; ideally from spec
+        # Place motifs across sections with motif schedule. Derive beats-per-bar
+        # from the spec's meter so motif placements align with the section grid;
+        # non-4/4 meters (e.g. a 3/4 waltz) previously desynced the melody from
+        # its accompaniment because this was hardcoded to 4.0.
+        ts_parts = spec.global_.time_signature.split("/")
+        beats_per_bar = float(ts_parts[0]) if len(ts_parts) == 2 else 4.0
         current_beat = 0.0
 
         for i, section in enumerate(form_sections):

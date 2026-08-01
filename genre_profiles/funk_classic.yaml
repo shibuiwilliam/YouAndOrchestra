@@ -57,3 +57,8 @@ tempo_range:
 default_drum_pattern: funk_16th
 requires_drums: true
 default_groove: funk_16th
+
+# Genre-appropriate evaluation: beat-driven genre — weight rhythm/structure
+# over melodic/harmonic sophistication (P2.4).
+evaluation:
+  percussion_centric: true

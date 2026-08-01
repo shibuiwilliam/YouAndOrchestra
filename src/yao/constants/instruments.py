@@ -41,6 +41,7 @@ INSTRUMENT_RANGES: dict[str, InstrumentRange] = {
     "organ": InstrumentRange("organ", 36, 96, 19, "keyboard"),
     "hammond_organ": InstrumentRange("hammond_organ", 36, 96, 16, "keyboard"),
     "rock_organ": InstrumentRange("rock_organ", 36, 96, 18, "keyboard"),
+    "accordion": InstrumentRange("accordion", 53, 93, 21, "keyboard"),
     # Strings
     "violin": InstrumentRange("violin", 55, 103, 40, "strings"),
     "viola": InstrumentRange("viola", 48, 93, 41, "strings"),

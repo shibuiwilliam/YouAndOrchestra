@@ -2,6 +2,13 @@
 
 **YaO** is an agentic music production environment reachable through **three peer surfaces** — Claude Code (interactive), a Click-based CLI (scriptable), and the Claude Agent SDK for Python (programmatic). It transforms natural language descriptions into complete, multi-instrument compositions through a pipeline of AI subagents, music theory engines, and adversarial critique. The same orchestra plays in every venue.
 
+> **Latest (v2.x quality program).** The plan-consuming realizer is now the default across **every** surface and
+> command. By default YaO **states a theme and develops it** (cross-section recall), arranges it with
+> **voice-led, density-aware harmony**, gives beat-driven genres a **walking bass**, **resolves home with an
+> authentic cadence**, and renders correct **major / minor / modal** harmony. Evaluation measures real craft
+> (`motif_development_index`, `voice_leading_smoothness`, the wired aesthetic dimension) with **genre-aware
+> weighting**. See [`STATUS.md`](STATUS.md) for the ground-truth ledger of what actually exists.
+
 ---
 
 ## What YaO Does

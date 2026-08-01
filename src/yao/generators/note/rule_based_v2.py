@@ -14,6 +14,13 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING
 
+from yao.generators.note.accompaniment import (
+    build_recall_map,
+    develop_melody,
+    genre_melodic_variation,
+    instrument_roles,
+    realize_accompaniment_for_role,
+)
 from yao.generators.note.base import NoteRealizerBase, register_note_realizer
 from yao.ir.harmony import ChordFunction
 from yao.ir.harmony import realize as realize_chord
@@ -389,6 +396,13 @@ class RuleBasedNoteRealizerV2(NoteRealizerBase):
         ctx = plan.global_context
         key_root, scale_type = _parse_key(ctx.key)
 
+        # Genre profile drives idiomatic accompaniment (e.g. walking bass).
+        from yao.constants.genre_profile import get_genre_profile
+
+        genre_name = ctx.genre.lower() if getattr(ctx, "genre", None) else ""
+        genre_profile = get_genre_profile(genre_name) if genre_name else None
+        walking_bass = bool(genre_profile and getattr(genre_profile, "bass_motion_style", "") == "walking")
+
         provenance.record(
             layer="generator",
             operation="note_realization_v2",
@@ -403,20 +417,11 @@ class RuleBasedNoteRealizerV2(NoteRealizerBase):
             rationale="V2 direct plan consumption — no legacy adapter.",
         )
 
-        # Determine instruments from arrangement or global context
-        if plan.arrangement and plan.arrangement.assignments:
-            # Use arrangement plan for instrument roles
-            melody_assigns = [a for a in plan.arrangement.assignments if a.role == "melody"]
-            instruments = (
-                [a.instrument for a in melody_assigns]
-                if melody_assigns
-                else [plan.arrangement.assignments[0].instrument]
-            )
-        elif ctx.instruments:
-            instruments = [name for name, _role in ctx.instruments]
-        else:
-            instruments = ["piano"]
-        melody_instrument = instruments[0]
+        # Determine instruments WITH roles so non-melody instruments get
+        # accompaniment rendered from the chord plan (not dropped).
+        roster = instrument_roles(plan)
+        melody_names = [name for name, role in roster if role == "melody"]
+        melody_instrument = melody_names[0] if melody_names else roster[0][0]
 
         # Record drum pattern consumption (affects rhythm density decisions)
         if plan.drums:
@@ -432,25 +437,99 @@ class RuleBasedNoteRealizerV2(NoteRealizerBase):
         sections: list[Section] = []
         beats_per_bar = self._beats_per_bar(ctx.time_signature)
 
+        # Cross-section thematic recall: return sections restate the theme
+        # (honors ``recall_melody_from`` from the v1 spec so that
+        # ``thematic_development`` works on the v2 path too).
+        recall_map = build_recall_map(original_spec)
+        realized_melodies: dict[str, tuple[list[Note], float]] = {}
+        recall_counts: dict[str, int] = {}
+        allow_blue = bool(genre_profile and genre_profile.blue_note_probability > 0.0)
+
         carry_pitch = 60  # Carries across sections for melodic continuity
         for section_plan in plan.form.sections:
-            section_notes, carry_pitch = self._realize_section(
-                section_plan=section_plan,
-                plan=plan,
-                key_root=key_root,
-                scale_type=scale_type,
-                beats_per_bar=beats_per_bar,
-                melody_instrument=melody_instrument,
-                rng=rng,
-                provenance=provenance,
-                carry_pitch=carry_pitch,
+            section_start_beat = section_plan.start_bar * beats_per_bar
+            recall_source = recall_map.get(section_plan.id)
+            if recall_source is not None and recall_source in realized_melodies:
+                src_notes, src_start = realized_melodies[recall_source]
+                recall_counts[recall_source] = recall_counts.get(recall_source, 0) + 1
+                variation = genre_melodic_variation(genre_profile, recall_counts[recall_source])
+                recall_chords = [ce for ce in plan.harmony.chord_events if ce.section_id == section_plan.id]
+                # Develop the theme (genre-aware, deterministic via the seeded
+                # rng) rather than copying it note-for-note — exact restatement
+                # reads as monotony. Opening/closing notes anchor recognizability.
+                section_notes = develop_melody(
+                    src_notes,
+                    src_start,
+                    section_start_beat,
+                    melody_instrument,
+                    key_root=key_root,
+                    scale_type=scale_type,
+                    section_chords=recall_chords,
+                    variation=variation,
+                    rng=rng,
+                    allow_blue=allow_blue,
+                )
+                if section_notes:
+                    carry_pitch = section_notes[-1].pitch
+                provenance.record(
+                    layer="generator",
+                    operation="thematic_recall_v2",
+                    parameters={
+                        "section": section_plan.id,
+                        "recalls": recall_source,
+                        "variation": round(variation, 3),
+                        "recall_index": recall_counts[recall_source],
+                    },
+                    source="RuleBasedNoteRealizerV2.realize",
+                    rationale=(
+                        f"Section '{section_plan.id}' develops the theme from "
+                        f"'{recall_source}' (variation={variation:.2f})."
+                    ),
+                )
+            else:
+                section_notes, carry_pitch = self._realize_section(
+                    section_plan=section_plan,
+                    plan=plan,
+                    key_root=key_root,
+                    scale_type=scale_type,
+                    beats_per_bar=beats_per_bar,
+                    melody_instrument=melody_instrument,
+                    rng=rng,
+                    provenance=provenance,
+                    carry_pitch=carry_pitch,
+                )
+            realized_melodies[section_plan.id] = (section_notes, section_start_beat)
+
+            section_chords = [ce for ce in plan.harmony.chord_events if ce.section_id == section_plan.id]
+            base_velocity = _tension_to_velocity(section_plan.target_tension)
+
+            velocity_boosts: dict[str, int] = (
+                {i.name: i.velocity_boost for i in original_spec.instruments} if original_spec else {}
             )
+            parts: list[Part] = [Part(instrument=melody_instrument, notes=tuple(section_notes))]
+            for name, role in roster:
+                if name == melody_instrument:
+                    continue  # already rendered as the lead melody
+                acc_notes = realize_accompaniment_for_role(
+                    role=role,
+                    instrument=name,
+                    section_chords=section_chords,
+                    key_root=key_root,
+                    scale_type=scale_type,
+                    base_velocity=base_velocity,
+                    beats_per_bar=beats_per_bar,
+                    density=section_plan.target_density,
+                    walking_bass=walking_bass,
+                    velocity_boost=velocity_boosts.get(name, 0),
+                )
+                parts.append(Part(instrument=name, notes=tuple(acc_notes)))
+
             sections.append(
                 Section(
                     name=section_plan.id,
                     start_bar=section_plan.start_bar,
                     end_bar=section_plan.end_bar(),
-                    parts=(Part(instrument=melody_instrument, notes=tuple(section_notes)),),
+                    parts=tuple(parts),
                 )
             )
 
@@ -684,6 +763,10 @@ class RuleBasedNoteRealizerV2(NoteRealizerBase):
                 quality = "dom7"
             elif quality == "min":
                 quality = "min7"
+        # Harmonic-minor dominant: render V as major/dominant (raised leading
+        # tone) in minor keys, matching accompaniment.chord_pitches.
+        if degree == 4 and "minor" in scale_type:  # noqa: PLR2004
+            quality = "dom7" if "7" in roman else "maj"
 
         return ChordFunction(degree=degree, quality=quality)
 

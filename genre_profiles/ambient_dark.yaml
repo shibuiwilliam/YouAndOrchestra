@@ -52,3 +52,7 @@ target_spectral_centroid: 0.15
 tempo_range:
 - 40
 - 80
+
+# Ambient is intentionally static/low-contrast — omit the contrast penalty.
+evaluation:
+  static_texture: true

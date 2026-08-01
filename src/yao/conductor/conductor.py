@@ -25,6 +25,7 @@ from yao.conductor.audio_feedback import (
 )
 from yao.conductor.feedback import (
     apply_adaptations,
+    is_adaptation_applicable,
     suggest_adaptations,
     suggest_adaptations_from_findings,
 )
@@ -49,6 +50,34 @@ from yao.verify.evaluator import EvaluationReport, evaluate_score
 _RoleType = Literal["melody", "harmony", "bass", "rhythm", "pad"]
 
 logger = structlog.get_logger()
+
+
+def select_best_iteration(
+    snapshots: list[dict[str, object]],
+) -> dict[str, object] | None:
+    """Select the best iteration snapshot to return (P0.2 keep-best).
+
+    Ranks by ``(pass_rate, quality_score)``: a piece that passes more metrics
+    wins; aggregate quality breaks ties. This prevents a regression on the
+    final iteration from silently shipping when ``max_iterations`` is reached
+    (CLAUDE.md Principle 5 — the human ear / best take is truth).
+
+    Args:
+        snapshots: Per-iteration artifact dicts, each with an ``"evaluation"``
+            key holding an ``EvaluationReport``.
+
+    Returns:
+        The best snapshot, or ``None`` if the list is empty.
+    """
+    if not snapshots:
+        return None
+
+    def _rank(snap: dict[str, object]) -> tuple[float, float]:
+        report = snap["evaluation"]
+        assert isinstance(report, EvaluationReport)
+        return (report.pass_rate, report.quality_score)
+
+    return max(snapshots, key=_rank)
 
 
 # Musical knowledge (mood→key, instruments, genre) is in src/yao/sketch/compiler.py.
@@ -155,6 +184,9 @@ class Conductor:
         project_dir = Path(f"outputs/projects/{project_name}")
         combined_provenance = ProvenanceLog()
         iteration_history: list[EvaluationReport] = []
+        # Snapshot of each iteration's artifacts so we can return the BEST
+        # iteration (not merely the last) when max_iterations is reached.
+        iteration_snapshots: list[dict[str, object]] = []
         adaptations_log: list[str] = []
         current_spec = spec
 
@@ -170,6 +202,25 @@ class Conductor:
             source="Conductor.compose_from_spec",
             rationale="Beginning conductor-managed composition workflow.",
         )
+
+        # Automatic thematic recurrence (opt-in): point "return" sections at
+        # their theme so the primary melody restates/develops it instead of
+        # wandering independently per section. Additive — no effect when off.
+        if current_spec.generation.thematic_development:
+            from yao.generators.thematic_recall import auto_thematic_recall
+
+            current_spec, recall_assignments = auto_thematic_recall(current_spec)
+            for ra in recall_assignments:
+                combined_provenance.record(
+                    layer="conductor",
+                    operation="thematic_recall_auto",
+                    parameters={"section": ra.section, "recalls": ra.recalls, "stem": ra.stem},
+                    source="Conductor.compose_from_spec",
+                    rationale=(
+                        f"thematic_development: section '{ra.section}' restates the theme "
+                        f"from '{ra.recalls}' (shared stem '{ra.stem}')."
+                    ),
+                )
 
         # Iteration loop: generate → evaluate → adapt → regenerate
         for iteration in range(1, max_iterations + 1):
@@ -207,11 +258,10 @@ class Conductor:
                         combined_provenance.add(record)
 
                 # Realize the winning plan to ScoreIR
-                from yao.generators.note.base import NOTE_REALIZERS
+                from yao.generators.note.base import NOTE_REALIZERS, resolve_realizer_name
 
-                strategy = current_spec.generation.strategy
-                if strategy not in NOTE_REALIZERS:
-                    strategy = "rule_based"
+                # Route legacy strategies to the plan-consuming v2 realizers (P1.1).
+                strategy = resolve_realizer_name(current_spec.generation.strategy)
                 realizer = NOTE_REALIZERS[strategy]()
                 seed = current_spec.generation.seed or 42
                 gen_provenance = ProvenanceLog()
@@ -253,8 +303,16 @@ class Conductor:
                     rationale=(f"Adversarial Critic found {len(critic_findings)} issue(s) in iteration {iteration}."),
                 )
 
-            # Generate counter-melodies for instruments with counter_melody role
-            counter_specs = [i for i in current_spec.instruments if i.role == "counter_melody"]
+            # Generate counter-melodies for counter_melody-role instruments the
+            # realizer did NOT already render. The v2 realizers now render
+            # counter_melody parts directly (sparse voicings, high velocity);
+            # generating here too would double the part. Only fill instruments
+            # the realizer left empty (e.g. the phrase_aware path).
+            counter_specs = [
+                i
+                for i in current_spec.instruments
+                if i.role == "counter_melody" and not score.part_for_instrument(i.name)
+            ]
             if counter_specs:
                 from yao.generators.counter_melody import generate_counter_melody
 
@@ -425,8 +483,34 @@ class Conductor:
 
             # Evaluate
             analysis = analyze_score(score)
-            eval_report = evaluate_score(score, current_spec, trajectory)
+            # Genre-aware evaluation: load the genre's UnifiedGenreProfile so
+            # its evaluation weights / percussion_centric reweighting apply
+            # (e.g. a beat-driven genre isn't judged mainly on melody/harmony).
+            genre_eval_profile = None
+            if current_spec.genre:
+                from yao.schema.genre_profile_loader import load_unified_genre_profile
+
+                genre_eval_profile = load_unified_genre_profile(current_spec.genre)
+            # Pass the plan so the aesthetic dimension (surprise/memorability/
+            # contrast/pacing) is scored — makes the 0.20 aesthetic weight real.
+            eval_report = evaluate_score(score, current_spec, trajectory, genre_profile=genre_eval_profile, plan=plan)
             iteration_history.append(eval_report)
+
+            # Snapshot artifacts for keep-best selection at the end.
+            iteration_snapshots.append(
+                {
+                    "score": score,
+                    "spec": current_spec,
+                    "midi_path": midi_path,
+                    "stems": stems,
+                    "analysis": analysis,
+                    "evaluation": eval_report,
+                    "output_dir": output_dir,
+                    "perf_layer": perf_layer,
+                    "critic_findings": critic_findings,
+                    "iteration": iteration,
+                }
+            )
 
             # Save artifacts
             analysis.save(output_dir / "analysis.json")
@@ -491,8 +575,13 @@ class Conductor:
                     )
                     adaptations.extend(critic_adaptations)
                 if adaptations:
-                    current_spec = apply_adaptations(current_spec, adaptations)
-                    for a in adaptations:
+                    # Partition into genuinely-applicable vs unsupported so we
+                    # never record a no-op as "applied" (CLAUDE.md Rule 3).
+                    applicable = [a for a in adaptations if is_adaptation_applicable(a, current_spec)]
+                    dropped = [a for a in adaptations if a not in applicable]
+
+                    current_spec = apply_adaptations(current_spec, applicable)
+                    for a in applicable:
                         msg = f"v{iteration:03d}→v{iteration + 1:03d}: {a.reason}"
                         adaptations_log.append(msg)
                         combined_provenance.record(
@@ -506,6 +595,32 @@ class Conductor:
                             source="Conductor.compose_from_spec",
                             rationale=a.reason,
                         )
+                    for a in dropped:
+                        combined_provenance.record(
+                            layer="conductor",
+                            operation="adaptation_dropped",
+                            parameters={
+                                "field": a.field,
+                                "old": a.old_value,
+                                "new": a.new_value,
+                                "severity": "unhandled",
+                            },
+                            source="Conductor.compose_from_spec",
+                            rationale=(
+                                f"Suggested adaptation to '{a.field}' has no applicable "
+                                f"handler and was NOT applied (would be a silent no-op): {a.reason}"
+                            ),
+                        )
+                    # If nothing was actually applicable, fall through to the
+                    # seed-change path so the next iteration still differs.
+                    if not applicable:
+                        current_seed = current_spec.generation.seed or 42
+                        new_gen = current_spec.generation.model_copy(update={"seed": current_seed + iteration})
+                        current_spec = current_spec.model_copy(update={"generation": new_gen})
+                        adaptations_log.append(
+                            f"v{iteration:03d}→v{iteration + 1:03d}: "
+                            f"No applicable adaptations; trying seed={current_seed + iteration}"
+                        )
                 else:
                     # No adaptations possible — try a different seed
                     current_seed = current_spec.generation.seed or 42
@@ -516,33 +631,66 @@ class Conductor:
                         f"No targeted adaptations; trying seed={current_seed + iteration}"
                     )
 
-        # Max iterations reached — return best result
+        # Max iterations reached — return the BEST iteration, not the last.
+        best = select_best_iteration(iteration_snapshots)
+
+        if best is None:
+            # Defensive: no iteration ran (should not happen). Fall back to last.
+            best_score = score
+            best_spec = current_spec
+            best_midi = midi_path
+            best_stems = stems
+            best_analysis = analysis
+            best_eval = eval_report
+            best_output_dir = output_dir
+            best_perf = perf_layer
+            best_findings = critic_findings
+            best_iteration = max_iterations
+        else:
+            best_score = best["score"]  # type: ignore[assignment]
+            best_spec = best["spec"]  # type: ignore[assignment]
+            best_midi = best["midi_path"]  # type: ignore[assignment]
+            best_stems = best["stems"]  # type: ignore[assignment]
+            best_analysis = best["analysis"]  # type: ignore[assignment]
+            best_eval = best["evaluation"]  # type: ignore[assignment]
+            best_output_dir = best["output_dir"]  # type: ignore[assignment]
+            best_perf = best["perf_layer"]  # type: ignore[assignment]
+            best_findings = best["critic_findings"]  # type: ignore[assignment]
+            best_iteration = int(best["iteration"])  # type: ignore[call-overload]
+
         combined_provenance.record(
             layer="conductor",
             operation="workflow_complete",
             parameters={
                 "iterations": max_iterations,
-                "pass_rate": eval_report.pass_rate,
+                "selected_iteration": best_iteration,
+                "selected_pass_rate": best_eval.pass_rate,
+                "selected_quality_score": round(best_eval.quality_score, 2),
+                "last_pass_rate": eval_report.pass_rate,
             },
             source="Conductor.compose_from_spec",
-            rationale=f"Max iterations ({max_iterations}) reached. Final pass rate: {eval_report.pass_rate:.0%}.",
+            rationale=(
+                f"Max iterations ({max_iterations}) reached. Selected best iteration "
+                f"v{best_iteration:03d} (pass rate {best_eval.pass_rate:.0%}, "
+                f"quality {best_eval.quality_score:.1f}) out of {len(iteration_snapshots)}."
+            ),
         )
-        combined_provenance.save(output_dir / "provenance.json")
+        combined_provenance.save(best_output_dir / "provenance.json")
 
         result = ConductorResult(
-            score=score,
-            spec=current_spec,
-            midi_path=midi_path,
-            stems=stems,
-            analysis=analysis,
-            evaluation=eval_report,
+            score=best_score,
+            spec=best_spec,
+            midi_path=best_midi,
+            stems=best_stems,
+            analysis=best_analysis,
+            evaluation=best_eval,
             provenance=combined_provenance,
             iterations=max_iterations,
             iteration_history=iteration_history,
-            output_dir=output_dir,
+            output_dir=best_output_dir,
             adaptations_applied=adaptations_log,
-            critic_findings=critic_findings,
-            performance_layer=perf_layer,
+            critic_findings=best_findings,
+            performance_layer=best_perf,
         )
         return self._run_audio_loop(result, config or ConductorConfig())
 
@@ -832,17 +980,26 @@ class Conductor:
     def _needs_drum_safety_net(self, spec: CompositionSpec) -> bool:
         """Check if drums are likely needed when genre profile didn't provide them."""
         genre_lower = (spec.genre or "").lower()
-        # Genres that explicitly don't need drums
+        # Genres that explicitly don't need drums (checked against both dot and
+        # underscore forms, e.g. "classical.romantic" == "classical_romantic")
         no_drum_genres = {
             "ambient",
             "ambient_dark",
             "neoclassical",
             "classical_baroque",
             "classical_romantic",
+            "classical.baroque",
+            "classical.romantic",
             "acoustic_folk",
+            "acoustic.folk",
             "world_celtic",
+            "world.celtic",
         }
         if genre_lower in no_drum_genres:
+            return False
+        # Also check by primary genre prefix (e.g. "classical.*" never needs drums)
+        primary = genre_lower.split(".")[0].split("_")[0]
+        if primary == "classical":
             return False
         return spec.tempo_bpm >= 60  # noqa: PLR2004
 

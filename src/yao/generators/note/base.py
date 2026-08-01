@@ -41,6 +41,40 @@ def register_note_realizer(name: str) -> Any:
     return decorator
 
 
+# Route the legacy strategy names to their plan-consuming v2 realizers so the
+# default pipeline uses the MusicalPlan — motif development, cross-section
+# thematic recall, and voice-led full arrangement — instead of the deprecated
+# discard realizers (which reverted to a memoryless random walk). See
+# PROJECT_IMPROVEMENT.md §P1.1.
+_V2_REALIZER_ROUTE: dict[str, str] = {
+    "stochastic": "stochastic_v2",
+    "rule_based": "rule_based_v2",
+}
+
+
+def resolve_realizer_name(strategy: str) -> str:
+    """Resolve a requested strategy to the realizer that should handle it.
+
+    Legacy strategy names are routed to their v2 equivalents when available.
+    Falls back to the requested strategy if registered, else ``rule_based``.
+
+    Args:
+        strategy: The requested generation strategy.
+
+    Returns:
+        The name of a registered note realizer.
+    """
+    routed = _V2_REALIZER_ROUTE.get(strategy, strategy)
+    if routed in NOTE_REALIZERS:
+        return routed
+    if strategy in NOTE_REALIZERS:
+        return strategy
+    # Unknown strategies fall back to the plan-consuming realizer, NOT the
+    # deprecated legacy discard realizer (which would silently degrade output
+    # to a memoryless random walk). See PROJECT_IMPROVEMENT.md §P4.4.
+    return "rule_based_v2" if "rule_based_v2" in NOTE_REALIZERS else "rule_based"
+
+
 class NoteRealizerBase(ABC):
     """Abstract base for note realizers.
 

@@ -196,3 +196,12 @@ class TestCompileEndToEnd:
         )
         # Explicit "in E minor" should override "happy" → C major
         assert spec.key == "E minor"
+
+
+class TestThematicDevelopmentDefault:
+    """Freshly-compiled specs enable thematic recurrence by default (P1.2/(b))."""
+
+    def test_compiled_spec_enables_thematic_development(self) -> None:
+        compiler = SpecCompiler()
+        spec, _ = compiler.compile("a warm nostalgic waltz", "test-thematic")
+        assert spec.generation.thematic_development is True

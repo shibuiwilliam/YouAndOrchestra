@@ -620,7 +620,7 @@ class InstrumentArrangementSpec(BaseModel):
         articulation: Articulation style (e.g., "pluck", "legato").
     """
 
-    role: Literal["melody", "harmony", "bass", "rhythm", "pad"]
+    role: Literal["melody", "harmony", "bass", "rhythm", "pad", "counter_melody"]
     pattern_family: str | None = None
     motion: str | None = None
     voicing: str | None = None
